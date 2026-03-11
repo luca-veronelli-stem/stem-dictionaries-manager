@@ -3,6 +3,17 @@
     <File Path=".copilot/copilot-instructions.md" />
     <File Path=".copilot/sample-instructions.md" />
   </Folder>
+  <Folder Name="/Docs/" />
+  <Folder Name="/Docs/Dictionaries/">
+    <File Path="Docs/Dictionaries/comandi.csv" />
+    <File Path="Docs/Dictionaries/dizionari.xlsx" />
+    <File Path="Docs/Dictionaries/edenbs8.csv" />
+    <File Path="Docs/Dictionaries/firmware.csv" />
+    <File Path="Docs/Dictionaries/indirizzi.csv" />
+    <File Path="Docs/Dictionaries/optimusxp.csv" />
+    <File Path="Docs/Dictionaries/r3lmaster.csv" />
+    <File Path="Docs/Dictionaries/r3lslave.csv" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
