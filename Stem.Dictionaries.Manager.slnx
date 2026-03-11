@@ -1,1 +1,12 @@
-<Solution />
+<Solution>
+  <Folder Name="/.copilot/">
+    <File Path=".copilot/copilot-instructions.md" />
+    <File Path=".copilot/sample-instructions.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="bitbucket-pipelines.yml" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>
