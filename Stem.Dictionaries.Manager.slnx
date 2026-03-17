@@ -3,7 +3,9 @@
     <File Path=".copilot/copilot-instructions.md" />
     <File Path=".copilot/sample-instructions.md" />
   </Folder>
-  <Folder Name="/Docs/" />
+  <Folder Name="/Docs/">
+    <File Path="Docs/ER-schema.puml" />
+  </Folder>
   <Folder Name="/Docs/Dictionaries/">
     <File Path="Docs/Dictionaries/comandi.csv" />
     <File Path="Docs/Dictionaries/dati_standard.CSV" />
