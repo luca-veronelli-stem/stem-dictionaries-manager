@@ -1,7 +1,23 @@
-# pipeline dummy for testing purposes
+# =============================================================================
+# Bitbucket Pipelines - Stem.Dictionaries.Manager
+# =============================================================================
 
+image: mcr.microsoft.com/dotnet/sdk:10.0
+
+# =============================================================================
+# PIPELINES
+# =============================================================================
 pipelines:
+  # ---------------------------------------------------------------------------
+  # DEFAULT - CI su tutti i branch
+  # ---------------------------------------------------------------------------
   default:
     - step:
+        name: Build & Test
         script:
-          - echo "I'm active!"
+          # Build
+          - dotnet build Stem.Dictionaries.Manager.slnx --configuration Release -p:EnableWindowsTargeting=true
+          # Test
+          - dotnet test Tests/Tests.csproj --framework net10.0 --no-build --configuration Release --logger "trx;LogFileName=results.trx" --results-directory ./test-reports
+        artifacts:
+          - test-reports/**
