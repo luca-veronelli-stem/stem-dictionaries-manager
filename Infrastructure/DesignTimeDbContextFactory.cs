@@ -10,9 +10,15 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlite("Data Source=dictionaries.db");
-        
-        return new AppDbContext(optionsBuilder.Options);
+        // Risale al solution root, poi naviga a Infrastructure/Data/
+        var assemblyPath = Path.GetDirectoryName(typeof(DesignTimeDbContextFactory).Assembly.Location);
+        var solutionPath = Path.GetFullPath(Path.Combine(assemblyPath!, "..", "..", "..", ".."));
+        var dbPath = Path.Combine(solutionPath, "Infrastructure", "Data", "development.db");
+
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite($"Data Source={dbPath}")
+            .Options;
+
+        return new AppDbContext(options);
     }
 }
