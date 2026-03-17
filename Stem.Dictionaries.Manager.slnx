@@ -3,10 +3,37 @@
     <File Path=".copilot/copilot-instructions.md" />
     <File Path=".copilot/sample-instructions.md" />
   </Folder>
+  <Folder Name="/Docs/" />
+  <Folder Name="/Docs/Dictionaries/">
+    <File Path="Docs/Dictionaries/comandi.csv" />
+    <File Path="Docs/Dictionaries/dati_standard.CSV" />
+    <File Path="Docs/Dictionaries/dizionari.xlsx" />
+    <File Path="Docs/Dictionaries/eden-bs8.csv" />
+    <File Path="Docs/Dictionaries/eden-xp.CSV" />
+    <File Path="Docs/Dictionaries/firmware.csv" />
+    <File Path="Docs/Dictionaries/gateway_spyke.CSV" />
+    <File Path="Docs/Dictionaries/gradino.CSV" />
+    <File Path="Docs/Dictionaries/hmi_spark.CSV" />
+    <File Path="Docs/Dictionaries/indirizzi.csv" />
+    <File Path="Docs/Dictionaries/o3z-tech.CSV" />
+    <File Path="Docs/Dictionaries/old_eden.CSV" />
+    <File Path="Docs/Dictionaries/optimus-xp.csv" />
+    <File Path="Docs/Dictionaries/pulsantiere.CSV" />
+    <File Path="Docs/Dictionaries/r3l-xp_master.csv" />
+    <File Path="Docs/Dictionaries/r3l-xp_slave.csv" />
+    <File Path="Docs/Dictionaries/sherpa-slim.CSV" />
+    <File Path="Docs/Dictionaries/toplift-a2.CSV" />
+    <File Path="Docs/Dictionaries/toplift-m.CSV" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
     <File Path="bitbucket-pipelines.yml" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
+  <Project Path="GUI.Windows/GUI.Windows.csproj" Id="4aa22c84-d37f-429e-9cb8-5a3fc7811303" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="c83537e0-2958-4e99-a51d-b6ea0138f710" />
+  <Project Path="Services/Services.csproj" Id="3ed47dd5-4eb8-44a2-a301-1970953776ac" />
+  <Project Path="Tests/Tests.csproj" Id="5cfbe6e6-1a16-457d-80e3-e279f66985ef" />
 </Solution>
