@@ -47,7 +47,8 @@ public class DictionaryTests
     public void AddVariable_AddsToList()
     {
         var dictionary = new Dictionary("test");
-        var variable = new Variable("Test", 0x00, 0x01, "uint8_t", AccessMode.ReadOnly);
+        var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t");
 
         dictionary.AddVariable(variable);
 
@@ -67,8 +68,10 @@ public class DictionaryTests
     public void AddVariable_DuplicateAddress_ThrowsInvalidOperationException()
     {
         var dictionary = new Dictionary("test");
-        var var1 = new Variable("Var1", 0x00, 0x01, "uint8_t", AccessMode.ReadOnly);
-        var var2 = new Variable("Var2", 0x00, 0x01, "uint16_t", AccessMode.ReadWrite);
+        var var1 = new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t");
+        var var2 = new Variable("Var2", 0x00, 0x01, DataTypeKind.UInt16, 
+            AccessMode.ReadWrite, "uint16_t");
 
         dictionary.AddVariable(var1);
 
@@ -80,7 +83,8 @@ public class DictionaryTests
     public void RemoveVariable_RemovesFromList()
     {
         var dictionary = new Dictionary("test");
-        var variable = new Variable("Test", 0x00, 0x01, "uint8_t", AccessMode.ReadOnly);
+        var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t");
         dictionary.AddVariable(variable);
 
         dictionary.RemoveVariable(variable);
@@ -92,9 +96,12 @@ public class DictionaryTests
     public void HasUniqueAddresses_AllUnique_ReturnsTrue()
     {
         var dictionary = new Dictionary("test");
-        dictionary.AddVariable(new Variable("Var1", 0x00, 0x01, "uint8_t", AccessMode.ReadOnly));
-        dictionary.AddVariable(new Variable("Var2", 0x00, 0x02, "uint8_t", AccessMode.ReadOnly));
-        dictionary.AddVariable(new Variable("Var3", 0x80, 0x01, "uint8_t", AccessMode.ReadOnly));
+        dictionary.AddVariable(new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t"));
+        dictionary.AddVariable(new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t"));
+        dictionary.AddVariable(new Variable("Var3", 0x80, 0x01, DataTypeKind.UInt8, 
+            AccessMode.ReadOnly, "uint8_t"));
 
         Assert.True(dictionary.HasUniqueAddresses());
     }
@@ -113,8 +120,8 @@ public class DictionaryTests
         var boardType = new BoardType("Madre", 17);
         var variables = new List<Variable>
         {
-            new("Var1", 0x00, 0x01, "uint8_t", AccessMode.ReadOnly),
-            new("Var2", 0x00, 0x02, "uint16_t", AccessMode.ReadWrite)
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t")
         };
 
         var dictionary = Dictionary.Restore(10, "test", boardType, "Description", variables);
