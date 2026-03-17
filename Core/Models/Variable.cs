@@ -11,7 +11,16 @@ public class Variable
     public string Name { get; private set; }
     public byte AddressHigh { get; private set; }
     public byte AddressLow { get; private set; }
-    public string DataType { get; private set; }
+
+    /// <summary>Tipo di dato strutturato.</summary>
+    public DataTypeKind DataTypeKind { get; private set; }
+
+    /// <summary>Parametro opzionale per il tipo (es. 20 per String[20], wordCount per Bitmapped).</summary>
+    public int? DataTypeParam { get; private set; }
+
+    /// <summary>Valore originale del tipo dall'Excel (per export e riferimento).</summary>
+    public string DataTypeRaw { get; private set; }
+
     public string? Format { get; private set; }
     public double? MinValue { get; private set; }
     public double? MaxValue { get; private set; }
@@ -37,8 +46,10 @@ public class Variable
         string name,
         byte addressHigh,
         byte addressLow,
-        string dataType,
+        DataTypeKind dataTypeKind,
         AccessMode accessMode,
+        string dataTypeRaw,
+        int? dataTypeParam = null,
         bool isEnabled = true,
         string? format = null,
         double? minValue = null,
@@ -48,12 +59,14 @@ public class Variable
         string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(dataType);
+        ArgumentException.ThrowIfNullOrWhiteSpace(dataTypeRaw);
 
         Name = name;
         AddressHigh = addressHigh;
         AddressLow = addressLow;
-        DataType = dataType;
+        DataTypeKind = dataTypeKind;
+        DataTypeParam = dataTypeParam;
+        DataTypeRaw = dataTypeRaw;
         AccessMode = accessMode;
         IsEnabled = isEnabled;
         Format = format;
@@ -72,7 +85,9 @@ public class Variable
         string name,
         byte addressHigh,
         byte addressLow,
-        string dataType,
+        DataTypeKind dataTypeKind,
+        string dataTypeRaw,
+        int? dataTypeParam,
         AccessMode accessMode,
         bool isEnabled,
         string? format,
@@ -82,8 +97,8 @@ public class Variable
         string? usage,
         string? description)
     {
-        var variable = new Variable(name, addressHigh, addressLow, dataType, accessMode, 
-            isEnabled, format, minValue, maxValue, unit, usage, description)
+        var variable = new Variable(name, addressHigh, addressLow, dataTypeKind, accessMode,
+            dataTypeRaw, dataTypeParam, isEnabled, format, minValue, maxValue, unit, usage, description)
         {
             Id = id
         };
