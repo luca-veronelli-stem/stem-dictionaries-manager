@@ -1,0 +1,177 @@
+@startuml database-schema
+' =============================================================================
+' Stem.Dictionaries.Manager - Database Schema
+' Generato da: SESSION_005
+' =============================================================================
+
+!define TABLE(name) entity name << (T,#FFAAAA) >>
+!define PK(field) <b>field</b>
+!define FK(field) <i>field</i>
+
+skinparam linetype ortho
+skinparam entity {
+    BackgroundColor #F5F5F5
+    BorderColor #333333
+}
+
+' === UTENTI E AUDIT ===
+
+TABLE(Users) {
+    PK(Id) : int
+    --
+    Username : string(50) <<unique>>
+    DisplayName : string(100)
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+TABLE(AuditEntries) {
+    PK(Id) : int
+    --
+    EntityType : int (enum)
+    EntityId : int
+    Operation : int (enum)
+    FK(ChangedById) : int
+    ChangedAt : datetime
+    PreviousValue : text?
+    NewValue : text?
+    Notes : string(500)?
+}
+
+Users ||--o{ AuditEntries : "ChangedById"
+
+' === BOARD TYPES E BOARDS ===
+
+TABLE(BoardTypes) {
+    PK(Id) : int
+    --
+    Name : string(50) <<unique>>
+    FirmwareType : int
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+TABLE(Boards) {
+    PK(Id) : int
+    --
+    DeviceType : int (enum)
+    FK(BoardTypeId) : int
+    Name : string(50)
+    BoardNumber : int
+    PartNumber : string(20)?
+    ProtocolAddress : uint <<unique>>
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+BoardTypes ||--o{ Boards : "BoardTypeId"
+
+' === DIZIONARI E VARIABILI ===
+
+TABLE(Dictionaries) {
+    PK(Id) : int
+    --
+    Name : string(50) <<unique>>
+    Description : string(500)?
+    FK(BoardTypeId) : int? (null=Standard)
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+TABLE(Variables) {
+    PK(Id) : int
+    --
+    FK(DictionaryId) : int
+    Name : string(100)
+    AddressHigh : byte
+    AddressLow : byte
+    DataTypeKind : int (enum)
+    DataTypeParam : int?
+    DataTypeRaw : string(50)
+    Format : string(50)?
+    MinValue : double?
+    MaxValue : double?
+    Unit : string(20)?
+    AccessMode : int (enum)
+    Usage : string(200)?
+    Description : string(2000)?
+    IsEnabled : bool
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+TABLE(BitInterpretations) {
+    PK(Id) : int
+    --
+    FK(VariableId) : int
+    DeviceType : int (enum)
+    WordIndex : int
+    BitIndex : int
+    Meaning : string(200)
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+BoardTypes ||--o{ Dictionaries : "BoardTypeId"
+Dictionaries ||--o{ Variables : "DictionaryId"
+Variables ||--o{ BitInterpretations : "VariableId"
+
+' === COMANDI ===
+
+TABLE(Commands) {
+    PK(Id) : int
+    --
+    Name : string(100)
+    CodeHigh : byte
+    CodeLow : byte
+    IsResponse : bool
+    ParametersJson : string(1000)
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+TABLE(CommandDeviceStates) {
+    PK(Id) : int
+    --
+    FK(CommandId) : int
+    DeviceType : int (enum)
+    IsEnabled : bool
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+Commands ||--o{ CommandDeviceStates : "CommandId"
+
+' === NOTE ===
+
+note bottom of Variables
+  **Unique constraint:**
+  (DictionaryId, AddressHigh, AddressLow)
+  
+  **Category derivata:**
+  AddressHigh = 0x00 → Standard
+  AddressHigh = 0x80 → DeviceSpecific
+end note
+
+note bottom of BitInterpretations
+  **Unique constraint:**
+  (VariableId, DeviceType, WordIndex, BitIndex)
+end note
+
+note bottom of Commands
+  **Unique constraint:**
+  (CodeHigh, CodeLow, IsResponse)
+end note
+
+note bottom of CommandDeviceStates
+  **Unique constraint:**
+  (CommandId, DeviceType)
+end note
+
+note bottom of Dictionaries
+  BoardTypeId = NULL
+  significa dizionario "Standard"
+  condiviso da tutti i device
+end note
+
+@enduml
