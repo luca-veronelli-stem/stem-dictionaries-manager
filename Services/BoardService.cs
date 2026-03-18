@@ -39,11 +39,11 @@ public class BoardService : IBoardService
     public async Task<Board> AddAsync(Board board, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(board);
-        
+
         // Verifica che BoardType esista
-        var boardType = await _boardTypeRepository.GetByIdAsync(board.BoardType.Id, ct)
+        _ = await _boardTypeRepository.GetByIdAsync(board.BoardType.Id, ct)
             ?? throw new InvalidOperationException($"BoardType with Id {board.BoardType.Id} not found.");
-        
+
         var entity = BoardMapper.ToEntity(board);
         var created = await _boardRepository.AddAsync(entity, ct);
         

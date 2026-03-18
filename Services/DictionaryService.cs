@@ -80,7 +80,7 @@ public class DictionaryService : IDictionaryService
         // Verifica BoardType se specificato
         if (dictionary.BoardType is not null)
         {
-            var boardTypeExists = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct) 
+            _ = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct) 
                 ?? throw new InvalidOperationException($"BoardType with Id {dictionary.BoardType.Id} not found.");
 
             // Verifica che BoardType non abbia già un dizionario (BR-002)
@@ -182,10 +182,10 @@ public class DictionaryService : IDictionaryService
         // Verifica che il dizionario esista
         var dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
             ?? throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
-        
+
         // Verifica unicità indirizzo (usa logica del Domain Model)
-        var domainDict = DictionaryMapper.ToDomainWithVariables(dictionary);
-        
+        _ = DictionaryMapper.ToDomainWithVariables(dictionary);
+
         // Il Domain Model Dictionary.AddVariable già valida l'unicità,
         // ma dobbiamo verificare prima per dare un messaggio chiaro
         var existingByAddress = await _variableRepository.GetByAddressAsync(
