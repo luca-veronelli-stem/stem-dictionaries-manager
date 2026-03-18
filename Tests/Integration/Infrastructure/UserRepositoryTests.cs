@@ -108,4 +108,11 @@ public class UserRepositoryTests : IntegrationTestBase
         var result = await _repository.GetByIdAsync(user.Id);
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task DeleteAsync_NotFound_ThrowsKeyNotFoundException()
+    {
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _repository.DeleteAsync(999));
+    }
 }
