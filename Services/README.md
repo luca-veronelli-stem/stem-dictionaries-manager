@@ -104,7 +104,7 @@ Services/
 ├── UserService.cs                 # Implementazione
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 7 issue tracciate
+└── ISSUES.md                      # 6 issue aperte, 1 risolta
 ```
 
 ---
@@ -288,11 +288,14 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Unit/Mapping | `VariableMapperTests.cs` | 11 |
 | Unit/Mapping | `CommandMapperTests.cs` | 14 |
 | Unit/Mapping | `DictionaryMapperTests.cs` | 15 |
+| Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
+| Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 10 |
 | Integration | `UserServiceTests.cs` | 16 |
 | Integration | `DictionaryServiceTests.cs` | 17 |
 | Integration | `BoardServiceTests.cs` | 17 |
 | Integration | `CommandServiceTests.cs` | 15 |
-| **Totale** | | **125 test** |
+| Integration | `VariableServiceTests.cs` | 23 |
+| **Totale** | | **168 test** |
 
 ```bash
 # Eseguire test Services
@@ -303,13 +306,12 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 7 issue aperte (0 critiche, 0 alte, 3 medie, 4 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 6 issue aperte, 1 risolta (0 critiche, 0 alte, 2 medie, 4 basse)
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
-| SVC-001 | Media | Services dipendono direttamente da AppDbContext |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 | SVC-003 | Media | GetAllAsync senza paginazione |
 

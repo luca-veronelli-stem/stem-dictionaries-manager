@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-304%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-752%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -38,10 +38,10 @@
 | **Modelli dominio** | ✅ | 9 models + 6 enums (Variable, Dictionary, Command, etc.) |
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod) |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
-| **Repository Pattern** | ✅ | 7 repository con interfacce |
+| **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 8 mappers |
 | **GUI Desktop** | ⏳ | WPF application (da sviluppare) |
-| **Test Suite** | ✅ | 304 test (182 unit + 122 integration) |
+| **Test Suite** | ✅ | 752 test (202 unit + 550 integration) |
 
 ---
 
@@ -85,7 +85,7 @@ Stem.Dictionaries.Manager/
 │   └── Mapping/           # Mapper bidirezionali (8)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (9)
-│   ├── Repositories/      # Repository implementations (7)
+│   ├── Repositories/      # Repository implementations (9)
 │   └── Migrations/        # EF Core migrations
 ├── GUI.Windows/           # Applicazione WPF (da sviluppare)
 ├── Tests/                 # Unit & integration tests
@@ -118,9 +118,9 @@ Stem.Dictionaries.Manager/
 | Componente | Issue File | Status |
 |------------|------------|--------|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 5 aperte (2 medie, 3 basse) |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 7 aperte (3 medie, 4 basse) |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 5 aperte, 1 risolta |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 4 aperte, 2 risolte |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 6 aperte, 1 risolta (2 medie, 4 basse) |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 aperte, 2 risolte |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 3 aperte, 3 risolte |
 
 ---
 

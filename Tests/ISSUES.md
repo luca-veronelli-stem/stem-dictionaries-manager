@@ -40,9 +40,9 @@
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Services/Mapping (8) | ✅ 60 | - | ~90% |
-| Infrastructure/Repositories (7) | - | ✅ 57 | ~95% |
-| Services (5) | - | ✅ 65 | ~80% |
+| Services/Mapping (8) | ✅ 80 | - | ~100% |
+| Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
+| Services (5) | - | ✅ 88 | ~95% |
 | GUI.Windows | - | - | N/A |
 
 ---
