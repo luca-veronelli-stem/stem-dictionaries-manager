@@ -9,11 +9,11 @@
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 1 | 6 |
-| [Services](./Services/ISSUES.md) | 7 | 0 | 7 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
+| [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
 | GUI.Windows | - | - | - |
 | [Tests](./Tests/ISSUES.md) | 3 | 3 | 6 |
-| **Totale** | **20** | **4** | **24** |
+| **Totale** | **18** | **6** | **24** |
 
 ---
 
@@ -23,15 +23,15 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 7 | 35% |
-| **Bassa** | 13 | 65% |
-| **Totale** | **20** | 100% |
+| **Media** | 6 | 33% |
+| **Bassa** | 12 | 67% |
+| **Totale** | **18** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
-Media:       ███████░░░░░░░░░░░░░  7
-Bassa:       █████████████░░░░░░░ 13
+Media:       ██████░░░░░░░░░░░░░░  6
+Bassa:       ████████████░░░░░░░░ 12
 ```
 
 ---
@@ -69,14 +69,14 @@ Bassa:       █████████████░░░░░░░ 13
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
-### Infrastructure (6 issue)
+### Infrastructure (4 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
 | [INFRA-002](./Infrastructure/ISSUES.md#infra-002--getallasync-senza-paginazione-rischia-performance-issues) | GetAllAsync senza paginazione | Media | Performance |
 | [INFRA-003](./Infrastructure/ISSUES.md#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile) | DesignTimeDbContextFactory path fragile | Media | Manutenibilità |
-| [INFRA-004](./Infrastructure/ISSUES.md#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate) | Mancano repository BitInterpretation/CommandDeviceState | Bassa | API |
+| ~~INFRA-004~~ | ~~Mancano repository BitInterpretation/CommandDeviceState~~ | ~~Bassa~~ | ✅ **Risolto** (SVC-001) |
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
@@ -91,11 +91,11 @@ Bassa:       █████████████░░░░░░░ 13
 | [TEST-005](./Tests/ISSUES.md#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities) | Mancano test scenari update/delete | Bassa | Copertura |
 | [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
 
-### Services (7 issue aperte)
+### Services (6 issue aperte, 1 risolta)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| [SVC-001](./Services/ISSUES.md#svc-001--services-dipendono-direttamente-da-appdbcontext) | Services dipendono da AppDbContext | Media | Design |
+| ~~SVC-001~~ | ~~Services dipendono da AppDbContext~~ | ~~Media~~ | ✅ **Risolto** |
 | [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService | Media | Feature |
 | [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
 | [SVC-004](./Services/ISSUES.md#svc-004--mancano-mapper-per-boardmapper-con-overload) | BoardMapper overload mancanti | Bassa | Code Smell |
@@ -113,11 +113,11 @@ Bassa:       █████████████░░░░░░░ 13
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **SVC-001** | Services | Services dipendono da AppDbContext | M |
-| 2 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
-| 3 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
-| 4 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
-| 5 | **CORE-002** | Core | Variable.Category deriva solo da AddressHigh | S |
+| 1 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 2 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
+| 3 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 4 | **CORE-002** | Core | Variable.Category deriva solo da AddressHigh | S |
+| 5 | **SVC-002** | Services | Manca IAuditService | M |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -129,12 +129,12 @@ Bassa:       █████████████░░░░░░░ 13
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Infrastructure/Repositories (7) | - | ✅ 57 | ~95% |
-| Services/Mapping (8) | ✅ 60 | - | ~90% |
-| Services (5) | - | ✅ 65 | ~80% |
+| Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
+| Services/Mapping (8) | ✅ 80 | - | ~100% |
+| Services (5) | - | ✅ 88 | ~95% |
 | GUI.Windows | - | - | N/A |
 
-**Totale test:** 304 (182 unit + 122 integration)
+**Totale test:** 752 (202 unit + 550 integration)
 
 ---
 
@@ -142,12 +142,12 @@ Bassa:       █████████████░░░░░░░ 13
 
 | Aspetto | Stato | Note |
 |---------|-------|------|
-| **Architecture** | ✅ 90% | Layer separation corretta |
+| **Architecture** | ✅ 95% | Layer separation corretta, Services decoupled |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ⚠️ 70% | Repository non tutti testati |
+| **Test Coverage** | ✅ 90% | 752 test, copertura ~95% |
 
 ---
 
@@ -189,6 +189,7 @@ Bassa:       █████████████░░░░░░░ 13
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-18 | ✅ **SVC-001 + INFRA-004 risolte** - Services decoupled da AppDbContext, creati BitInterpretationRepository e CommandDeviceStateRepository, +144 test (752 totali) (branch `fix/svc-001`) |
 | 2026-03-18 | ✅ **TEST-001/002 risolte** - Aggiunti 33 test per BoardRepository, BoardTypeRepository, CommandRepository (branch `fix/test-001-002`) |
 | 2026-03-18 | ✅ **INFRA-001 risolta** - DeleteAsync ora lancia KeyNotFoundException (branch `fix/infra-001`) |
 | 2026-03-18 | Creazione iniziale con 17 issue da 3 componenti (Core, Infrastructure, Tests) |

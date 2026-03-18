@@ -12,17 +12,16 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 3 | 0 |
+| **Media** | 2 | 1 |
 | **Bassa** | 4 | 0 |
 
-**Totale aperte:** 7  
-**Totale risolte:** 0
+**Totale aperte:** 6  
+**Totale risolte:** 1
 
 ---
 
 ## Indice Issue Aperte
 
-- [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
 - [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
@@ -32,87 +31,16 @@
 
 ## Indice Issue Risolte
 
-*(Nessuna issue risolta)*
+- [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext-risolto)
 
 ---
 
 ## Priorità Media
 
-### SVC-001 - Services dipendono direttamente da AppDbContext
-
-**Categoria:** Design/Architettura  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Alcuni services (`DictionaryService`, `VariableService`, `CommandService`) dipendono direttamente da `AppDbContext` oltre che dai repository. Questo viola il pattern Repository e crea accoppiamento con l'infrastruttura.
-
-#### File Coinvolti
-
-- `Services/DictionaryService.cs` (riga 18)
-- `Services/VariableService.cs` (riga 19)
-- `Services/CommandService.cs` (riga 18)
-
-#### Codice Problematico
-
-```csharp
-// DictionaryService.cs
-public class DictionaryService : IDictionaryService
-{
-    private readonly IDictionaryRepository _dictionaryRepository;
-    private readonly Infrastructure.AppDbContext _context;  // <-- Dipendenza diretta
-    
-    // Usato per query dirette:
-    var entities = await _context.Dictionaries
-        .Include(d => d.BoardType)
-        .ToListAsync(ct);
-}
-```
-
-#### Problema Specifico
-
-- Viola separation of concerns (Services non dovrebbero conoscere EF Core)
-- Difficile da testare con mock (richiede DbContext reale o in-memory)
-- Query duplicate tra Services e Repository
-- Accoppiamento forte con Infrastructure
-
-#### Soluzione Proposta
-
-**Opzione A: Estendere Repository (raccomandata)**
-
-Aggiungere metodi mancanti ai repository invece di usare DbContext direttamente:
-
-```csharp
-// IDictionaryRepository.cs
-Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(CancellationToken ct);
-
-// DictionaryService.cs - dopo
-public async Task<IReadOnlyList<Dictionary>> GetAllAsync(CancellationToken ct = default)
-{
-    var entities = await _dictionaryRepository.GetAllWithBoardTypeAsync(ct);
-    return DictionaryMapper.ToDomainList(entities);
-}
-```
-
-**Opzione B: Unit of Work Pattern**
-
-Introdurre `IUnitOfWork` per coordinare repository senza esporre DbContext.
-
-#### Benefici Attesi
-
-- Services layer completamente disaccoppiato da EF Core
-- Test più semplici con mock
-- Single responsibility per ogni layer
-
----
-
 ### SVC-002 - Manca IAuditService per gestione audit trail
 
 **Categoria:** Feature Mancante  
-**Priorità:** Media  
+**Priorità:** Media
 **Impatto:** Medio  
 **Status:** Aperto  
 **Data Apertura:** 2026-03-18  
@@ -447,7 +375,97 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 
 ## Issue Risolte
 
-*(Nessuna issue risolta)*
+
+### SVC-001 - Services dipendono direttamente da AppDbContext
+
+**Categoria:** Design/Architettura  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** ✅ Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Chiusura:** 2026-03-18
+
+#### Descrizione
+
+Alcuni services (`DictionaryService`, `VariableService`, `CommandService`) dipendono direttamente da `AppDbContext` oltre che dai repository. Questo viola il pattern Repository e crea accoppiamento con l'infrastruttura.
+
+#### File Coinvolti
+
+- `Services/DictionaryService.cs` (riga 18)
+- `Services/VariableService.cs` (riga 19)
+- `Services/CommandService.cs` (riga 18)
+
+#### Codice Problematico
+
+```csharp
+// DictionaryService.cs
+public class DictionaryService : IDictionaryService
+{
+    private readonly IDictionaryRepository _dictionaryRepository;
+    private readonly Infrastructure.AppDbContext _context;  // <-- Dipendenza diretta
+    
+    // Usato per query dirette:
+    var entities = await _context.Dictionaries
+        .Include(d => d.BoardType)
+        .ToListAsync(ct);
+}
+```
+
+#### Problema Specifico
+
+- Viola separation of concerns (Services non dovrebbero conoscere EF Core)
+- Difficile da testare con mock (richiede DbContext reale o in-memory)
+- Query duplicate tra Services e Repository
+- Accoppiamento forte con Infrastructure
+
+#### Soluzione Proposta
+
+**Opzione A: Estendere Repository (raccomandata)**
+
+Aggiungere metodi mancanti ai repository invece di usare DbContext direttamente:
+
+```csharp
+// IDictionaryRepository.cs
+Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(CancellationToken ct);
+
+// DictionaryService.cs - dopo
+public async Task<IReadOnlyList<Dictionary>> GetAllAsync(CancellationToken ct = default)
+{
+    var entities = await _dictionaryRepository.GetAllWithBoardTypeAsync(ct);
+    return DictionaryMapper.ToDomainList(entities);
+}
+```
+
+**Opzione B: Unit of Work Pattern**
+
+Introdurre `IUnitOfWork` per coordinare repository senza esporre DbContext.
+
+#### Benefici Attesi
+
+- Services layer completamente disaccoppiato da EF Core
+- Test più semplici con mock
+- Single responsibility per ogni layer
+
+#### Soluzione Implementata
+
+Applicata **Opzione A: Estensione Repository**:
+
+1. **Nuovi metodi su repository esistenti:**
+   - `IDictionaryRepository.GetAllWithBoardTypeAsync()`, `ExistsAsync()`
+   - `IVariableRepository.ExistsAsync()`, `GetWithBitInterpretationsAsync()`
+
+2. **Nuovi repository creati:**
+   - `IBitInterpretationRepository` / `BitInterpretationRepository`
+   - `ICommandDeviceStateRepository` / `CommandDeviceStateRepository`
+
+3. **Services refactored:**
+   - `DictionaryService` - rimosso `_context`, usa repository methods
+   - `VariableService` - rimosso `_context`, usa `_bitInterpretationRepository`
+   - `CommandService` - rimosso `_context`, usa `_deviceStateRepository`
+
+4. **Test aggiornati** per riflettere i nuovi costruttori
+
+**Risultato:** 752 test passati, nessuna dipendenza diretta da `AppDbContext` nei Services.
 
 ---
 
@@ -461,7 +479,7 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 
 | Metrica | Valore | Target |
 |---------|--------|--------|
-| Copertura test | ~80% | 90% |
+| Copertura test | ~95% | 90% |
 | Complessità ciclomatica media | Bassa | Bassa |
 | Dipendenze esterne | 2 (Core, Infrastructure) | ≤3 |
 | LOC per file (media) | ~120 | ≤200 |

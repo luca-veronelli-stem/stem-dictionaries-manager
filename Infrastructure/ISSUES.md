@@ -13,10 +13,10 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 1 |
 | **Media** | 2 | 0 |
-| **Bassa** | 3 | 0 |
+| **Bassa** | 2 | 1 |
 
-**Totale aperte:** 5  
-**Totale risolte:** 1
+**Totale aperte:** 4  
+**Totale risolte:** 2
 
 ---
 
@@ -24,13 +24,13 @@
 
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
-- [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
 - [INFRA-006 - DictionaryRepository.GetByNameAsync non normalizza input](#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input)
 
 ## Indice Issue Risolte
 
 - [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
+- [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate-risolto)
 
 ---
 
@@ -180,59 +180,6 @@ var solutionPath = Environment.GetEnvironmentVariable("DICTIONARIES_SOLUTION_PAT
 ---
 
 ## Priorità Bassa
-
-### INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState
-
-**Categoria:** API  
-**Priorità:** Bassa  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Le entities `BitInterpretationEntity` e `CommandDeviceStateEntity` non hanno repository dedicati. Sono accessibili solo tramite `Include()` dai parent (Variable, Command).
-
-#### File Coinvolti
-
-- `Infrastructure/Repositories/` (mancano IBitInterpretationRepository, ICommandDeviceStateRepository)
-- `Infrastructure/DependencyInjection.cs` (mancano registrazioni)
-
-#### Problema Specifico
-
-- Operazioni CRUD dirette su BitInterpretation richiedono accesso tramite Variable
-- Query specifiche (es. "tutti i bit interpretati per DeviceType X") non sono possibili
-- Documentato come TODO nelle copilot-instructions, ma non ancora implementato
-
-#### Soluzione Proposta
-
-```csharp
-// Interfaces/IBitInterpretationRepository.cs
-public interface IBitInterpretationRepository : IRepository<BitInterpretationEntity>
-{
-    Task<IReadOnlyList<BitInterpretationEntity>> GetByDeviceTypeAsync(
-        DeviceType deviceType, CancellationToken ct = default);
-    Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableIdAsync(
-        int variableId, CancellationToken ct = default);
-}
-
-// Interfaces/ICommandDeviceStateRepository.cs
-public interface ICommandDeviceStateRepository : IRepository<CommandDeviceStateEntity>
-{
-    Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceTypeAsync(
-        DeviceType deviceType, CancellationToken ct = default);
-    Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(
-        int commandId, DeviceType deviceType, CancellationToken ct = default);
-}
-```
-
-#### Benefici Attesi
-
-- API completa per tutte le entities
-- Query ottimizzate per casi d'uso specifici
-- Coerenza con altri repository
-
----
 
 ### INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata
 
@@ -416,6 +363,45 @@ public virtual async Task DeleteAsync(int id, CancellationToken cancellationToke
 - Fail-fast su errori di logica ✅
 - API più prevedibile ✅
 - Coerenza con pattern REST (404 se non trovato) ✅
+
+---
+
+### INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState
+
+**Categoria:** API  
+**Priorità:** Bassa  
+**Impatto:** Basso  
+**Status:** ✅ Risolto (parte di SVC-001)  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/svc-001  
+
+#### Descrizione
+
+Le entities `BitInterpretationEntity` e `CommandDeviceStateEntity` non avevano repository dedicati. Erano accessibili solo tramite `Include()` dai parent (Variable, Command).
+
+#### Soluzione Implementata
+
+1. **Creati nuovi repository:**
+   - `IBitInterpretationRepository` / `BitInterpretationRepository`
+   - `ICommandDeviceStateRepository` / `CommandDeviceStateRepository`
+
+2. **Metodi implementati:**
+   - `GetByVariableIdAsync()`, `GetByDeviceTypeAsync()` per BitInterpretation
+   - `GetByCommandIdAsync()`, `GetByCommandAndDeviceAsync()`, `GetByDeviceTypeAsync()` per CommandDeviceState
+
+3. **Registrazione in DependencyInjection.cs**
+
+4. **Test aggiunti:**
+   - `BitInterpretationRepositoryTests.cs` (10 test)
+   - `CommandDeviceStateRepositoryTests.cs` (10 test)
+
+#### Benefici Ottenuti
+
+- API completa per tutte le entities ✅
+- Query ottimizzate per casi d'uso specifici ✅
+- Coerenza con altri repository ✅
+- Services layer disaccoppiato da AppDbContext ✅
 
 ---
 
