@@ -23,7 +23,7 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Entities** | ✅ | 9 entity classes con IAuditable |
-| **Repositories** | ✅ | 7 repository + base generica |
+| **Repositories** | ✅ | 9 repository + base generica |
 | **Migrations** | ✅ | InitialCreate con schema completo |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
@@ -101,6 +101,8 @@ Infrastructure/
 │   ├── IDictionaryRepository.cs
 │   ├── IVariableRepository.cs
 │   ├── ICommandRepository.cs
+│   ├── IBitInterpretationRepository.cs  # ✨ NUOVO
+│   ├── ICommandDeviceStateRepository.cs # ✨ NUOVO
 │   └── IAuditEntryRepository.cs   # Blocca Update/Delete
 ├── Repositories/
 │   ├── RepositoryBase.cs          # Implementazione CRUD comune
@@ -110,6 +112,8 @@ Infrastructure/
 │   ├── DictionaryRepository.cs
 │   ├── VariableRepository.cs
 │   ├── CommandRepository.cs
+│   ├── BitInterpretationRepository.cs    # ✨ NUOVO
+│   ├── CommandDeviceStateRepository.cs   # ✨ NUOVO
 │   └── AuditEntryRepository.cs
 ├── Migrations/
 │   └── InitialCreate              # Schema iniziale (9 tabelle)
@@ -146,9 +150,11 @@ Infrastructure/
 | `IUserRepository` | GetByUsernameAsync |
 | `IBoardTypeRepository` | GetByFirmwareTypeAsync |
 | `IBoardRepository` | GetByDeviceTypeAsync |
-| `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync |
-| `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync |
+| `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync, GetAllWithBoardTypeAsync, ExistsAsync |
+| `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
 | `ICommandRepository` | GetByCodeAsync |
+| `IBitInterpretationRepository` | GetByVariableIdAsync |
+| `ICommandDeviceStateRepository` | GetByCommandIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync (⚠️ Update/Delete bloccati) |
 
 ### Audit Automatico
@@ -196,7 +202,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 5 issue aperte, 1 risolta (0 critiche, 0 alte, 2 medie, 3 basse)
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
 
 ---
 

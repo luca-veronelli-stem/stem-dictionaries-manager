@@ -20,11 +20,11 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | 182 test per Core + Services/Mapping |
-| **Integration Tests** | ✅ | 122 test per Infrastructure + Services |
+| **Unit Tests** | ✅ | 202 test per Core + Services/Mapping |
+| **Integration Tests** | ✅ | 550 test per Infrastructure + Services |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
-| **IntegrationTestBase** | ✅ | Base class per setup/teardown |
+| **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
 
 ---
 
@@ -87,39 +87,44 @@ Tests/
 │   │   ├── DataTypeKindTests.cs      # 4 test
 │   │   ├── DeviceTypeTests.cs        # 5 test
 │   │   └── VariableCategoryTests.cs  # 4 test
-│   └── Models/
-│       ├── AuditEntryTests.cs        # 12 test
-│       ├── BitInterpretationTests.cs # 8 test
-│       ├── BoardTests.cs             # 10 test
-│       ├── BoardTypeTests.cs         # 8 test
-│       ├── CommandDeviceStateTests.cs# 6 test
-│       ├── CommandTests.cs           # 10 test
-│       ├── DictionaryTests.cs        # 14 test
-│       ├── UserTests.cs              # 8 test
-│       └── VariableTests.cs          # 17 test
+│   ├── Models/
+│   │   ├── AuditEntryTests.cs        # 12 test
+│   │   ├── BitInterpretationTests.cs # 8 test
+│   │   ├── BoardTests.cs             # 10 test
+│   │   ├── BoardTypeTests.cs         # 8 test
+│   │   ├── CommandDeviceStateTests.cs# 6 test
+│   │   ├── CommandTests.cs           # 10 test
+│   │   ├── DictionaryTests.cs        # 14 test
+│   │   ├── UserTests.cs              # 8 test
+│   │   └── VariableTests.cs          # 17 test
 │   └── Services/
 │       └── Mapping/
-│           ├── UserMapperTests.cs        # 10 test
-│           ├── BoardTypeMapperTests.cs   # 10 test
-│           ├── VariableMapperTests.cs    # 11 test
-│           ├── CommandMapperTests.cs     # 14 test
-│           └── DictionaryMapperTests.cs  # 15 test
+│           ├── UserMapperTests.cs             # 10 test
+│           ├── BoardTypeMapperTests.cs        # 10 test
+│           ├── VariableMapperTests.cs         # 11 test
+│           ├── CommandMapperTests.cs          # 14 test
+│           ├── DictionaryMapperTests.cs       # 15 test
+│           ├── BitInterpretationMapperTests.cs    # 10 test ✨
+│           └── CommandDeviceStateMapperTests.cs   # 10 test ✨
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory
     ├── Infrastructure/
-    │   ├── AuditEntryRepositoryTests.cs   # 5 test
-    │   ├── AuditFieldsTests.cs            # 4 test
-    │   ├── BoardRepositoryTests.cs        # 12 test
-    │   ├── BoardTypeRepositoryTests.cs    # 10 test
-    │   ├── CommandRepositoryTests.cs      # 11 test
-    │   ├── DatabaseCreationTests.cs       # 3 test
-    │   ├── DictionaryRepositoryTests.cs   # 6 test
-    │   └── UserRepositoryTests.cs         # 6 test
+    │   ├── AuditEntryRepositoryTests.cs       # 5 test
+    │   ├── AuditFieldsTests.cs                # 4 test
+    │   ├── BoardRepositoryTests.cs            # 12 test
+    │   ├── BoardTypeRepositoryTests.cs        # 10 test
+    │   ├── CommandRepositoryTests.cs          # 11 test
+    │   ├── DatabaseCreationTests.cs           # 3 test
+    │   ├── DictionaryRepositoryTests.cs       # 15 test (6+9 per SVC-001)
+    │   ├── UserRepositoryTests.cs             # 6 test
+    │   ├── BitInterpretationRepositoryTests.cs    # 10 test ✨
+    │   └── CommandDeviceStateRepositoryTests.cs   # 10 test ✨
     └── Services/
         ├── UserServiceTests.cs            # 16 test
         ├── DictionaryServiceTests.cs      # 17 test
         ├── BoardServiceTests.cs           # 17 test
-        └── CommandServiceTests.cs         # 15 test
+        ├── CommandServiceTests.cs         # 15 test
+        └── VariableServiceTests.cs        # 23 test ✨
 ```
 
 ---
@@ -180,11 +185,11 @@ public class MyRepositoryTests : IntegrationTestBase
 |------|------|-------------|
 | Unit/Enums | 25 | Valori, count, casting |
 | Unit/Models | 97 | Costruttori, validazione, metodi |
-| Unit/Services/Mapping | 60 | Mapper Entity ↔ Domain |
-| Integration/Infrastructure | 57 | Repository, audit, DB |
-| Integration/Services | 65 | Business logic, validazione |
-| **Totale CI** | **304** | net10.0 (Linux) |
-| **Totale Windows** | **304** | net10.0-windows (include GUI futuro) |
+| Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
+| Integration/Infrastructure | 86 | Repository, audit, DB |
+| Integration/Services | 88 | Business logic, validazione |
+| **Totale CI** | **376** | net10.0 (Linux) |
+| **Totale Windows** | **376** | net10.0-windows (include GUI futuro) |
 
 ---
 
@@ -223,7 +228,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
+→ [Tests/ISSUES.md](./ISSUES.md) — 3 issue aperte, 3 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
 
 ---
 
