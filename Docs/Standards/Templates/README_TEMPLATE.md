@@ -1,6 +1,6 @@
 # README Template - Struttura Standard per README
 
-> **Versione:** 1.0  
+> **Versione:** 1.1  
 > **Data:** 2026-03-18  
 > **Stato:** Active
 
@@ -129,6 +129,7 @@ dotnet test
 ## Links                                   [OBBLIGATORIA - sempre ultima per README progetto]
 
 - [Documento correlato](./path/to/doc.md)
+```
 
 ---
 
@@ -139,11 +140,11 @@ Per il README principale della soluzione:
 ```markdown
 # {NomeSoluzione}
 
-> **{Descrizione breve}**
-
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Tests](https://img.shields.io/badge/tests-{N}%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
+
+> **{Descrizione breve}**
 
 > **Ultimo aggiornamento:** YYYY-MM-DD
 
@@ -283,4 +284,5 @@ Stem.Dictionaries.Manager/
 
 | Data | Versione | Descrizione |
 |------|----------|-------------|
+| 2026-02-18 | 1.1 | README di root: badge subito sotto il titolo |
 | 2026-03-18 | 1.0 | Adattato per Stem.Dictionaries.Manager |
