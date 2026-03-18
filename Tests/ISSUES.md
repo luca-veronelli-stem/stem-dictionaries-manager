@@ -22,8 +22,8 @@
 
 ## Indice Issue Aperte
 
-- [TEST-003 - IntegrationTestBase.SetupTestUser usa .Wait() bloccante](#test-003--integrationtestbasesetuptestuser-usa-wait-bloccante)
-- [TEST-004 - Manca cartella Unit/Infrastructure per test DependencyInjection](#test-004--manca-cartella-unitinfrastructure-per-test-dependencyinjection)
+- [TEST-003 - Uso di .Wait() bloccante nei costruttori test](#test-003--uso-di-wait-bloccante-nei-costruttori-test)
+- [TEST-004 - Mancano test per DependencyInjection](#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services)
 - [TEST-005 - Mancano test per scenari di rilavorazione/update entities](#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
@@ -40,44 +40,56 @@
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Infrastructure/Repositories (7) | - | ✅ 56 | ~95% |
-| Services (0) | - | - | N/A |
+| Services/Mapping (8) | ✅ 60 | - | ~90% |
+| Infrastructure/Repositories (7) | - | ✅ 57 | ~95% |
+| Services (5) | - | ✅ 65 | ~80% |
 | GUI.Windows | - | - | N/A |
 
 ---
 
 ## Priorità Media
 
-### TEST-003 - IntegrationTestBase.SetupTestUser usa .Wait() bloccante
+### TEST-003 - Uso di .Wait() bloccante nei costruttori test
 
 **Categoria:** Anti-Pattern  
 **Priorità:** Media  
-**Impatto:** Basso  
+**Impatto:** Medio  
 **Status:** Aperto  
 **Data Apertura:** 2026-03-18  
 
 #### Descrizione
 
-In `AuditEntryRepositoryTests`, il costruttore chiama `SetupTestUser().Wait()` che è un anti-pattern (blocking su async).
+Diversi test di integrazione usano `.Wait()` nei costruttori per setup asincroni, che è un anti-pattern (blocking su async).
 
-#### File Coinvolti
+#### File Coinvolti (3 file)
 
-- `Tests/Integration/Infrastructure/AuditEntryRepositoryTests.cs` (righe 18-19)
+- `Tests/Integration/Infrastructure/AuditEntryRepositoryTests.cs` (riga 19)
+- `Tests/Integration/Services/DictionaryServiceTests.cs` (riga 28)
+- `Tests/Integration/Services/BoardServiceTests.cs` (riga 23)
 
 #### Codice Problematico
 
 ```csharp
+// AuditEntryRepositoryTests.cs
 public AuditEntryRepositoryTests()
 {
     _repository = new AuditEntryRepository(Context);
     SetupTestUser().Wait();  // <-- Anti-pattern: blocking call
 }
 
-private async Task SetupTestUser()
+// DictionaryServiceTests.cs
+public DictionaryServiceTests()
 {
-    _testUser = new UserEntity { Username = "admin", DisplayName = "Admin" };
-    Context.Users.Add(_testUser);
-    await Context.SaveChangesAsync();
+    // ...
+    SetupBoardType().Wait();  // <-- Anti-pattern
+}
+
+// BoardServiceTests.cs  
+public BoardServiceTests()
+{
+    // ...
+    SetupBoardType().Wait();  // <-- Anti-pattern
+}
 }
 ```
 
@@ -125,9 +137,9 @@ public class AuditEntryRepositoryTests : IntegrationTestBase, IAsyncLifetime
 
 ## Priorità Bassa
 
-### TEST-004 - Manca cartella Unit/Infrastructure per test DependencyInjection
+### TEST-004 - Mancano test per DependencyInjection (Infrastructure e Services)
 
-**Categoria:** Struttura  
+**Categoria:** Struttura/Copertura  
 **Priorità:** Bassa  
 **Impatto:** Basso  
 **Status:** Aperto  
@@ -135,26 +147,30 @@ public class AuditEntryRepositoryTests : IntegrationTestBase, IAsyncLifetime
 
 #### Descrizione
 
-Il metodo `AddInfrastructure()` in `DependencyInjection.cs` non ha unit test. La struttura cartelle non prevede `Unit/Infrastructure/`.
+I metodi `AddInfrastructure()` e `AddServices()` non hanno unit test. La struttura cartelle non prevede `Unit/Infrastructure/` né `Unit/Services/DependencyInjection/`.
 
 #### Struttura Attuale vs Proposta
 
 ```
 Tests/
 ├── Unit/
-│   ├── Enums/           ✅
-│   ├── Models/          ✅
-│   └── Infrastructure/  ❌ MANCA
+│   ├── Enums/               ✅
+│   ├── Models/              ✅
+│   ├── Services/
+│   │   └── Mapping/         ✅
+│   │   └── DependencyInjectionTests.cs  ❌ MANCA
+│   └── Infrastructure/      ❌ MANCA
 │       └── DependencyInjectionTests.cs
 └── Integration/
-    └── Infrastructure/  ✅
+    ├── Infrastructure/      ✅
+    └── Services/            ✅
 ```
 
 #### Test Mancanti
 
 ```csharp
 // Tests/Unit/Infrastructure/DependencyInjectionTests.cs
-public class DependencyInjectionTests
+public class InfrastructureDependencyInjectionTests
 {
     [Fact]
     public void AddInfrastructure_RegistersAllRepositories()
@@ -162,16 +178,27 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
         services.AddInfrastructure("Data Source=:memory:");
         var provider = services.BuildServiceProvider();
-        
+
         Assert.NotNull(provider.GetService<IUserRepository>());
         Assert.NotNull(provider.GetService<IDictionaryRepository>());
         // ... tutti i repository
     }
-    
+}
+
+// Tests/Unit/Services/DependencyInjectionTests.cs
+public class ServicesDependencyInjectionTests
+{
     [Fact]
-    public void AddInfrastructure_RegistersDbContext()
+    public void AddServices_RegistersAllServices()
     {
-        // ...
+        var services = new ServiceCollection();
+        services.AddInfrastructure("Data Source=:memory:");
+        services.AddServices();
+        var provider = services.BuildServiceProvider();
+
+        Assert.NotNull(provider.GetService<IDictionaryService>());
+        Assert.NotNull(provider.GetService<IUserService>());
+        // ... tutti i services
     }
 }
 ```

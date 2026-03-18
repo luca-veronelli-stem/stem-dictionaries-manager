@@ -16,6 +16,14 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
         return await DbSet.FirstOrDefaultAsync(d => d.Name == name, cancellationToken);
     }
 
+    public async Task<DictionaryEntity?> GetByBoardTypeAsync(int boardTypeId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(d => d.BoardType)
+            .FirstOrDefaultAsync(d => d.BoardTypeId == boardTypeId, cancellationToken);
+    }
+
     public async Task<DictionaryEntity?> GetWithVariablesAsync(int id, 
         CancellationToken cancellationToken = default)
     {

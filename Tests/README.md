@@ -9,8 +9,8 @@
 
 Il progetto **Tests** contiene tutti i test automatizzati per la soluzione Stem.Dictionaries.Manager:
 
-- **Unit Tests** - Test isolati per modelli ed enum (Core)
-- **Integration Tests** - Test con database SQLite in-memory (Infrastructure)
+- **Unit Tests** - Test isolati per modelli, enum e mapper (Core, Services/Mapping)
+- **Integration Tests** - Test con database SQLite in-memory (Infrastructure, Services)
 
 I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipli.
 
@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | 122 test per Core (6 enum + 9 models) |
-| **Integration Tests** | ✅ | 57 test per Infrastructure (repositories + audit) |
+| **Unit Tests** | ✅ | 182 test per Core + Services/Mapping |
+| **Integration Tests** | ✅ | 122 test per Infrastructure + Services |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown |
@@ -97,17 +97,29 @@ Tests/
 │       ├── DictionaryTests.cs        # 14 test
 │       ├── UserTests.cs              # 8 test
 │       └── VariableTests.cs          # 17 test
+│   └── Services/
+│       └── Mapping/
+│           ├── UserMapperTests.cs        # 10 test
+│           ├── BoardTypeMapperTests.cs   # 10 test
+│           ├── VariableMapperTests.cs    # 11 test
+│           ├── CommandMapperTests.cs     # 14 test
+│           └── DictionaryMapperTests.cs  # 15 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory
-    └── Infrastructure/
-        ├── AuditEntryRepositoryTests.cs   # 5 test
-        ├── AuditFieldsTests.cs            # 4 test
-        ├── BoardRepositoryTests.cs        # 12 test
-        ├── BoardTypeRepositoryTests.cs    # 10 test
-        ├── CommandRepositoryTests.cs      # 11 test
-        ├── DatabaseCreationTests.cs       # 3 test
-        ├── DictionaryRepositoryTests.cs   # 6 test
-        └── UserRepositoryTests.cs         # 6 test
+    ├── Infrastructure/
+    │   ├── AuditEntryRepositoryTests.cs   # 5 test
+    │   ├── AuditFieldsTests.cs            # 4 test
+    │   ├── BoardRepositoryTests.cs        # 12 test
+    │   ├── BoardTypeRepositoryTests.cs    # 10 test
+    │   ├── CommandRepositoryTests.cs      # 11 test
+    │   ├── DatabaseCreationTests.cs       # 3 test
+    │   ├── DictionaryRepositoryTests.cs   # 6 test
+    │   └── UserRepositoryTests.cs         # 6 test
+    └── Services/
+        ├── UserServiceTests.cs            # 16 test
+        ├── DictionaryServiceTests.cs      # 17 test
+        ├── BoardServiceTests.cs           # 17 test
+        └── CommandServiceTests.cs         # 15 test
 ```
 
 ---
@@ -168,9 +180,11 @@ public class MyRepositoryTests : IntegrationTestBase
 |------|------|-------------|
 | Unit/Enums | 25 | Valori, count, casting |
 | Unit/Models | 97 | Costruttori, validazione, metodi |
-| Integration | 57 | Repository, audit, DB |
-| **Totale CI** | **179** | net10.0 (Linux) |
-| **Totale Windows** | **179** | net10.0-windows (include GUI futuro) |
+| Unit/Services/Mapping | 60 | Mapper Entity ↔ Domain |
+| Integration/Infrastructure | 57 | Repository, audit, DB |
+| Integration/Services | 65 | Business logic, validazione |
+| **Totale CI** | **304** | net10.0 (Linux) |
+| **Totale Windows** | **304** | net10.0-windows (include GUI futuro) |
 
 ---
 

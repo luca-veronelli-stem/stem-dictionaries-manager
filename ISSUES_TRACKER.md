@@ -10,10 +10,10 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 1 | 6 |
-| Services | - | - | - |
+| [Services](./Services/ISSUES.md) | 7 | 0 | 7 |
 | GUI.Windows | - | - | - |
 | [Tests](./Tests/ISSUES.md) | 4 | 2 | 6 |
-| **Totale** | **14** | **3** | **17** |
+| **Totale** | **21** | **3** | **24** |
 
 ---
 
@@ -23,15 +23,15 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 5 | 36% |
-| **Bassa** | 9 | 64% |
-| **Totale** | **14** | 100% |
+| **Media** | 8 | 38% |
+| **Bassa** | 13 | 62% |
+| **Totale** | **21** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
-Media:       ███████░░░░░░░░░░░░░  7
-Bassa:       █████████░░░░░░░░░░░  9
+Media:       ████████░░░░░░░░░░░░  8
+Bassa:       █████████████░░░░░░░ 13
 ```
 
 ---
@@ -91,9 +91,17 @@ Bassa:       █████████░░░░░░░░░░░  9
 | [TEST-005](./Tests/ISSUES.md#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities) | Mancano test scenari update/delete | Bassa | Copertura |
 | [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
 
-### Services (da sviluppare)
+### Services (7 issue aperte)
 
-*Il layer Services non è ancora implementato. Le issue saranno tracciate quando verrà sviluppato.*
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|
+| [SVC-001](./Services/ISSUES.md#svc-001--services-dipendono-direttamente-da-appdbcontext) | Services dipendono da AppDbContext | Media | Design |
+| [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService | Media | Feature |
+| [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
+| [SVC-004](./Services/ISSUES.md#svc-004--mancano-mapper-per-boardmapper-con-overload) | BoardMapper overload mancanti | Bassa | Code Smell |
+| [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | GetWithDeviceStates non espone stati | Bassa | Design |
+| [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
+| [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 
 ### GUI.Windows (da sviluppare)
 
@@ -105,11 +113,11 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
-| 2 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
-| 3 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
-| 4 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
-| 5 | **TEST-004** | Tests | Manca cartella Unit/Infrastructure | S |
+| 1 | **SVC-001** | Services | Services dipendono da AppDbContext | M |
+| 2 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
+| 3 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 4 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
+| 5 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -121,11 +129,12 @@ Bassa:       █████████░░░░░░░░░░░  9
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Infrastructure/Repositories (7) | - | ✅ 56 | ~95% |
-| Services | - | - | N/A |
+| Infrastructure/Repositories (7) | - | ✅ 57 | ~95% |
+| Services/Mapping (8) | ✅ 60 | - | ~90% |
+| Services (5) | - | ✅ 65 | ~80% |
 | GUI.Windows | - | - | N/A |
 
-**Totale test:** 145 (122 unit + 23 integration)
+**Totale test:** 304 (182 unit + 122 integration)
 
 ---
 
@@ -136,7 +145,7 @@ Bassa:       █████████░░░░░░░░░░░  9
 | **Architecture** | ✅ 90% | Layer separation corretta |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
-| **Performance** | ⚠️ 80% | GetAllAsync senza paginazione (INFRA-002) |
+| **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
 | **Test Coverage** | ⚠️ 70% | Repository non tutti testati |
 
