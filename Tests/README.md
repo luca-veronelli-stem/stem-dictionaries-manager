@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | 202 test per Core + Services/Mapping |
-| **Integration Tests** | ✅ | 550 test per Infrastructure + Services |
+| **Unit Tests** | ✅ | 265 test per Core + Services/Mapping + GUI |
+| **Integration Tests** | ✅ | 192 test per Infrastructure + Services |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
@@ -97,10 +97,21 @@ Tests/
 │   │   ├── DictionaryTests.cs        # 14 test
 │   │   ├── UserTests.cs              # 8 test
 │   │   └── VariableTests.cs          # 17 test
-│   ├── Infrastructure/                    # ✨ NUOVO
+│   ├── Infrastructure/
 │   │   └── DependencyInjectionTests.cs    # 13 test
+│   ├── GUI/                               # ✨ NUOVO (solo Windows)
+│   │   ├── Mocks/
+│   │   │   ├── MockServices.cs            # Mock per GUI services
+│   │   │   └── MockDataServices.cs        # Mock per data services
+│   │   ├── ViewModels/
+│   │   │   ├── DictionaryListViewModelTests.cs   # 14 test
+│   │   │   ├── DictionaryEditViewModelTests.cs   # 17 test
+│   │   │   └── MainViewModelTests.cs             # 7 test
+│   │   ├── Services/
+│   │   │   └── NavigationServiceTests.cs         # 12 test
+│   │   └── DependencyInjectionTests.cs           # 13 test
 │   └── Services/
-│       ├── DependencyInjectionTests.cs    # 10 test ✨
+├── DependencyInjectionTests.cs    # 10 test
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
 │           ├── BoardTypeMapperTests.cs        # 10 test
@@ -117,7 +128,7 @@ Tests/
     │   ├── BoardRepositoryTests.cs            # 12 test
     │   ├── BoardTypeRepositoryTests.cs        # 10 test
     │   ├── CommandRepositoryTests.cs          # 11 test
-    │   ├── CrudScenariosTests.cs              # 18 test ✨
+    ├── CrudScenariosTests.cs              # 18 test
     │   ├── DatabaseCreationTests.cs           # 3 test
     │   ├── DictionaryRepositoryTests.cs       # 15 test
     │   ├── UserRepositoryTests.cs             # 6 test
@@ -192,10 +203,11 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
 | Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
+| Unit/GUI (Windows) | 63 | ViewModels, Services, DI ✨ |
 | Integration/Infrastructure | 104 | Repository, audit, DB, CRUD scenarios |
 | Integration/Services | 88 | Business logic, validazione |
 | **Totale CI** | **417** | net10.0 (Linux) |
-| **Totale Windows** | **417** | net10.0-windows (include GUI futuro) |
+| **Totale Windows** | **480** | net10.0-windows (+63 GUI tests) |
 
 ---
 
@@ -206,7 +218,7 @@ Il progetto supporta due target framework:
 | Target | Piattaforma | Include | Uso |
 |--------|-------------|---------|-----|
 | `net10.0` | Cross-platform | Core, Infrastructure, Services | CI/CD (Linux) |
-| `net10.0-windows` | Windows | + GUI.Windows | Test locali + GUI |
+| `net10.0-windows` | Windows | + GUI.Windows (63 test) | Test locali + GUI |
 
 ```xml
 <!-- Tests.csproj -->
