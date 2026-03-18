@@ -45,7 +45,7 @@
 | Services/DI | ✅ 10 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows | - | - | N/A |
+| GUI.Windows (ViewModels, Services, DI) | ✅ 63 | - | ~80% ✨ |
 
 ---
 
