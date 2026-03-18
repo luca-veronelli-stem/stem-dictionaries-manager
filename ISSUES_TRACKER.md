@@ -12,8 +12,8 @@
 | [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 1 | 6 |
 | [Services](./Services/ISSUES.md) | 7 | 0 | 7 |
 | GUI.Windows | - | - | - |
-| [Tests](./Tests/ISSUES.md) | 4 | 2 | 6 |
-| **Totale** | **21** | **3** | **24** |
+| [Tests](./Tests/ISSUES.md) | 3 | 3 | 6 |
+| **Totale** | **20** | **4** | **24** |
 
 ---
 
@@ -23,14 +23,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 8 | 38% |
-| **Bassa** | 13 | 62% |
-| **Totale** | **21** | 100% |
+| **Media** | 7 | 35% |
+| **Bassa** | 13 | 65% |
+| **Totale** | **20** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
-Media:       ████████░░░░░░░░░░░░  8
+Media:       ███████░░░░░░░░░░░░░  7
 Bassa:       █████████████░░░░░░░ 13
 ```
 
@@ -48,7 +48,7 @@ Bassa:       █████████████░░░░░░░ 13
 
 ## Issue Trasversali (T-xxx)
 
-> **Nota:** Le issue trasversali saranno aggiunte quando Services e GUI.Windows saranno implementati.
+> **Nota:** Le issue trasversali saranno aggiunte quando GUI.Windows sara implementato.
 > Per ora, le issue sono isolate per componente.
 
 | ID | Titolo | Status | Componenti Coinvolti |
@@ -80,14 +80,14 @@ Bassa:       █████████████░░░░░░░ 13
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Tests (4 issue aperte, 2 risolte)
+### Tests (3 issue aperte, 3 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~TEST-001~~ | ~~Mancano test BoardRepository e CommandRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-002~~ | ~~Mancano test BoardTypeRepository~~ | ~~Media~~ | ✅ **Risolto** |
-| [TEST-003](./Tests/ISSUES.md#test-003--integrationtestbasesetuptestuser-usa-wait-bloccante) | SetupTestUser usa .Wait() bloccante | Media | Anti-Pattern |
-| [TEST-004](./Tests/ISSUES.md#test-004--manca-cartella-unitinfrastructure-per-test-dependencyinjection) | Manca cartella Unit/Infrastructure | Bassa | Struttura |
+| ~~TEST-003~~ | ~~Uso .Wait() bloccante~~ | ~~Media~~ | ✅ **Risolto** |
+| [TEST-004](./Tests/ISSUES.md#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services) | Mancano test DI | Bassa | Struttura |
 | [TEST-005](./Tests/ISSUES.md#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities) | Mancano test scenari update/delete | Bassa | Copertura |
 | [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
 
@@ -114,10 +114,10 @@ Bassa:       █████████████░░░░░░░ 13
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-001** | Services | Services dipendono da AppDbContext | M |
-| 2 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
-| 3 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
-| 4 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
-| 5 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 2 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 3 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
+| 4 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 5 | **CORE-002** | Core | Variable.Category deriva solo da AddressHigh | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 

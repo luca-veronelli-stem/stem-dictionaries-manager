@@ -12,17 +12,16 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 1 | 2 |
+| **Media** | 0 | 3 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 2
+**Totale aperte:** 3  
+**Totale risolte:** 3
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-003 - Uso di .Wait() bloccante nei costruttori test](#test-003--uso-di-wait-bloccante-nei-costruttori-test)
 - [TEST-004 - Mancano test per DependencyInjection](#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services)
 - [TEST-005 - Mancano test per scenari di rilavorazione/update entities](#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
@@ -31,6 +30,7 @@
 
 - [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
 - [TEST-002 - Mancano test per BoardTypeRepository](#test-002--mancano-test-per-boardtyperepository)
+- [TEST-003 - Uso di .Wait() bloccante nei costruttori test](#test-003--uso-di-wait-bloccante-nei-costruttori-test)
 
 ---
 
@@ -44,94 +44,6 @@
 | Infrastructure/Repositories (7) | - | ✅ 57 | ~95% |
 | Services (5) | - | ✅ 65 | ~80% |
 | GUI.Windows | - | - | N/A |
-
----
-
-## Priorità Media
-
-### TEST-003 - Uso di .Wait() bloccante nei costruttori test
-
-**Categoria:** Anti-Pattern  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Diversi test di integrazione usano `.Wait()` nei costruttori per setup asincroni, che è un anti-pattern (blocking su async).
-
-#### File Coinvolti (3 file)
-
-- `Tests/Integration/Infrastructure/AuditEntryRepositoryTests.cs` (riga 19)
-- `Tests/Integration/Services/DictionaryServiceTests.cs` (riga 28)
-- `Tests/Integration/Services/BoardServiceTests.cs` (riga 23)
-
-#### Codice Problematico
-
-```csharp
-// AuditEntryRepositoryTests.cs
-public AuditEntryRepositoryTests()
-{
-    _repository = new AuditEntryRepository(Context);
-    SetupTestUser().Wait();  // <-- Anti-pattern: blocking call
-}
-
-// DictionaryServiceTests.cs
-public DictionaryServiceTests()
-{
-    // ...
-    SetupBoardType().Wait();  // <-- Anti-pattern
-}
-
-// BoardServiceTests.cs  
-public BoardServiceTests()
-{
-    // ...
-    SetupBoardType().Wait();  // <-- Anti-pattern
-}
-}
-```
-
-#### Problema Specifico
-
-- `.Wait()` può causare deadlock in alcuni contesti
-- Viola la regola "async all the way"
-- xUnit supporta costruttori async tramite `IAsyncLifetime`
-
-#### Soluzione Proposta
-
-Implementare `IAsyncLifetime`:
-
-```csharp
-public class AuditEntryRepositoryTests : IntegrationTestBase, IAsyncLifetime
-{
-    private readonly AuditEntryRepository _repository;
-    private UserEntity _testUser = null!;
-
-    public AuditEntryRepositoryTests()
-    {
-        _repository = new AuditEntryRepository(Context);
-    }
-
-    public async Task InitializeAsync()
-    {
-        _testUser = new UserEntity { Username = "admin", DisplayName = "Admin" };
-        Context.Users.Add(_testUser);
-        await Context.SaveChangesAsync();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
-    
-    // ... tests
-}
-```
-
-#### Benefici Attesi
-
-- Elimina anti-pattern blocking
-- Coerenza con best practice xUnit
-- Previene potenziali deadlock
 
 ---
 
@@ -432,6 +344,57 @@ Creato il file di test:
 
 - Verifica comportamento lookup per nome/firmwareType ✅
 - Copertura metodi custom ✅
+
+---
+
+### TEST-003 - Uso di .Wait() bloccante nei costruttori test
+
+**Categoria:** Anti-Pattern  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/test-003  
+
+#### Descrizione
+
+Diversi test di integrazione usavano `.Wait()` nei costruttori per setup asincroni, che è un anti-pattern (blocking su async).
+
+#### File Coinvolti (3 file)
+
+- `Tests/Integration/Infrastructure/AuditEntryRepositoryTests.cs`
+- `Tests/Integration/Services/DictionaryServiceTests.cs`
+- `Tests/Integration/Services/BoardServiceTests.cs`
+
+#### Soluzione Implementata
+
+1. **IntegrationTestBase** ora implementa `IAsyncLifetime` con metodi virtuali:
+   - `InitializeAsync()` - default vuoto, override per setup async
+   - `DisposeAsync()` - default vuoto, override per cleanup async
+
+2. **Classi derivate** fanno `override InitializeAsync()` invece di `.Wait()`:
+
+```csharp
+// Prima (anti-pattern)
+public AuditEntryRepositoryTests()
+{
+    SetupTestUser().Wait();  // ❌ Blocking call
+}
+
+// Dopo (best practice)
+public override async Task InitializeAsync()
+{
+    await SetupTestUser();  // ✅ Async all the way
+}
+```
+
+#### Benefici Ottenuti
+
+- Eliminato anti-pattern blocking ✅
+- Coerenza con best practice xUnit ✅
+- Previene potenziali deadlock ✅
+- Pattern riusabile per futuri test ✅
 
 ---
 

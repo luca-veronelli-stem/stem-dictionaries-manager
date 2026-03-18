@@ -7,8 +7,9 @@ namespace Tests.Integration;
 /// <summary>
 /// Base class per integration tests con SQLite in-memory.
 /// Crea un DB pulito per ogni test.
+/// Implementa IAsyncLifetime per setup asincrono (override InitializeAsync).
 /// </summary>
-public abstract class IntegrationTestBase : IDisposable
+public abstract class IntegrationTestBase : IDisposable, IAsyncLifetime
 {
     private readonly SqliteConnection _connection;
     protected readonly AppDbContext Context;
@@ -26,6 +27,16 @@ public abstract class IntegrationTestBase : IDisposable
         Context = new AppDbContext(options);
         Context.Database.EnsureCreated();
     }
+
+    /// <summary>
+    /// Override per setup asincrono (es. seed dati test).
+    /// </summary>
+    public virtual Task InitializeAsync() => Task.CompletedTask;
+
+    /// <summary>
+    /// Override per cleanup asincrono se necessario.
+    /// </summary>
+    public virtual Task DisposeAsync() => Task.CompletedTask;
 
     public void Dispose()
     {
