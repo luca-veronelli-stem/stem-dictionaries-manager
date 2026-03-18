@@ -9,11 +9,11 @@
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 6 | 0 | 6 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 1 | 6 |
 | Services | - | - | - |
 | GUI.Windows | - | - | - |
 | [Tests](./Tests/ISSUES.md) | 6 | 0 | 6 |
-| **Totale** | **17** | **0** | **17** |
+| **Totale** | **16** | **1** | **17** |
 
 ---
 
@@ -22,14 +22,14 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 1 | 6% |
-| **Media** | 7 | 41% |
-| **Bassa** | 9 | 53% |
-| **Totale** | **17** | 100% |
+| **Alta** | 0 | 0% |
+| **Media** | 7 | 44% |
+| **Bassa** | 9 | 56% |
+| **Totale** | **16** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        █░░░░░░░░░░░░░░░░░░░  1
+Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
 Media:       ███████░░░░░░░░░░░░░  7
 Bassa:       █████████░░░░░░░░░░░  9
 ```
@@ -38,9 +38,11 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 ## Issue Alta Priorità
 
-| ID | Componente | Titolo | Categoria |
-|----|------------|--------|-----------|
-| **INFRA-001** | Infrastructure | RepositoryBase.DeleteAsync non solleva eccezione se non trovato | API |
+| ID | Componente | Titolo | Status |
+|----|------------|--------|--------|
+| ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
+
+*Nessuna issue alta priorità aperta.*
 
 ---
 
@@ -71,7 +73,7 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| [INFRA-001](./Infrastructure/ISSUES.md#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata) | DeleteAsync non solleva eccezione se non trovato | **Alta** | API |
+| ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
 | [INFRA-002](./Infrastructure/ISSUES.md#infra-002--getallasync-senza-paginazione-rischia-performance-issues) | GetAllAsync senza paginazione | Media | Performance |
 | [INFRA-003](./Infrastructure/ISSUES.md#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile) | DesignTimeDbContextFactory path fragile | Media | Manutenibilità |
 | [INFRA-004](./Infrastructure/ISSUES.md#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate) | Mancano repository BitInterpretation/CommandDeviceState | Bassa | API |
@@ -103,11 +105,11 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **INFRA-001** | Infrastructure | DeleteAsync non solleva eccezione | S |
-| 2 | **TEST-001** | Tests | Mancano test BoardRepository/CommandRepository | M |
-| 3 | **TEST-002** | Tests | Mancano test BoardTypeRepository | S |
-| 4 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
-| 5 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 1 | **TEST-001** | Tests | Mancano test BoardRepository/CommandRepository | M |
+| 2 | **TEST-002** | Tests | Mancano test BoardTypeRepository | S |
+| 3 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
+| 4 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 5 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -178,4 +180,5 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-18 | ✅ **INFRA-001 risolta** - DeleteAsync ora lancia KeyNotFoundException (branch `fix/infra-001`) |
 | 2026-03-18 | Creazione iniziale con 17 issue da 3 componenti (Core, Infrastructure, Tests) |
