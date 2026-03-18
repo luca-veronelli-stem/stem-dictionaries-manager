@@ -196,7 +196,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 6 issue aperte (0 critiche, 1 alta, 2 medie, 3 basse)
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 5 issue aperte, 1 risolta (0 critiche, 0 alte, 2 medie, 3 basse)
 
 ---
 

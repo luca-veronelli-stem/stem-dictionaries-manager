@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-145%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-179%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -41,7 +41,7 @@
 | **Repository Pattern** | ✅ | 7 repository con interfacce |
 | **Services Layer** | ⏳ | Business logic, mapping (da sviluppare) |
 | **GUI Desktop** | ⏳ | WPF application (da sviluppare) |
-| **Test Suite** | ✅ | 145 test (122 unit + 23 integration) |
+| **Test Suite** | ✅ | 179 test (122 unit + 57 integration) |
 
 ---
 
@@ -115,8 +115,8 @@ Stem.Dictionaries.Manager/
 | Componente | Issue File | Status |
 |------------|------------|--------|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 5 aperte (2 medie, 3 basse) |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 6 aperte (1 alta, 2 medie, 3 basse) |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 6 aperte (3 medie, 3 basse) |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 5 aperte, 1 risolta |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 4 aperte, 2 risolte |
 
 ---
 

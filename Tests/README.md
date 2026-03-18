@@ -21,7 +21,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Unit Tests** | ✅ | 122 test per Core (6 enum + 9 models) |
-| **Integration Tests** | ✅ | 23 test per Infrastructure (repositories + audit) |
+| **Integration Tests** | ✅ | 57 test per Infrastructure (repositories + audit) |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown |
@@ -102,9 +102,12 @@ Tests/
     └── Infrastructure/
         ├── AuditEntryRepositoryTests.cs   # 5 test
         ├── AuditFieldsTests.cs            # 4 test
+        ├── BoardRepositoryTests.cs        # 12 test
+        ├── BoardTypeRepositoryTests.cs    # 10 test
+        ├── CommandRepositoryTests.cs      # 11 test
         ├── DatabaseCreationTests.cs       # 3 test
         ├── DictionaryRepositoryTests.cs   # 6 test
-        └── UserRepositoryTests.cs         # 5 test
+        └── UserRepositoryTests.cs         # 6 test
 ```
 
 ---
@@ -165,9 +168,9 @@ public class MyRepositoryTests : IntegrationTestBase
 |------|------|-------------|
 | Unit/Enums | 25 | Valori, count, casting |
 | Unit/Models | 97 | Costruttori, validazione, metodi |
-| Integration | 23 | Repository, audit, DB |
-| **Totale CI** | **145** | net10.0 (Linux) |
-| **Totale Windows** | **145** | net10.0-windows (include GUI futuro) |
+| Integration | 57 | Repository, audit, DB |
+| **Totale CI** | **179** | net10.0 (Linux) |
+| **Totale Windows** | **179** | net10.0-windows (include GUI futuro) |
 
 ---
 
@@ -206,7 +209,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 6 issue aperte (0 critiche, 0 alte, 3 medie, 3 basse)
+→ [Tests/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
 
 ---
 

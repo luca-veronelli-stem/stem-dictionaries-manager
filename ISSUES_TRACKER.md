@@ -12,8 +12,8 @@
 | [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 1 | 6 |
 | Services | - | - | - |
 | GUI.Windows | - | - | - |
-| [Tests](./Tests/ISSUES.md) | 6 | 0 | 6 |
-| **Totale** | **16** | **1** | **17** |
+| [Tests](./Tests/ISSUES.md) | 4 | 2 | 6 |
+| **Totale** | **14** | **3** | **17** |
 
 ---
 
@@ -23,9 +23,9 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 7 | 44% |
-| **Bassa** | 9 | 56% |
-| **Totale** | **16** | 100% |
+| **Media** | 5 | 36% |
+| **Bassa** | 9 | 64% |
+| **Totale** | **14** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
@@ -80,12 +80,12 @@ Bassa:       █████████░░░░░░░░░░░  9
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Tests (6 issue)
+### Tests (4 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| [TEST-001](./Tests/ISSUES.md#test-001--mancano-test-per-boardrepository-e-commandrepository) | Mancano test BoardRepository e CommandRepository | Media | Copertura |
-| [TEST-002](./Tests/ISSUES.md#test-002--mancano-test-per-boardtyperepository) | Mancano test BoardTypeRepository | Media | Copertura |
+| ~~TEST-001~~ | ~~Mancano test BoardRepository e CommandRepository~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~TEST-002~~ | ~~Mancano test BoardTypeRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | [TEST-003](./Tests/ISSUES.md#test-003--integrationtestbasesetuptestuser-usa-wait-bloccante) | SetupTestUser usa .Wait() bloccante | Media | Anti-Pattern |
 | [TEST-004](./Tests/ISSUES.md#test-004--manca-cartella-unitinfrastructure-per-test-dependencyinjection) | Manca cartella Unit/Infrastructure | Bassa | Struttura |
 | [TEST-005](./Tests/ISSUES.md#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities) | Mancano test scenari update/delete | Bassa | Copertura |
@@ -105,11 +105,11 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **TEST-001** | Tests | Mancano test BoardRepository/CommandRepository | M |
-| 2 | **TEST-002** | Tests | Mancano test BoardTypeRepository | S |
-| 3 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
-| 4 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
-| 5 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 1 | **TEST-003** | Tests | SetupTestUser usa .Wait() bloccante | S |
+| 2 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
+| 3 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 4 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
+| 5 | **TEST-004** | Tests | Manca cartella Unit/Infrastructure | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -121,7 +121,7 @@ Bassa:       █████████░░░░░░░░░░░  9
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Infrastructure/Repositories (7) | - | ⚠️ 23 | ~60% |
+| Infrastructure/Repositories (7) | - | ✅ 56 | ~95% |
 | Services | - | - | N/A |
 | GUI.Windows | - | - | N/A |
 
@@ -180,5 +180,6 @@ Bassa:       █████████░░░░░░░░░░░  9
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-18 | ✅ **TEST-001/002 risolte** - Aggiunti 33 test per BoardRepository, BoardTypeRepository, CommandRepository (branch `fix/test-001-002`) |
 | 2026-03-18 | ✅ **INFRA-001 risolta** - DeleteAsync ora lancia KeyNotFoundException (branch `fix/infra-001`) |
 | 2026-03-18 | Creazione iniziale con 17 issue da 3 componenti (Core, Infrastructure, Tests) |
