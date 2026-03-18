@@ -13,17 +13,15 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
 | **Media** | 0 | 3 |
-| **Bassa** | 3 | 0 |
+| **Bassa** | 1 | 2 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 3
+**Totale aperte:** 1  
+**Totale risolte:** 5
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-004 - Mancano test per DependencyInjection](#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services)
-- [TEST-005 - Mancano test per scenari di rilavorazione/update entities](#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
@@ -31,6 +29,8 @@
 - [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
 - [TEST-002 - Mancano test per BoardTypeRepository](#test-002--mancano-test-per-boardtyperepository)
 - [TEST-003 - Uso di .Wait() bloccante nei costruttori test](#test-003--uso-di-wait-bloccante-nei-costruttori-test)
+- [TEST-004 - Mancano test per DependencyInjection](#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services)
+- [TEST-005 - Mancano test per scenari di rilavorazione/update entities](#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities)
 
 ---
 
@@ -41,145 +41,11 @@
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
+| Infrastructure/DI | ✅ 13 | - | 100% |
+| Services/DI | ✅ 10 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services (5) | - | ✅ 88 | ~95% |
 | GUI.Windows | - | - | N/A |
-
----
-
-## Priorità Bassa
-
-### TEST-004 - Mancano test per DependencyInjection (Infrastructure e Services)
-
-**Categoria:** Struttura/Copertura  
-**Priorità:** Bassa  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-I metodi `AddInfrastructure()` e `AddServices()` non hanno unit test. La struttura cartelle non prevede `Unit/Infrastructure/` né `Unit/Services/DependencyInjection/`.
-
-#### Struttura Attuale vs Proposta
-
-```
-Tests/
-├── Unit/
-│   ├── Enums/               ✅
-│   ├── Models/              ✅
-│   ├── Services/
-│   │   └── Mapping/         ✅
-│   │   └── DependencyInjectionTests.cs  ❌ MANCA
-│   └── Infrastructure/      ❌ MANCA
-│       └── DependencyInjectionTests.cs
-└── Integration/
-    ├── Infrastructure/      ✅
-    └── Services/            ✅
-```
-
-#### Test Mancanti
-
-```csharp
-// Tests/Unit/Infrastructure/DependencyInjectionTests.cs
-public class InfrastructureDependencyInjectionTests
-{
-    [Fact]
-    public void AddInfrastructure_RegistersAllRepositories()
-    {
-        var services = new ServiceCollection();
-        services.AddInfrastructure("Data Source=:memory:");
-        var provider = services.BuildServiceProvider();
-
-        Assert.NotNull(provider.GetService<IUserRepository>());
-        Assert.NotNull(provider.GetService<IDictionaryRepository>());
-        // ... tutti i repository
-    }
-}
-
-// Tests/Unit/Services/DependencyInjectionTests.cs
-public class ServicesDependencyInjectionTests
-{
-    [Fact]
-    public void AddServices_RegistersAllServices()
-    {
-        var services = new ServiceCollection();
-        services.AddInfrastructure("Data Source=:memory:");
-        services.AddServices();
-        var provider = services.BuildServiceProvider();
-
-        Assert.NotNull(provider.GetService<IDictionaryService>());
-        Assert.NotNull(provider.GetService<IUserService>());
-        // ... tutti i services
-    }
-}
-```
-
-#### Benefici Attesi
-
-- Verifica registrazione DI corretta
-- Struttura cartelle più consistente
-- Cattura errori di configurazione DI
-
----
-
-### TEST-005 - Mancano test per scenari di rilavorazione/update entities
-
-**Categoria:** Copertura  
-**Priorità:** Bassa  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-I test di integrazione coprono principalmente scenari CRUD base (Add, GetById). Mancano test per scenari più complessi.
-
-#### Scenari Non Testati
-
-| Scenario | Descrizione | File Test |
-|----------|-------------|-----------|
-| Update entity esistente | Modifica e salva | ❌ |
-| Delete con FK cascade | Elimina Dictionary → Variables | ❌ |
-| Unique constraint violation | Doppio username/name | ⚠️ Parziale |
-| Concurrent updates | Due update stesso record | ❌ |
-| Audit trail completo | Create → Update → Delete | ❌ |
-
-#### Soluzione Proposta
-
-```csharp
-// Tests/Integration/Infrastructure/CrudScenariosTests.cs
-public class CrudScenariosTests : IntegrationTestBase
-{
-    [Fact]
-    public async Task UpdateAsync_ModifiesEntity()
-    {
-        // Arrange
-        var user = new UserEntity { Username = "old", DisplayName = "Old" };
-        await Context.Users.AddAsync(user);
-        await Context.SaveChangesAsync();
-        
-        // Act
-        user.DisplayName = "New";
-        Context.Users.Update(user);
-        await Context.SaveChangesAsync();
-        
-        // Assert
-        var updated = await Context.Users.FindAsync(user.Id);
-        Assert.Equal("New", updated!.DisplayName);
-        Assert.NotNull(updated.UpdatedAt);
-    }
-    
-    [Fact]
-    public async Task DeleteDictionary_CascadesDeleteToVariables() { }
-}
-```
-
-#### Benefici Attesi
-
-- Copertura scenari reali di utilizzo
-- Verifica comportamento FK
-- Confidenza in operazioni complesse
 
 ---
 
@@ -395,6 +261,118 @@ public override async Task InitializeAsync()
 - Coerenza con best practice xUnit ✅
 - Previene potenziali deadlock ✅
 - Pattern riusabile per futuri test ✅
+
+---
+
+### TEST-004 - Mancano test per DependencyInjection (Infrastructure e Services)
+
+**Categoria:** Struttura/Copertura  
+**Priorità:** Bassa  
+**Impatto:** Basso  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/test-004  
+
+#### Descrizione
+
+I metodi `AddInfrastructure()` e `AddServices()` non avevano unit test. La struttura cartelle non prevedeva `Unit/Infrastructure/` né `Unit/Services/DependencyInjectionTests.cs`.
+
+#### Soluzione Implementata
+
+Creati i file di test:
+
+**`Tests/Unit/Infrastructure/DependencyInjectionTests.cs` (13 test):**
+- `AddInfrastructure_ReturnsServiceCollection`
+- `AddInfrastructure_RegistersAppDbContext`
+- `AddInfrastructure_RegistersUserRepository`
+- `AddInfrastructure_RegistersBoardTypeRepository`
+- `AddInfrastructure_RegistersBoardRepository`
+- `AddInfrastructure_RegistersDictionaryRepository`
+- `AddInfrastructure_RegistersVariableRepository`
+- `AddInfrastructure_RegistersCommandRepository`
+- `AddInfrastructure_RegistersAuditEntryRepository`
+- `AddInfrastructure_RegistersBitInterpretationRepository`
+- `AddInfrastructure_RegistersCommandDeviceStateRepository`
+- `AddInfrastructure_RegistersRepositoriesAsScoped`
+- `AddInfrastructure_SameScopeReturnsSameInstance`
+
+**`Tests/Unit/Services/DependencyInjectionTests.cs` (10 test):**
+- `AddServices_ReturnsServiceCollection`
+- `AddServices_RegistersDictionaryService`
+- `AddServices_RegistersVariableService`
+- `AddServices_RegistersCommandService`
+- `AddServices_RegistersBoardService`
+- `AddServices_RegistersUserService`
+- `AddServices_RegistersServicesAsScoped`
+- `AddServices_SameScopeReturnsSameInstance`
+- `AddServices_WithoutInfrastructure_ThrowsOnResolve`
+- `AddServices_AllServicesResolvable`
+
+#### Benefici Ottenuti
+
+- Verifica registrazione DI corretta ✅
+- Struttura cartelle più consistente ✅
+- Cattura errori di configurazione DI ✅
+- Test scoped lifetime verificato ✅
+
+---
+
+### TEST-005 - Mancano test per scenari di rilavorazione/update entities
+
+**Categoria:** Copertura  
+**Priorità:** Bassa  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/test-004  
+
+#### Descrizione
+
+I test di integrazione coprivano principalmente scenari CRUD base (Add, GetById). Mancavano test per scenari più complessi.
+
+#### Soluzione Implementata
+
+Creato il file di test:
+
+**`Tests/Integration/Infrastructure/CrudScenariosTests.cs` (18 test):**
+
+**Update Scenarios (4 test):**
+- `UpdateAsync_User_ModifiesDisplayName`
+- `UpdateAsync_Dictionary_PreservesVariables`
+- `UpdateAsync_Variable_SetsUpdatedAt`
+- `UpdateAsync_Command_ModifiesParameters`
+
+**Delete with Cascade (4 test):**
+- `DeleteDictionary_CascadesDeleteToVariables`
+- `DeleteVariable_CascadesDeleteToBitInterpretations`
+- `DeleteCommand_CascadesDeleteToDeviceStates`
+- `DeleteBoardType_WithBoards_ThrowsException`
+
+**Unique Constraint Violations (6 test):**
+- `AddUser_DuplicateUsername_ThrowsDbUpdateException`
+- `AddDictionary_DuplicateName_ThrowsDbUpdateException`
+- `AddVariable_DuplicateAddressInSameDictionary_ThrowsDbUpdateException`
+- `AddVariable_SameAddressDifferentDictionary_Succeeds`
+- `AddCommand_DuplicateCode_ThrowsDbUpdateException`
+- `AddCommand_SameCodeDifferentIsResponse_Succeeds`
+
+**Audit Trail Complete Lifecycle (2 test):**
+- `AuditTrail_CreateUpdateDelete_TracksAllChanges`
+- `AuditTrail_MultipleUpdates_UpdatesTimestampEachTime`
+
+**Repository Update/Delete (2 test):**
+- `UserRepository_UpdateAsync_ModifiesEntity`
+- `DictionaryRepository_DeleteAsync_RemovesCascadedVariables`
+
+#### Benefici Ottenuti
+
+- Copertura scenari reali di utilizzo ✅
+- Verifica comportamento FK (Cascade vs Restrict) ✅
+- Test unique constraint violations ✅
+- Verifica audit trail completo ✅
+- Confidenza in operazioni complesse ✅
 
 ---
 

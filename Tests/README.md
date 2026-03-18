@@ -97,34 +97,38 @@ Tests/
 │   │   ├── DictionaryTests.cs        # 14 test
 │   │   ├── UserTests.cs              # 8 test
 │   │   └── VariableTests.cs          # 17 test
+│   ├── Infrastructure/                    # ✨ NUOVO
+│   │   └── DependencyInjectionTests.cs    # 13 test
 │   └── Services/
+│       ├── DependencyInjectionTests.cs    # 10 test ✨
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
 │           ├── BoardTypeMapperTests.cs        # 10 test
 │           ├── VariableMapperTests.cs         # 11 test
 │           ├── CommandMapperTests.cs          # 14 test
 │           ├── DictionaryMapperTests.cs       # 15 test
-│           ├── BitInterpretationMapperTests.cs    # 10 test ✨
-│           └── CommandDeviceStateMapperTests.cs   # 10 test ✨
+│           ├── BitInterpretationMapperTests.cs    # 10 test
+│           └── CommandDeviceStateMapperTests.cs   # 10 test
 └── Integration/
-    ├── IntegrationTestBase.cs        # Base class SQLite in-memory
+    ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
     │   ├── AuditEntryRepositoryTests.cs       # 5 test
     │   ├── AuditFieldsTests.cs                # 4 test
     │   ├── BoardRepositoryTests.cs            # 12 test
     │   ├── BoardTypeRepositoryTests.cs        # 10 test
     │   ├── CommandRepositoryTests.cs          # 11 test
+    │   ├── CrudScenariosTests.cs              # 18 test ✨
     │   ├── DatabaseCreationTests.cs           # 3 test
-    │   ├── DictionaryRepositoryTests.cs       # 15 test (6+9 per SVC-001)
+    │   ├── DictionaryRepositoryTests.cs       # 15 test
     │   ├── UserRepositoryTests.cs             # 6 test
-    │   ├── BitInterpretationRepositoryTests.cs    # 10 test ✨
-    │   └── CommandDeviceStateRepositoryTests.cs   # 10 test ✨
+    │   ├── BitInterpretationRepositoryTests.cs    # 10 test
+    │   └── CommandDeviceStateRepositoryTests.cs   # 10 test
     └── Services/
         ├── UserServiceTests.cs            # 16 test
         ├── DictionaryServiceTests.cs      # 17 test
         ├── BoardServiceTests.cs           # 17 test
         ├── CommandServiceTests.cs         # 15 test
-        └── VariableServiceTests.cs        # 23 test ✨
+        └── VariableServiceTests.cs        # 23 test
 ```
 
 ---
@@ -186,10 +190,12 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Enums | 25 | Valori, count, casting |
 | Unit/Models | 97 | Costruttori, validazione, metodi |
 | Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
-| Integration/Infrastructure | 86 | Repository, audit, DB |
+| Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
+| Unit/Services/DI | 10 | Registrazione DI services |
+| Integration/Infrastructure | 104 | Repository, audit, DB, CRUD scenarios |
 | Integration/Services | 88 | Business logic, validazione |
-| **Totale CI** | **376** | net10.0 (Linux) |
-| **Totale Windows** | **376** | net10.0-windows (include GUI futuro) |
+| **Totale CI** | **417** | net10.0 (Linux) |
+| **Totale Windows** | **417** | net10.0-windows (include GUI futuro) |
 
 ---
 
@@ -228,7 +234,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 3 issue aperte, 3 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
+→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 5 risolte (0 critiche, 0 alte, 0 medie, 1 bassa)
 
 ---
 
