@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-179%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-304%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -39,9 +39,9 @@
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod) |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 7 repository con interfacce |
-| **Services Layer** | ⏳ | Business logic, mapping (da sviluppare) |
+| **Services Layer** | ✅ | 5 services + 8 mappers |
 | **GUI Desktop** | ⏳ | WPF application (da sviluppare) |
-| **Test Suite** | ✅ | 179 test (122 unit + 57 integration) |
+| **Test Suite** | ✅ | 304 test (182 unit + 122 integration) |
 
 ---
 
@@ -80,15 +80,17 @@ Stem.Dictionaries.Manager/
 ├── Core/                  # Modelli dominio, enums
 │   ├── Enums/             # DeviceType, AccessMode, DataTypeKind, etc.
 │   └── Models/            # Variable, Dictionary, Command, User, etc.
-├── Services/              # Logica business, mapping (da sviluppare)
+├── Services/              # Business logic, mapping Entity ↔ Domain
+│   ├── Interfaces/        # Service interfaces (5)
+│   └── Mapping/           # Mapper bidirezionali (8)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (7)
 │   └── Migrations/        # EF Core migrations
 ├── GUI.Windows/           # Applicazione WPF (da sviluppare)
 ├── Tests/                 # Unit & integration tests
-│   ├── Unit/              # Test isolati (Core)
-│   └── Integration/       # Test con DB (Infrastructure)
+│   ├── Unit/              # Test isolati (Core, Mapping)
+│   └── Integration/       # Test con DB (Infrastructure, Services)
 ├── Docs/                  # Documentazione
 │   ├── Dictionaries/      # CSV originali per riferimento
 │   ├── Standards/         # Template documentazione
@@ -103,6 +105,7 @@ Stem.Dictionaries.Manager/
 | Documento | Descrizione |
 |-----------|-------------|
 | [Core/README.md](./Core/README.md) | Modelli dominio ed enumerazioni |
+| [Services/README.md](./Services/README.md) | Business logic, mapping, services |
 | [Infrastructure/README.md](./Infrastructure/README.md) | Persistenza, EF Core, Repositories |
 | [Tests/README.md](./Tests/README.md) | Suite di test, convenzioni |
 | [Docs/ER-schema.puml](./Docs/ER-schema.puml) | Schema ER database |
@@ -115,6 +118,7 @@ Stem.Dictionaries.Manager/
 | Componente | Issue File | Status |
 |------------|------------|--------|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 5 aperte (2 medie, 3 basse) |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 7 aperte (3 medie, 4 basse) |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 5 aperte, 1 risolta |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 4 aperte, 2 risolte |
 
