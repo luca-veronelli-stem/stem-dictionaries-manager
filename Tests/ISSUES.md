@@ -12,18 +12,16 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 3 | 0 |
+| **Media** | 1 | 2 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 6  
-**Totale risolte:** 0
+**Totale aperte:** 4  
+**Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
-- [TEST-002 - Mancano test per BoardTypeRepository](#test-002--mancano-test-per-boardtyperepository)
 - [TEST-003 - IntegrationTestBase.SetupTestUser usa .Wait() bloccante](#test-003--integrationtestbasesetuptestuser-usa-wait-bloccante)
 - [TEST-004 - Manca cartella Unit/Infrastructure per test DependencyInjection](#test-004--manca-cartella-unitinfrastructure-per-test-dependencyinjection)
 - [TEST-005 - Mancano test per scenari di rilavorazione/update entities](#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities)
@@ -31,7 +29,8 @@
 
 ## Indice Issue Risolte
 
-*(Nessuna issue risolta)*
+- [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
+- [TEST-002 - Mancano test per BoardTypeRepository](#test-002--mancano-test-per-boardtyperepository)
 
 ---
 
@@ -41,129 +40,13 @@
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 25 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
-| Infrastructure/Repositories (7) | - | ⚠️ 23 | ~60% |
+| Infrastructure/Repositories (7) | - | ✅ 56 | ~95% |
 | Services (0) | - | - | N/A |
 | GUI.Windows | - | - | N/A |
 
 ---
 
 ## Priorità Media
-
-### TEST-001 - Mancano test per BoardRepository e CommandRepository
-
-**Categoria:** Copertura  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-I repository `BoardRepository` e `CommandRepository` non hanno file di test dedicati. Solo 3 dei 7 repository hanno integration tests.
-
-#### File Mancanti
-
-- `Tests/Integration/Infrastructure/BoardRepositoryTests.cs`
-- `Tests/Integration/Infrastructure/CommandRepositoryTests.cs`
-
-#### Repository Testati vs Non Testati
-
-| Repository | File Test | Status |
-|------------|-----------|--------|
-| UserRepository | ✅ UserRepositoryTests.cs | Testato |
-| DictionaryRepository | ✅ DictionaryRepositoryTests.cs | Testato |
-| AuditEntryRepository | ✅ AuditEntryRepositoryTests.cs | Testato |
-| BoardRepository | ❌ - | **Non testato** |
-| BoardTypeRepository | ❌ - | **Non testato** |
-| CommandRepository | ❌ - | **Non testato** |
-| VariableRepository | ⚠️ Parziale (in DictionaryRepositoryTests) | Parziale |
-
-#### Soluzione Proposta
-
-Creare test file per i repository mancanti:
-
-```csharp
-// Tests/Integration/Infrastructure/BoardRepositoryTests.cs
-public class BoardRepositoryTests : IntegrationTestBase
-{
-    [Fact]
-    public async Task GetByDeviceTypeAsync_ReturnsMatchingBoards() { }
-    
-    [Fact]
-    public async Task GetByProtocolAddressAsync_ReturnsBoard() { }
-    
-    [Fact]
-    public async Task AddAsync_CalculatesProtocolAddress() { }
-}
-
-// Tests/Integration/Infrastructure/CommandRepositoryTests.cs
-public class CommandRepositoryTests : IntegrationTestBase
-{
-    [Fact]
-    public async Task GetByCodeAsync_ReturnsCommand() { }
-    
-    [Fact]
-    public async Task GetWithDeviceStatesAsync_IncludesStates() { }
-}
-```
-
-#### Benefici Attesi
-
-- Copertura repository completa
-- Confidenza nelle query custom
-- Regressioni catturate prima
-
----
-
-### TEST-002 - Mancano test per BoardTypeRepository
-
-**Categoria:** Copertura  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-`BoardTypeRepository` ha metodi custom (`GetByNameAsync`, `GetByFirmwareTypeAsync`) non testati.
-
-#### File Mancante
-
-- `Tests/Integration/Infrastructure/BoardTypeRepositoryTests.cs`
-
-#### Metodi Non Testati
-
-```csharp
-// BoardTypeRepository.cs
-public async Task<BoardTypeEntity?> GetByNameAsync(string name, ...)
-public async Task<BoardTypeEntity?> GetByFirmwareTypeAsync(int firmwareType, ...)
-```
-
-#### Soluzione Proposta
-
-```csharp
-public class BoardTypeRepositoryTests : IntegrationTestBase
-{
-    [Fact]
-    public async Task GetByNameAsync_ExistingName_ReturnsBoardType() { }
-    
-    [Fact]
-    public async Task GetByNameAsync_NotFound_ReturnsNull() { }
-    
-    [Fact]
-    public async Task GetByFirmwareTypeAsync_ExistingType_ReturnsBoardType() { }
-    
-    [Fact]
-    public async Task GetByFirmwareTypeAsync_UniqueConstraint_Enforced() { }
-}
-```
-
-#### Benefici Attesi
-
-- Verifica comportamento lookup per nome/firmwareType
-- Copertura constraint unicità
-
----
 
 ### TEST-003 - IntegrationTestBase.SetupTestUser usa .Wait() bloccante
 
@@ -435,7 +318,93 @@ public static class TestData
 
 ## Issue Risolte
 
-*(Nessuna issue risolta)*
+### TEST-001 - Mancano test per BoardRepository e CommandRepository
+
+**Categoria:** Copertura  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/test-001-002  
+
+#### Descrizione
+
+I repository `BoardRepository` e `CommandRepository` non avevano file di test dedicati.
+
+#### Soluzione Implementata
+
+Creati i file di test:
+
+**`Tests/Integration/Infrastructure/BoardRepositoryTests.cs` (12 test):**
+- `AddAsync_CreatesBoard`
+- `GetByIdAsync_ReturnsBoard_WithBoardType`
+- `GetByIdAsync_NotFound_ReturnsNull`
+- `GetByDeviceTypeAsync_ReturnsMatchingBoards`
+- `GetByDeviceTypeAsync_NoMatch_ReturnsEmptyList`
+- `GetByDeviceTypeAsync_IncludesBoardType`
+- `GetByProtocolAddressAsync_ReturnsBoard`
+- `GetByProtocolAddressAsync_NotFound_ReturnsNull`
+- `GetByProtocolAddressAsync_IncludesBoardType`
+- `DeleteAsync_RemovesBoard`
+- `DeleteAsync_NotFound_ThrowsKeyNotFoundException`
+
+**`Tests/Integration/Infrastructure/CommandRepositoryTests.cs` (11 test):**
+- `AddAsync_CreatesCommand`
+- `GetByIdAsync_ReturnsCommand`
+- `GetByIdAsync_NotFound_ReturnsNull`
+- `GetByCodeAsync_ReturnsCommand`
+- `GetByCodeAsync_DistinguishesRequestFromResponse`
+- `GetByCodeAsync_NotFound_ReturnsNull`
+- `GetWithDeviceStatesAsync_ReturnsCommand_WithDeviceStates`
+- `GetWithDeviceStatesAsync_NoStates_ReturnsEmptyCollection`
+- `GetWithDeviceStatesAsync_NotFound_ReturnsNull`
+- `GetAllAsync_ReturnsAllCommands`
+- `DeleteAsync_RemovesCommand`
+- `DeleteAsync_NotFound_ThrowsKeyNotFoundException`
+
+#### Benefici Ottenuti
+
+- Copertura repository completa ✅
+- Confidenza nelle query custom ✅
+- Regressioni catturate prima ✅
+
+---
+
+### TEST-002 - Mancano test per BoardTypeRepository
+
+**Categoria:** Copertura  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/test-001-002  
+
+#### Descrizione
+
+`BoardTypeRepository` non aveva test per i metodi custom (`GetByNameAsync`, `GetByFirmwareTypeAsync`).
+
+#### Soluzione Implementata
+
+Creato il file di test:
+
+**`Tests/Integration/Infrastructure/BoardTypeRepositoryTests.cs` (10 test):**
+- `AddAsync_CreatesBoardType`
+- `GetByIdAsync_ReturnsBoardType`
+- `GetByIdAsync_NotFound_ReturnsNull`
+- `GetByNameAsync_ExistingName_ReturnsBoardType`
+- `GetByNameAsync_NotFound_ReturnsNull`
+- `GetByFirmwareTypeAsync_ExistingType_ReturnsBoardType`
+- `GetByFirmwareTypeAsync_NotFound_ReturnsNull`
+- `GetAllAsync_ReturnsAllBoardTypes`
+- `DeleteAsync_RemovesBoardType`
+- `DeleteAsync_NotFound_ThrowsKeyNotFoundException`
+
+#### Benefici Ottenuti
+
+- Verifica comportamento lookup per nome/firmwareType ✅
+- Copertura metodi custom ✅
 
 ---
 
