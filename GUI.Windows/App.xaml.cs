@@ -52,10 +52,12 @@ public partial class App : Application
         Services = _host.Services;
 
         // Applica tutte le migrations pendenti (crea DB se non esiste)
+        // e popola con dati di esempio se il DB è vuoto
         using (var scope = _host.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await dbContext.Database.MigrateAsync();
+            await DatabaseSeeder.SeedAsync(dbContext);
         }
 
         // Configura e mostra MainWindow
