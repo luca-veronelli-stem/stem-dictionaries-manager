@@ -3,6 +3,13 @@
     <File Path=".copilot/copilot-instructions.md" />
     <File Path=".copilot/sample-instructions.md" />
   </Folder>
+  <Folder Name="/.copilot/agents/">
+    <File Path=".copilot/agents/coding-agent.md" />
+    <File Path=".copilot/agents/docs-agent.md" />
+    <File Path=".copilot/agents/formal-spec-agent.md" />
+    <File Path=".copilot/agents/issues-agent.md" />
+    <File Path=".copilot/agents/test-agent.md" />
+  </Folder>
   <Folder Name="/Docs/">
     <File Path="Docs/ER-schema.puml" />
   </Folder>
@@ -27,10 +34,19 @@
     <File Path="Docs/Dictionaries/toplift-a2.CSV" />
     <File Path="Docs/Dictionaries/toplift-m.CSV" />
   </Folder>
+  <Folder Name="/Docs/Standards/">
+    <File Path="Docs/Standards/TEMPLATE_STANDARD.md" />
+  </Folder>
+  <Folder Name="/Docs/Standards/Templates/">
+    <File Path="Docs/Standards/Templates/ISSUES_TEMPLATE.md" />
+    <File Path="Docs/Standards/Templates/README_TEMPLATE.md" />
+    <File Path="Docs/Standards/Templates/STANDARD_TEMPLATE.md" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
     <File Path="bitbucket-pipelines.yml" />
+    <File Path="ISSUES_TRACKER.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
