@@ -1,0 +1,120 @@
+#if WINDOWS
+using GUI.Windows.Abstractions;
+using GUI.Windows.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Tests.Unit.GUI.Mocks;
+
+namespace Tests.Unit.GUI.ViewModels;
+
+/// <summary>
+/// Test per MainViewModel.
+/// </summary>
+public class MainViewModelTests
+{
+    private readonly MockNavigationService _navigationService;
+    private readonly MockDialogService _dialogService;
+    private readonly MockMessageService _messageService;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly MainViewModel _viewModel;
+
+    public MainViewModelTests()
+    {
+        _navigationService = new MockNavigationService();
+        _dialogService = new MockDialogService();
+        _messageService = new MockMessageService();
+        
+        // Create a minimal service provider for testing
+        var services = new ServiceCollection();
+        services.AddSingleton<MockDictionaryService>();
+        services.AddSingleton<MockBoardService>();
+        services.AddSingleton<INavigationService>(_navigationService);
+        services.AddSingleton<IDialogService>(_dialogService);
+        services.AddSingleton<IMessageService>(_messageService);
+        
+        // Register ViewModels
+        services.AddTransient(sp => new DictionaryListViewModel(
+            sp.GetRequiredService<MockDictionaryService>(),
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IDialogService>(),
+            sp.GetRequiredService<IMessageService>()));
+        
+        services.AddTransient(sp => new DictionaryEditViewModel(
+            sp.GetRequiredService<MockDictionaryService>(),
+            sp.GetRequiredService<MockBoardService>(),
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IDialogService>(),
+            sp.GetRequiredService<IMessageService>()));
+        
+        _serviceProvider = services.BuildServiceProvider();
+        
+        _viewModel = new MainViewModel(
+            _navigationService,
+            _dialogService,
+            _messageService,
+            _serviceProvider);
+    }
+
+    [Fact]
+    public void Constructor_SetsDefaultTitle()
+    {
+        // Assert - Title includes view suffix since it navigates to DictionaryList
+        Assert.StartsWith("Stem Dictionaries Manager", _viewModel.Title);
+    }
+
+    [Fact]
+    public void Constructor_NavigatesToInitialView()
+    {
+        // Assert - Should start with DictionaryList view
+        Assert.NotNull(_viewModel.CurrentViewModel);
+        Assert.IsType<DictionaryListViewModel>(_viewModel.CurrentViewModel);
+    }
+
+    [Fact]
+    public void CanGoBack_IsFalse_Initially()
+    {
+        // Assert
+        Assert.False(_viewModel.CanGoBack);
+    }
+
+    [Fact]
+    public void CanGoBack_IsTrue_AfterNavigation()
+    {
+        // Act
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+
+        // Assert
+        Assert.True(_viewModel.CanGoBack);
+    }
+
+    [Fact]
+    public void CurrentViewChanged_UpdatesCurrentViewModel()
+    {
+        // Act
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+
+        // Assert
+        Assert.IsType<DictionaryEditViewModel>(_viewModel.CurrentViewModel);
+    }
+
+    [Fact]
+    public void GoBackCommand_UpdatesCanGoBack()
+    {
+        // Arrange
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        Assert.True(_viewModel.CanGoBack);
+
+        // Act
+        _navigationService.GoBack();
+
+        // Assert
+        Assert.False(_viewModel.CanGoBack);
+    }
+
+    [Fact]
+    public void IsBusy_DefaultsFalse()
+    {
+        // Assert
+        Assert.False(_viewModel.IsBusy);
+    }
+}
+#endif

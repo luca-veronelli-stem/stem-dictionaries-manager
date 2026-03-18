@@ -1,6 +1,6 @@
 # Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -11,9 +11,10 @@
 | [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
-| GUI.Windows | - | - | - |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 0 | 3 |
 | [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
-| **Totale** | **16** | **8** | **24** |
+| **Trasversali** | **1** | **0** | **1** |
+| **Totale** | **20** | **8** | **28** |
 
 ---
 
@@ -22,16 +23,16 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 0 | 0% |
-| **Media** | 6 | 37% |
-| **Bassa** | 10 | 63% |
-| **Totale** | **16** | 100% |
+| **Alta** | 1 | 5% |
+| **Media** | 7 | 35% |
+| **Bassa** | 12 | 60% |
+| **Totale** | **20** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
-Media:       ████████░░░░░░░░░░░░  6
-Bassa:       ██████████░░░░░░░░░░ 10
+Alta:        █░░░░░░░░░░░░░░░░░░░  1  ⚠️ T-001
+Media:       ███████░░░░░░░░░░░░░  7
+Bassa:       ████████████░░░░░░░░ 12
 ```
 
 ---
@@ -41,19 +42,41 @@ Bassa:       ██████████░░░░░░░░░░ 10
 | ID | Componente | Titolo | Status |
 |----|------------|--------|--------|
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
+| **T-001** | Trasversale | Dizionario Standard deve essere unico | ⚠️ **Aperta** |
 
-*Nessuna issue alta priorità aperta.*
+*1 issue alta priorità aperta.*
 
 ---
 
 ## Issue Trasversali (T-xxx)
 
-> **Nota:** Le issue trasversali saranno aggiunte quando GUI.Windows sara implementato.
-> Per ora, le issue sono isolate per componente.
+| ID | Titolo | Priorità | Status | Componenti Coinvolti |
+|----|--------|----------|--------|----------------------|
+| **T-001** | Dizionario Standard deve essere unico | Alta | ⚠️ Aperta | Core, Services, Infrastructure |
 
-| ID | Titolo | Status | Componenti Coinvolti |
-|----|--------|--------|----------------------|
-| - | *Nessuna issue trasversale identificata* | - | - |
+### T-001 — Dizionario Standard deve essere unico
+
+**Descrizione:**  
+Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attualmente non esiste alcun vincolo che impedisca la creazione di più dizionari senza `BoardTypeId`.
+
+**Problema:**  
+Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia il "vero" dizionario standard, causando ambiguità nella risoluzione delle variabili comuni.
+
+**Componenti coinvolti:**
+- **Core**: Aggiungere validazione nel modello `Dictionary` o factory method
+- **Services**: `DictionaryService.CreateAsync()` deve verificare unicità prima di creare
+- **Infrastructure**: Opzionale - aggiungere constraint/index parziale in SQLite
+
+**Soluzione proposta:**
+1. In `DictionaryService.CreateAsync()`: se `BoardTypeId == null`, verificare che non esista già un dizionario standard
+2. Lanciare `InvalidOperationException` con messaggio chiaro se si tenta di crearne un secondo
+3. Opzionale: creare index filtered in SQLite `CREATE UNIQUE INDEX IX_Dictionaries_Standard ON Dictionaries(BoardTypeId) WHERE BoardTypeId IS NULL`
+
+**Effort:** S (1-2h)
+
+**Test da aggiungere:**
+- `DictionaryService_CreateAsync_ThrowsWhenSecondStandardDictionary`
+- `DictionaryService_UpdateAsync_ThrowsWhenChangingToStandardAndOneExists`
 
 ---
 
@@ -103,9 +126,13 @@ Bassa:       ██████████░░░░░░░░░░ 10
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 
-### GUI.Windows (da sviluppare)
+### GUI.Windows (3 issue aperte)
 
-*Il layer GUI.Windows non è ancora implementato. Le issue saranno tracciate quando verrà sviluppato.*
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|
+| [GUI-001](./GUI.Windows/ISSUES.md#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate) | Mancano ViewModels per ViewType dichiarate | Media | Struttura |
+| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
+| [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
 ---
 
@@ -132,9 +159,9 @@ Bassa:       ██████████░░░░░░░░░░ 10
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows | - | - | N/A |
+| GUI.Windows (ViewModels, Services, DI) | ✅ 63 | - | ~80% |
 
-**Totale test:** 752 (202 unit + 550 integration)
+**Totale test:** 417 CI (net10.0) / 480 Windows (net10.0-windows)
 
 ---
 
@@ -147,7 +174,7 @@ Bassa:       ██████████░░░░░░░░░░ 10
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 752 test, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 480 test Windows, copertura ~95% |
 
 ---
 
@@ -156,12 +183,12 @@ Bassa:       ██████████░░░░░░░░░░ 10
 | Categoria | Count | Issue |
 |-----------|-------|-------|
 | **API** | 5 | CORE-003, CORE-004, CORE-005, INFRA-001, INFRA-004 |
-| **Design** | 3 | CORE-001, CORE-002, INFRA-005 |
+| **Design** | 5 | CORE-001, CORE-002, INFRA-005, GUI-002, GUI-003 |
 | **Copertura** | 3 | TEST-001, TEST-002, TEST-005 |
 | **Performance** | 1 | INFRA-002 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
 | **Anti-Pattern** | 1 | TEST-003 |
-| **Struttura** | 1 | TEST-004 |
+| **Struttura** | 2 | TEST-004, GUI-001 |
 | **Bug** | 1 | INFRA-006 |
 
 ---
@@ -189,6 +216,8 @@ Bassa:       ██████████░░░░░░░░░░ 10
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-19 | ✨ **GUI.Windows aggiunto** - README + ISSUES creati, 3 issue identificate (GUI-001/002/003), 63 test unit aggiunti (branch `feature/gui-base`) |
+| 2026-03-18 | ⚠️ **T-001 aggiunta** - Dizionario Standard deve essere unico (priorità Alta, trasversale Core/Services/Infrastructure) |
 | 2026-03-18 | ✅ **SVC-001 + INFRA-004 risolte** - Services decoupled da AppDbContext, creati BitInterpretationRepository e CommandDeviceStateRepository, +144 test (752 totali) (branch `fix/svc-001`) |
 | 2026-03-18 | ✅ **TEST-001/002 risolte** - Aggiunti 33 test per BoardRepository, BoardTypeRepository, CommandRepository (branch `fix/test-001-002`) |
 | 2026-03-18 | ✅ **INFRA-001 risolta** - DeleteAsync ora lancia KeyNotFoundException (branch `fix/infra-001`) |

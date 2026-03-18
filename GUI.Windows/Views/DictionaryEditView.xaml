@@ -1,0 +1,66 @@
+<UserControl x:Class="GUI.Windows.Views.DictionaryEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DictionaryEditViewModel}"
+             Loaded="UserControl_Loaded">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock Text="Compila i campi per creare o modificare un dizionario." Foreground="Gray" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="400"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descrizione" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Padding="8,6" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" IsEnabled="{Binding CanChangeBoardType}" DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="Il tipo scheda non puo essere modificato dopo la creazione." Foreground="Gray" FontSize="11" Visibility="{Binding CanChangeBoardType, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" Margin="0,0,0,12"/>
+            </Grid>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,0,0,16" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
+        </Border>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
+            <Button Content="Salva" Command="{Binding SaveCommand}" Padding="16,8" MinWidth="100" FontWeight="SemiBold" Background="#0078D4" Foreground="White"/>
+        </StackPanel>
+
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80FFFFFF" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

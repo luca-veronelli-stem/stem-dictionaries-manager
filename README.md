@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-834%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-480%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -40,8 +40,8 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 8 mappers |
-| **GUI Desktop** | ⏳ | WPF application (da sviluppare) |
-| **Test Suite** | ✅ | 834 test (225 unit + 609 integration) |
+| **GUI Desktop** | ✅ | WPF + MVVM con CommunityToolkit.Mvvm |
+| **Test Suite** | ✅ | 480 test (288 unit + 192 integration) |
 
 ---
 
@@ -87,7 +87,7 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (9)
 │   └── Migrations/        # EF Core migrations
-├── GUI.Windows/           # Applicazione WPF (da sviluppare)
+├── GUI.Windows/           # Applicazione WPF (MVVM)
 ├── Tests/                 # Unit & integration tests
 │   ├── Unit/              # Test isolati (Core, Mapping)
 │   └── Integration/       # Test con DB (Infrastructure, Services)
@@ -107,6 +107,7 @@ Stem.Dictionaries.Manager/
 | [Core/README.md](./Core/README.md) | Modelli dominio ed enumerazioni |
 | [Services/README.md](./Services/README.md) | Business logic, mapping, services |
 | [Infrastructure/README.md](./Infrastructure/README.md) | Persistenza, EF Core, Repositories |
+| [GUI.Windows/README.md](./GUI.Windows/README.md) | Applicazione WPF, ViewModels, Navigation |
 | [Tests/README.md](./Tests/README.md) | Suite di test, convenzioni |
 | [Docs/ER-schema.puml](./Docs/ER-schema.puml) | Schema ER database |
 | [.copilot/copilot-instructions.md](./.copilot/copilot-instructions.md) | Formalizzazione Lean 4, workflow |
@@ -120,6 +121,7 @@ Stem.Dictionaries.Manager/
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 5 aperte (2 medie, 3 basse) |
 | Services | [Services/ISSUES.md](./Services/ISSUES.md) | 6 aperte, 1 risolta (2 medie, 4 basse) |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 aperte, 2 risolte |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 3 aperte (1 media, 2 basse) |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 aperta, 5 risolte |
 
 ---

@@ -1,0 +1,176 @@
+<UserControl x:Class="GUI.Windows.Views.DictionaryListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DictionaryListViewModel}"
+             Loaded="UserControl_Loaded">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Header -->
+            <RowDefinition Height="Auto"/>  <!-- Toolbar -->
+            <RowDefinition Height="*"/>     <!-- Lista -->
+            <RowDefinition Height="Auto"/>  <!-- Error message -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="Dizionari" 
+                   FontSize="24" 
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,16"/>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Command="{Binding AddCommand}" 
+                    Padding="12,6"
+                    Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" Margin="0,0,4,0"/>
+                    <TextBlock Text="Nuovo Dizionario"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding RefreshCommand}" 
+                    Padding="12,6"
+                    Margin="0,0,8,0">
+                <TextBlock Text="↻ Aggiorna"/>
+            </Button>
+            <Separator Margin="8,0"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                     Width="200" 
+                     Padding="4"
+                     VerticalContentAlignment="Center">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <VisualBrush Stretch="None" AlignmentX="Left">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="🔍 Cerca..." Foreground="Gray" Margin="4,0,0,0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+        </StackPanel>
+
+        <!-- Lista dizionari -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Dictionaries}"
+                  SelectedItem="{Binding SelectedItem}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  BorderThickness="1"
+                  BorderBrush="#CCCCCC">
+            
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nome" 
+                                    Binding="{Binding Name}" 
+                                    Width="200"/>
+                <DataGridTextColumn Header="Descrizione" 
+                                    Binding="{Binding Description}" 
+                                    Width="*"/>
+                <DataGridTextColumn Header="Tipo Scheda" 
+                                    Binding="{Binding BoardTypeDisplay}" 
+                                    Width="150"/>
+                <DataGridTextColumn Header="Variabili" 
+                                    Binding="{Binding VariableCount}" 
+                                    Width="80">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                
+                <!-- Colonna azioni -->
+                <DataGridTemplateColumn Header="Azioni" Width="200">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="✏️ Modifica" 
+                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Padding="6,2"
+                                        Margin="0,0,4,0"/>
+                                <Button Content="📋 Variabili" 
+                                        Command="{Binding DataContext.OpenVariablesCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Padding="6,2"
+                                        Margin="0,0,4,0"/>
+                                <Button Content="🗑️" 
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Padding="6,2"
+                                        ToolTip="Elimina"
+                                        Foreground="Red"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+            
+            <!-- Messaggio lista vuota -->
+            <DataGrid.Style>
+                <Style TargetType="DataGrid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Dictionaries.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Style>
+        </DataGrid>
+        
+        <!-- Messaggio lista vuota -->
+        <Border Grid.Row="2" 
+                Background="#F5F5F5" 
+                BorderBrush="#CCCCCC" 
+                BorderThickness="1"
+                Visibility="{Binding Dictionaries.Count, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="📚" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                <TextBlock Text="Nessun dizionario trovato" FontSize="16" Foreground="Gray"/>
+                <Button Content="+ Crea il primo dizionario" 
+                        Command="{Binding AddCommand}"
+                        Margin="0,16,0,0"
+                        Padding="16,8"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Error message -->
+        <Border Grid.Row="3" 
+                Background="#FFEEEE" 
+                BorderBrush="#FF6666" 
+                BorderThickness="1"
+                Padding="8"
+                Margin="0,8,0,0"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000"/>
+        </Border>
+
+        <!-- Loading overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="4"
+                Background="#80FFFFFF"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -27,6 +27,7 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 | **Migrations** | ✅ | InitialCreate con schema completo |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
+| **Database Seeder** | ✅ | Dati demo per sviluppo ✨ |
 
 ---
 
@@ -120,6 +121,7 @@ Infrastructure/
 ├── Data/
 │   └── development.db             # DB sviluppo (non versionato)
 ├── AppDbContext.cs                # DbContext con audit automatico
+├── DatabaseSeeder.cs              # Dati demo per sviluppo ✨
 ├── DesignTimeDbContextFactory.cs  # Factory per migrations CLI
 └── DependencyInjection.cs         # Extension method AddInfrastructure()
 ```

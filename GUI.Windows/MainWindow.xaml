@@ -4,9 +4,67 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUI.Windows"
+        xmlns:views="clr-namespace:GUI.Windows.Views"
+        xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="{Binding Title}"
+        Height="700" Width="1100"
+        MinHeight="500" MinWidth="800"
+        WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <!-- DataTemplate per mappare ViewModel -> View -->
+        <DataTemplate DataType="{x:Type vm:DictionaryListViewModel}">
+            <views:DictionaryListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DictionaryEditViewModel}">
+            <views:DictionaryEditView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Toolbar -->
+            <RowDefinition Height="*"/>     <!-- Content -->
+            <RowDefinition Height="Auto"/>  <!-- StatusBar -->
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="0,0,0,1">
+            <ToolBar ToolBarTray.IsLocked="True" Background="Transparent">
+                <Button Command="{Binding GoBackCommand}" 
+                        ToolTip="Indietro"
+                        IsEnabled="{Binding CanGoBack}"
+                        Padding="8,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="←" FontSize="14" Margin="0,0,4,0"/>
+                        <TextBlock Text="Indietro"/>
+                    </StackPanel>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding ExitCommand}" 
+                        ToolTip="Esci dall'applicazione"
+                        Padding="8,4">
+                    <TextBlock Text="Esci"/>
+                </Button>
+            </ToolBar>
+        </Border>
+
+        <!-- Content Area - mostra la View in base al ViewModel corrente -->
+        <ContentControl Grid.Row="1" 
+                        Content="{Binding CurrentViewModel}"
+                        Margin="0"/>
+
+        <!-- StatusBar -->
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="Pronto" x:Name="StatusText"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <ProgressBar Width="100" Height="16" 
+                             IsIndeterminate="{Binding IsBusy}"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
