@@ -23,8 +23,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         _service = new DictionaryService(
             dictionaryRepository, 
             variableRepository, 
-            boardTypeRepository, 
-            Context);
+            boardTypeRepository);
     }
 
     public override async Task InitializeAsync()

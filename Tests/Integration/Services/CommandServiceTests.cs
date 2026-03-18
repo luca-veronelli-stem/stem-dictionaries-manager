@@ -15,7 +15,8 @@ public class CommandServiceTests : IntegrationTestBase
     public CommandServiceTests()
     {
         var repository = new CommandRepository(Context);
-        _service = new CommandService(repository, Context);
+        var deviceStateRepository = new CommandDeviceStateRepository(Context);
+        _service = new CommandService(repository, deviceStateRepository);
     }
 
     [Fact]
