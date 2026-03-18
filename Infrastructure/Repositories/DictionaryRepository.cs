@@ -40,4 +40,17 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
             .Include(d => d.Variables)
             .FirstOrDefaultAsync(d => d.BoardTypeId == null, cancellationToken);
     }
+
+    public async Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(d => d.BoardType)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await DbSet.AnyAsync(d => d.Id == id, cancellationToken);
+    }
 }

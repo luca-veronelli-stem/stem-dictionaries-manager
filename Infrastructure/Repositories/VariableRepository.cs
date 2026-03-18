@@ -30,4 +30,17 @@ public class VariableRepository : RepositoryBase<VariableEntity>, IVariableRepos
                 v.AddressLow == addressLow, 
                 cancellationToken);
     }
+
+    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await DbSet.AnyAsync(v => v.Id == id, cancellationToken);
+    }
+
+    public async Task<VariableEntity?> GetWithBitInterpretationsAsync(int id, 
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(v => v.BitInterpretations)
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+    }
 }
