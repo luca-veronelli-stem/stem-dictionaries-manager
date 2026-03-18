@@ -61,7 +61,7 @@ public partial class DictionaryListViewModel : ObservableObject
 
             var dictionaries = await _dictionaryService.GetAllAsync();
 
-            Dictionaries = dictionaries
+            Dictionaries = [.. dictionaries
                 .Select(d => new DictionaryListItem
                 {
                     Id = d.Id,
@@ -69,8 +69,7 @@ public partial class DictionaryListViewModel : ObservableObject
                     Description = d.Description,
                     BoardTypeName = d.BoardType?.Name,
                     VariableCount = d.Variables.Count
-                })
-                .ToList();
+                })];
 
             _messageService.Show($"Caricati {Dictionaries.Count} dizionari", MessageSeverity.Success);
         }

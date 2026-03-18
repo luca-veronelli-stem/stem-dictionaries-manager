@@ -10,15 +10,17 @@ namespace GUI.Windows.Services;
 /// </summary>
 public sealed class MessageService : IMessageService, IDisposable
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly Timer _hideTimer;
     private string? _currentMessage;
     private MessageSeverity _currentSeverity;
 
     public MessageService()
     {
-        _hideTimer = new Timer();
-        _hideTimer.AutoReset = false;
+        _hideTimer = new Timer
+        {
+            AutoReset = false
+        };
         _hideTimer.Elapsed += OnTimerElapsed;
     }
 

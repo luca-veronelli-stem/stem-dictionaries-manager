@@ -91,14 +91,13 @@ public partial class DictionaryEditViewModel : ObservableObject
 
             // Carica i BoardType disponibili
             var boardTypes = await _boardService.GetBoardTypesAsync();
-            AvailableBoardTypes = boardTypes
+            AvailableBoardTypes = [.. boardTypes
                 .Select(bt => new BoardTypeItem
                 {
                     Id = bt.Id,
                     Name = bt.Name,
                     FirmwareType = bt.FirmwareType
-                })
-                .ToList();
+                })];
 
             // Se modifica, carica i dati esistenti
             if (dictionaryId.HasValue)
@@ -111,14 +110,11 @@ public partial class DictionaryEditViewModel : ObservableObject
                     return;
                 }
 
-                // Usa i backing fields per evitare di settare HasChanges
-                _name = dictionary.Name;
+                Name = dictionary.Name;
                 OnPropertyChanged(nameof(Name));
-                
-                _description = dictionary.Description ?? string.Empty;
+                Description = dictionary.Description ?? string.Empty;
                 OnPropertyChanged(nameof(Description));
-                
-                _selectedBoardType = AvailableBoardTypes
+                SelectedBoardType = AvailableBoardTypes
                     .FirstOrDefault(bt => bt.Id == dictionary.BoardType?.Id);
                 OnPropertyChanged(nameof(SelectedBoardType));
             }
