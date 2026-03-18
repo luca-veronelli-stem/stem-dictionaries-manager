@@ -12,8 +12,8 @@
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
 | GUI.Windows | - | - | - |
-| [Tests](./Tests/ISSUES.md) | 3 | 3 | 6 |
-| **Totale** | **18** | **6** | **24** |
+| [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
+| **Totale** | **16** | **8** | **24** |
 
 ---
 
@@ -23,15 +23,15 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 6 | 33% |
-| **Bassa** | 12 | 67% |
-| **Totale** | **18** | 100% |
+| **Media** | 6 | 37% |
+| **Bassa** | 10 | 63% |
+| **Totale** | **16** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ Risolte tutte
-Media:       ██████░░░░░░░░░░░░░░  6
-Bassa:       ████████████░░░░░░░░ 12
+Media:       ████████░░░░░░░░░░░░  6
+Bassa:       ██████████░░░░░░░░░░ 10
 ```
 
 ---
@@ -80,15 +80,15 @@ Bassa:       ████████████░░░░░░░░ 12
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Tests (3 issue aperte, 3 risolte)
+### Tests (1 issue aperta, 5 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~TEST-001~~ | ~~Mancano test BoardRepository e CommandRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-002~~ | ~~Mancano test BoardTypeRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-003~~ | ~~Uso .Wait() bloccante~~ | ~~Media~~ | ✅ **Risolto** |
-| [TEST-004](./Tests/ISSUES.md#test-004--mancano-test-per-dependencyinjection-infrastructure-e-services) | Mancano test DI | Bassa | Struttura |
-| [TEST-005](./Tests/ISSUES.md#test-005--mancano-test-per-scenari-di-rilavorazioneupdate-entities) | Mancano test scenari update/delete | Bassa | Copertura |
+| ~~TEST-004~~ | ~~Mancano test DI~~ | ~~Bassa~~ | ✅ **Risolto** |
+| ~~TEST-005~~ | ~~Mancano test scenari update/delete~~ | ~~Bassa~~ | ✅ **Risolto** |
 | [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
 
 ### Services (6 issue aperte, 1 risolta)
