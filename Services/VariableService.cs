@@ -2,7 +2,6 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -15,14 +14,20 @@ namespace Services;
 public class VariableService : IVariableService
 {
     private readonly IVariableRepository _repository;
-    private readonly Infrastructure.AppDbContext _context;
+    private readonly IDictionaryRepository _dictionaryRepository;
+    private readonly IBitInterpretationRepository _bitInterpretationRepository;
 
-    public VariableService(IVariableRepository repository, Infrastructure.AppDbContext context)
+    public VariableService(
+        IVariableRepository repository, 
+        IDictionaryRepository dictionaryRepository,
+        IBitInterpretationRepository bitInterpretationRepository)
     {
         ArgumentNullException.ThrowIfNull(repository);
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(dictionaryRepository);
+        ArgumentNullException.ThrowIfNull(bitInterpretationRepository);
         _repository = repository;
-        _context = context;
+        _dictionaryRepository = dictionaryRepository;
+        _bitInterpretationRepository = bitInterpretationRepository;
     }
 
     // === CRUD Base ===
@@ -42,9 +47,9 @@ public class VariableService : IVariableService
     public async Task<Variable> AddAsync(int dictionaryId, Variable variable, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(variable);
-        
+
         // Verifica che il dizionario esista
-        var dictionaryExists = await _context.Dictionaries.AnyAsync(d => d.Id == dictionaryId, ct);
+        var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
             throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
         
@@ -109,14 +114,12 @@ public class VariableService : IVariableService
         CancellationToken ct = default)
     {
         // Verifica che la variabile esista
-        var variableExists = await _context.Variables.AnyAsync(v => v.Id == variableId, ct);
+        var variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
             throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
-        
-        var entities = await _context.BitInterpretations
-            .Where(bi => bi.VariableId == variableId)
-            .ToListAsync(ct);
-        
+
+        var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
+
         return BitInterpretationMapper.ToDomainList(entities);
     }
 
@@ -124,21 +127,20 @@ public class VariableService : IVariableService
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretation);
-        
+
         // Verifica che la variabile esista ed sia bitmapped
-        var variable = await _context.Variables.FindAsync([variableId], ct)
+        var variable = await _repository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
-        
+
         if (variable.DataTypeKind != DataTypeKind.Bitmapped)
             throw new InvalidOperationException(
                 $"Variable {variableId} is not bitmapped. Cannot add bit interpretation.");
-        
+
         var entity = BitInterpretationMapper.ToEntity(interpretation);
         entity.VariableId = variableId;
-        
-        _context.BitInterpretations.Add(entity);
-        await _context.SaveChangesAsync(ct);
-        
-        return BitInterpretationMapper.ToDomain(entity);
+
+        var created = await _bitInterpretationRepository.AddAsync(entity, ct);
+
+        return BitInterpretationMapper.ToDomain(created);
     }
 }

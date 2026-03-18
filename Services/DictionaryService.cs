@@ -1,6 +1,5 @@
 using Core.Models;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -15,23 +14,19 @@ public class DictionaryService : IDictionaryService
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IVariableRepository _variableRepository;
     private readonly IBoardTypeRepository _boardTypeRepository;
-    private readonly Infrastructure.AppDbContext _context;
 
     public DictionaryService(
         IDictionaryRepository dictionaryRepository,
         IVariableRepository variableRepository,
-        IBoardTypeRepository boardTypeRepository,
-        Infrastructure.AppDbContext context)
+        IBoardTypeRepository boardTypeRepository)
     {
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(variableRepository);
         ArgumentNullException.ThrowIfNull(boardTypeRepository);
-        ArgumentNullException.ThrowIfNull(context);
-        
+
         _dictionaryRepository = dictionaryRepository;
         _variableRepository = variableRepository;
         _boardTypeRepository = boardTypeRepository;
-        _context = context;
     }
 
     // === CRUD Base ===
@@ -55,10 +50,8 @@ public class DictionaryService : IDictionaryService
 
     public async Task<IReadOnlyList<Dictionary>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _context.Dictionaries
-            .Include(d => d.BoardType)
-            .ToListAsync(ct);
-        
+        var entities = await _dictionaryRepository.GetAllWithBoardTypeAsync(ct);
+
         return [.. entities.Select(e => 
         {
             BoardType? boardType = e.BoardType is not null 
@@ -146,13 +139,11 @@ public class DictionaryService : IDictionaryService
     public async Task<Dictionary?> GetStandardDictionaryAsync(CancellationToken ct = default)
     {
         // Il dizionario "Standard" non ha BoardType (BoardTypeId = null)
-        var entity = await _context.Dictionaries
-            .Include(d => d.BoardType)
-            .FirstOrDefaultAsync(d => d.BoardTypeId == null, ct);
-        
+        var entity = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+
         if (entity is null)
             return null;
-        
+
         return DictionaryMapper.ToDomain(entity);
     }
 
@@ -203,7 +194,7 @@ public class DictionaryService : IDictionaryService
     public async Task RemoveVariableAsync(int dictionaryId, int variableId, CancellationToken ct = default)
     {
         // Verifica che il dizionario esista
-        var dictionaryExists = await _context.Dictionaries.AnyAsync(d => d.Id == dictionaryId, ct);
+        var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
             throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
         

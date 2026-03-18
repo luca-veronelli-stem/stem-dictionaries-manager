@@ -2,7 +2,6 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -14,14 +13,14 @@ namespace Services;
 public class CommandService : ICommandService
 {
     private readonly ICommandRepository _repository;
-    private readonly Infrastructure.AppDbContext _context;
+    private readonly ICommandDeviceStateRepository _deviceStateRepository;
 
-    public CommandService(ICommandRepository repository, Infrastructure.AppDbContext context)
+    public CommandService(ICommandRepository repository, ICommandDeviceStateRepository deviceStateRepository)
     {
         ArgumentNullException.ThrowIfNull(repository);
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(deviceStateRepository);
         _repository = repository;
-        _context = context;
+        _deviceStateRepository = deviceStateRepository;
     }
 
     // === CRUD Base ===
@@ -98,17 +97,16 @@ public class CommandService : ICommandService
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
-        var command = await _repository.GetByIdAsync(commandId, ct)
+        _ = await _repository.GetByIdAsync(commandId, ct)
             ?? throw new KeyNotFoundException($"Command with Id {commandId} not found.");
-        
+
         // Cerca stato esistente
-        var existingState = await _context.CommandDeviceStates
-            .FirstOrDefaultAsync(s => s.CommandId == commandId && s.DeviceType == deviceType, ct);
-        
+        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+
         if (existingState is not null)
         {
             existingState.IsEnabled = isEnabled;
-            await _context.SaveChangesAsync(ct);
+            await _deviceStateRepository.UpdateAsync(existingState, ct);
         }
         else
         {
@@ -118,17 +116,15 @@ public class CommandService : ICommandService
                 DeviceType = deviceType,
                 IsEnabled = isEnabled
             };
-            _context.CommandDeviceStates.Add(newState);
-            await _context.SaveChangesAsync(ct);
+            await _deviceStateRepository.AddAsync(newState, ct);
         }
     }
 
     public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType, 
         CancellationToken ct = default)
     {
-        var entity = await _context.CommandDeviceStates
-            .FirstOrDefaultAsync(s => s.CommandId == commandId && s.DeviceType == deviceType, ct);
-        
+        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+
         return entity is null ? null : CommandDeviceStateMapper.ToDomain(entity);
     }
 }
