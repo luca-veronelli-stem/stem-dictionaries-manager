@@ -16,10 +16,9 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
     public AuditEntryRepositoryTests()
     {
         _repository = new AuditEntryRepository(Context);
-        SetupTestUser().Wait();
     }
 
-    private async Task SetupTestUser()
+    public override async Task InitializeAsync()
     {
         _testUser = new UserEntity { Username = "admin", DisplayName = "Admin" };
         Context.Users.Add(_testUser);

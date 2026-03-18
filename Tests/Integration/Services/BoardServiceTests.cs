@@ -19,11 +19,9 @@ public class BoardServiceTests : IntegrationTestBase
         var boardRepository = new BoardRepository(Context);
         var boardTypeRepository = new BoardTypeRepository(Context);
         _service = new BoardService(boardRepository, boardTypeRepository);
-        
-        SetupBoardType().Wait();
     }
 
-    private async Task SetupBoardType()
+    public override async Task InitializeAsync()
     {
         _testBoardType = new BoardTypeEntity { Name = "Madre", FirmwareType = 17 };
         Context.BoardTypes.Add(_testBoardType);

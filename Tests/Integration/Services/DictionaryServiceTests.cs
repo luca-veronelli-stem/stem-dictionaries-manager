@@ -19,17 +19,15 @@ public class DictionaryServiceTests : IntegrationTestBase
         var dictionaryRepository = new DictionaryRepository(Context);
         var variableRepository = new VariableRepository(Context);
         var boardTypeRepository = new BoardTypeRepository(Context);
-        
+
         _service = new DictionaryService(
             dictionaryRepository, 
             variableRepository, 
             boardTypeRepository, 
             Context);
-            
-        SetupBoardType().Wait();
     }
 
-    private async Task SetupBoardType()
+    public override async Task InitializeAsync()
     {
         _testBoardType = new BoardTypeEntity { Name = "TestBoard", FirmwareType = 99 };
         Context.BoardTypes.Add(_testBoardType);
