@@ -11,18 +11,17 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 0 | 1 |
 | **Media** | 2 | 0 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 6  
-**Totale risolte:** 0
+**Totale aperte:** 5  
+**Totale risolte:** 1
 
 ---
 
 ## Indice Issue Aperte
 
-- [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate)
@@ -31,84 +30,7 @@
 
 ## Indice Issue Risolte
 
-*(Nessuna issue risolta)*
-
----
-
-## Priorità Alta
-
-### INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata
-
-**Categoria:** API  
-**Priorità:** Alta  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Il metodo `DeleteAsync` in `RepositoryBase` non notifica il chiamante se l'entity da eliminare non esiste. Questo può nascondere bug nel codice che assume l'entity fosse presente.
-
-#### File Coinvolti
-
-- `Infrastructure/Repositories/RepositoryBase.cs` (righe 43-51)
-
-#### Codice Problematico
-
-```csharp
-public virtual async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
-{
-    var entity = await GetByIdAsync(id, cancellationToken);
-    if (entity != null)  // <-- Silenzioso se entity non trovata
-    {
-        DbSet.Remove(entity);
-        await Context.SaveChangesAsync(cancellationToken);
-    }
-}
-```
-
-#### Problema Specifico
-
-- Chiamare `DeleteAsync(999)` con ID inesistente non genera errore
-- Il chiamante non sa se l'operazione ha avuto effetto
-- Potrebbe nascondere bug di logica (es. delete su ID sbagliato)
-- Inconsistenza: un DB reale fallirebbe silenziosamente
-
-#### Soluzione Proposta
-
-**Opzione A: Throw se non trovato (raccomandata)**
-
-```csharp
-public virtual async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
-{
-    var entity = await GetByIdAsync(id, cancellationToken)
-        ?? throw new KeyNotFoundException($"Entity with Id {id} not found.");
-    
-    DbSet.Remove(entity);
-    await Context.SaveChangesAsync(cancellationToken);
-}
-```
-
-**Opzione B: Return bool**
-
-```csharp
-public virtual async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
-{
-    var entity = await GetByIdAsync(id, cancellationToken);
-    if (entity == null)
-        return false;
-    
-    DbSet.Remove(entity);
-    await Context.SaveChangesAsync(cancellationToken);
-    return true;
-}
-```
-
-#### Benefici Attesi
-
-- Fail-fast su errori di logica
-- API più prevedibile
-- Coerenza con pattern REST (404 se non trovato)
+- [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
 
 ---
 
@@ -448,7 +370,52 @@ CREATE TABLE Dictionaries (..., Name TEXT COLLATE NOCASE);
 
 ## Issue Risolte
 
-*(Nessuna issue risolta)*
+### INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata
+
+**Categoria:** API  
+**Priorità:** Alta  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-18  
+**Branch:** fix/infra-001  
+
+#### Descrizione
+
+Il metodo `DeleteAsync` in `RepositoryBase` non notificava il chiamante se l'entity da eliminare non esisteva.
+
+#### Soluzione Implementata
+
+Implementata **Opzione A: Throw se non trovato**.
+
+**Modifiche Effettuate:**
+
+1. **File `Infrastructure/Repositories/RepositoryBase.cs`:**
+   - Modificato `DeleteAsync` per lanciare `KeyNotFoundException` se entity non trovata
+
+**Codice Implementato:**
+
+```csharp
+public virtual async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+{
+    var entity = await GetByIdAsync(id, cancellationToken)
+        ?? throw new KeyNotFoundException($"Entity with Id {id} not found.");
+
+    DbSet.Remove(entity);
+    await Context.SaveChangesAsync(cancellationToken);
+}
+```
+
+#### Test Aggiunti
+
+**Integration Tests - `UserRepositoryTests.cs` (1 test):**
+- `DeleteAsync_NotFound_ThrowsKeyNotFoundException`
+
+#### Benefici Ottenuti
+
+- Fail-fast su errori di logica ✅
+- API più prevedibile ✅
+- Coerenza con pattern REST (404 se non trovato) ✅
 
 ---
 
