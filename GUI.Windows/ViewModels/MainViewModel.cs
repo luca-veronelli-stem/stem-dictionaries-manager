@@ -28,8 +28,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
+    [ObservableProperty]
+    private string _pageTitle = "Dizionari";
+
     /// <summary>
-    /// Nome visualizzato dell'utente corrente per la StatusBar.
+    /// Nome visualizzato dell'utente corrente per la sidebar.
     /// </summary>
     public string CurrentUserDisplayName =>
         _currentUserService.CurrentUser?.DisplayName ?? "—";
@@ -144,7 +147,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateTitle(ViewType viewType)
     {
-        var suffix = viewType switch
+        PageTitle = viewType switch
         {
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
@@ -156,13 +159,31 @@ public partial class MainViewModel : ObservableObject
             ViewType.BoardEdit => "Modifica Scheda",
             ViewType.UserList => "Utenti",
             ViewType.Settings => "Impostazioni",
-            _ => ""
+            _ => "Stem Dictionaries Manager"
         };
 
-        Title = string.IsNullOrEmpty(suffix) 
-            ? "Stem Dictionaries Manager" 
-            : $"Stem Dictionaries Manager - {suffix}";
+        Title = $"Stem Dictionaries Manager - {PageTitle}";
     }
+
+    [RelayCommand]
+    private void NavigateToDictionaries() =>
+        _navigationService.NavigateTo(ViewType.DictionaryList);
+
+    [RelayCommand]
+    private void NavigateToCommands() =>
+        _navigationService.NavigateTo(ViewType.CommandList);
+
+    [RelayCommand]
+    private void NavigateToBoards() =>
+        _navigationService.NavigateTo(ViewType.BoardList);
+
+    [RelayCommand]
+    private void NavigateToUsers() =>
+        _navigationService.NavigateTo(ViewType.UserList);
+
+    [RelayCommand]
+    private void NavigateToSettings() =>
+        _navigationService.NavigateTo(ViewType.Settings);
 
     [RelayCommand]
     private void GoBack()
