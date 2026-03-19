@@ -25,6 +25,14 @@ public static class DependencyInjection
         services.AddTransient<MainViewModel>();
         services.AddTransient<DictionaryListViewModel>();
         services.AddTransient<DictionaryEditViewModel>();
+        services.AddTransient<VariableListViewModel>();
+        services.AddTransient<VariableEditViewModel>();
+        services.AddTransient<CommandListViewModel>();
+        services.AddTransient<CommandEditViewModel>();
+        services.AddTransient<BoardListViewModel>();
+        services.AddTransient<BoardEditViewModel>();
+        services.AddTransient<UserListViewModel>();
+        services.AddTransient<SettingsViewModel>();
 
         return services;
     }
