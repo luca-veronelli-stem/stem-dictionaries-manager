@@ -11,10 +11,10 @@
 | [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 0 | 3 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 1 | 3 |
 | [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
 | **Trasversali** | **1** | **0** | **1** |
-| **Totale** | **20** | **8** | **28** |
+| **Totale** | **19** | **9** | **28** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 1 | 5% |
-| **Media** | 7 | 35% |
-| **Bassa** | 12 | 60% |
-| **Totale** | **20** | 100% |
+| **Media** | 6 | 32% |
+| **Bassa** | 12 | 63% |
+| **Totale** | **19** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        █░░░░░░░░░░░░░░░░░░░  1  ⚠️ T-001
-Media:       ███████░░░░░░░░░░░░░  7
+Media:       ██████░░░░░░░░░░░░░░  6
 Bassa:       ████████████░░░░░░░░ 12
 ```
 
@@ -126,11 +126,11 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 
-### GUI.Windows (3 issue aperte)
+### GUI.Windows (2 issue aperte, 1 risolta)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| [GUI-001](./GUI.Windows/ISSUES.md#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate) | Mancano ViewModels per ViewType dichiarate | Media | Struttura |
+| ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
@@ -159,9 +159,11 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows (ViewModels, Services, DI) | ✅ 63 | - | ~80% |
+| GUI.Windows/ViewModels (11) | ✅ 143 | - | ~85% |
+| GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
+| GUI.Windows/DI | ✅ 21 | - | 100% |
 
-**Totale test:** 417 CI (net10.0) / 480 Windows (net10.0-windows)
+**Totale test:** 417 CI (net10.0) / 1007 Windows (net10.0-windows)
 
 ---
 
@@ -174,7 +176,7 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 480 test Windows, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 1007 test Windows, copertura ~95% |
 
 ---
 
@@ -182,14 +184,13 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **API** | 5 | CORE-003, CORE-004, CORE-005, INFRA-001, INFRA-004 |
+| **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Design** | 5 | CORE-001, CORE-002, INFRA-005, GUI-002, GUI-003 |
-| **Copertura** | 3 | TEST-001, TEST-002, TEST-005 |
-| **Performance** | 1 | INFRA-002 |
+| **Copertura** | 0 | *(tutte risolte)* |
+| **Performance** | 2 | INFRA-002, SVC-003 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
-| **Anti-Pattern** | 1 | TEST-003 |
-| **Struttura** | 2 | TEST-004, GUI-001 |
 | **Bug** | 1 | INFRA-006 |
+| **Feature** | 1 | SVC-002 |
 
 ---
 
@@ -216,6 +217,7 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-19 | ✅ **GUI-001 risolta** - Implementati 8 ViewModels mancanti (Variable, Command, Board, User, Settings), +109 test GUI (1007 totali Windows) (branch `gui/view-models-mancanti`) |
 | 2026-03-19 | ✨ **GUI.Windows aggiunto** - README + ISSUES creati, 3 issue identificate (GUI-001/002/003), 63 test unit aggiunti (branch `feature/gui-base`) |
 | 2026-03-18 | ⚠️ **T-001 aggiunta** - Dizionario Standard deve essere unico (priorità Alta, trasversale Core/Services/Infrastructure) |
 | 2026-03-18 | ✅ **SVC-001 + INFRA-004 risolte** - Services decoupled da AppDbContext, creati BitInterpretationRepository e CommandDeviceStateRepository, +144 test (752 totali) (branch `fix/svc-001`) |

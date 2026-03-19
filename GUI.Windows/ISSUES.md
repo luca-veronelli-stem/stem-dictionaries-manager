@@ -12,23 +12,22 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 1 | 0 |
+| **Media** | 0 | 1 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 0
+**Totale aperte:** 2  
+**Totale risolte:** 1
 
 ---
 
 ## Indice Issue Aperte
 
-- [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
 ## Indice Issue Risolte
 
-*(Nessuna issue risolta)*
+- [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
 
 ---
 
@@ -36,90 +35,11 @@
 
 | Componente | Test Unit | Test Integration | Copertura |
 |------------|:---------:|:----------------:|-----------|
-| ViewModels (3) | ✅ 38 | - | ~80% |
+| ViewModels (11) | ✅ 105 | - | ~85% |
 | Services (3) | ✅ 12 | - | ~70% |
-| DependencyInjection | ✅ 13 | - | 100% |
+| DependencyInjection | ✅ 21 | - | 100% |
 | Views (2) | - | - | N/A (XAML) |
 | Converters | - | - | N/A |
-
----
-
-## Priorità Media
-
-### GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate
-
-**Categoria:** Struttura/Completezza  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-19  
-
-#### Descrizione
-
-L'enum `ViewType` dichiara 10 tipi di view, ma solo 3 hanno ViewModel implementati. Navigare verso le altre view causerà eccezioni o comportamenti undefined.
-
-#### File Coinvolti
-
-- `GUI.Windows/Abstractions/INavigationService.cs` (ViewType enum)
-- `GUI.Windows/Services/NavigationService.cs` (switch/mapping)
-- `GUI.Windows/DependencyInjection.cs` (registrazioni mancanti)
-
-#### Codice Problematico
-
-```csharp
-// ViewType enum - 10 tipi dichiarati
-public enum ViewType
-{
-    DictionaryList,    // ✅ Implementato
-    DictionaryEdit,    // ✅ Implementato
-    VariableList,      // ❌ Manca ViewModel
-    VariableEdit,      // ❌ Manca ViewModel
-    CommandList,       // ❌ Manca ViewModel
-    CommandEdit,       // ❌ Manca ViewModel
-    BoardList,         // ❌ Manca ViewModel
-    BoardEdit,         // ❌ Manca ViewModel
-    UserList,          // ❌ Manca ViewModel
-    Settings           // ❌ Manca ViewModel
-}
-```
-
-#### Problema Specifico
-
-- NavigationService potrebbe crashare su ViewType non gestiti
-- UI potrebbe mostrare pulsanti che portano a view inesistenti
-- Inconsistenza tra API dichiarata e implementazione
-
-#### Soluzione Proposta
-
-**Opzione A: Implementare progressivamente**
-
-Creare ViewModel stub per ogni ViewType mancante:
-
-```csharp
-public partial class VariableListViewModel : ObservableObject
-{
-    // TODO: Implementare nella prossima iterazione
-}
-```
-
-**Opzione B: Ridurre l'enum**
-
-Rimuovere temporaneamente i ViewType non implementati e aggiungerli quando i ViewModel sono pronti:
-
-```csharp
-public enum ViewType
-{
-    DictionaryList,
-    DictionaryEdit,
-    // Altri aggiunti con le implementazioni
-}
-```
-
-#### Benefici Attesi
-
-- API consistente con implementazione
-- No runtime errors su navigazione
-- Roadmap chiara per feature mancanti
 
 ---
 
@@ -279,7 +199,57 @@ public async Task<bool> ConfirmAsync(string message, string title)
 
 ## Issue Risolte
 
-*(Nessuna issue risolta)*
+### GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate
+
+**Categoria:** Struttura/Completezza  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-19  
+**Data Risoluzione:** 2026-03-19
+**Branch:** gui/view-models-mancanti
+
+#### Descrizione
+
+L'enum `ViewType` dichiarava 10 tipi di view, ma solo 3 avevano ViewModel implementati.
+
+#### Soluzione Implementata
+
+Creati 8 nuovi ViewModels + aggiornati test e DI:
+
+**ViewModels creati:**
+- `VariableListViewModel.cs` - Lista variabili di un dizionario
+- `VariableEditViewModel.cs` - Crea/modifica variabile
+- `CommandListViewModel.cs` - Lista comandi protocollo
+- `CommandEditViewModel.cs` - Crea/modifica comando
+- `BoardListViewModel.cs` - Lista schede
+- `BoardEditViewModel.cs` - Crea/modifica scheda
+- `UserListViewModel.cs` - Lista utenti con add inline
+- `SettingsViewModel.cs` - Impostazioni (stub)
+
+**Test creati (105 nuovi test):**
+- 14 test per VariableListViewModel
+- 17 test per VariableEditViewModel
+- 14 test per CommandListViewModel
+- 16 test per CommandEditViewModel
+- 13 test per BoardListViewModel
+- 14 test per BoardEditViewModel
+- 14 test per UserListViewModel
+- 3 test per SettingsViewModel
+
+**Mock services aggiunti:**
+- `MockVariableService`
+- `MockCommandService`
+- `MockUserService`
+
+**DI aggiornato:**
+- Registrati tutti gli 11 ViewModels in `DependencyInjection.cs`
+
+#### Benefici Ottenuti
+
+- API ViewType 100% consistente con implementazione ✅
+- No runtime errors su navigazione ✅
+- Copertura test GUI da 63 a 172 test ✅
 
 ---
 
