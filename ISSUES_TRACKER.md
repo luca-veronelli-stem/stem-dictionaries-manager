@@ -154,16 +154,17 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
-| Core/Enums (6) | ✅ 25 | - | 100% |
+| Core/Enums (6) | ✅ 22 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows/ViewModels (11) | ✅ 143 | - | ~85% |
+| GUI.Windows/ViewModels (11) | ✅ 189 | ✅ 10 | ~90% |
 | GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
+| GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
 | GUI.Windows/DI | ✅ 21 | - | 100% |
 
-**Totale test:** 417 CI (net10.0) / 1007 Windows (net10.0-windows)
+**Totale test:** ~440 CI (net10.0) / 1074 Windows (net10.0-windows)
 
 ---
 
