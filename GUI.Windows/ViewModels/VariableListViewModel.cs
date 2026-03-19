@@ -43,6 +43,8 @@ public partial class VariableListViewModel : ObservableObject
     [ObservableProperty]
     private string _dictionaryName = string.Empty;
 
+    private List<VariableListItem> _allVariables = [];
+
     [ObservableProperty]
     private List<VariableListItem> _variables = [];
 
@@ -51,6 +53,8 @@ public partial class VariableListViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     public VariableListViewModel(
         IVariableService variableService,
@@ -96,7 +100,7 @@ public partial class VariableListViewModel : ObservableObject
 
             var variables = await _variableService.GetByDictionaryIdAsync(_dictionaryId);
 
-            Variables = [.. variables
+            _allVariables = [.. variables
                 .Select(v => new VariableListItem
                 {
                     Id = v.Id,
@@ -109,7 +113,8 @@ public partial class VariableListViewModel : ObservableObject
                 })
                 .OrderBy(v => v.Address)];
 
-            _messageService.Show($"Caricate {Variables.Count} variabili", MessageSeverity.Success);
+            ApplyFilter();
+            _messageService.Show($"Caricate {_allVariables.Count} variabili", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -175,5 +180,21 @@ public partial class VariableListViewModel : ObservableObject
     private void GoBack()
     {
         _navigationService.GoBack();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Variables = _allVariables;
+            return;
+        }
+
+        var term = SearchText.Trim();
+        Variables = [.. _allVariables.Where(v =>
+            v.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            v.Address.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            v.DataType.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            (v.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))];
     }
 }

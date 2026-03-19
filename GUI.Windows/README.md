@@ -15,6 +15,7 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 - **Clean Architecture** - UI disaccoppiata da business logic e persistence
 - **Stili Riutilizzabili** - SearchTextBox, HexAddressTextBox, ToolbarButton
 - **Input Validation** - Filtri hex/numerico con converter nullable
+- **Ricerca Client-Side** - Filtro istantaneo in tutte le liste (case-insensitive)
 
 L'applicazione si avvia con selezione utente, poi applica migrations e popola dati demo se DB vuoto.
 

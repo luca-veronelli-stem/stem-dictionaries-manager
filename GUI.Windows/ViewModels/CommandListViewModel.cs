@@ -35,6 +35,8 @@ public partial class CommandListViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    private List<CommandListItem> _allCommands = [];
+
     [ObservableProperty]
     private List<CommandListItem> _commands = [];
 
@@ -43,6 +45,8 @@ public partial class CommandListViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     public CommandListViewModel(
         ICommandService commandService,
@@ -77,7 +81,7 @@ public partial class CommandListViewModel : ObservableObject
 
             var commands = await _commandService.GetAllAsync();
 
-            Commands = [.. commands
+            _allCommands = [.. commands
                 .Select(c => new CommandListItem
                 {
                     Id = c.Id,
@@ -88,7 +92,8 @@ public partial class CommandListViewModel : ObservableObject
                 })
                 .OrderBy(c => c.Code)];
 
-            _messageService.Show($"Caricati {Commands.Count} comandi", MessageSeverity.Success);
+            ApplyFilter();
+            _messageService.Show($"Caricati {_allCommands.Count} comandi", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -146,5 +151,19 @@ public partial class CommandListViewModel : ObservableObject
     private void GoBack()
     {
         _navigationService.GoBack();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Commands = _allCommands;
+            return;
+        }
+
+        var term = SearchText.Trim();
+        Commands = [.. _allCommands.Where(c =>
+            c.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            c.Code.Contains(term, StringComparison.OrdinalIgnoreCase))];
     }
 }

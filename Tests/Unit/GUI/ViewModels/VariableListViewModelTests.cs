@@ -229,5 +229,61 @@ public class VariableListViewModelTests
         // Assert
         Assert.Empty(_variableService.MethodCalls);
     }
+
+    [Fact]
+    public async Task SearchText_FiltersListByName()
+    {
+        // Arrange
+        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _variableService.SeedData(
+            new Variable("Temperature", 0x80, 0x01, DataTypeKind.Int16, AccessMode.ReadOnly, "Int16"),
+            new Variable("Pressure", 0x80, 0x02, DataTypeKind.Float, AccessMode.ReadOnly, "Float"),
+            new Variable("Status", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t"));
+        await _viewModel.InitializeAsync(1);
+
+        // Act
+        _viewModel.SearchText = "temp";
+
+        // Assert
+        Assert.Single(_viewModel.Variables);
+        Assert.Equal("Temperature", _viewModel.Variables[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_FiltersListByAddress()
+    {
+        // Arrange
+        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _variableService.SeedData(
+            new Variable("Var1", 0x80, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new Variable("Var2", 0x00, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+        await _viewModel.InitializeAsync(1);
+
+        // Act
+        _viewModel.SearchText = "8001";
+
+        // Assert
+        Assert.Single(_viewModel.Variables);
+        Assert.Equal("Var1", _viewModel.Variables[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_EmptyString_ShowsAll()
+    {
+        // Arrange
+        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _variableService.SeedData(
+            new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+        await _viewModel.InitializeAsync(1);
+        _viewModel.SearchText = "Var1";
+        Assert.Single(_viewModel.Variables);
+
+        // Act
+        _viewModel.SearchText = "";
+
+        // Assert
+        Assert.Equal(2, _viewModel.Variables.Count);
+    }
 }
 #endif

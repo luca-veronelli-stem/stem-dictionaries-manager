@@ -232,5 +232,57 @@ public class UserListViewModelTests
         // Assert
         Assert.True(_navigationService.GoBackCalled);
     }
+
+    [Fact]
+    public async Task SearchText_FiltersListByUsername()
+    {
+        // Arrange
+        _userService.SeedData(
+            new User("luca.veronelli", "Luca Veronelli"),
+            new User("michele.pignedoli", "Michele Pignedoli"));
+        await _viewModel.InitializeAsync();
+
+        // Act
+        _viewModel.SearchText = "luca";
+
+        // Assert
+        Assert.Single(_viewModel.Users);
+        Assert.Equal("luca.veronelli", _viewModel.Users[0].Username);
+    }
+
+    [Fact]
+    public async Task SearchText_FiltersListByDisplayName()
+    {
+        // Arrange
+        _userService.SeedData(
+            new User("user1", "Luca Veronelli"),
+            new User("user2", "Michele Pignedoli"));
+        await _viewModel.InitializeAsync();
+
+        // Act
+        _viewModel.SearchText = "Pignedoli";
+
+        // Assert
+        Assert.Single(_viewModel.Users);
+        Assert.Equal("Michele Pignedoli", _viewModel.Users[0].DisplayName);
+    }
+
+    [Fact]
+    public async Task SearchText_EmptyString_ShowsAll()
+    {
+        // Arrange
+        _userService.SeedData(
+            new User("user1", "User One"),
+            new User("user2", "User Two"));
+        await _viewModel.InitializeAsync();
+        _viewModel.SearchText = "user1";
+        Assert.Single(_viewModel.Users);
+
+        // Act
+        _viewModel.SearchText = "";
+
+        // Assert
+        Assert.Equal(2, _viewModel.Users.Count);
+    }
 }
 #endif

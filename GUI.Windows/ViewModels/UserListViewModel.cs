@@ -34,6 +34,8 @@ public partial class UserListViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    private List<UserListItem> _allUsers = [];
+
     [ObservableProperty]
     private List<UserListItem> _users = [];
 
@@ -42,6 +44,8 @@ public partial class UserListViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     // === Campi per nuovo utente inline ===
 
@@ -84,7 +88,7 @@ public partial class UserListViewModel : ObservableObject
 
             var users = await _userService.GetAllAsync();
 
-            Users = [.. users
+            _allUsers = [.. users
                 .Select(u => new UserListItem
                 {
                     Id = u.Id,
@@ -93,7 +97,8 @@ public partial class UserListViewModel : ObservableObject
                 })
                 .OrderBy(u => u.Username)];
 
-            _messageService.Show($"Caricati {Users.Count} utenti", MessageSeverity.Success);
+            ApplyFilter();
+            _messageService.Show($"Caricati {_allUsers.Count} utenti", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -167,5 +172,19 @@ public partial class UserListViewModel : ObservableObject
     private void GoBack()
     {
         _navigationService.GoBack();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Users = _allUsers;
+            return;
+        }
+
+        var term = SearchText.Trim();
+        Users = [.. _allUsers.Where(u =>
+            u.Username.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            u.DisplayName.Contains(term, StringComparison.OrdinalIgnoreCase))];
     }
 }

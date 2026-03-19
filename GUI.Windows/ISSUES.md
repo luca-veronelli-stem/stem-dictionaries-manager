@@ -35,7 +35,7 @@
 
 | Componente | Test Unit | Test Integration | Copertura |
 |------------|:---------:|:----------------:|-----------|
-| ViewModels (11) | ✅ 190 | ✅ 10 | ~90% |
+| ViewModels (11) | ✅ 205 | ✅ 10 | ~95% |
 | Services (4) | ✅ 20 | - | ~85% |
 | DependencyInjection | ✅ 23 | - | 100% |
 | Converters (2) | ✅ 18 | - | 100% |

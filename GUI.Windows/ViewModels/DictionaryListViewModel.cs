@@ -21,6 +21,8 @@ public partial class DictionaryListViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    private List<DictionaryListItem> _allDictionaries = [];
+
     [ObservableProperty]
     private List<DictionaryListItem> _dictionaries = [];
 
@@ -29,6 +31,11 @@ public partial class DictionaryListViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    /// <summary>
+    /// Filtra la lista quando SearchText cambia.
+    /// </summary>
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     public DictionaryListViewModel(
         IDictionaryService dictionaryService,
@@ -61,7 +68,7 @@ public partial class DictionaryListViewModel : ObservableObject
 
             var dictionaries = await _dictionaryService.GetAllAsync();
 
-            Dictionaries = [.. dictionaries
+            _allDictionaries = [.. dictionaries
                 .Select(d => new DictionaryListItem
                 {
                     Id = d.Id,
@@ -71,7 +78,8 @@ public partial class DictionaryListViewModel : ObservableObject
                     VariableCount = d.Variables.Count
                 })];
 
-            _messageService.Show($"Caricati {Dictionaries.Count} dizionari", MessageSeverity.Success);
+            ApplyFilter();
+            _messageService.Show($"Caricati {_allDictionaries.Count} dizionari", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -130,6 +138,21 @@ public partial class DictionaryListViewModel : ObservableObject
     {
         if (item is null) return;
         _navigationService.NavigateTo(ViewType.VariableList, new NavigationParameter { ParentId = item.Id });
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Dictionaries = _allDictionaries;
+            return;
+        }
+
+        var term = SearchText.Trim();
+        Dictionaries = [.. _allDictionaries.Where(d =>
+            d.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            (d.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            d.BoardTypeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase))];
     }
 }
 
