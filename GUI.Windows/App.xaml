@@ -209,14 +209,42 @@
         </Style>
 
         <!-- ================================================ -->
-        <!-- COMBOBOX DARK                                    -->
+        <!-- COMBOBOX (default light per leggibilità)         -->
         <!-- ================================================ -->
-        <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="#3E3E42"/>
+        <!-- Le ComboBox usano lo stile WPF default (sfondo chiaro, testo nero) -->
+
+        <!-- ================================================ -->
+        <!-- ACCENT BUTTON (Salva, Accedi)                    -->
+        <!-- ================================================ -->
+        <Style x:Key="AccentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A8AD4"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#005A9E"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#3E3E42"/>
+                    <Setter Property="Foreground" Value="#555555"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
     </Application.Resources>

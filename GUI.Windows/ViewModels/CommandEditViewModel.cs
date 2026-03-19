@@ -34,10 +34,16 @@ public partial class CommandEditViewModel : ObservableObject
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private byte _codeHigh;
+    private string _codeHighHex = "00";
 
     [ObservableProperty]
-    private byte _codeLow;
+    private string _codeLowHex = "00";
+
+    private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
+    private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
+
+    partial void OnCodeHighHexChanged(string value) => OnPropertyChanged(nameof(FullCodeDisplay));
+    partial void OnCodeLowHexChanged(string value) => OnPropertyChanged(nameof(FullCodeDisplay));
 
     [ObservableProperty]
     private bool _isResponse;
@@ -108,13 +114,11 @@ public partial class CommandEditViewModel : ObservableObject
     private void LoadFromCommand(Command c)
     {
         Name = c.Name;
-        CodeHigh = c.CodeHigh;
-        CodeLow = c.CodeLow;
+        CodeHighHex = c.CodeHigh.ToString("X2");
+        CodeLowHex = c.CodeLow.ToString("X2");
         IsResponse = c.IsResponse;
         ParametersText = string.Join(Environment.NewLine, c.Parameters);
 
-        OnPropertyChanged(nameof(CodeHigh));
-        OnPropertyChanged(nameof(CodeLow));
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
 

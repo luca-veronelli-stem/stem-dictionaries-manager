@@ -6,9 +6,10 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:DictionaryEditViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -16,10 +17,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Compila i campi per creare o modificare un dizionario." Foreground="Gray" Margin="0,4,0,0"/>
-        </StackPanel>
+        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare un dizionario." 
+                   Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid HorizontalAlignment="Left">
@@ -34,33 +33,42 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome dizionario" MaxLength="100" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descrizione" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descrizione" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
+                         MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" IsEnabled="{Binding CanChangeBoardType}" DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" 
+                          IsEnabled="{Binding CanChangeBoardType}" DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="Il tipo scheda non puo essere modificato dopo la creazione." Foreground="Gray" FontSize="11" Visibility="{Binding CanChangeBoardType, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="Il tipo scheda non può essere modificato dopo la creazione." 
+                           Foreground="#888888" FontSize="11" 
+                           Visibility="{Binding CanChangeBoardType, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,0,0,16" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
+        <!-- Errore -->
+        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,16" CornerRadius="4"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
+        <!-- Bottoni -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Annulla" Command="{Binding CancelCommand}" Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
-            <Button Content="Salva" Command="{Binding SaveCommand}" Padding="16,8" MinWidth="100" FontWeight="SemiBold" Background="#0078D4" Foreground="White"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                    Background="#007ACC" FontWeight="SemiBold"/>
         </StackPanel>
 
-        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80FFFFFF" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80000000"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

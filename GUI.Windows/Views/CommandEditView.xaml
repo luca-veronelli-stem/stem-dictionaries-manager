@@ -6,9 +6,10 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CommandEditViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -16,14 +17,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Compila i campi per creare o modificare un comando." 
-                       Foreground="Gray" Margin="0,4,0,0"/>
-        </StackPanel>
+        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare un comando." 
+                   Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
-        <!-- Form -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid HorizontalAlignment="Left" Width="550">
                 <Grid.ColumnDefinitions>
@@ -38,80 +34,55 @@
                 </Grid.RowDefinitions>
 
                 <!-- Nome -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" 
-                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome comando" MaxLength="100" Margin="0,0,0,12"/>
 
                 <!-- Codice -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Codice" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Codice" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <TextBlock Text="High: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding CodeHigh, StringFormat=X2}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0"/>
-                    <TextBlock Text="Low: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding CodeLow, StringFormat=X2}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0"/>
-                    <TextBlock Text="{Binding FullCodeDisplay}" 
-                               VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <TextBlock Text="High: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding CodeHighHex, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"/>
+                    <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding CodeLowHex, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding FullCodeDisplay}" Foreground="#007ACC" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 
-                <!-- Tipo (Request/Response) -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="2" Grid.Column="1" 
-                          IsChecked="{Binding IsResponse}" 
-                          Content="È una risposta (response)"
-                          Margin="0,0,0,12"/>
+                <!-- Tipo -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding IsResponse}" 
+                          Content="È una risposta (response)" Foreground="White" Margin="0,0,0,12"/>
 
                 <!-- Parametri -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Parametri" 
-                           VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Parametri" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
                 <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,12">
                     <TextBox Text="{Binding ParametersText, UpdateSourceTrigger=PropertyChanged}" 
-                             AcceptsReturn="True" 
-                             TextWrapping="Wrap" 
-                             Height="120"
-                             Padding="8,6"/>
-                    <TextBlock Text="Un parametro per riga" 
-                               Foreground="Gray" FontSize="11" Margin="0,4,0,0"/>
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Un parametro per riga"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="120"/>
+                    <TextBlock Text="Un parametro per riga" Foreground="#888888" FontSize="11" Margin="0,4,0,0"/>
                 </StackPanel>
             </Grid>
         </ScrollViewer>
 
-        <!-- Error message -->
-        <Border Grid.Row="2" 
-                Background="#FFEEEE" 
-                BorderBrush="#FF6666" 
-                BorderThickness="1" 
-                Padding="8" 
-                Margin="0,0,0,16"
+        <!-- Errore -->
+        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Buttons -->
+        <!-- Bottoni -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Annulla" 
-                    Command="{Binding CancelCommand}" 
-                    Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
-            <Button Content="Salva" 
-                    Command="{Binding SaveCommand}" 
-                    Padding="16,8" MinWidth="100" 
-                    FontWeight="SemiBold" 
-                    Background="#0078D4" Foreground="White"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                    Background="#007ACC" FontWeight="SemiBold"/>
         </StackPanel>
 
-        <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" 
-                Background="#80FFFFFF" 
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

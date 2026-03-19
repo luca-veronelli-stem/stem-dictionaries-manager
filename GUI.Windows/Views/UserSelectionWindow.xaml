@@ -39,9 +39,7 @@
         <ComboBox Grid.Row="4" x:Name="UserComboBox"
                   FontSize="14" Height="32"
                   DisplayMemberPath="DisplayName"
-                  SelectionChanged="UserComboBox_SelectionChanged"
-                  Background="#3E3E42" Foreground="White"
-                  BorderBrush="#555555"/>
+                  SelectionChanged="UserComboBox_SelectionChanged"/>
 
         <!-- Bottone -->
         <Button Grid.Row="6" x:Name="ConfirmButton"
@@ -50,7 +48,6 @@
                 HorizontalAlignment="Center"
                 IsEnabled="False" IsDefault="True"
                 Click="ConfirmButton_Click"
-                Background="#007ACC" Foreground="White" 
-                BorderThickness="0" Cursor="Hand"/>
+                Style="{StaticResource AccentButtonStyle}"/>
     </Grid>
 </Window>
