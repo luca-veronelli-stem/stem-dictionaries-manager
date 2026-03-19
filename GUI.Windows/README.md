@@ -22,7 +22,7 @@ L'applicazione si avvia con database SQLite locale, applica migrations automatic
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **MVVM Pattern** | ✅ | ViewModels con CommunityToolkit.Mvvm |
+| **MVVM Pattern** | ✅ | 11 ViewModels con CommunityToolkit.Mvvm |
 | **Navigation Service** | ✅ | History, parametri, eventi |
 | **Dialog Service** | ✅ | Conferme, messaggi, errori |
 | **Message Service** | ✅ | StatusBar e notifiche |
@@ -86,7 +86,15 @@ GUI.Windows/
 ├── ViewModels/
 │   ├── MainViewModel.cs           # Shell principale, navigazione
 │   ├── DictionaryListViewModel.cs # Lista dizionari CRUD
-│   └── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario
+│   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario
+│   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
+│   ├── VariableEditViewModel.cs   # Crea/modifica variabile
+│   ├── CommandListViewModel.cs    # Lista comandi protocollo
+│   ├── CommandEditViewModel.cs    # Crea/modifica comando
+│   ├── BoardListViewModel.cs      # Lista schede
+│   ├── BoardEditViewModel.cs      # Crea/modifica scheda
+│   ├── UserListViewModel.cs       # Lista utenti con add inline
+│   └── SettingsViewModel.cs       # Impostazioni app (stub)
 ├── Views/
 │   ├── DictionaryListView.xaml    # UI lista dizionari
 │   └── DictionaryEditView.xaml    # UI edit dizionario
@@ -136,14 +144,14 @@ _navigationService.GoBack();
 |----------|-----------|-------------|
 | `DictionaryList` | DictionaryListViewModel | Lista dizionari |
 | `DictionaryEdit` | DictionaryEditViewModel | Crea/modifica dizionario |
-| `VariableList` | - | Lista variabili (futuro) |
-| `VariableEdit` | - | Crea/modifica variabile (futuro) |
-| `CommandList` | - | Lista comandi (futuro) |
-| `CommandEdit` | - | Crea/modifica comando (futuro) |
-| `BoardList` | - | Lista schede (futuro) |
-| `BoardEdit` | - | Crea/modifica scheda (futuro) |
-| `UserList` | - | Lista utenti (futuro) |
-| `Settings` | - | Impostazioni app (futuro) |
+| `VariableList` | VariableListViewModel | Lista variabili |
+| `VariableEdit` | VariableEditViewModel | Crea/modifica variabile |
+| `CommandList` | CommandListViewModel | Lista comandi |
+| `CommandEdit` | CommandEditViewModel | Crea/modifica comando |
+| `BoardList` | BoardListViewModel | Lista schede |
+| `BoardEdit` | BoardEditViewModel | Crea/modifica scheda |
+| `UserList` | UserListViewModel | Lista utenti |
+| `Settings` | SettingsViewModel | Impostazioni app (stub) |
 
 ---
 
@@ -220,7 +228,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 3 issue aperte, 0 risolte (0 critiche, 0 alte, 1 media, 2 basse)
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 1 risolta (0 critiche, 0 alte, 0 medie, 2 basse)
 
 ---
 
