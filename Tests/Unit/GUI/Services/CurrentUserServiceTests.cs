@@ -55,5 +55,36 @@ public class CurrentUserServiceTests
 
         Assert.Equal(user2, service.CurrentUser);
     }
+
+    [Fact]
+    public void LogoutRequested_InitiallyFalse()
+    {
+        var service = new CurrentUserService();
+        Assert.False(service.LogoutRequested);
+    }
+
+    [Fact]
+    public void LogoutRequested_CanBeSet()
+    {
+        var service = new CurrentUserService
+        {
+            LogoutRequested = true
+        };
+
+        Assert.True(service.LogoutRequested);
+    }
+
+    [Fact]
+    public void LogoutRequested_CanBeReset()
+    {
+        var service = new CurrentUserService
+        {
+            LogoutRequested = true
+        };
+
+        service.LogoutRequested = false;
+
+        Assert.False(service.LogoutRequested);
+    }
 }
 #endif

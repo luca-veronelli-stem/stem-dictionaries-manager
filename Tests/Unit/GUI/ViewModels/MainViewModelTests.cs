@@ -89,6 +89,25 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void CurrentUserDisplayName_WhenNoUser_ReturnsDash()
+    {
+        // Arrange - crea ViewModel con servizio senza utente
+        var noUserService = new MockCurrentUserService();
+        var services = new ServiceCollection();
+        services.AddSingleton<INavigationService>(_navigationService);
+        services.AddSingleton<IDialogService>(_dialogService);
+        services.AddSingleton<IMessageService>(_messageService);
+        services.AddSingleton<ICurrentUserService>(noUserService);
+        var sp = services.BuildServiceProvider();
+
+        var vm = new MainViewModel(
+            _navigationService, _dialogService, _messageService, noUserService, sp);
+
+        // Assert
+        Assert.Equal("—", vm.CurrentUserDisplayName);
+    }
+
+    [Fact]
     public void CanGoBack_IsTrue_AfterNavigation()
     {
         // Act
