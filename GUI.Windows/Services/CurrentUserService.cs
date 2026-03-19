@@ -12,6 +12,8 @@ public class CurrentUserService : ICurrentUserService
 
     public bool IsUserSelected => CurrentUser is not null;
 
+    public bool LogoutRequested { get; set; }
+
     public void SetCurrentUser(User user)
     {
         ArgumentNullException.ThrowIfNull(user);

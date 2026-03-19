@@ -63,40 +63,58 @@ public partial class App : Application
             await DatabaseSeeder.SeedAsync(dbContext);
         }
 
-        // Mostra finestra selezione utente
-        var userService = _host.Services.GetRequiredService<IUserService>();
-        var users = await userService.GetAllAsync();
-
-        if (users.Count == 0)
-        {
-            MessageBox.Show("Nessun utente nel database.", "Errore",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-            Shutdown();
-            return;
-        }
-
-        var selectionWindow = new UserSelectionWindow(users);
-        if (selectionWindow.ShowDialog() != true || selectionWindow.SelectedUser is null)
-        {
-            Shutdown();
-            return;
-        }
-
-        // Imposta utente corrente
-        var currentUserService = _host.Services.GetRequiredService<ICurrentUserService>();
-        currentUserService.SetCurrentUser(selectionWindow.SelectedUser);
-
-        // Configura e mostra MainWindow
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        var mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
-        mainWindow.DataContext = mainViewModel;
-        mainWindow.Show();
-
-        // Ora che MainWindow è aperta, chiudi l'app quando viene chiusa
-        ShutdownMode = ShutdownMode.OnMainWindowClose;
-        MainWindow = mainWindow;
+        // Ciclo login: selezione utente → MainWindow → logout → selezione utente
+        await RunLoginCycleAsync();
 
         base.OnStartup(e);
+    }
+
+    /// <summary>
+    /// Ciclo di login: mostra selezione utente, poi MainWindow.
+    /// Se MainWindow viene chiusa (logout), ripete il ciclo.
+    /// Se la selezione viene annullata, chiude l'app.
+    /// </summary>
+    private async Task RunLoginCycleAsync()
+    {
+        var userService = _host.Services.GetRequiredService<IUserService>();
+        var currentUserService = _host.Services.GetRequiredService<ICurrentUserService>();
+
+        while (true)
+        {
+            var users = await userService.GetAllAsync();
+
+            if (users.Count == 0)
+            {
+                MessageBox.Show("Nessun utente nel database.", "Errore",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown();
+                return;
+            }
+
+            // Mostra selezione utente
+            var selectionWindow = new UserSelectionWindow(users);
+            if (selectionWindow.ShowDialog() != true || selectionWindow.SelectedUser is null)
+            {
+                Shutdown();
+                return;
+            }
+
+            currentUserService.SetCurrentUser(selectionWindow.SelectedUser);
+            currentUserService.LogoutRequested = false;
+
+            // Mostra MainWindow come dialog (blocca fino a chiusura/logout)
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            var mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
+            mainWindow.DataContext = mainViewModel;
+            mainWindow.ShowDialog();
+
+            // Logout → torna alla selezione utente. X → chiudi app.
+            if (!currentUserService.LogoutRequested)
+            {
+                Shutdown();
+                return;
+            }
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)

@@ -171,15 +171,19 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ExitAsync()
+    private async Task LogoutAsync()
     {
         var result = await _dialogService.ShowConfirmAsync(
-            "Conferma uscita",
-            "Vuoi uscire dall'applicazione?");
+            "Conferma logout",
+            "Vuoi cambiare utente?");
 
-        if (result == Abstractions.DialogResult.Yes)
+        if (result != Abstractions.DialogResult.Yes) return;
+
+        // Segnala logout e chiude la finestra attiva
+        _currentUserService.LogoutRequested = true;
+        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
         {
-            System.Windows.Application.Current.Shutdown();
+            if (w.IsActive) { w.Close(); break; }
         }
     }
 }

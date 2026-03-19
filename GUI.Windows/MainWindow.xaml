@@ -66,10 +66,10 @@
                     </StackPanel>
                 </Button>
                 <Separator/>
-                <Button Command="{Binding ExitCommand}" 
-                        ToolTip="Esci dall'applicazione"
+                <Button Command="{Binding LogoutCommand}" 
+                        ToolTip="Cambia utente"
                         Padding="8,4">
-                    <TextBlock Text="Esci"/>
+                    <TextBlock Text="Logout"/>
                 </Button>
             </ToolBar>
         </Border>

@@ -21,4 +21,10 @@ public interface ICurrentUserService
     /// True se un utente è stato selezionato.
     /// </summary>
     bool IsUserSelected { get; }
+
+    /// <summary>
+    /// Flag per segnalare che l'utente ha richiesto il logout.
+    /// Letto da App.xaml.cs dopo la chiusura della MainWindow.
+    /// </summary>
+    bool LogoutRequested { get; set; }
 }

@@ -173,6 +173,7 @@ public class MockCurrentUserService : ICurrentUserService
 {
     public Core.Models.User? CurrentUser { get; private set; }
     public bool IsUserSelected => CurrentUser is not null;
+    public bool LogoutRequested { get; set; }
 
     public void SetCurrentUser(Core.Models.User user)
     {
@@ -182,6 +183,7 @@ public class MockCurrentUserService : ICurrentUserService
     public void Reset()
     {
         CurrentUser = null;
+        LogoutRequested = false;
     }
 }
 #endif
