@@ -38,9 +38,12 @@ public class Variable
     /// <summary>
     /// Categoria derivata dall'AddressHigh (0x00 = Standard, 0x80 = DeviceSpecific).
     /// </summary>
-    public VariableCategory Category => AddressHigh == 0x00 
-        ? VariableCategory.Standard 
-        : VariableCategory.DeviceSpecific;
+    public VariableCategory Category => AddressHigh switch
+    {
+        0x00 => VariableCategory.Standard,
+        0x80 => VariableCategory.DeviceSpecific,
+        _ => throw new InvalidOperationException($"Unknown AddressHigh: 0x{AddressHigh:X2}")
+    };
 
     public Variable(
         string name,
@@ -60,6 +63,10 @@ public class Variable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(dataTypeRaw);
+
+        if (addressHigh != 0x00 && addressHigh != 0x80)
+            throw new ArgumentOutOfRangeException(nameof(addressHigh),
+                $"AddressHigh must be 0x00 (Standard) or 0x80 (DeviceSpecific), got 0x{addressHigh:X2}.");
 
         Name = name;
         AddressHigh = addressHigh;
