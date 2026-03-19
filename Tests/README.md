@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -9,7 +9,7 @@
 
 Il progetto **Tests** contiene tutti i test automatizzati per la soluzione Stem.Dictionaries.Manager:
 
-- **Unit Tests** - Test isolati per modelli, enum e mapper (Core, Services/Mapping)
+- **Unit Tests** - Test isolati per modelli, enum, mapper e ViewModels (Core, Services/Mapping, GUI)
 - **Integration Tests** - Test con database SQLite in-memory (Infrastructure, Services)
 
 I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipli.
@@ -20,7 +20,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | 265 test per Core + Services/Mapping + GUI |
+| **Unit Tests** | ✅ | 401 test per Core + Services/Mapping + GUI |
 | **Integration Tests** | ✅ | 192 test per Infrastructure + Services |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
@@ -99,17 +99,25 @@ Tests/
 │   │   └── VariableTests.cs          # 17 test
 │   ├── Infrastructure/
 │   │   └── DependencyInjectionTests.cs    # 13 test
-│   ├── GUI/                               # ✨ NUOVO (solo Windows)
+│   ├── GUI/                               # Test GUI (solo Windows)
 │   │   ├── Mocks/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
-│   │   │   └── MockDataServices.cs        # Mock per data services
+│   │   │   └── MockDataServices.cs        # Mock per data services (4 mock)
 │   │   ├── ViewModels/
 │   │   │   ├── DictionaryListViewModelTests.cs   # 14 test
 │   │   │   ├── DictionaryEditViewModelTests.cs   # 17 test
-│   │   │   └── MainViewModelTests.cs             # 7 test
+│   │   │   ├── MainViewModelTests.cs             # 7 test
+│   │   │   ├── VariableListViewModelTests.cs     # 14 test
+│   │   │   ├── VariableEditViewModelTests.cs     # 17 test
+│   │   │   ├── CommandListViewModelTests.cs      # 14 test
+│   │   │   ├── CommandEditViewModelTests.cs      # 16 test
+│   │   │   ├── BoardListViewModelTests.cs        # 13 test
+│   │   │   ├── BoardEditViewModelTests.cs        # 14 test
+│   │   │   ├── UserListViewModelTests.cs         # 14 test
+│   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Services/
 │   │   │   └── NavigationServiceTests.cs         # 12 test
-│   │   └── DependencyInjectionTests.cs           # 13 test
+│   │   └── DependencyInjectionTests.cs           # 21 test
 │   └── Services/
 ├── DependencyInjectionTests.cs    # 10 test
 │       └── Mapping/
@@ -203,11 +211,13 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
 | Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI (Windows) | 63 | ViewModels, Services, DI ✨ |
+| Unit/GUI/ViewModels | 143 | 11 ViewModels con CRUD, navigation |
+| Unit/GUI/Services | 12 | NavigationService |
+| Unit/GUI/DI | 21 | Registrazione ViewModels + UI services |
 | Integration/Infrastructure | 104 | Repository, audit, DB, CRUD scenarios |
 | Integration/Services | 88 | Business logic, validazione |
 | **Totale CI** | **417** | net10.0 (Linux) |
-| **Totale Windows** | **480** | net10.0-windows (+63 GUI tests) |
+| **Totale Windows** | **593** | net10.0-windows (+176 GUI tests) |
 
 ---
 

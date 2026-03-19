@@ -206,7 +206,7 @@ public class MockBoardService : IBoardService
     {
         MethodCalls.Add($"GetByDeviceTypeAsync:{deviceType}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<Board>>(_boards.Where(b => b.BoardType.FirmwareType == (int)deviceType).ToList());
+        return Task.FromResult<IReadOnlyList<Board>>([.. _boards.Where(b => b.BoardType.FirmwareType == (int)deviceType)]);
     }
 
     public Task<Board?> GetByProtocolAddressAsync(uint protocolAddress, CancellationToken ct = default)
@@ -263,6 +263,340 @@ public class MockBoardService : IBoardService
     {
         _boards.Clear();
         _boardTypes.Clear();
+        _nextId = 1;
+        ExceptionToThrow = null;
+        MethodCalls.Clear();
+    }
+}
+
+/// <summary>
+/// Mock implementation di IVariableService per i test dei ViewModels.
+/// </summary>
+public class MockVariableService : IVariableService
+{
+    private readonly List<Variable> _variables = [];
+    private int _nextId = 1;
+
+    public Exception? ExceptionToThrow { get; set; }
+    public List<string> MethodCalls { get; } = [];
+
+    public Task<Variable> AddAsync(int dictionaryId, Variable variable, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"AddAsync:{dictionaryId}:{variable.Name}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var restored = Variable.Restore(
+            _nextId++,
+            variable.Name,
+            variable.AddressHigh,
+            variable.AddressLow,
+            variable.DataTypeKind,
+            variable.DataTypeRaw,
+            variable.DataTypeParam,
+            variable.AccessMode,
+            variable.IsEnabled,
+            variable.Format,
+            variable.MinValue,
+            variable.MaxValue,
+            variable.Unit,
+            variable.Usage,
+            variable.Description);
+        _variables.Add(restored);
+        return Task.FromResult(restored);
+    }
+
+    public Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"DeleteAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var variable = _variables.FirstOrDefault(v => v.Id == id);
+        if (variable is not null) _variables.Remove(variable);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<Variable>> GetAllAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetAllAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<Variable>>(_variables);
+    }
+
+    public Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByIdAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_variables.FirstOrDefault(v => v.Id == id));
+    }
+
+    public Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByDictionaryIdAsync:{dictionaryId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<Variable>>(_variables);
+    }
+
+    public Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByAddressAsync:{dictionaryId}:0x{addressHigh:X2}{addressLow:X2}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_variables.FirstOrDefault(v => v.AddressHigh == addressHigh && v.AddressLow == addressLow));
+    }
+
+    public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetBitInterpretationsAsync:{variableId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
+    }
+
+    public Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"AddBitInterpretationAsync:{variableId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(interpretation);
+    }
+
+    public Task UpdateAsync(Variable variable, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateAsync:{variable.Id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var index = _variables.FindIndex(v => v.Id == variable.Id);
+        if (index >= 0) _variables[index] = variable;
+        return Task.CompletedTask;
+    }
+
+    public void SeedData(params Variable[] variables)
+    {
+        foreach (var v in variables)
+        {
+            var restored = Variable.Restore(
+                _nextId++,
+                v.Name,
+                v.AddressHigh,
+                v.AddressLow,
+                v.DataTypeKind,
+                v.DataTypeRaw,
+                v.DataTypeParam,
+                v.AccessMode,
+                v.IsEnabled,
+                v.Format,
+                v.MinValue,
+                v.MaxValue,
+                v.Unit,
+                v.Usage,
+                v.Description);
+            _variables.Add(restored);
+        }
+    }
+
+    public void Reset()
+    {
+        _variables.Clear();
+        _nextId = 1;
+        ExceptionToThrow = null;
+        MethodCalls.Clear();
+    }
+}
+
+/// <summary>
+/// Mock implementation di ICommandService per i test dei ViewModels.
+/// </summary>
+public class MockCommandService : ICommandService
+{
+    private readonly List<Command> _commands = [];
+    private int _nextId = 1;
+
+    public Exception? ExceptionToThrow { get; set; }
+    public List<string> MethodCalls { get; } = [];
+
+    public Task<Command> AddAsync(Command command, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"AddAsync:{command.Name}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var restored = Command.Restore(
+            _nextId++,
+            command.Name,
+            command.CodeHigh,
+            command.CodeLow,
+            command.IsResponse,
+            command.Parameters);
+        _commands.Add(restored);
+        return Task.FromResult(restored);
+    }
+
+    public Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"DeleteAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var command = _commands.FirstOrDefault(c => c.Id == id);
+        if (command is not null) _commands.Remove(command);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<Command>> GetAllAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetAllAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<Command>>(_commands);
+    }
+
+    public Task<Command?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByIdAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_commands.FirstOrDefault(c => c.Id == id));
+    }
+
+    public Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByCodeAsync:0x{codeHigh:X2}{codeLow:X2}:{isResponse}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_commands.FirstOrDefault(c => 
+            c.CodeHigh == codeHigh && c.CodeLow == codeLow && c.IsResponse == isResponse));
+    }
+
+    public Task<Command?> GetWithDeviceStatesAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetWithDeviceStatesAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_commands.FirstOrDefault(c => c.Id == id));
+    }
+
+    public Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"SetDeviceStateAsync:{commandId}:{deviceType}:{isEnabled}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
+    public Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetDeviceStateAsync:{commandId}:{deviceType}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<CommandDeviceState?>(null);
+    }
+
+    public Task UpdateAsync(Command command, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateAsync:{command.Id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var index = _commands.FindIndex(c => c.Id == command.Id);
+        if (index >= 0) _commands[index] = command;
+        return Task.CompletedTask;
+    }
+
+    public void SeedData(params Command[] commands)
+    {
+        foreach (var c in commands)
+        {
+            var restored = Command.Restore(
+                _nextId++,
+                c.Name,
+                c.CodeHigh,
+                c.CodeLow,
+                c.IsResponse,
+                c.Parameters);
+            _commands.Add(restored);
+        }
+    }
+
+    public void Reset()
+    {
+        _commands.Clear();
+        _nextId = 1;
+        ExceptionToThrow = null;
+        MethodCalls.Clear();
+    }
+}
+
+/// <summary>
+/// Mock implementation di IUserService per i test dei ViewModels.
+/// </summary>
+public class MockUserService : IUserService
+{
+    private readonly List<User> _users = [];
+    private int _nextId = 1;
+
+    public Exception? ExceptionToThrow { get; set; }
+    public List<string> MethodCalls { get; } = [];
+
+    public Task<User> AddAsync(User user, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"AddAsync:{user.Username}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var restored = User.Restore(_nextId++, user.Username, user.DisplayName);
+        _users.Add(restored);
+        return Task.FromResult(restored);
+    }
+
+    public Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"DeleteAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var user = _users.FirstOrDefault(u => u.Id == id);
+        if (user is not null) _users.Remove(user);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetAllAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<User>>(_users);
+    }
+
+    public Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByIdAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
+    }
+
+    public Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByUsernameAsync:{username}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_users.FirstOrDefault(u => 
+            u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UsernameExistsAsync:{username}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_users.Any(u => 
+            u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public Task UpdateAsync(User user, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateAsync:{user.Id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+
+        var index = _users.FindIndex(u => u.Id == user.Id);
+        if (index >= 0) _users[index] = user;
+        return Task.CompletedTask;
+    }
+
+    public void SeedData(params User[] users)
+    {
+        foreach (var u in users)
+        {
+            var restored = User.Restore(_nextId++, u.Username, u.DisplayName);
+            _users.Add(restored);
+        }
+    }
+
+    public void Reset()
+    {
+        _users.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();

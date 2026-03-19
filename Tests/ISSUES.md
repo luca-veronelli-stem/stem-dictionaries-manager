@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -45,7 +45,9 @@
 | Services/DI | ✅ 10 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows (ViewModels, Services, DI) | ✅ 63 | - | ~80% ✨ |
+| GUI.Windows/ViewModels (11) | ✅ 143 | - | ~85% |
+| GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
+| GUI.Windows/DI | ✅ 21 | - | 100% |
 
 ---
 
