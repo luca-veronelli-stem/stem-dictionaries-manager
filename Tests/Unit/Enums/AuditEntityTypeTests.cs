@@ -11,7 +11,7 @@ public class AuditEntityTypeTests
     public void AuditEntityType_HasExpectedCount()
     {
         var values = Enum.GetValues<AuditEntityType>();
-        Assert.Equal(8, values.Length);
+        Assert.Equal(7, values.Length);
     }
 
     [Fact]
@@ -19,7 +19,6 @@ public class AuditEntityTypeTests
     {
         Assert.True(Enum.IsDefined(AuditEntityType.Variable));
         Assert.True(Enum.IsDefined(AuditEntityType.Command));
-        Assert.True(Enum.IsDefined(AuditEntityType.Device));
         Assert.True(Enum.IsDefined(AuditEntityType.Board));
         Assert.True(Enum.IsDefined(AuditEntityType.BoardType));
         Assert.True(Enum.IsDefined(AuditEntityType.Dictionary));

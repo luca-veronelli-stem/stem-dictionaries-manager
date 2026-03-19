@@ -7,7 +7,6 @@ public enum AuditEntityType
 {
     Variable,
     Command,
-    Device,
     Board,
     BoardType,
     Dictionary,
