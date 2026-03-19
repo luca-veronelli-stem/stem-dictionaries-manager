@@ -24,7 +24,22 @@ public partial class VariableEditView : UserControl
     /// </summary>
     private void HexTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
-        // Accetta solo caratteri hex
-        e.Handled = !e.Text.All(c => char.IsAsciiHexDigit(c));
+        e.Handled = !e.Text.All(char.IsAsciiHexDigit);
+    }
+
+    /// <summary>
+    /// Filtra l'input per accettare solo interi positivi (0-9).
+    /// </summary>
+    private void IntTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !e.Text.All(char.IsAsciiDigit);
+    }
+
+    /// <summary>
+    /// Filtra l'input per accettare solo numeri decimali (0-9, '.', ',', '-').
+    /// </summary>
+    private void DoubleTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !e.Text.All(c => char.IsAsciiDigit(c) || c is '.' or ',' or '-');
     }
 }

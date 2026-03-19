@@ -40,12 +40,12 @@ public partial class VariableEditViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
     [NotifyPropertyChangedFor(nameof(IsAddressHighValid))]
-    private string _addressHighHex = "00";
+    private string _addressHighHex = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
     [NotifyPropertyChangedFor(nameof(IsAddressLowValid))]
-    private string _addressLowHex = "00";
+    private string _addressLowHex = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsDataTypeOther))]
@@ -62,6 +62,7 @@ public partial class VariableEditViewModel : ObservableObject
     private string _customDataType = string.Empty;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private int? _dataTypeParam;
 
     [ObservableProperty]
@@ -110,12 +111,12 @@ public partial class VariableEditViewModel : ObservableObject
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
 
     /// <summary>
-    /// Label per il parametro tipo.
+    /// Label per il parametro tipo (con asterisco).
     /// </summary>
     public string DataTypeParamLabel => SelectedDataTypeKind switch
     {
-        DataTypeKind.Bitmapped => "Word Count (16 bit)",
-        DataTypeKind.Array or DataTypeKind.String => "Size (bytes)",
+        DataTypeKind.Bitmapped => "Word Count (16 bit) *",
+        DataTypeKind.Array or DataTypeKind.String => "Size (bytes) *",
         _ => "Parametro"
     };
 
@@ -264,7 +265,8 @@ public partial class VariableEditViewModel : ObservableObject
         !string.IsNullOrWhiteSpace(DataTypeForSave) &&
         IsAddressHighValid &&
         IsAddressLowValid &&
-        IsMinMaxValid;
+        IsMinMaxValid &&
+        (!RequiresDataTypeParam || DataTypeParam.HasValue);
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()

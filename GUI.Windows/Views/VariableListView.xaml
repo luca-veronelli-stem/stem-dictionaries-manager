@@ -24,17 +24,12 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
-            <Button Command="{Binding AddCommand}" Padding="12,6" Margin="0,0,8,0">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" Margin="0,0,4,0"/>
-                    <TextBlock Text="Nuova Variabile"/>
-                </StackPanel>
-            </Button>
+            <Button Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="+" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/><TextBlock Text="Nuova Variabile" VerticalAlignment="Center"/></StackPanel></Button>
             <Button Command="{Binding RefreshCommand}" Padding="12,6" Margin="0,0,8,0">
                 <TextBlock Text="↻ Aggiorna"/>
             </Button>
             <Separator Margin="8,0"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Width="200" Padding="4" VerticalContentAlignment="Center"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SearchTextBoxStyle}"/>
         </StackPanel>
 
         <!-- Lista variabili -->

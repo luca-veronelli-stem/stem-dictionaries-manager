@@ -45,16 +45,16 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
 
-                <!-- Indirizzo -->
+                                <!-- Indirizzo -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <TextBlock Text="High: 0x" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding AddressHighHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"
                              PreviewTextInput="HexTextBox_PreviewTextInput"/>
                     <TextBlock Text="Low: 0x" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"
                              PreviewTextInput="HexTextBox_PreviewTextInput"/>
                     <TextBlock Text="{Binding FullAddressDisplay}" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
@@ -83,10 +83,10 @@
                 <!-- Parametro Tipo (solo per Bitmapped, Array, String) -->
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding DataTypeParamLabel}" VerticalAlignment="Center" Margin="0,0,0,12"
                            Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged}" 
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}" 
                          Width="100" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"
                          Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
-                         ToolTip="Dimensione o numero di word"/>
+                         PreviewTextInput="IntTextBox_PreviewTextInput" ToolTip="Dimensione o numero di word"/>
 
                 <!-- Modalita Accesso -->
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Accesso" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -97,9 +97,9 @@
                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Min - Max / Unità" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged}" Width="80" Padding="8,6" Margin="0,0,8,0" ToolTip="Valore minimo"/>
+                        <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" Width="80" Padding="8,6" Margin="0,0,8,0" ToolTip="Valore minimo" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
                         <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged}" Width="80" Padding="8,6" Margin="0,0,16,0" ToolTip="Valore massimo"/>
+                        <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" Width="80" Padding="8,6" Margin="0,0,16,0" ToolTip="Valore massimo" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
                         <TextBox Text="{Binding Unit}" Width="80" Padding="8,6" ToolTip="Unità (es: °C, mm, kg)"/>
                     </StackPanel>
                     <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="Red" FontSize="11" Margin="0,4,0,0"
