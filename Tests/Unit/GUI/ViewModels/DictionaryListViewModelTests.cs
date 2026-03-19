@@ -91,7 +91,6 @@ public class DictionaryListViewModelTests
     public async Task LoadAsync_SetsIsBusyDuringExecution()
     {
         // Arrange
-        var wasBusyDuringCall = false;
         var dict = new Dictionary("Test", null, null);
         _dictionaryService.SeedData(dict);
 
