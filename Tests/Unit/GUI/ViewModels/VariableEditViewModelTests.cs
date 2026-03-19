@@ -252,6 +252,13 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
+    public void FullAddressDisplay_HandlesEmptyValues()
+    {
+        // Empty values should show 0x0000
+        Assert.Equal("0x0000", _viewModel.FullAddressDisplay);
+    }
+
+    [Fact]
     public void DataTypeKinds_ContainsAllValues()
     {
         // Assert
