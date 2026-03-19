@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -27,15 +28,23 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
+    /// <summary>
+    /// Nome visualizzato dell'utente corrente per la StatusBar.
+    /// </summary>
+    public string CurrentUserDisplayName =>
+        _currentUserService.CurrentUser?.DisplayName ?? "—";
+
     public MainViewModel(
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService,
+        ICurrentUserService currentUserService,
         IServiceProvider serviceProvider)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _currentUserService = currentUserService;
         _serviceProvider = serviceProvider;
 
         // Sottoscrivi ai cambiamenti di navigazione
@@ -162,15 +171,19 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ExitAsync()
+    private async Task LogoutAsync()
     {
         var result = await _dialogService.ShowConfirmAsync(
-            "Conferma uscita",
-            "Vuoi uscire dall'applicazione?");
+            "Conferma logout",
+            "Vuoi cambiare utente?");
 
-        if (result == Abstractions.DialogResult.Yes)
+        if (result != Abstractions.DialogResult.Yes) return;
+
+        // Segnala logout e chiude la finestra attiva
+        _currentUserService.LogoutRequested = true;
+        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
         {
-            System.Windows.Application.Current.Shutdown();
+            if (w.IsActive) { w.Close(); break; }
         }
     }
 }

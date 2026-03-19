@@ -152,12 +152,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 90 | ~95% |
-| GUI.Windows/ViewModels (11) | ✅ 189 | ✅ 10 | ~90% |
-| GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
+| GUI.Windows/ViewModels (11) | ✅ 190 | ✅ 10 | ~90% |
+| GUI.Windows/Services (4) | ✅ 20 | - | ~85% |
 | GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
-| GUI.Windows/DI | ✅ 21 | - | 100% |
+| GUI.Windows/DI | ✅ 23 | - | 100% |
 
-**Totale test:** ~440 CI (net10.0) / 1084 Windows (net10.0-windows)
+**Totale test:** ~440 CI (net10.0) / 1096 Windows (net10.0-windows)
 
 ---
 
@@ -170,7 +170,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 1084 test Windows, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 1096 test Windows, copertura ~95% |
 
 ---
 
@@ -211,7 +211,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-19 | ✅ **CORE-001 + CORE-002 risolte** - Rimosso `Device` da AuditEntityType (7 valori), AddressHigh validato (0x00/0x80 only) con match esplicito, +3 test (1084 totali Windows) (branch `fix/core-001-002`) |
+| 2026-03-19 | ✨ **Selezione utente all'avvio** - UserSelectionWindow modale, ICurrentUserService singleton, ciclo login/logout, utente in StatusBar, +12 test (1096 totali Windows) (branch `feature/selezione-utenti`) |
+| 2026-03-19 | ✅ **CORE-001 + CORE-002 risolte**
 | 2026-03-19 | ✅ **T-001 risolta**
 | 2026-03-19 | ✅ **GUI-001 risolta** - Implementati 8 ViewModels mancanti (Variable, Command, Board, User, Settings), +109 test GUI (1007 totali Windows) (branch `gui/view-models-mancanti`) |
 | 2026-03-19 | ✨ **GUI.Windows aggiunto** - README + ISSUES creati, 3 issue identificate (GUI-001/002/003), 63 test unit aggiunti (branch `feature/gui-base`) |

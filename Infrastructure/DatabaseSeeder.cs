@@ -21,10 +21,11 @@ public static class DatabaseSeeder
         // === Users ===
         var users = new[]
         {
-            new UserEntity { Username = "admin", DisplayName = "Amministratore" },
-            new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" },
-            new UserEntity { Username = "marco.rossi", DisplayName = "Marco Rossi" },
-            new UserEntity { Username = "giulia.bianchi", DisplayName = "Giulia Bianchi" }
+            new UserEntity { Username = "michele.pignedoli", DisplayName = "Michele Pignedoli" },
+            new UserEntity { Username = "lorenzo.vecchi", DisplayName = "Lorenzo Vecchi" },
+            new UserEntity { Username = "andrea.acunzo", DisplayName = "Andrea Acunzo" },
+            new UserEntity { Username = "alessandro.goldoni", DisplayName = "Alessandro Goldoni" },
+            new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" }
         };
         context.Users.AddRange(users);
 

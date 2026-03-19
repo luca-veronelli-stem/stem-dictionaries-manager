@@ -16,7 +16,7 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 - **Stili Riutilizzabili** - SearchTextBox, HexAddressTextBox, ToolbarButton
 - **Input Validation** - Filtri hex/numerico con converter nullable
 
-L'applicazione si avvia con database SQLite locale, applica migrations automaticamente e popola dati demo se vuoto.
+L'applicazione si avvia con selezione utente, poi applica migrations e popola dati demo se DB vuoto.
 
 ---
 
@@ -24,13 +24,15 @@ L'applicazione si avvia con database SQLite locale, applica migrations automatic
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
+| **Selezione Utente** | ✅ | Dialog modale all'avvio, ciclo login/logout |
 | **MVVM Pattern** | ✅ | 11 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 10 Views XAML complete |
+| **Views** | ✅ | 11 Views XAML complete (10 + UserSelectionWindow) |
 | **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
 | **Stili Globali** | ✅ | SearchTextBox, HexAddressTextBox, ToolbarButton |
 | **Navigation Service** | ✅ | History, parametri, eventi |
 | **Dialog Service** | ✅ | Conferme, messaggi, errori |
 | **Message Service** | ✅ | StatusBar e notifiche |
+| **Current User Service** | ✅ | Singleton, utente corrente per audit |
 | **DI Container** | ✅ | Generic Host pattern |
 | **Auto-Migration** | ✅ | EF Core migrations all'avvio |
 | **Database Seeder** | ✅ | Dati demo per sviluppo |
@@ -83,11 +85,13 @@ GUI.Windows/
 ├── Abstractions/
 │   ├── INavigationService.cs      # Interfaccia navigazione + ViewType enum
 │   ├── IDialogService.cs          # Interfaccia dialoghi (conferme, errori)
-│   └── IMessageService.cs         # Interfaccia messaggi (status bar)
+│   ├── IMessageService.cs         # Interfaccia messaggi (status bar)
+│   └── ICurrentUserService.cs     # Interfaccia utente corrente (singleton)
 ├── Services/
 │   ├── NavigationService.cs       # Implementazione con history stack
 │   ├── DialogService.cs           # MessageBox wrapper
-│   └── MessageService.cs          # Status notifications
+│   ├── MessageService.cs          # Status notifications
+│   └── CurrentUserService.cs      # Utente corrente per audit
 ├── ViewModels/
 │   ├── MainViewModel.cs           # Shell principale, navigazione
 │   ├── DictionaryListViewModel.cs # Lista dizionari CRUD
@@ -101,6 +105,7 @@ GUI.Windows/
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   └── SettingsViewModel.cs       # Impostazioni app (stub)
 ├── Views/
+│   ├── UserSelectionWindow.xaml    # Dialog selezione utente all'avvio
 │   ├── DictionaryListView.xaml    # UI lista dizionari
 │   ├── DictionaryEditView.xaml    # UI edit dizionario
 │   ├── VariableListView.xaml      # UI lista variabili
@@ -115,7 +120,7 @@ GUI.Windows/
 │   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
 │   └── NullableNumericConverter.cs # NullableInt, NullableDouble converters
 ├── App.xaml                       # Application resources + stili globali
-├── App.xaml.cs                    # Startup, DI configuration
+├── App.xaml.cs                    # Startup, DI, ciclo login/logout
 ├── MainWindow.xaml                # Shell window
 ├── MainWindow.xaml.cs             # Window code-behind
 └── DependencyInjection.cs         # AddGUI() extension method
