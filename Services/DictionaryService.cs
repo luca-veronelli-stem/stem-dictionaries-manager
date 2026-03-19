@@ -82,6 +82,14 @@ public class DictionaryService : IDictionaryService
                 throw new InvalidOperationException(
                     $"BoardType {dictionary.BoardType.Id} already has a dictionary assigned.");
         }
+        else
+        {
+            // Verifica unicità dizionario Standard (BR-007: al massimo uno senza BoardType)
+            var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+            if (existingStandard is not null)
+                throw new InvalidOperationException(
+                    "A Standard dictionary (without BoardType) already exists. Only one is allowed.");
+        }
         
         var entity = DictionaryMapper.ToEntity(dictionary);
         var created = await _dictionaryRepository.AddAsync(entity, ct);
@@ -104,7 +112,16 @@ public class DictionaryService : IDictionaryService
             if (existingByName is not null)
                 throw new InvalidOperationException($"Dictionary with name '{dictionary.Name}' already exists.");
         }
-        
+
+        // Verifica unicità dizionario Standard se si sta rimuovendo BoardType (BR-007)
+        if (dictionary.BoardType is null && entity.BoardTypeId.HasValue)
+        {
+            var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+            if (existingStandard is not null)
+                throw new InvalidOperationException(
+                    "A Standard dictionary (without BoardType) already exists. Only one is allowed.");
+        }
+
         DictionaryMapper.UpdateEntity(entity, dictionary);
         await _dictionaryRepository.UpdateAsync(entity, ct);
     }

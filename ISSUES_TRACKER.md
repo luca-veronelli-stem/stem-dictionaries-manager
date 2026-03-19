@@ -13,8 +13,8 @@
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 1 | 3 |
 | [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
-| **Trasversali** | **1** | **0** | **1** |
-| **Totale** | **19** | **9** | **28** |
+| **Trasversali** | **0** | **1** | **1** |
+| **Totale** | **18** | **10** | **28** |
 
 ---
 
@@ -23,14 +23,14 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 1 | 5% |
-| **Media** | 6 | 32% |
-| **Bassa** | 12 | 63% |
-| **Totale** | **19** | 100% |
+| **Alta** | 0 | 0% |
+| **Media** | 6 | 33% |
+| **Bassa** | 12 | 67% |
+| **Totale** | **18** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        █░░░░░░░░░░░░░░░░░░░  1  ⚠️ T-001
+Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ T-001 risolta
 Media:       ██████░░░░░░░░░░░░░░  6
 Bassa:       ████████████░░░░░░░░ 12
 ```
@@ -42,9 +42,9 @@ Bassa:       ████████████░░░░░░░░ 12
 | ID | Componente | Titolo | Status |
 |----|------------|--------|--------|
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
-| **T-001** | Trasversale | Dizionario Standard deve essere unico | ⚠️ **Aperta** |
+| ~~T-001~~ | Trasversale | Dizionario Standard deve essere unico | ✅ **Risolto** |
 
-*1 issue alta priorità aperta.*
+*0 issue alta priorità aperte.* ✅
 
 ---
 
@@ -52,31 +52,24 @@ Bassa:       ████████████░░░░░░░░ 12
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
-| **T-001** | Dizionario Standard deve essere unico | Alta | ⚠️ Aperta | Core, Services, Infrastructure |
+| ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
 
 ### T-001 — Dizionario Standard deve essere unico
 
 **Descrizione:**  
 Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attualmente non esiste alcun vincolo che impedisca la creazione di più dizionari senza `BoardTypeId`.
 
-**Problema:**  
-Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia il "vero" dizionario standard, causando ambiguità nella risoluzione delle variabili comuni.
+**Status:** ✅ **Risolto** (branch `fix/t-001`)  
+**Data Risoluzione:** 2026-03-19
 
-**Componenti coinvolti:**
-- **Core**: Aggiungere validazione nel modello `Dictionary` o factory method
-- **Services**: `DictionaryService.CreateAsync()` deve verificare unicità prima di creare
-- **Infrastructure**: Opzionale - aggiungere constraint/index parziale in SQLite
+**Soluzione Implementata:**
+1. `DictionaryService.AddAsync()`: se `BoardType == null`, verifica che non esista già un dizionario Standard via `GetStandardDictionaryAsync()`
+2. `DictionaryService.UpdateAsync()`: se si cambia `BoardType` da non-null a null, stessa verifica
+3. Business Rule **BR-007** codificata con `InvalidOperationException`
 
-**Soluzione proposta:**
-1. In `DictionaryService.CreateAsync()`: se `BoardTypeId == null`, verificare che non esista già un dizionario standard
-2. Lanciare `InvalidOperationException` con messaggio chiaro se si tenta di crearne un secondo
-3. Opzionale: creare index filtered in SQLite `CREATE UNIQUE INDEX IX_Dictionaries_Standard ON Dictionaries(BoardTypeId) WHERE BoardTypeId IS NULL`
-
-**Effort:** S (1-2h)
-
-**Test da aggiungere:**
-- `DictionaryService_CreateAsync_ThrowsWhenSecondStandardDictionary`
-- `DictionaryService_UpdateAsync_ThrowsWhenChangingToStandardAndOneExists`
+**Test aggiunti:**
+- `AddAsync_SecondStandardDictionary_ThrowsInvalidOperationException`
+- `UpdateAsync_ChangingToStandard_WhenOneExists_ThrowsInvalidOperationException`
 
 ---
 
@@ -158,13 +151,13 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 | Core/Models (9) | ✅ 97 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
-| Services (5) | - | ✅ 88 | ~95% |
+| Services (5) | - | ✅ 90 | ~95% |
 | GUI.Windows/ViewModels (11) | ✅ 189 | ✅ 10 | ~90% |
 | GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
 | GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
 | GUI.Windows/DI | ✅ 21 | - | 100% |
 
-**Totale test:** ~440 CI (net10.0) / 1074 Windows (net10.0-windows)
+**Totale test:** ~440 CI (net10.0) / 1078 Windows (net10.0-windows)
 
 ---
 
@@ -177,7 +170,7 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 1007 test Windows, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 1078 test Windows, copertura ~95% |
 
 ---
 
@@ -218,6 +211,7 @@ Se esistono più dizionari con `BoardTypeId = null`, il sistema non sa quale sia
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-19 | ✅ **T-001 risolta** - Dizionario Standard unicità enforced in `DictionaryService.AddAsync/UpdateAsync` (BR-007), +2 test integration (1078 totali Windows) (branch `fix/t-001`) |
 | 2026-03-19 | ✅ **GUI-001 risolta** - Implementati 8 ViewModels mancanti (Variable, Command, Board, User, Settings), +109 test GUI (1007 totali Windows) (branch `gui/view-models-mancanti`) |
 | 2026-03-19 | ✨ **GUI.Windows aggiunto** - README + ISSUES creati, 3 issue identificate (GUI-001/002/003), 63 test unit aggiunti (branch `feature/gui-base`) |
 | 2026-03-18 | ⚠️ **T-001 aggiunta** - Dizionario Standard deve essere unico (priorità Alta, trasversale Core/Services/Infrastructure) |
