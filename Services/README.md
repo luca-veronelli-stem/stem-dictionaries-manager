@@ -225,6 +225,7 @@ public static class UserMapper
 | **BR-004** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
 | **BR-005** | UserService | Username univoco |
 | **BR-006** | BoardService | FirmwareType univoco per BoardType |
+| **BR-007** | DictionaryService | Al massimo UN dizionario Standard (senza BoardType) |
 
 ---
 
