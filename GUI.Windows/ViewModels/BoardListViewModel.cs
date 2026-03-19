@@ -38,6 +38,8 @@ public partial class BoardListViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    private List<BoardListItem> _allBoards = [];
+
     [ObservableProperty]
     private List<BoardListItem> _boards = [];
 
@@ -46,6 +48,8 @@ public partial class BoardListViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchText = string.Empty;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     [ObservableProperty]
     private DeviceType? _filterDeviceType;
@@ -87,7 +91,7 @@ public partial class BoardListViewModel : ObservableObject
                 ? await _boardService.GetByDeviceTypeAsync(FilterDeviceType.Value)
                 : await _boardService.GetAllAsync();
 
-            Boards = [.. boards
+            _allBoards = [.. boards
                 .Select(b => new BoardListItem
                 {
                     Id = b.Id,
@@ -101,7 +105,8 @@ public partial class BoardListViewModel : ObservableObject
                 .OrderBy(b => b.DeviceType)
                 .ThenBy(b => b.BoardNumber)];
 
-            _messageService.Show($"Caricate {Boards.Count} schede", MessageSeverity.Success);
+            ApplyFilter();
+            _messageService.Show($"Caricate {_allBoards.Count} schede", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
@@ -159,5 +164,21 @@ public partial class BoardListViewModel : ObservableObject
     private void GoBack()
     {
         _navigationService.GoBack();
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Boards = _allBoards;
+            return;
+        }
+
+        var term = SearchText.Trim();
+        Boards = [.. _allBoards.Where(b =>
+            b.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            b.DeviceType.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            b.BoardType.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+            (b.PartNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))];
     }
 }
