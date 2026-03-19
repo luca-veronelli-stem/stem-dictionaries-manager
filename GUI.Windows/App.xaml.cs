@@ -92,6 +92,10 @@ public partial class App : Application
         mainWindow.DataContext = mainViewModel;
         mainWindow.Show();
 
+        // Ora che MainWindow è aperta, chiudi l'app quando viene chiusa
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
+        MainWindow = mainWindow;
+
         base.OnStartup(e);
     }
 
