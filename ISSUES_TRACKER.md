@@ -8,13 +8,13 @@
 
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
-| [Core](./Core/ISSUES.md) | 5 | 0 | 5 |
+| [Core](./Core/ISSUES.md) | 3 | 2 | 5 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 1 | 3 |
 | [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
 | **Trasversali** | **0** | **1** | **1** |
-| **Totale** | **18** | **10** | **28** |
+| **Totale** | **16** | **12** | **28** |
 
 ---
 
@@ -24,9 +24,9 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 6 | 33% |
-| **Bassa** | 12 | 67% |
-| **Totale** | **18** | 100% |
+| **Media** | 4 | 25% |
+| **Bassa** | 12 | 75% |
+| **Totale** | **16** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
@@ -75,12 +75,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 ## Issue per Componente
 
-### Core (5 issue)
+### Core (3 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| [CORE-001](./Core/ISSUES.md#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio) | AuditEntityType contiene "Device" non esistente | Media | Design |
-| [CORE-002](./Core/ISSUES.md#core-002--variablecategory-deriva-solo-da-addresshigh--0x00) | Variable.Category deriva solo da AddressHigh == 0x00 | Media | Design |
+| ~~CORE-001~~ | ~~AuditEntityType contiene "Device" non esistente~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
 | [CORE-003](./Core/ISSUES.md#core-003--dictionaryremovevariable-non-verifica-esistenza) | Dictionary.RemoveVariable non verifica esistenza | Bassa | API |
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
@@ -133,11 +133,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **CORE-001** | Core | AuditEntityType contiene "Device" | S |
-| 2 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
-| 3 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
-| 4 | **CORE-002** | Core | Variable.Category deriva solo da AddressHigh | S |
-| 5 | **SVC-002** | Services | Manca IAuditService | M |
+| 1 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
+| 2 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 3 | **SVC-002** | Services | Manca IAuditService | M |
+| 4 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
+| 5 | **CORE-003** | Core | Dictionary.RemoveVariable non verifica esistenza | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -147,8 +147,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
-| Core/Enums (6) | ✅ 22 | - | 100% |
-| Core/Models (9) | ✅ 97 | - | 100% |
+| Core/Enums (6) | ✅ 21 | - | 100% |
+| Core/Models (9) | ✅ 100 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 90 | ~95% |
@@ -157,7 +157,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
 | GUI.Windows/DI | ✅ 21 | - | 100% |
 
-**Totale test:** ~440 CI (net10.0) / 1078 Windows (net10.0-windows)
+**Totale test:** ~440 CI (net10.0) / 1084 Windows (net10.0-windows)
 
 ---
 
@@ -170,7 +170,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 1078 test Windows, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 1084 test Windows, copertura ~95% |
 
 ---
 
@@ -179,7 +179,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | Categoria | Count | Issue |
 |-----------|-------|-------|
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
-| **Design** | 5 | CORE-001, CORE-002, INFRA-005, GUI-002, GUI-003 |
+| **Design** | 3 | INFRA-005, GUI-002, GUI-003 |
 | **Copertura** | 0 | *(tutte risolte)* |
 | **Performance** | 2 | INFRA-002, SVC-003 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
@@ -211,7 +211,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-19 | ✅ **T-001 risolta** - Dizionario Standard unicità enforced in `DictionaryService.AddAsync/UpdateAsync` (BR-007), +2 test integration (1078 totali Windows) (branch `fix/t-001`) |
+| 2026-03-19 | ✅ **CORE-001 + CORE-002 risolte** - Rimosso `Device` da AuditEntityType (7 valori), AddressHigh validato (0x00/0x80 only) con match esplicito, +3 test (1084 totali Windows) (branch `fix/core-001-002`) |
+| 2026-03-19 | ✅ **T-001 risolta**
 | 2026-03-19 | ✅ **GUI-001 risolta** - Implementati 8 ViewModels mancanti (Variable, Command, Board, User, Settings), +109 test GUI (1007 totali Windows) (branch `gui/view-models-mancanti`) |
 | 2026-03-19 | ✨ **GUI.Windows aggiunto** - README + ISSUES creati, 3 issue identificate (GUI-001/002/003), 63 test unit aggiunti (branch `feature/gui-base`) |
 | 2026-03-18 | ⚠️ **T-001 aggiunta** - Dizionario Standard deve essere unico (priorità Alta, trasversale Core/Services/Infrastructure) |

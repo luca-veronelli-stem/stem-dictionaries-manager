@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -12,159 +12,24 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 2 | 0 |
+| **Media** | 0 | 2 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 5  
-**Totale risolte:** 0
+**Totale aperte:** 3  
+**Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
-- [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
-- [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
 - [CORE-003 - Dictionary.RemoveVariable non verifica esistenza](#core-003--dictionaryremovevariable-non-verifica-esistenza)
 - [CORE-004 - Mancanza di metodi Update sui modelli](#core-004--mancanza-di-metodi-update-sui-modelli)
 - [CORE-005 - BitInterpretation.VariableId non ha validazione positiva](#core-005--bitinterpretationvariableid-non-ha-validazione-positiva)
 
 ## Indice Issue Risolte
 
-*(Nessuna issue risolta)*
-
----
-
-## Priorità Media
-
-### CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio
-
-**Categoria:** Design  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-L'enum `AuditEntityType` include il valore `Device`, ma nel dominio formalizzato in Lean 4 l'entità `Device` è stata rimossa a favore dell'enum `DeviceType`. Questo crea inconsistenza tra la formalizzazione e il codice.
-
-#### File Coinvolti
-
-- `Core/Enums/AuditEntityType.cs` (riga 10)
-
-#### Codice Problematico
-
-```csharp
-public enum AuditEntityType
-{
-    Variable,
-    Command,
-    Device,      // <-- Entità non esistente nel dominio
-    Board,
-    BoardType,
-    Dictionary,
-    BitInterpretation,
-    User
-}
-```
-
-#### Problema Specifico
-
-- La formalizzazione Lean 4 indica: "RIMOSSO: Device entity (ridondante con DeviceType enum)"
-- `Device` nell'enum suggerisce che esista una tabella/entità tracciabile, ma non c'è
-- Potenziale confusione per chi legge il codice
-
-#### Soluzione Proposta
-
-**Opzione A: Rimuovere Device**
-
-```csharp
-public enum AuditEntityType
-{
-    Variable,
-    Command,
-    Board,
-    BoardType,
-    Dictionary,
-    BitInterpretation,
-    User
-}
-```
-
-**Opzione B: Rinominare in CommandDeviceState**
-
-Se si vuole tracciare `CommandDeviceState`, rinominare:
-
-```csharp
-CommandDeviceState,  // invece di Device
-```
-
-#### Benefici Attesi
-
-- Allineamento con formalizzazione Lean 4
-- Minore confusione per sviluppatori
-- Enum accurato rispetto alle entità tracciate
-
----
-
-### CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00
-
-**Categoria:** Design  
-**Priorità:** Media  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-La proprietà `Variable.Category` considera "Standard" solo se `AddressHigh == 0x00`, ma qualsiasi altro valore viene mappato a `DeviceSpecific`. Questo potrebbe non essere corretto se esistono altri range di indirizzi.
-
-#### File Coinvolti
-
-- `Core/Models/Variable.cs` (righe 41-43)
-
-#### Codice Problematico
-
-```csharp
-public VariableCategory Category => AddressHigh == 0x00 
-    ? VariableCategory.Standard 
-    : VariableCategory.DeviceSpecific;
-```
-
-#### Problema Specifico
-
-- La formalizzazione Lean 4 indica: "Standard (0x00xx) o DeviceSpecific (0x80xx)"
-- Il codice attuale mappa tutto ciò che non è `0x00` a `DeviceSpecific`
-- Se esistono indirizzi con `AddressHigh = 0x40` (esempio), sarebbero erroneamente classificati
-
-#### Soluzione Proposta
-
-**Opzione A: Validazione stretta (raccomandata)**
-
-Se solo `0x00` e `0x80` sono validi, aggiungere validazione nel costruttore:
-
-```csharp
-if (addressHigh != 0x00 && addressHigh != 0x80)
-    throw new ArgumentOutOfRangeException(nameof(addressHigh), 
-        "AddressHigh must be 0x00 (Standard) or 0x80 (DeviceSpecific).");
-```
-
-**Opzione B: Match esplicito**
-
-```csharp
-public VariableCategory Category => AddressHigh switch
-{
-    0x00 => VariableCategory.Standard,
-    0x80 => VariableCategory.DeviceSpecific,
-    _ => throw new InvalidOperationException($"Unknown AddressHigh: 0x{AddressHigh:X2}")
-};
-```
-
-#### Benefici Attesi
-
-- Fail-fast su dati invalidi
-- Maggiore robustezza nell'import da Excel
-- Allineamento con specifiche di dominio
+- [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
+- [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
 
 ---
 
@@ -348,7 +213,40 @@ public BitInterpretation(int variableId, DeviceType deviceType,
 
 ## Issue Risolte
 
-*(Nessuna issue risolta)*
+### CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio
+
+**Categoria:** Design  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** ✅ Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-19  
+**Branch:** fix/core-001-002
+
+#### Soluzione Implementata
+
+Implementata **Opzione A: Rimuovere Device**. L'enum ora ha 7 valori.
+
+---
+
+### CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00
+
+**Categoria:** Design  
+**Priorità:** Media  
+**Impatto:** Basso  
+**Status:** ✅ Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-19  
+**Branch:** fix/core-001-002
+
+#### Soluzione Implementata
+
+Implementate **entrambe le opzioni**:
+1. Validazione nel costruttore: `AddressHigh` deve essere `0x00` o `0x80`
+2. Match esplicito con `switch` expression nella proprietà `Category`
+
+**Test aggiunti:**
+- `Constructor_InvalidAddressHigh_ThrowsArgumentOutOfRangeException` (3 InlineData: 0x01, 0x40, 0xFF)
 
 ---
 
