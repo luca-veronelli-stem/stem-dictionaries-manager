@@ -8,9 +8,10 @@ namespace Tests.Unit.GUI.Mocks;
 /// </summary>
 public class MockNavigationService : INavigationService
 {
-    private readonly Stack<ViewType> _history = new();
+    private readonly Stack<(ViewType View, NavigationParameter? Param)> _history = new();
 
     public ViewType CurrentView { get; private set; } = ViewType.DictionaryList;
+    public NavigationParameter? CurrentParameter { get; private set; }
     public bool CanGoBack => _history.Count > 0;
 
     public NavigationParameter? LastParameter { get; private set; }
@@ -30,8 +31,9 @@ public class MockNavigationService : INavigationService
 
     public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null)
     {
-        _history.Push(CurrentView);
+        _history.Push((CurrentView, CurrentParameter));
         CurrentView = viewType;
+        CurrentParameter = parameter;
         LastParameter = parameter;
         NavigationHistory.Add((viewType, parameter));
         CurrentViewChanged?.Invoke(this, viewType);
@@ -41,7 +43,9 @@ public class MockNavigationService : INavigationService
     {
         GoBackCalled = true;
         if (!CanGoBack) return false;
-        CurrentView = _history.Pop();
+        var (prevView, prevParam) = _history.Pop();
+        CurrentView = prevView;
+        CurrentParameter = prevParam;
         CurrentViewChanged?.Invoke(this, CurrentView);
         return true;
     }
@@ -53,6 +57,7 @@ public class MockNavigationService : INavigationService
     {
         _history.Clear();
         CurrentView = ViewType.DictionaryList;
+        CurrentParameter = null;
         LastParameter = null;
         NavigationHistory.Clear();
         GoBackCalled = false;

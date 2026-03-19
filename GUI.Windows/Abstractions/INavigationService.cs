@@ -48,7 +48,12 @@ public interface INavigationService
     /// View correntemente visualizzata.
     /// </summary>
     ViewType CurrentView { get; }
-    
+
+    /// <summary>
+    /// Parametro di navigazione corrente.
+    /// </summary>
+    NavigationParameter? CurrentParameter { get; }
+
     /// <summary>
     /// Indica se è possibile tornare indietro.
     /// </summary>
