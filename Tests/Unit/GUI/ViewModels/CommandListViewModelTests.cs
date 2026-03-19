@@ -205,5 +205,58 @@ public class CommandListViewModelTests
         // Assert
         Assert.True(_navigationService.GoBackCalled);
     }
+
+    [Fact]
+    public async Task SearchText_FiltersListByName()
+    {
+        // Arrange
+        _commandService.SeedData(
+            new Command("Reset", 0x01, 0x00, false),
+            new Command("ReadFW", 0x02, 0x00, false),
+            new Command("WriteParam", 0x03, 0x00, false));
+        await _viewModel.InitializeAsync();
+
+        // Act
+        _viewModel.SearchText = "Read";
+
+        // Assert
+        Assert.Single(_viewModel.Commands);
+        Assert.Equal("ReadFW", _viewModel.Commands[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_FiltersListByCode()
+    {
+        // Arrange
+        _commandService.SeedData(
+            new Command("Cmd1", 0x01, 0x00, false),
+            new Command("Cmd2", 0x02, 0x00, false));
+        await _viewModel.InitializeAsync();
+
+        // Act
+        _viewModel.SearchText = "0200";
+
+        // Assert
+        Assert.Single(_viewModel.Commands);
+        Assert.Equal("Cmd2", _viewModel.Commands[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_EmptyString_ShowsAll()
+    {
+        // Arrange
+        _commandService.SeedData(
+            new Command("Cmd1", 0x01, 0x00, false),
+            new Command("Cmd2", 0x02, 0x00, false));
+        await _viewModel.InitializeAsync();
+        _viewModel.SearchText = "Cmd1";
+        Assert.Single(_viewModel.Commands);
+
+        // Act
+        _viewModel.SearchText = "";
+
+        // Assert
+        Assert.Equal(2, _viewModel.Commands.Count);
+    }
 }
 #endif

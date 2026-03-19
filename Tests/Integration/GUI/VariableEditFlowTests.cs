@@ -248,9 +248,9 @@ public class VariableEditFlowTests
 
     private class MockVariableService : IVariableService
     {
-        private readonly Dictionary<int, Variable> _variables = new();
+        private readonly Dictionary<int, Variable> _variables = [];
         private int _nextId = 1;
-        public List<string> MethodCalls { get; } = new();
+        public List<string> MethodCalls { get; } = [];
         public Exception? ExceptionToThrow { get; set; }
 
         public void SeedData(Variable variable)
@@ -267,7 +267,7 @@ public class VariableEditFlowTests
         }
 
         public Task<IReadOnlyList<Variable>> GetAllAsync(CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<Variable>>(_variables.Values.ToList());
+            => Task.FromResult<IReadOnlyList<Variable>>([.. _variables.Values]);
 
         public Task<Variable> AddAsync(int dictionaryId, Variable variable, CancellationToken ct = default)
         {
@@ -297,7 +297,7 @@ public class VariableEditFlowTests
         }
 
         public Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<Variable>>(_variables.Values.ToList());
+            => Task.FromResult<IReadOnlyList<Variable>>([.. _variables.Values]);
 
         public Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow, CancellationToken ct = default)
             => Task.FromResult<Variable?>(null);
@@ -346,7 +346,7 @@ public class VariableEditFlowTests
 
     private class MockMessageService : IMessageService
     {
-        public List<(string Message, MessageSeverity Severity)> Messages { get; } = new();
+        public List<(string Message, MessageSeverity Severity)> Messages { get; } = [];
         public string? CurrentMessage => Messages.LastOrDefault().Message;
         public MessageSeverity CurrentSeverity => Messages.LastOrDefault().Severity;
         public event EventHandler? MessageChanged;

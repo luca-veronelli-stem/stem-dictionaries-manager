@@ -189,5 +189,35 @@ public class BoardListViewModelTests
         // Assert
         Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.DeviceTypes.Count);
     }
+
+    [Fact]
+    public async Task SearchText_FiltersListByName()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync();
+
+        // Act
+        _viewModel.SearchText = "Madre";
+
+        // Assert - filtra tra i dati caricati
+        Assert.All(_viewModel.Boards, b =>
+            Assert.Contains("Madre", b.Name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task SearchText_EmptyString_ShowsAll()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync();
+        var totalCount = _viewModel.Boards.Count;
+        _viewModel.SearchText = "zzzzz_no_match";
+        Assert.Empty(_viewModel.Boards);
+
+        // Act
+        _viewModel.SearchText = "";
+
+        // Assert
+        Assert.Equal(totalCount, _viewModel.Boards.Count);
+    }
 }
 #endif

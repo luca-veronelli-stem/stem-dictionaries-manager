@@ -236,5 +236,73 @@ public class DictionaryListViewModelTests
         var item = _viewModel.Dictionaries.First();
         Assert.Equal("Madre Optimus", item.BoardTypeDisplay);
     }
+
+    [Fact]
+    public async Task SearchText_FiltersListByName()
+    {
+        // Arrange
+        _dictionaryService.SeedData(
+            new Dictionary("optimus-xp", null, null),
+            new Dictionary("pulsantiere", null, null),
+            new Dictionary("standard", null, null));
+        await _viewModel.LoadAsync();
+
+        // Act
+        _viewModel.SearchText = "optimus";
+
+        // Assert
+        Assert.Single(_viewModel.Dictionaries);
+        Assert.Equal("optimus-xp", _viewModel.Dictionaries[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_FiltersListByBoardType()
+    {
+        // Arrange
+        var bt = new BoardType("Madre Optimus", 17);
+        _dictionaryService.SeedData(
+            new Dictionary("dict1", bt, null),
+            new Dictionary("dict2", null, null));
+        await _viewModel.LoadAsync();
+
+        // Act
+        _viewModel.SearchText = "Madre";
+
+        // Assert
+        Assert.Single(_viewModel.Dictionaries);
+        Assert.Equal("dict1", _viewModel.Dictionaries[0].Name);
+    }
+
+    [Fact]
+    public async Task SearchText_EmptyString_ShowsAll()
+    {
+        // Arrange
+        _dictionaryService.SeedData(
+            new Dictionary("dict1", null, null),
+            new Dictionary("dict2", null, null));
+        await _viewModel.LoadAsync();
+        _viewModel.SearchText = "dict1";
+        Assert.Single(_viewModel.Dictionaries);
+
+        // Act
+        _viewModel.SearchText = "";
+
+        // Assert
+        Assert.Equal(2, _viewModel.Dictionaries.Count);
+    }
+
+    [Fact]
+    public async Task SearchText_CaseInsensitive()
+    {
+        // Arrange
+        _dictionaryService.SeedData(new Dictionary("Optimus-XP", null, null));
+        await _viewModel.LoadAsync();
+
+        // Act
+        _viewModel.SearchText = "OPTIMUS";
+
+        // Assert
+        Assert.Single(_viewModel.Dictionaries);
+    }
 }
 #endif
