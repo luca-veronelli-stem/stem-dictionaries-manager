@@ -171,5 +171,93 @@ public class DependencyInjectionTests
         // MainViewModel should set initial title (with suffix for initial view)
         Assert.StartsWith("Stem Dictionaries Manager", viewModel.Title);
     }
+
+    [Fact]
+    public void AddGUI_RegistersVariableListViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<VariableListViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersVariableEditViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<VariableEditViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersCommandListViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<CommandListViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersCommandEditViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<CommandEditViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersBoardListViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<BoardListViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersBoardEditViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<BoardEditViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersUserListViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<UserListViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
+
+    [Fact]
+    public void AddGUI_RegistersSettingsViewModel()
+    {
+        // Act
+        var provider = _services.BuildServiceProvider();
+        var viewModel = provider.GetService<SettingsViewModel>();
+
+        // Assert
+        Assert.NotNull(viewModel);
+    }
 }
 #endif
