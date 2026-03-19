@@ -46,6 +46,7 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     {
         return await DbSet
             .Include(d => d.BoardType)
+            .Include(d => d.Variables)
             .ToListAsync(cancellationToken);
     }
 

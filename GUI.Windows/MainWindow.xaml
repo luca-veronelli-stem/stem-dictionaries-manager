@@ -20,6 +20,30 @@
         <DataTemplate DataType="{x:Type vm:DictionaryEditViewModel}">
             <views:DictionaryEditView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VariableListViewModel}">
+            <views:VariableListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VariableEditViewModel}">
+            <views:VariableEditView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CommandListViewModel}">
+            <views:CommandListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CommandEditViewModel}">
+            <views:CommandEditView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BoardListViewModel}">
+            <views:BoardListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BoardEditViewModel}">
+            <views:BoardEditView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UserListViewModel}">
+            <views:UserListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>

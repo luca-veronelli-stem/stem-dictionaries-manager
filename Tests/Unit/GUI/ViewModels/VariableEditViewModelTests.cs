@@ -79,10 +79,10 @@ public class VariableEditViewModelTests
 
         // Assert
         Assert.Equal("Temperature", _viewModel.Name);
-        Assert.Equal(0x80, _viewModel.AddressHigh);
-        Assert.Equal(0x10, _viewModel.AddressLow);
+        Assert.Equal("80", _viewModel.AddressHighHex);
+        Assert.Equal("10", _viewModel.AddressLowHex);
         Assert.Equal(DataTypeKind.Int16, _viewModel.SelectedDataTypeKind);
-        Assert.Equal("int16_t", _viewModel.DataTypeRaw);
+        Assert.Equal("Int16", _viewModel.DataTypeForSave);
         Assert.Equal(AccessMode.ReadOnly, _viewModel.SelectedAccessMode);
         Assert.Equal("°C", _viewModel.Unit);
         Assert.Equal("Test var", _viewModel.Description);
@@ -118,29 +118,30 @@ public class VariableEditViewModelTests
     {
         // Arrange
         _viewModel.Name = "";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Assert
         Assert.False(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenDataTypeRawEmpty()
+    public void SaveCommand_CannotExecute_WhenDataTypeOtherAndCustomEmpty()
     {
         // Arrange
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
+        _viewModel.CustomDataType = "";
 
         // Assert
         Assert.False(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenNameAndDataTypeRawSet()
+    public void SaveCommand_CanExecute_WhenNameAndDataTypeSet()
     {
         // Arrange
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Assert
         Assert.True(_viewModel.SaveCommand.CanExecute(null));
@@ -152,7 +153,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 42);
         _viewModel.Name = "NewVar";
-        _viewModel.DataTypeRaw = "uint16_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -183,7 +184,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -199,7 +200,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
         _variableService.ExceptionToThrow = new Exception("Save failed");
 
         // Act
@@ -243,11 +244,18 @@ public class VariableEditViewModelTests
     public void FullAddressDisplay_FormatsCorrectly()
     {
         // Arrange
-        _viewModel.AddressHigh = 0x80;
-        _viewModel.AddressLow = 0x01;
+        _viewModel.AddressHighHex = "80";
+        _viewModel.AddressLowHex = "01";
 
         // Assert
         Assert.Equal("0x8001", _viewModel.FullAddressDisplay);
+    }
+
+    [Fact]
+    public void FullAddressDisplay_HandlesEmptyValues()
+    {
+        // Empty values should show 0x0000
+        Assert.Equal("0x0000", _viewModel.FullAddressDisplay);
     }
 
     [Fact]
@@ -263,5 +271,211 @@ public class VariableEditViewModelTests
         // Assert
         Assert.Equal(Enum.GetValues<AccessMode>().Length, _viewModel.AccessModes.Count);
     }
+
+    #region DataTypeParam Validation Tests
+
+    [Theory]
+    [InlineData(DataTypeKind.Bitmapped)]
+    [InlineData(DataTypeKind.Array)]
+    [InlineData(DataTypeKind.String)]
+    public void RequiresDataTypeParam_TrueForParameterizedTypes(DataTypeKind dataType)
+    {
+        _viewModel.SelectedDataTypeKind = dataType;
+        Assert.True(_viewModel.RequiresDataTypeParam);
+    }
+
+    [Theory]
+    [InlineData(DataTypeKind.UInt8)]
+    [InlineData(DataTypeKind.Int16)]
+    [InlineData(DataTypeKind.UInt32)]
+    [InlineData(DataTypeKind.Other)]
+    public void RequiresDataTypeParam_FalseForSimpleTypes(DataTypeKind dataType)
+    {
+        _viewModel.SelectedDataTypeKind = dataType;
+        Assert.False(_viewModel.RequiresDataTypeParam);
+    }
+
+    [Fact]
+    public void DataTypeParamLabel_Bitmapped_ReturnsWordCountLabel()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Contains("Word Count", _viewModel.DataTypeParamLabel);
+        Assert.Contains("*", _viewModel.DataTypeParamLabel);
+    }
+
+    [Theory]
+    [InlineData(DataTypeKind.Array)]
+    [InlineData(DataTypeKind.String)]
+    public void DataTypeParamLabel_ArrayOrString_ReturnsSizeLabel(DataTypeKind dataType)
+    {
+        _viewModel.SelectedDataTypeKind = dataType;
+        Assert.Contains("Size", _viewModel.DataTypeParamLabel);
+        Assert.Contains("*", _viewModel.DataTypeParamLabel);
+    }
+
+    [Fact]
+    public void SaveCommand_CannotExecute_WhenDataTypeParamRequired_AndNotSet()
+    {
+        // Arrange
+        _viewModel.Name = "TestVar";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = null;
+
+        // Assert
+        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void SaveCommand_CanExecute_WhenDataTypeParamRequired_AndSet()
+    {
+        // Arrange
+        _viewModel.Name = "TestVar";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 2;
+
+        // Assert
+        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void SaveCommand_CanExecute_WhenDataTypeParamNotRequired()
+    {
+        // Arrange
+        _viewModel.Name = "TestVar";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+        _viewModel.DataTypeParam = null;
+
+        // Assert
+        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+    }
+
+    #endregion
+
+    #region Min/Max Validation Tests
+
+    [Fact]
+    public void IsMinMaxValid_TrueWhenBothNull()
+    {
+        _viewModel.MinValue = null;
+        _viewModel.MaxValue = null;
+        Assert.True(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void IsMinMaxValid_TrueWhenOnlyMinSet()
+    {
+        _viewModel.MinValue = 10;
+        _viewModel.MaxValue = null;
+        Assert.True(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void IsMinMaxValid_TrueWhenOnlyMaxSet()
+    {
+        _viewModel.MinValue = null;
+        _viewModel.MaxValue = 100;
+        Assert.True(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void IsMinMaxValid_TrueWhenMinLessThanMax()
+    {
+        _viewModel.MinValue = 10;
+        _viewModel.MaxValue = 100;
+        Assert.True(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void IsMinMaxValid_TrueWhenMinEqualsMax()
+    {
+        _viewModel.MinValue = 50;
+        _viewModel.MaxValue = 50;
+        Assert.True(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void IsMinMaxValid_FalseWhenMinGreaterThanMax()
+    {
+        _viewModel.MinValue = 100;
+        _viewModel.MaxValue = 10;
+        Assert.False(_viewModel.IsMinMaxValid);
+    }
+
+    [Fact]
+    public void SaveCommand_CannotExecute_WhenMinMaxInvalid()
+    {
+        // Arrange
+        _viewModel.Name = "TestVar";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+        _viewModel.MinValue = 100;
+        _viewModel.MaxValue = 10;
+
+        // Assert
+        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+    }
+
+    #endregion
+
+    #region DataTypeForSave Tests
+
+    [Theory]
+    [InlineData(DataTypeKind.UInt8, "UInt8")]
+    [InlineData(DataTypeKind.Int16, "Int16")]
+    [InlineData(DataTypeKind.UInt32, "UInt32")]
+    [InlineData(DataTypeKind.Bitmapped, "Bitmapped")]
+    public void DataTypeForSave_ReturnsEnumName_ForStandardTypes(DataTypeKind dataType, string expected)
+    {
+        _viewModel.SelectedDataTypeKind = dataType;
+        Assert.Equal(expected, _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_ReturnsCustomValue_ForOtherType()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
+        _viewModel.CustomDataType = "MyCustomStruct";
+        Assert.Equal("MyCustomStruct", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void IsDataTypeOther_TrueOnlyForOther()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
+        Assert.True(_viewModel.IsDataTypeOther);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
+        Assert.False(_viewModel.IsDataTypeOther);
+    }
+
+    #endregion
+
+    #region Address Validation Tests
+
+    [Theory]
+    [InlineData("00", true)]
+    [InlineData("FF", true)]
+    [InlineData("AB", true)]
+    [InlineData("1a", true)]
+    [InlineData("", true)]  // Empty is valid
+    [InlineData("GG", false)]
+    [InlineData("ZZ", false)]
+    public void IsAddressHighValid_ValidatesHexInput(string input, bool expected)
+    {
+        _viewModel.AddressHighHex = input;
+        Assert.Equal(expected, _viewModel.IsAddressHighValid);
+    }
+
+    [Theory]
+    [InlineData("00", true)]
+    [InlineData("FF", true)]
+    [InlineData("", true)]
+    [InlineData("XY", false)]
+    public void IsAddressLowValid_ValidatesHexInput(string input, bool expected)
+    {
+        _viewModel.AddressLowHex = input;
+        Assert.Equal(expected, _viewModel.IsAddressLowValid);
+    }
+
+    #endregion
 }
 #endif

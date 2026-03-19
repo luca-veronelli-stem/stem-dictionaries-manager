@@ -33,21 +33,36 @@ public partial class VariableEditViewModel : ObservableObject
     // === Campi editabili ===
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private byte _addressHigh;
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    [NotifyPropertyChangedFor(nameof(IsAddressHighValid))]
+    private string _addressHighHex = string.Empty;
 
     [ObservableProperty]
-    private byte _addressLow;
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    [NotifyPropertyChangedFor(nameof(IsAddressLowValid))]
+    private string _addressLowHex = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDataTypeOther))]
+    [NotifyPropertyChangedFor(nameof(RequiresDataTypeParam))]
+    [NotifyPropertyChangedFor(nameof(IsBitmapped))]
+    [NotifyPropertyChangedFor(nameof(DataTypeParamLabel))]
+    [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private DataTypeKind _selectedDataTypeKind = DataTypeKind.UInt8;
 
     [ObservableProperty]
-    private string _dataTypeRaw = string.Empty;
+    [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    private string _customDataType = string.Empty;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private int? _dataTypeParam;
 
     [ObservableProperty]
@@ -57,16 +72,17 @@ public partial class VariableEditViewModel : ObservableObject
     private string? _format;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMinMaxValid))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private double? _minValue;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMinMaxValid))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private double? _maxValue;
 
     [ObservableProperty]
     private string? _unit;
-
-    [ObservableProperty]
-    private string? _usage;
 
     [ObservableProperty]
     private string? _description;
@@ -78,7 +94,89 @@ public partial class VariableEditViewModel : ObservableObject
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Variabile" : "Modifica Variabile";
-    public string FullAddressDisplay => $"0x{(AddressHigh << 8 | AddressLow):X4}";
+
+    /// <summary>
+    /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
+    /// </summary>
+    public bool IsDataTypeOther => SelectedDataTypeKind == DataTypeKind.Other;
+
+    /// <summary>
+    /// True se il tipo richiede un parametro (Bitmapped, Array, String).
+    /// </summary>
+    public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Bitmapped or DataTypeKind.Array or DataTypeKind.String;
+
+    /// <summary>
+    /// True se è Bitmapped (mostra Word Count / Word Size).
+    /// </summary>
+    public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
+
+    /// <summary>
+    /// Label per il parametro tipo (con asterisco).
+    /// </summary>
+    public string DataTypeParamLabel => SelectedDataTypeKind switch
+    {
+        DataTypeKind.Bitmapped => "Word Count (16 bit) *",
+        DataTypeKind.Array or DataTypeKind.String => "Size (bytes) *",
+        _ => "Parametro"
+    };
+
+    /// <summary>
+    /// Tipo dato per il salvataggio (dal dropdown o custom).
+    /// </summary>
+    public string DataTypeForSave => IsDataTypeOther ? CustomDataType : SelectedDataTypeKind.ToString();
+
+    /// <summary>
+    /// Validazione: AddressHigh deve essere hex valido.
+    /// </summary>
+    public bool IsAddressHighValid => IsValidHex(AddressHighHex);
+
+    /// <summary>
+    /// Validazione: AddressLow deve essere hex valido.
+    /// </summary>
+    public bool IsAddressLowValid => IsValidHex(AddressLowHex);
+
+    /// <summary>
+    /// Validazione: Min deve essere minore o uguale a Max (se entrambi specificati).
+    /// </summary>
+    public bool IsMinMaxValid => !MinValue.HasValue || !MaxValue.HasValue || MinValue.Value <= MaxValue.Value;
+
+    /// <summary>
+    /// Indirizzo completo in formato 0xHHLL.
+    /// </summary>
+    public string FullAddressDisplay
+    {
+        get
+        {
+            var high = ParseHexByte(AddressHighHex);
+            var low = ParseHexByte(AddressLowHex);
+            return $"0x{(high << 8 | low):X4}";
+        }
+    }
+
+    // === Helper per validazione e parsing hex ===
+
+    private static bool IsValidHex(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto è ok
+        return hex.All(c => char.IsAsciiHexDigit(c));
+    }
+
+    private static byte ParseHexByte(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return 0;
+        if (byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var result))
+            return result;
+        return 0;
+    }
+
+    /// <summary>
+    /// Filtra l'input per accettare solo caratteri hex.
+    /// </summary>
+    public static string FilterHexInput(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return new string([.. input.Where(char.IsAsciiHexDigit)]).ToUpperInvariant();
+    }
 
     // === Enum values per ComboBox ===
 
@@ -143,26 +241,32 @@ public partial class VariableEditViewModel : ObservableObject
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        AddressHigh = v.AddressHigh;
-        AddressLow = v.AddressLow;
+        AddressHighHex = v.AddressHigh.ToString("X2");
+        AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
-        DataTypeRaw = v.DataTypeRaw;
         DataTypeParam = v.DataTypeParam;
         SelectedAccessMode = v.AccessMode;
         Format = v.Format;
         MinValue = v.MinValue;
         MaxValue = v.MaxValue;
         Unit = v.Unit;
-        Usage = v.Usage;
         Description = v.Description;
         IsEnabled = v.IsEnabled;
 
-        OnPropertyChanged(nameof(AddressHigh));
-        OnPropertyChanged(nameof(AddressLow));
-        OnPropertyChanged(nameof(FullAddressDisplay));
+        // Imposta custom type se è Other
+        if (v.DataTypeKind == DataTypeKind.Other)
+        {
+            CustomDataType = v.DataTypeRaw;
+        }
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(DataTypeRaw);
+    private bool CanSave() => 
+        !string.IsNullOrWhiteSpace(Name) && 
+        !string.IsNullOrWhiteSpace(DataTypeForSave) &&
+        IsAddressHighValid &&
+        IsAddressLowValid &&
+        IsMinMaxValid &&
+        (!RequiresDataTypeParam || DataTypeParam.HasValue);
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
@@ -171,22 +275,25 @@ public partial class VariableEditViewModel : ObservableObject
         {
             IsBusy = true;
 
+            var addressHigh = ParseHexByte(AddressHighHex);
+            var addressLow = ParseHexByte(AddressLowHex);
+
             if (IsNew)
             {
                 var variable = new Variable(
                     name: Name,
-                    addressHigh: AddressHigh,
-                    addressLow: AddressLow,
+                    addressHigh: addressHigh,
+                    addressLow: addressLow,
                     dataTypeKind: SelectedDataTypeKind,
                     accessMode: SelectedAccessMode,
-                    dataTypeRaw: DataTypeRaw,
+                    dataTypeRaw: DataTypeForSave,
                     dataTypeParam: DataTypeParam,
                     isEnabled: IsEnabled,
                     format: Format,
                     minValue: MinValue,
                     maxValue: MaxValue,
                     unit: Unit,
-                    usage: Usage,
+                    usage: null,
                     description: Description);
 
                 await _variableService.AddAsync(_dictionaryId, variable);
@@ -197,10 +304,10 @@ public partial class VariableEditViewModel : ObservableObject
                 var existing = Variable.Restore(
                     id: _editingId!.Value,
                     name: Name,
-                    addressHigh: AddressHigh,
-                    addressLow: AddressLow,
+                    addressHigh: addressHigh,
+                    addressLow: addressLow,
                     dataTypeKind: SelectedDataTypeKind,
-                    dataTypeRaw: DataTypeRaw,
+                    dataTypeRaw: DataTypeForSave,
                     dataTypeParam: DataTypeParam,
                     accessMode: SelectedAccessMode,
                     isEnabled: IsEnabled,
@@ -208,7 +315,7 @@ public partial class VariableEditViewModel : ObservableObject
                     minValue: MinValue,
                     maxValue: MaxValue,
                     unit: Unit,
-                    usage: Usage,
+                    usage: null,
                     description: Description);
 
                 await _variableService.UpdateAsync(existing);

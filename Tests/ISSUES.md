@@ -38,15 +38,16 @@
 
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
-| Core/Enums (6) | ✅ 25 | - | 100% |
+| Core/Enums (6) | ✅ 22 | - | 100% |
 | Core/Models (9) | ✅ 97 | - | 100% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Infrastructure/DI | ✅ 13 | - | 100% |
 | Services/DI | ✅ 10 | - | 100% |
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services (5) | - | ✅ 88 | ~95% |
-| GUI.Windows/ViewModels (11) | ✅ 143 | - | ~85% |
+| GUI.Windows/ViewModels (11) | ✅ 189 | ✅ 10 | ~90% |
 | GUI.Windows/Services (3) | ✅ 12 | - | ~70% |
+| GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
 | GUI.Windows/DI | ✅ 21 | - | 100% |
 
 ---

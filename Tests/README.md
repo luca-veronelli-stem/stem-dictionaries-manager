@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | 401 test per Core + Services/Mapping + GUI |
-| **Integration Tests** | ✅ | 192 test per Infrastructure + Services |
+| **Unit Tests** | ✅ | ~450 test per Core + Services/Mapping + GUI |
+| **Integration Tests** | ✅ | ~200 test per Infrastructure + Services + GUI |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
@@ -108,13 +108,15 @@ Tests/
 │   │   │   ├── DictionaryEditViewModelTests.cs   # 17 test
 │   │   │   ├── MainViewModelTests.cs             # 7 test
 │   │   │   ├── VariableListViewModelTests.cs     # 14 test
-│   │   │   ├── VariableEditViewModelTests.cs     # 17 test
+│   │   │   ├── VariableEditViewModelTests.cs     # 46 test
 │   │   │   ├── CommandListViewModelTests.cs      # 14 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 16 test
 │   │   │   ├── BoardListViewModelTests.cs        # 13 test
 │   │   │   ├── BoardEditViewModelTests.cs        # 14 test
 │   │   │   ├── UserListViewModelTests.cs         # 14 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
+│   │   ├── Converters/
+│   │   │   └── NullableNumericConverterTests.cs  # 18 test
 │   │   ├── Services/
 │   │   │   └── NavigationServiceTests.cs         # 12 test
 │   │   └── DependencyInjectionTests.cs           # 21 test
@@ -149,6 +151,8 @@ Tests/
         ├── CommandServiceTests.cs         # 15 test
         └── VariableServiceTests.cs        # 23 test
 ```
+
+> **Nota:** `Integration/GUI/VariableEditFlowTests.cs` (10 test) include mock services inline per test flow completi.
 
 ---
 
@@ -206,18 +210,20 @@ public class MyRepositoryTests : IntegrationTestBase
 
 | Area | Test | Descrizione |
 |------|------|-------------|
-| Unit/Enums | 25 | Valori, count, casting |
+| Unit/Enums | 22 | Valori, count, casting |
 | Unit/Models | 97 | Costruttori, validazione, metodi |
 | Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
 | Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI/ViewModels | 143 | 11 ViewModels con CRUD, navigation |
+| Unit/GUI/ViewModels | 189 | 11 ViewModels con CRUD, navigation, validation |
+| Unit/GUI/Converters | 18 | NullableInt/Double converters |
 | Unit/GUI/Services | 12 | NavigationService |
 | Unit/GUI/DI | 21 | Registrazione ViewModels + UI services |
 | Integration/Infrastructure | 104 | Repository, audit, DB, CRUD scenarios |
 | Integration/Services | 88 | Business logic, validazione |
-| **Totale CI** | **417** | net10.0 (Linux) |
-| **Totale Windows** | **593** | net10.0-windows (+176 GUI tests) |
+| Integration/GUI | 10 | VariableEdit flow completo |
+| **Totale CI** | **~440** | net10.0 (Linux) |
+| **Totale Windows** | **1074** | net10.0-windows (+GUI tests) |
 
 ---
 

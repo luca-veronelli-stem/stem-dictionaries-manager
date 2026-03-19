@@ -8,5 +8,67 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:NullableIntConverter x:Key="NullableIntConverter"/>
+        <converters:NullableDoubleConverter x:Key="NullableDoubleConverter"/>
+
+        <!-- Stile per TextBox con placeholder (watermark) -->
+        <Style x:Key="WatermarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2">
+                            <Grid>
+                                <ScrollViewer x:Name="PART_ContentHost" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Margin="{TemplateBinding Padding}"/>
+                                <TextBlock x:Name="Watermark" 
+                                           Text="{TemplateBinding Tag}" 
+                                           Foreground="Gray"
+                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                           Margin="{TemplateBinding Padding}"
+                                           IsHitTestVisible="False"
+                                           Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Text" Value=""/>
+                                    <Condition Property="IsFocused" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stile per TextBox di ricerca con icona -->
+        <Style x:Key="SearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource WatermarkTextBoxStyle}">
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Tag" Value="  🔍 Cerca..."/>
+        </Style>
+
+        <!-- Stile per TextBox indirizzo hex con placeholder -->
+        <Style x:Key="HexAddressTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource WatermarkTextBoxStyle}">
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="MaxLength" Value="2"/>
+            <Setter Property="CharacterCasing" Value="Upper"/>
+            <Setter Property="Tag" Value="00"/>
+        </Style>
+
+        <!-- Stile per bottoni toolbar con icona -->
+        <Style x:Key="ToolbarButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
     </Application.Resources>
 </Application>

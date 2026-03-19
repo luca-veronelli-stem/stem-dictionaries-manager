@@ -57,7 +57,7 @@ public class DictionaryService : IDictionaryService
             BoardType? boardType = e.BoardType is not null 
                 ? BoardTypeMapper.ToDomain(e.BoardType) 
                 : null;
-            return DictionaryMapper.ToDomain(e, boardType);
+            return DictionaryMapper.ToDomainWithVariables(e, boardType);
         })];
     }
 

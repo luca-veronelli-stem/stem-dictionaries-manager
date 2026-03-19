@@ -42,26 +42,95 @@ public partial class MainViewModel : ObservableObject
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
 
         // Naviga alla view iniziale
-        NavigateToView(_navigationService.CurrentView);
+        NavigateToView(_navigationService.CurrentView, null);
     }
 
     private void OnCurrentViewChanged(object? sender, ViewType viewType)
     {
-        NavigateToView(viewType);
+        // Recupera il parametro dal NavigationService
+        var parameter = _navigationService.CurrentParameter;
+        NavigateToView(viewType, parameter);
         CanGoBack = _navigationService.CanGoBack;
     }
 
-    private void NavigateToView(ViewType viewType)
+    private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
     {
-        CurrentViewModel = viewType switch
+        var viewModel = CreateViewModel(viewType);
+
+        if (viewModel is not null)
+        {
+            // Inizializza il ViewModel con i parametri appropriati
+            await InitializeViewModelAsync(viewModel, parameter);
+        }
+
+        CurrentViewModel = viewModel;
+        UpdateTitle(viewType);
+    }
+
+    private object? CreateViewModel(ViewType viewType)
+    {
+        return viewType switch
         {
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
             ViewType.DictionaryEdit => _serviceProvider.GetService(typeof(DictionaryEditViewModel)),
-            // TODO: Altri ViewModel
+            ViewType.VariableList => _serviceProvider.GetService(typeof(VariableListViewModel)),
+            ViewType.VariableEdit => _serviceProvider.GetService(typeof(VariableEditViewModel)),
+            ViewType.CommandList => _serviceProvider.GetService(typeof(CommandListViewModel)),
+            ViewType.CommandEdit => _serviceProvider.GetService(typeof(CommandEditViewModel)),
+            ViewType.BoardList => _serviceProvider.GetService(typeof(BoardListViewModel)),
+            ViewType.BoardEdit => _serviceProvider.GetService(typeof(BoardEditViewModel)),
+            ViewType.UserList => _serviceProvider.GetService(typeof(UserListViewModel)),
+            ViewType.Settings => _serviceProvider.GetService(typeof(SettingsViewModel)),
             _ => null
         };
+    }
 
-        UpdateTitle(viewType);
+    private static async Task InitializeViewModelAsync(object viewModel, NavigationParameter? parameter)
+    {
+        switch (viewModel)
+        {
+            // List ViewModels - caricano i dati iniziali
+            case DictionaryListViewModel vm:
+                await vm.LoadAsync();
+                break;
+
+            case VariableListViewModel vm when parameter?.ParentId is int dictionaryId:
+                await vm.InitializeAsync(dictionaryId);
+                break;
+
+            case CommandListViewModel vm:
+                await vm.InitializeAsync();
+                break;
+
+            case BoardListViewModel vm:
+                await vm.InitializeAsync();
+                break;
+
+            case UserListViewModel vm:
+                await vm.InitializeAsync();
+                break;
+
+            case SettingsViewModel vm:
+                await vm.InitializeAsync();
+                break;
+
+            // Edit ViewModels - caricano entità esistente o preparano per nuova
+            case DictionaryEditViewModel vm:
+                await vm.InitializeAsync(parameter?.EntityId);
+                break;
+
+            case VariableEditViewModel vm when parameter?.ParentId is int dictionaryId:
+                await vm.InitializeAsync(parameter?.EntityId, dictionaryId);
+                break;
+
+            case CommandEditViewModel vm:
+                await vm.InitializeAsync(parameter?.EntityId);
+                break;
+
+            case BoardEditViewModel vm:
+                await vm.InitializeAsync(parameter?.EntityId);
+                break;
+        }
     }
 
     private void UpdateTitle(ViewType viewType)

@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-19
 
 ---
 
@@ -70,7 +70,7 @@ dictionary.AddVariable(variable);
 ```
 Core/
 ├── Enums/
-│   ├── AccessMode.cs           # ReadOnly, ReadWrite, WriteOnly, NotUsed
+│   ├── AccessMode.cs           # ReadOnly, ReadWrite, WriteOnly
 │   ├── AuditEntityType.cs      # Tipi entità per audit trail
 │   ├── AuditOperation.cs       # Create, Update, Delete
 │   ├── DataTypeKind.cs         # UInt8, Int16, String, Bitmapped, etc.
@@ -97,7 +97,7 @@ Core/
 | Enum | Valori | Uso |
 |------|--------|-----|
 | `DeviceType` | 12 valori | Tipo dispositivo STEM (Optimus, Eden, etc.) |
-| `AccessMode` | 4 valori | Permessi variabile (ReadOnly, ReadWrite, etc.) |
+| `AccessMode` | 3 valori | Permessi variabile (ReadOnly, ReadWrite, WriteOnly) |
 | `DataTypeKind` | 11 valori | Tipo dato (UInt8, Int16, String, Bitmapped, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
