@@ -82,7 +82,7 @@ public class VariableEditViewModelTests
         Assert.Equal("80", _viewModel.AddressHighHex);
         Assert.Equal("10", _viewModel.AddressLowHex);
         Assert.Equal(DataTypeKind.Int16, _viewModel.SelectedDataTypeKind);
-        Assert.Equal("int16_t", _viewModel.DataTypeRaw);
+        Assert.Equal("Int16", _viewModel.DataTypeForSave);
         Assert.Equal(AccessMode.ReadOnly, _viewModel.SelectedAccessMode);
         Assert.Equal("°C", _viewModel.Unit);
         Assert.Equal("Test var", _viewModel.Description);
@@ -118,29 +118,30 @@ public class VariableEditViewModelTests
     {
         // Arrange
         _viewModel.Name = "";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Assert
         Assert.False(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenDataTypeRawEmpty()
+    public void SaveCommand_CannotExecute_WhenDataTypeOtherAndCustomEmpty()
     {
         // Arrange
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
+        _viewModel.CustomDataType = "";
 
         // Assert
         Assert.False(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenNameAndDataTypeRawSet()
+    public void SaveCommand_CanExecute_WhenNameAndDataTypeSet()
     {
         // Arrange
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Assert
         Assert.True(_viewModel.SaveCommand.CanExecute(null));
@@ -152,7 +153,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 42);
         _viewModel.Name = "NewVar";
-        _viewModel.DataTypeRaw = "uint16_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -183,7 +184,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -199,7 +200,7 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
-        _viewModel.DataTypeRaw = "uint8_t";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
         _variableService.ExceptionToThrow = new Exception("Save failed");
 
         // Act

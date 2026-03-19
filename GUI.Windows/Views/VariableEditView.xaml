@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="GUI.Windows.Views.VariableEditView"
+<UserControl x:Class="GUI.Windows.Views.VariableEditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -49,40 +49,70 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <TextBlock Text="High: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding AddressHighHex, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"/>
+                    <TextBox Text="{Binding AddressHighHex, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"
+                             PreviewTextInput="HexTextBox_PreviewTextInput"/>
                     <TextBlock Text="Low: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"/>
-                    <TextBlock Text="{Binding FullAddressDisplay}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#0078D4"/>
+                    <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"
+                             PreviewTextInput="HexTextBox_PreviewTextInput"/>
+                    <TextBlock Text="{Binding FullAddressDisplay}" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <!-- Tipo Dato -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DataTypeRaw, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12" ToolTip="Es: UInt16, String[20], Bitmapped[2], Int32"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+                    <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
+                              Width="130" Padding="8,6" Margin="0,0,8,0"/>
+                    <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="150" Padding="8,6" 
+                             IsEnabled="{Binding IsDataTypeOther}"
+                             ToolTip="Tipo custom (es: MyStruct, CustomType[10])">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDataTypeOther}" Value="False">
+                                        <Setter Property="Background" Value="#F0F0F0"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </StackPanel>
+
+                <!-- Parametro Tipo (solo per Bitmapped, Array, String) -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding DataTypeParamLabel}" VerticalAlignment="Center" Margin="0,0,0,12"
+                           Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged}" 
+                         Width="100" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"
+                         Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
+                         ToolTip="Dimensione o numero di word"/>
 
                 <!-- Modalita Accesso -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Accesso" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Accesso" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
+                          Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
 
                 <!-- Min/Max/Unita -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Min / Max / Unita" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <TextBox Text="{Binding MinValue}" Width="80" Padding="8,6" Margin="0,0,8,0" ToolTip="Valore minimo"/>
-                    <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBox Text="{Binding MaxValue}" Width="80" Padding="8,6" Margin="0,0,16,0" ToolTip="Valore massimo"/>
-                    <TextBox Text="{Binding Unit}" Width="80" Padding="8,6" ToolTip="Unita (es: C, mm, kg)"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Min - Max / Unità" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged}" Width="80" Padding="8,6" Margin="0,0,8,0" ToolTip="Valore minimo"/>
+                        <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged}" Width="80" Padding="8,6" Margin="0,0,16,0" ToolTip="Valore massimo"/>
+                        <TextBox Text="{Binding Unit}" Width="80" Padding="8,6" ToolTip="Unità (es: °C, mm, kg)"/>
+                    </StackPanel>
+                    <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="Red" FontSize="11" Margin="0,4,0,0"
+                               Visibility="{Binding IsMinMaxValid, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
                 </StackPanel>
 
                 <!-- Formato -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Formato" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Format}" Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12" ToolTip="Es: %.2f, %d"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Formato" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Format}" Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12" ToolTip="Es: %.2f, %d"/>
 
                 <!-- Descrizione -->
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Descrizione" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Padding="8,6" Margin="0,0,0,12"/>
-
-                <!-- Uso -->
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Uso" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Usage}" AcceptsReturn="True" TextWrapping="Wrap" Height="60" Padding="8,6" Margin="0,0,0,12" ToolTip="Come utilizzare questa variabile"/>
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Descrizione" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Padding="8,6" Margin="0,0,0,12"/>
 
                 <!-- Abilitata -->
                 <TextBlock Grid.Row="8" Grid.Column="0" Text="Stato" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -91,7 +121,8 @@
         </ScrollViewer>
 
         <!-- Error message -->
-        <Border Grid.Row="2" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,0,0,16" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+        <Border Grid.Row="2" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,0,0,16" 
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
         </Border>
 
