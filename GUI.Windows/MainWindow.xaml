@@ -84,6 +84,12 @@
             <StatusBarItem>
                 <TextBlock Text="Pronto" x:Name="StatusText"/>
             </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Utente: " Foreground="Gray"/>
+                    <TextBlock Text="{Binding CurrentUserDisplayName}" FontWeight="SemiBold"/>
+                </StackPanel>
+            </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <ProgressBar Width="100" Height="16" 
                              IsIndeterminate="{Binding IsBusy}"
