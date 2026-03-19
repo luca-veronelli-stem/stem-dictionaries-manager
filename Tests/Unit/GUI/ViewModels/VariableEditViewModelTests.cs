@@ -79,8 +79,8 @@ public class VariableEditViewModelTests
 
         // Assert
         Assert.Equal("Temperature", _viewModel.Name);
-        Assert.Equal(0x80, _viewModel.AddressHigh);
-        Assert.Equal(0x10, _viewModel.AddressLow);
+        Assert.Equal("80", _viewModel.AddressHighHex);
+        Assert.Equal("10", _viewModel.AddressLowHex);
         Assert.Equal(DataTypeKind.Int16, _viewModel.SelectedDataTypeKind);
         Assert.Equal("int16_t", _viewModel.DataTypeRaw);
         Assert.Equal(AccessMode.ReadOnly, _viewModel.SelectedAccessMode);
@@ -243,8 +243,8 @@ public class VariableEditViewModelTests
     public void FullAddressDisplay_FormatsCorrectly()
     {
         // Arrange
-        _viewModel.AddressHigh = 0x80;
-        _viewModel.AddressLow = 0x01;
+        _viewModel.AddressHighHex = "80";
+        _viewModel.AddressLowHex = "01";
 
         // Assert
         Assert.Equal("0x8001", _viewModel.FullAddressDisplay);

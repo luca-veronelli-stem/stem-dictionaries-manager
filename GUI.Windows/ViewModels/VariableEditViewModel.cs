@@ -33,18 +33,24 @@ public partial class VariableEditViewModel : ObservableObject
     // === Campi editabili ===
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private byte _addressHigh;
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    private string _addressHighHex = "00";
 
     [ObservableProperty]
-    private byte _addressLow;
+    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
+    private string _addressLowHex = "00";
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private DataTypeKind _selectedDataTypeKind = DataTypeKind.UInt8;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _dataTypeRaw = string.Empty;
 
     [ObservableProperty]
@@ -78,7 +84,29 @@ public partial class VariableEditViewModel : ObservableObject
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Variabile" : "Modifica Variabile";
-    public string FullAddressDisplay => $"0x{(AddressHigh << 8 | AddressLow):X4}";
+
+    /// <summary>
+    /// Indirizzo completo in formato 0xHHLL.
+    /// </summary>
+    public string FullAddressDisplay
+    {
+        get
+        {
+            var high = ParseHexByte(AddressHighHex);
+            var low = ParseHexByte(AddressLowHex);
+            return $"0x{(high << 8 | low):X4}";
+        }
+    }
+
+    // === Helper per parsing hex ===
+
+    private static byte ParseHexByte(string hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return 0;
+        if (byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var result))
+            return result;
+        return 0;
+    }
 
     // === Enum values per ComboBox ===
 
@@ -143,8 +171,8 @@ public partial class VariableEditViewModel : ObservableObject
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        AddressHigh = v.AddressHigh;
-        AddressLow = v.AddressLow;
+        AddressHighHex = v.AddressHigh.ToString("X2");
+        AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
         DataTypeRaw = v.DataTypeRaw;
         DataTypeParam = v.DataTypeParam;
@@ -156,10 +184,6 @@ public partial class VariableEditViewModel : ObservableObject
         Usage = v.Usage;
         Description = v.Description;
         IsEnabled = v.IsEnabled;
-
-        OnPropertyChanged(nameof(AddressHigh));
-        OnPropertyChanged(nameof(AddressLow));
-        OnPropertyChanged(nameof(FullAddressDisplay));
     }
 
     private bool CanSave() => !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(DataTypeRaw);
@@ -171,12 +195,15 @@ public partial class VariableEditViewModel : ObservableObject
         {
             IsBusy = true;
 
+            var addressHigh = ParseHexByte(AddressHighHex);
+            var addressLow = ParseHexByte(AddressLowHex);
+
             if (IsNew)
             {
                 var variable = new Variable(
                     name: Name,
-                    addressHigh: AddressHigh,
-                    addressLow: AddressLow,
+                    addressHigh: addressHigh,
+                    addressLow: addressLow,
                     dataTypeKind: SelectedDataTypeKind,
                     accessMode: SelectedAccessMode,
                     dataTypeRaw: DataTypeRaw,
@@ -197,8 +224,8 @@ public partial class VariableEditViewModel : ObservableObject
                 var existing = Variable.Restore(
                     id: _editingId!.Value,
                     name: Name,
-                    addressHigh: AddressHigh,
-                    addressLow: AddressLow,
+                    addressHigh: addressHigh,
+                    addressLow: addressLow,
                     dataTypeKind: SelectedDataTypeKind,
                     dataTypeRaw: DataTypeRaw,
                     dataTypeParam: DataTypeParam,

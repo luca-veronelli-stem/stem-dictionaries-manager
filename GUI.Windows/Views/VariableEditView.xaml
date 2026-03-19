@@ -1,4 +1,4 @@
-<UserControl x:Class="GUI.Windows.Views.VariableEditView"
+﻿<UserControl x:Class="GUI.Windows.Views.VariableEditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -19,8 +19,7 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
             <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Compila i campi per creare o modificare una variabile." 
-                       Foreground="Gray" Margin="0,4,0,0"/>
+            <TextBlock Text="Compila i campi per creare o modificare una variabile." Foreground="Gray" Margin="0,4,0,0"/>
         </StackPanel>
 
         <!-- Form -->
@@ -40,144 +39,70 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Nome -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" 
-                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
 
                 <!-- Indirizzo -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <TextBlock Text="High: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding AddressHigh, StringFormat=X2}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0"/>
+                    <TextBox Text="{Binding AddressHighHex, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"/>
                     <TextBlock Text="Low: 0x" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding AddressLow, StringFormat=X2}" 
-                             Width="50" Padding="8,6" Margin="0,0,16,0"/>
-                    <TextBlock Text="{Binding FullAddressDisplay}" 
-                               VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="8,6" Margin="0,0,16,0" MaxLength="2" CharacterCasing="Upper"/>
+                    <TextBlock Text="{Binding FullAddressDisplay}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#0078D4"/>
                 </StackPanel>
 
                 <!-- Tipo Dato -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <ComboBox ItemsSource="{Binding DataTypeKinds}" 
-                              SelectedItem="{Binding SelectedDataTypeKind}"
-                              Width="120" Padding="8,6" Margin="0,0,8,0"/>
-                    <TextBox Text="{Binding DataTypeRaw, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="150" Padding="8,6" 
-                             ToolTip="Es: uint16_t, String[20], Bitmapped[2]"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DataTypeRaw, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12" ToolTip="Es: UInt16, String[20], Bitmapped[2], Int32"/>
+
+                <!-- Modalita Accesso -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Accesso" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
+
+                <!-- Min/Max/Unita -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Min / Max / Unita" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBox Text="{Binding MinValue}" Width="80" Padding="8,6" Margin="0,0,8,0" ToolTip="Valore minimo"/>
+                    <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Text="{Binding MaxValue}" Width="80" Padding="8,6" Margin="0,0,16,0" ToolTip="Valore massimo"/>
+                    <TextBox Text="{Binding Unit}" Width="80" Padding="8,6" ToolTip="Unita (es: C, mm, kg)"/>
                 </StackPanel>
-
-                <!-- Parametro Tipo (per Array/String/Bitmapped) -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Parametro Tipo" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="3" Grid.Column="1" 
-                         Text="{Binding DataTypeParam}" 
-                         Width="80" HorizontalAlignment="Left"
-                         Padding="8,6" Margin="0,0,0,12"
-                         ToolTip="Lunghezza per String/Array, word count per Bitmapped"/>
-
-                <!-- Modalità Accesso -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Accesso" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="4" Grid.Column="1" 
-                          ItemsSource="{Binding AccessModes}" 
-                          SelectedItem="{Binding SelectedAccessMode}"
-                          Width="150" HorizontalAlignment="Left"
-                          Padding="8,6" Margin="0,0,0,12"/>
 
                 <!-- Formato -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Formato" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="5" Grid.Column="1" 
-                         Text="{Binding Format}" 
-                         Width="200" HorizontalAlignment="Left"
-                         Padding="8,6" Margin="0,0,0,12"
-                         ToolTip="Es: %.2f, %d"/>
-
-                <!-- Min/Max -->
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Min / Max" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <TextBox Text="{Binding MinValue}" 
-                             Width="100" Padding="8,6" Margin="0,0,8,0"/>
-                    <TextBlock Text=" - " VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding MaxValue}" 
-                             Width="100" Padding="8,6" Margin="8,0,0,0"/>
-                </StackPanel>
-
-                <!-- Unità -->
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Unità" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="7" Grid.Column="1" 
-                         Text="{Binding Unit}" 
-                         Width="100" HorizontalAlignment="Left"
-                         Padding="8,6" Margin="0,0,0,12"
-                         ToolTip="Es: °C, mm, kg"/>
-
-                <!-- Uso -->
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Uso" 
-                           VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="8" Grid.Column="1" 
-                         Text="{Binding Usage}" 
-                         AcceptsReturn="True" TextWrapping="Wrap" Height="60"
-                         Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Formato" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Format}" Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12" ToolTip="Es: %.2f, %d"/>
 
                 <!-- Descrizione -->
-                <TextBlock Grid.Row="9" Grid.Column="0" Text="Descrizione" 
-                           VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="9" Grid.Column="1" 
-                         Text="{Binding Description}" 
-                         AcceptsReturn="True" TextWrapping="Wrap" Height="80"
-                         Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Descrizione" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Padding="8,6" Margin="0,0,0,12"/>
+
+                <!-- Uso -->
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Uso" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Usage}" AcceptsReturn="True" TextWrapping="Wrap" Height="60" Padding="8,6" Margin="0,0,0,12" ToolTip="Come utilizzare questa variabile"/>
 
                 <!-- Abilitata -->
-                <TextBlock Grid.Row="10" Grid.Column="0" Text="Stato" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="10" Grid.Column="1" 
-                          IsChecked="{Binding IsEnabled}" 
-                          Content="Variabile attiva"
-                          Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Stato" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
         <!-- Error message -->
-        <Border Grid.Row="2" 
-                Background="#FFEEEE" 
-                BorderBrush="#FF6666" 
-                BorderThickness="1" 
-                Padding="8" 
-                Margin="0,0,0,16"
-                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+        <Border Grid.Row="2" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,0,0,16" Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
         </Border>
 
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Annulla" 
-                    Command="{Binding CancelCommand}" 
-                    Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
-            <Button Content="Salva" 
-                    Command="{Binding SaveCommand}" 
-                    Padding="16,8" MinWidth="100" 
-                    FontWeight="SemiBold" 
-                    Background="#0078D4" Foreground="White"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
+            <Button Content="Salva" Command="{Binding SaveCommand}" Padding="16,8" MinWidth="100" FontWeight="SemiBold" Background="#0078D4" Foreground="White"/>
         </StackPanel>
 
         <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" 
-                Background="#80FFFFFF" 
-                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80FFFFFF" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
                 <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
