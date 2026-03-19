@@ -130,7 +130,7 @@ int address = Board.CalculateAddress(machine: 10, fwType: 17, boardNum: 1);
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 5 issue aperte (0 critiche, 0 alte, 2 medie, 3 basse)
+→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 2 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
 
 ---
 

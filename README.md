@@ -118,7 +118,7 @@ Stem.Dictionaries.Manager/
 
 | Componente | Issue File | Status |
 |------------|------------|--------|
-| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 5 aperte (2 medie, 3 basse) |
+| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 aperte, 2 risolte (3 basse) |
 | Services | [Services/ISSUES.md](./Services/ISSUES.md) | 6 aperte, 1 risolta (2 medie, 4 basse) |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 aperte, 2 risolte |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 aperte, 1 risolta (2 basse) |

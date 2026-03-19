@@ -123,6 +123,17 @@ public class VariableTests
         Assert.Equal(expected, variable.Category);
     }
 
+    [Theory]
+    [InlineData(0x01)]
+    [InlineData(0x40)]
+    [InlineData(0xFF)]
+    public void Constructor_InvalidAddressHigh_ThrowsArgumentOutOfRangeException(byte addressHigh)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new Variable("Test", addressHigh, 0x00, DataTypeKind.UInt8,
+                AccessMode.ReadOnly, "uint8_t"));
+    }
+
     [Fact]
     public void Enable_SetsIsEnabledTrue()
     {
