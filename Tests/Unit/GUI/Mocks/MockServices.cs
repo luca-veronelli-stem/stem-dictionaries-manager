@@ -9,13 +9,23 @@ namespace Tests.Unit.GUI.Mocks;
 public class MockNavigationService : INavigationService
 {
     private readonly Stack<ViewType> _history = new();
-    
+
     public ViewType CurrentView { get; private set; } = ViewType.DictionaryList;
     public bool CanGoBack => _history.Count > 0;
-    
+
     public NavigationParameter? LastParameter { get; private set; }
     public List<(ViewType View, NavigationParameter? Param)> NavigationHistory { get; } = [];
-    
+
+    /// <summary>
+    /// Ultima view navigata (per compatibilità test).
+    /// </summary>
+    public ViewType? LastNavigatedView => NavigationHistory.Count > 0 ? NavigationHistory[^1].View : null;
+
+    /// <summary>
+    /// Indica se GoBack è stato chiamato.
+    /// </summary>
+    public bool GoBackCalled { get; private set; }
+
     public event EventHandler<ViewType>? CurrentViewChanged;
 
     public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null)
@@ -29,12 +39,13 @@ public class MockNavigationService : INavigationService
 
     public bool GoBack()
     {
+        GoBackCalled = true;
         if (!CanGoBack) return false;
         CurrentView = _history.Pop();
         CurrentViewChanged?.Invoke(this, CurrentView);
         return true;
     }
-    
+
     /// <summary>
     /// Reset per test isolation.
     /// </summary>
@@ -44,6 +55,7 @@ public class MockNavigationService : INavigationService
         CurrentView = ViewType.DictionaryList;
         LastParameter = null;
         NavigationHistory.Clear();
+        GoBackCalled = false;
     }
 }
 
@@ -56,16 +68,26 @@ public class MockDialogService : IDialogService
     /// Risultato predefinito per ShowConfirmAsync.
     /// </summary>
     public DialogResult ConfirmResult { get; set; } = DialogResult.Yes;
-    
+
     /// <summary>
     /// Risultato predefinito per ShowOkCancelAsync.
     /// </summary>
     public DialogResult OkCancelResult { get; set; } = DialogResult.Ok;
-    
+
     /// <summary>
     /// Traccia le chiamate ai dialog.
     /// </summary>
     public List<(string Title, string Message, string Type)> Calls { get; } = [];
+
+    /// <summary>
+    /// Indica se ShowConfirmAsync è stato chiamato.
+    /// </summary>
+    public bool ShowConfirmCalled => Calls.Any(c => c.Type == "Confirm");
+
+    /// <summary>
+    /// Indica se ShowErrorAsync è stato chiamato.
+    /// </summary>
+    public bool ShowErrorCalled => Calls.Any(c => c.Type == "Error");
 
     public Task<DialogResult> ShowConfirmAsync(string title, string message)
     {
@@ -96,7 +118,7 @@ public class MockDialogService : IDialogService
         Calls.Add((title, message, "Warning"));
         return Task.CompletedTask;
     }
-    
+
     public void Reset()
     {
         Calls.Clear();
