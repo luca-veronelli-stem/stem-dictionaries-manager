@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models;
 using GUI.Windows.Abstractions;
 
 namespace GUI.Windows.ViewModels;
@@ -32,10 +33,21 @@ public partial class MainViewModel : ObservableObject
     private string _pageTitle = "Dizionari";
 
     /// <summary>
+    /// True se l'utente ha effettuato il login.
+    /// </summary>
+    public bool IsLoggedIn => _currentUserService.CurrentUser is not null;
+
+    /// <summary>
     /// Nome visualizzato dell'utente corrente per la sidebar.
     /// </summary>
     public string CurrentUserDisplayName =>
         _currentUserService.CurrentUser?.DisplayName ?? "—";
+
+    /// <summary>
+    /// Evento fired quando l'utente effettua il logout.
+    /// App.xaml.cs lo usa per mostrare di nuovo la LoginView.
+    /// </summary>
+    public event Action? LoggedOut;
 
     public MainViewModel(
         INavigationService navigationService,
@@ -52,6 +64,16 @@ public partial class MainViewModel : ObservableObject
 
         // Sottoscrivi ai cambiamenti di navigazione
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
+    }
+
+    /// <summary>
+    /// Imposta l'utente corrente e naviga alla view iniziale.
+    /// </summary>
+    public void SetUserAndNavigate(User user)
+    {
+        _currentUserService.SetCurrentUser(user);
+        OnPropertyChanged(nameof(IsLoggedIn));
+        OnPropertyChanged(nameof(CurrentUserDisplayName));
 
         // Naviga alla view iniziale
         NavigateToView(_navigationService.CurrentView, null);
@@ -200,11 +222,15 @@ public partial class MainViewModel : ObservableObject
 
         if (result != Abstractions.DialogResult.Yes) return;
 
-        // Segnala logout e chiude la finestra attiva
-        _currentUserService.LogoutRequested = true;
-        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
-        {
-            if (w.IsActive) { w.Close(); break; }
-        }
+        // Pulisci utente corrente
+        _currentUserService.SetCurrentUser(null!);
+        CurrentViewModel = null;
+        PageTitle = "Login";
+
+        OnPropertyChanged(nameof(IsLoggedIn));
+        OnPropertyChanged(nameof(CurrentUserDisplayName));
+
+        // Notifica App.xaml.cs per mostrare la LoginView
+        LoggedOut?.Invoke();
     }
 }

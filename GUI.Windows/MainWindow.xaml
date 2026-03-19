@@ -48,12 +48,14 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <!-- Sidebar (visibile solo se loggato) -->
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ========== SIDEBAR ========== -->
-        <Border Grid.Column="0" Background="#2D2D30">
+        <!-- ========== SIDEBAR (visibile solo se loggato) ========== -->
+        <Border Grid.Column="0" Background="#2D2D30" Width="200"
+                Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -111,8 +113,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Border Grid.Row="0" Background="#3C3C3C" Height="50">
+            <!-- Header (visibile solo se loggato) -->
+            <Border Grid.Row="0" Background="#3C3C3C" Height="50"
+                    Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid Margin="20,0">
                     <TextBlock Text="{Binding PageTitle}"
                                Foreground="White" FontSize="20"
