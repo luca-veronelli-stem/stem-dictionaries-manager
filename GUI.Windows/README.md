@@ -13,6 +13,8 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 - **Dependency Injection** - Microsoft.Extensions.Hosting per DI/configurazione
 - **Navigation Service** - Navigazione tra view con history e parametri
 - **Clean Architecture** - UI disaccoppiata da business logic e persistence
+- **Stili Riutilizzabili** - SearchTextBox, HexAddressTextBox, ToolbarButton
+- **Input Validation** - Filtri hex/numerico con converter nullable
 
 L'applicazione si avvia con database SQLite locale, applica migrations automaticamente e popola dati demo se vuoto.
 
@@ -23,6 +25,9 @@ L'applicazione si avvia con database SQLite locale, applica migrations automatic
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **MVVM Pattern** | ✅ | 11 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 10 Views XAML complete |
+| **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
+| **Stili Globali** | ✅ | SearchTextBox, HexAddressTextBox, ToolbarButton |
 | **Navigation Service** | ✅ | History, parametri, eventi |
 | **Dialog Service** | ✅ | Conferme, messaggi, errori |
 | **Message Service** | ✅ | StatusBar e notifiche |
@@ -97,10 +102,19 @@ GUI.Windows/
 │   └── SettingsViewModel.cs       # Impostazioni app (stub)
 ├── Views/
 │   ├── DictionaryListView.xaml    # UI lista dizionari
-│   └── DictionaryEditView.xaml    # UI edit dizionario
+│   ├── DictionaryEditView.xaml    # UI edit dizionario
+│   ├── VariableListView.xaml      # UI lista variabili
+│   ├── VariableEditView.xaml      # UI edit variabile
+│   ├── CommandListView.xaml       # UI lista comandi
+│   ├── CommandEditView.xaml       # UI edit comando
+│   ├── BoardListView.xaml         # UI lista schede
+│   ├── BoardEditView.xaml         # UI edit scheda
+│   ├── UserListView.xaml          # UI lista utenti
+│   └── SettingsView.xaml          # UI impostazioni
 ├── Converters/
-│   └── Converters.cs              # Value converters WPF
-├── App.xaml                       # Application resources
+│   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
+│   └── NullableNumericConverter.cs # NullableInt, NullableDouble converters
+├── App.xaml                       # Application resources + stili globali
 ├── App.xaml.cs                    # Startup, DI configuration
 ├── MainWindow.xaml                # Shell window
 ├── MainWindow.xaml.cs             # Window code-behind
