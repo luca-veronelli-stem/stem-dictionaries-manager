@@ -1,11 +1,14 @@
 ﻿using System.IO;
 using System.Windows;
+using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using GUI.Windows.Views;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Services;
+using Services.Interfaces;
 
 namespace GUI.Windows;
 
@@ -59,6 +62,29 @@ public partial class App : Application
             await dbContext.Database.MigrateAsync();
             await DatabaseSeeder.SeedAsync(dbContext);
         }
+
+        // Mostra finestra selezione utente
+        var userService = _host.Services.GetRequiredService<IUserService>();
+        var users = await userService.GetAllAsync();
+
+        if (users.Count == 0)
+        {
+            MessageBox.Show("Nessun utente nel database.", "Errore",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
+            return;
+        }
+
+        var selectionWindow = new UserSelectionWindow(users);
+        if (selectionWindow.ShowDialog() != true || selectionWindow.SelectedUser is null)
+        {
+            Shutdown();
+            return;
+        }
+
+        // Imposta utente corrente
+        var currentUserService = _host.Services.GetRequiredService<ICurrentUserService>();
+        currentUserService.SetCurrentUser(selectionWindow.SelectedUser);
 
         // Configura e mostra MainWindow
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
