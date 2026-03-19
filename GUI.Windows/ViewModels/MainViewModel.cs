@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -27,15 +28,23 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
+    /// <summary>
+    /// Nome visualizzato dell'utente corrente per la StatusBar.
+    /// </summary>
+    public string CurrentUserDisplayName =>
+        _currentUserService.CurrentUser?.DisplayName ?? "—";
+
     public MainViewModel(
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService,
+        ICurrentUserService currentUserService,
         IServiceProvider serviceProvider)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _currentUserService = currentUserService;
         _serviceProvider = serviceProvider;
 
         // Sottoscrivi ai cambiamenti di navigazione
