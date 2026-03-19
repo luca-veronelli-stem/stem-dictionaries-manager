@@ -11,10 +11,11 @@ namespace Tests.Unit.GUI.ViewModels;
 /// </summary>
 public class MainViewModelTests
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly MockCurrentUserService _currentUserService;
     private readonly MainViewModel _viewModel;
 
     public MainViewModelTests()
@@ -22,7 +23,10 @@ public class MainViewModelTests
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
-        
+        _currentUserService = new MockCurrentUserService();
+        _currentUserService.SetCurrentUser(
+            Core.Models.User.Restore(1, "test.user", "Test User"));
+
         // Create a minimal service provider for testing
         var services = new ServiceCollection();
         services.AddSingleton<MockDictionaryService>();
@@ -30,27 +34,29 @@ public class MainViewModelTests
         services.AddSingleton<INavigationService>(_navigationService);
         services.AddSingleton<IDialogService>(_dialogService);
         services.AddSingleton<IMessageService>(_messageService);
-        
+        services.AddSingleton<ICurrentUserService>(_currentUserService);
+
         // Register ViewModels
         services.AddTransient(sp => new DictionaryListViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));
-        
+
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));
-        
+
         _serviceProvider = services.BuildServiceProvider();
-        
+
         _viewModel = new MainViewModel(
             _navigationService,
             _dialogService,
             _messageService,
+            _currentUserService,
             _serviceProvider);
     }
 
@@ -74,6 +80,12 @@ public class MainViewModelTests
     {
         // Assert
         Assert.False(_viewModel.CanGoBack);
+    }
+
+    [Fact]
+    public void CurrentUserDisplayName_ReturnsUserDisplayName()
+    {
+        Assert.Equal("Test User", _viewModel.CurrentUserDisplayName);
     }
 
     [Fact]

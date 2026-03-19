@@ -165,4 +165,23 @@ public class MockMessageService : IMessageService
         Messages.Clear();
     }
 }
+
+/// <summary>
+/// Mock implementation di ICurrentUserService per i test.
+/// </summary>
+public class MockCurrentUserService : ICurrentUserService
+{
+    public Core.Models.User? CurrentUser { get; private set; }
+    public bool IsUserSelected => CurrentUser is not null;
+
+    public void SetCurrentUser(Core.Models.User user)
+    {
+        CurrentUser = user;
+    }
+
+    public void Reset()
+    {
+        CurrentUser = null;
+    }
+}
 #endif
