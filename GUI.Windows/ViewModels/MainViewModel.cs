@@ -14,7 +14,6 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -32,16 +31,20 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _pageTitle = "Dizionari";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    [NotifyPropertyChangedFor(nameof(CurrentUserDisplayName))]
+    private User? _currentUser;
+
     /// <summary>
     /// True se l'utente ha effettuato il login.
     /// </summary>
-    public bool IsLoggedIn => _currentUserService.CurrentUser is not null;
+    public bool IsLoggedIn => CurrentUser is not null;
 
     /// <summary>
     /// Nome visualizzato dell'utente corrente per la sidebar.
     /// </summary>
-    public string CurrentUserDisplayName =>
-        _currentUserService.CurrentUser?.DisplayName ?? "—";
+    public string CurrentUserDisplayName => CurrentUser?.DisplayName ?? "—";
 
     /// <summary>
     /// Evento fired quando l'utente effettua il logout.
@@ -53,13 +56,11 @@ public partial class MainViewModel : ObservableObject
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService,
-        ICurrentUserService currentUserService,
         IServiceProvider serviceProvider)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
-        _currentUserService = currentUserService;
         _serviceProvider = serviceProvider;
 
         // Sottoscrivi ai cambiamenti di navigazione
@@ -71,9 +72,7 @@ public partial class MainViewModel : ObservableObject
     /// </summary>
     public void SetUserAndNavigate(User user)
     {
-        _currentUserService.SetCurrentUser(user);
-        OnPropertyChanged(nameof(IsLoggedIn));
-        OnPropertyChanged(nameof(CurrentUserDisplayName));
+        CurrentUser = user;
 
         // Naviga alla view iniziale
         NavigateToView(_navigationService.CurrentView, null);
@@ -223,12 +222,9 @@ public partial class MainViewModel : ObservableObject
         if (result != Abstractions.DialogResult.Yes) return;
 
         // Pulisci utente corrente
-        _currentUserService.SetCurrentUser(null!);
+        CurrentUser = null;
         CurrentViewModel = null;
         PageTitle = "Login";
-
-        OnPropertyChanged(nameof(IsLoggedIn));
-        OnPropertyChanged(nameof(CurrentUserDisplayName));
 
         // Notifica App.xaml.cs per mostrare la LoginView
         LoggedOut?.Invoke();

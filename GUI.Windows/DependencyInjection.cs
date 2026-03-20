@@ -20,7 +20,6 @@ public static class DependencyInjection
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IMessageService, MessageService>();
-        services.AddSingleton<ICurrentUserService, CurrentUserService>();
 
         // ViewModels (Transient - nuova istanza per ogni navigazione)
         services.AddTransient<MainViewModel>();
