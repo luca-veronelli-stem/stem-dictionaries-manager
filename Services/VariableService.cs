@@ -143,4 +143,39 @@ public class VariableService : IVariableService
 
         return BitInterpretationMapper.ToDomain(created);
     }
+
+    public async Task UpdateBitInterpretationsAsync(int variableId, 
+        IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(interpretations);
+
+        var variable = await _repository.GetByIdAsync(variableId, ct)
+            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+
+        if (variable.DataTypeKind != DataTypeKind.Bitmapped)
+            throw new InvalidOperationException(
+                $"Variable {variableId} is not bitmapped. Cannot update bit interpretations.");
+
+        var incoming = interpretations.ToList();
+
+        // Validazione: nessun duplicato (WordIndex, BitIndex)
+        var keys = incoming.Select(i => (i.WordIndex, i.BitIndex)).ToList();
+        if (keys.Distinct().Count() != keys.Count)
+            throw new InvalidOperationException(
+                "Duplicate (WordIndex, BitIndex) found in incoming interpretations.");
+
+        // Validazione: BitIndex 0-15, WordIndex >= 0
+        foreach (var i in incoming)
+        {
+            if (i.BitIndex is < 0 or > 15)
+                throw new ArgumentOutOfRangeException(
+                    nameof(interpretations), $"BitIndex must be between 0 and 15, got {i.BitIndex}.");
+            if (i.WordIndex < 0)
+                throw new ArgumentOutOfRangeException(
+                    nameof(interpretations), $"WordIndex must be non-negative, got {i.WordIndex}.");
+        }
+
+        var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
+        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, entities, ct);
+    }
 }

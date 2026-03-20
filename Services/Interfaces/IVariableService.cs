@@ -42,4 +42,11 @@ public interface IVariableService
     /// </summary>
     Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation, 
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Sincronizza le interpretazioni bit di una variabile bitmapped.
+    /// Smart update: confronta per (WordIndex, BitIndex), aggiunge/aggiorna/elimina.
+    /// </summary>
+    Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations,
+        CancellationToken ct = default);
 }
