@@ -6,61 +6,58 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:DictionaryListViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Dizionari" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/>
-
         <!-- Toolbar -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
-            <Button Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="＋" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBlock Text="Nuovo Dizionario" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-            <Button Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="⟳" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBlock Text="Aggiorna" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-            <Separator Margin="8,0"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SearchTextBoxStyle}"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <Button Content="➕ Nuovo" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
+
+        <!-- Errore -->
+        <Border Grid.Row="1" Background="#F44336" Padding="10" Margin="0,0,0,10" CornerRadius="4"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White"/>
+        </Border>
 
         <!-- Lista dizionari -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding Dictionaries}" SelectedItem="{Binding SelectedItem}"
-                  AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                  CanUserAddRows="False" CanUserDeleteRows="False"
-                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
-                  BorderThickness="1" BorderBrush="#CCCCCC">
+                  Style="{StaticResource DarkDataGridStyle}"
+                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                  RowStyle="{StaticResource DarkDataGridRowStyle}"
+                  CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200"/>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*"/>
-                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeDisplay}" Width="150"/>
-                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200" MinWidth="120"/>
+                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="100"/>
+                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeDisplay}" Width="150" MinWidth="100"/>
+                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Azioni" Width="200">
+                <DataGridTemplateColumn Header="Azioni" Width="220" MinWidth="220">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="✏️ Modifica" Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Padding="6,2" Margin="0,0,4,0"/>
-                                <Button Content="📋 Variabili" Command="{Binding DataContext.OpenVariablesCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Padding="6,2" Margin="0,0,4,0"/>
-                                <Button Content="🗑️" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Padding="6,2" ToolTip="Elimina" Foreground="Red"/>
+                                <Button Content="✏️ Modifica" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
+                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="📋 Variabili" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
+                                        Command="{Binding DataContext.OpenVariablesCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -68,18 +65,10 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Error message -->
-        <Border Grid.Row="3" Background="#FFEEEE" BorderBrush="#FF6666" BorderThickness="1" Padding="8" Margin="0,8,0,0"
-                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000"/>
-        </Border>
-
-        <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80FFFFFF" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

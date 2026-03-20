@@ -11,6 +11,14 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
     {
     }
 
+    public override async Task<IReadOnlyList<BoardEntity>> GetAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(b => b.BoardType)
+            .ToListAsync(cancellationToken);
+    }
+
     public override async Task<BoardEntity?> GetByIdAsync(int id, 
         CancellationToken cancellationToken = default)
     {

@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1111%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1112%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -40,8 +40,8 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 8 mappers |
-| **GUI Desktop** | ✅ | WPF + MVVM con 11 ViewModels, 10 Views |
-| **Test Suite** | ✅ | 1111 test (901 unit + 210 integration) |
+| **GUI Desktop** | ✅ | WPF + MVVM con 12 ViewModels, 11 Views, dark theme |
+| **Test Suite** | ✅ | 1112 test (901 unit + 211 integration) |
 
 ---
 
@@ -121,7 +121,7 @@ Stem.Dictionaries.Manager/
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 aperte, 2 risolte (3 basse) |
 | Services | [Services/ISSUES.md](./Services/ISSUES.md) | 6 aperte, 1 risolta (2 medie, 4 basse) |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 aperte, 2 risolte |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 aperte, 1 risolta (2 basse) |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 aperte, 2 risolte (2 basse) |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 aperta, 5 risolte |
 
 ---

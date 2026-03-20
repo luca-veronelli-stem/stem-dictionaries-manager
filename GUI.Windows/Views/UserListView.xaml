@@ -6,119 +6,79 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:UserListViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Utenti" 
-                       FontSize="24" 
-                       FontWeight="SemiBold"/>
-            <TextBlock Text="Gestione degli utenti che possono modificare i dizionari." 
-                       Foreground="Gray" 
-                       Margin="0,4,0,0"/>
-        </StackPanel>
-
-        <!-- Form nuovo utente (inline) -->
-        <Border Grid.Row="1" 
-                Background="#F5F5F5" 
-                BorderBrush="#CCCCCC" 
-                BorderThickness="1" 
-                Padding="16" 
-                Margin="0,0,0,16">
+        <!-- Form nuovo utente -->
+        <Border Grid.Row="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1" 
+                CornerRadius="6" Padding="16" Margin="0,0,0,15">
             <StackPanel>
-                <TextBlock Text="Nuovo Utente" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                <TextBlock Text="Nuovo Utente" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,16,0">
-                        <TextBlock Text="Username *" FontSize="11" Foreground="Gray"/>
+                        <TextBlock Text="Username *" FontSize="11" Foreground="#888888"/>
                         <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" 
-                                 Width="150" Padding="8,6" Margin="0,4,0,0"/>
+                                 Style="{StaticResource WatermarkTextBoxStyle}" Width="150" Margin="0,4,0,0"
+                                 Tag="username"/>
                     </StackPanel>
                     <StackPanel Margin="0,0,16,0">
-                        <TextBlock Text="Nome Visualizzato *" FontSize="11" Foreground="Gray"/>
+                        <TextBlock Text="Nome Visualizzato *" FontSize="11" Foreground="#888888"/>
                         <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}" 
-                                 Width="200" Padding="8,6" Margin="0,4,0,0"/>
+                                 Style="{StaticResource WatermarkTextBoxStyle}" Width="200" Margin="0,4,0,0"
+                                 Tag="nome cognome"/>
                     </StackPanel>
-                    <Button Command="{Binding AddCommand}" 
-                            Content="+ Aggiungi" 
-                            Padding="16,8"
-                            VerticalAlignment="Bottom"
-                            Background="#0078D4" 
-                            Foreground="White"
-                            FontWeight="SemiBold"/>
+                    <Button Command="{Binding AddCommand}" Content="➕ Aggiungi" 
+                            Style="{StaticResource ToolbarButtonStyle}" VerticalAlignment="Bottom"/>
                 </StackPanel>
             </StackPanel>
         </Border>
 
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
+            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
+        </StackPanel>
+
+        <!-- Errore -->
+        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,10" CornerRadius="4"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
+        </Border>
+
         <!-- Lista utenti -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding Users}"
-                  SelectedItem="{Binding SelectedItem}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column"
-                  BorderThickness="1"
-                  BorderBrush="#CCCCCC">
-            
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedItem}"
+                  Style="{StaticResource DarkDataGridStyle}"
+                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                  RowStyle="{StaticResource DarkDataGridRowStyle}"
+                  CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" 
-                                    Binding="{Binding Id}" 
-                                    Width="60"/>
-                <DataGridTextColumn Header="Username" 
-                                    Binding="{Binding Username}" 
-                                    Width="200"/>
-                <DataGridTextColumn Header="Nome Visualizzato" 
-                                    Binding="{Binding DisplayName}" 
-                                    Width="*"/>
-                
-                <!-- Colonna azioni -->
-                <DataGridTemplateColumn Header="Azioni" Width="100">
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" MinWidth="40"/>
+                <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="200" MinWidth="100"/>
+                <DataGridTextColumn Header="Nome Visualizzato" Binding="{Binding DisplayName}" Width="*" MinWidth="120"/>
+                <DataGridTemplateColumn Header="Azioni" Width="80" MinWidth="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="🗑️" 
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Padding="6,2"
-                                        ToolTip="Elimina"
-                                        Foreground="Red"/>
-                            </StackPanel>
+                            <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
+                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Error message -->
-        <Border Grid.Row="3" 
-                Background="#FFEEEE" 
-                BorderBrush="#FF6666" 
-                BorderThickness="1" 
-                Padding="8" 
-                Margin="0,8,0,0"
-                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
-        </Border>
-
-        <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" 
-                Background="#80FFFFFF" 
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

@@ -6,9 +6,10 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:BoardEditViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -16,14 +17,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="{Binding FormTitle}" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Compila i campi per creare o modificare una scheda." 
-                       Foreground="Gray" Margin="0,4,0,0"/>
-        </StackPanel>
+        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare una scheda." 
+                   Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
-        <!-- Form -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid HorizontalAlignment="Left" Width="500">
                 <Grid.ColumnDefinitions>
@@ -36,92 +32,49 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Nome -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" 
-                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         MaxLength="100" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome scheda" MaxLength="100" Margin="0,0,0,12"/>
 
-                <!-- Dispositivo -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="1" Grid.Column="1" 
-                          ItemsSource="{Binding DeviceTypes}" 
-                          SelectedItem="{Binding SelectedDeviceType}"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding DeviceTypes}" SelectedItem="{Binding SelectedDeviceType}"
                           Padding="8,6" Margin="0,0,0,12"/>
 
-                <!-- Tipo Scheda -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda *" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="2" Grid.Column="1" 
-                          ItemsSource="{Binding AvailableBoardTypes}" 
-                          SelectedItem="{Binding SelectedBoardType}"
-                          DisplayMemberPath="Name"
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" DisplayMemberPath="Name"
                           Padding="8,6" Margin="0,0,0,12"/>
 
-                <!-- Numero Scheda -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Numero Scheda" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="3" Grid.Column="1" 
-                         Text="{Binding BoardNumber}" 
-                         Width="80" HorizontalAlignment="Left"
-                         Padding="8,6" Margin="0,0,0,12"
-                         ToolTip="Numero progressivo della scheda (1, 2, 3...)"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Numero Scheda" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BoardNumber}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="1, 2, 3..."
+                         Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"/>
 
-                <!-- Part Number -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Part Number" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="4" Grid.Column="1" 
-                         Text="{Binding PartNumber}" 
-                         MaxLength="50"
-                         Padding="8,6" Margin="0,0,0,12"
-                         ToolTip="Es: DIS0020477"/>
-
-                <!-- Indirizzo Protocol (calcolato) -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Indirizzo Protocol" 
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" 
-                           Text="{Binding ProtocolAddressDisplay}" 
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: DIS0020477"
+                         MaxLength="50" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
-        <!-- Error message -->
-        <Border Grid.Row="2" 
-                Background="#FFEEEE" 
-                BorderBrush="#FF6666" 
-                BorderThickness="1" 
-                Padding="8" 
-                Margin="0,0,0,16"
+        <!-- Errore -->
+        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Buttons -->
+        <!-- Bottoni -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Annulla" 
-                    Command="{Binding CancelCommand}" 
-                    Padding="16,8" Margin="0,0,8,0" MinWidth="100"/>
-            <Button Content="Salva" 
-                    Command="{Binding SaveCommand}" 
-                    Padding="16,8" MinWidth="100" 
-                    FontWeight="SemiBold" 
-                    Background="#0078D4" Foreground="White"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                    Background="#007ACC" FontWeight="SemiBold"/>
         </StackPanel>
 
-        <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" 
-                Background="#80FFFFFF" 
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="4" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

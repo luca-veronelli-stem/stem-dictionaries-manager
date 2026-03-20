@@ -6,45 +6,21 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="Impostazioni" 
-                       FontSize="24" 
-                       FontWeight="SemiBold"/>
-            <TextBlock Text="Configurazione dell'applicazione." 
-                       Foreground="Gray" 
-                       Margin="0,4,0,0"/>
-        </StackPanel>
-
-        <!-- Content -->
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="🚧" FontSize="64" HorizontalAlignment="Center"/>
-            <TextBlock Text="Coming Soon" 
-                       FontSize="24" 
-                       FontWeight="SemiBold" 
-                       HorizontalAlignment="Center"
-                       Margin="0,16,0,8"/>
+            <TextBlock Text="Coming Soon" FontSize="24" FontWeight="SemiBold" 
+                       Foreground="White" HorizontalAlignment="Center" Margin="0,16,0,8"/>
             <TextBlock Text="Le impostazioni saranno disponibili in una prossima versione." 
-                       Foreground="Gray" 
-                       HorizontalAlignment="Center"/>
-            
-            <!-- Info di base -->
-            <Border Background="#F5F5F5" 
-                    BorderBrush="#CCCCCC" 
-                    BorderThickness="1" 
-                    Padding="24" 
-                    Margin="0,32,0,0"
-                    HorizontalAlignment="Center">
+                       Foreground="#888888" HorizontalAlignment="Center"/>
+
+            <Border Background="#252526" BorderBrush="#3E3E42" BorderThickness="1" 
+                    CornerRadius="6" Padding="24" Margin="0,32,0,0" HorizontalAlignment="Center">
                 <StackPanel>
-                    <TextBlock Text="Informazioni" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="Informazioni" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="150"/>
@@ -54,13 +30,13 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Versione:" Foreground="Gray"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion}" FontWeight="SemiBold"/>
-                        
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Database:" Foreground="Gray" Margin="0,8,0,0"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Versione:" Foreground="#888888"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion}" Foreground="White" FontWeight="SemiBold"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Database:" Foreground="#888888" Margin="0,8,0,0"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatabasePath}" 
-                                   FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="400"/>
+                                   Foreground="#AAAAAA" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="400"/>
                     </Grid>
                 </StackPanel>
             </Border>

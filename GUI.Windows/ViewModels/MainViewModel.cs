@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models;
 using GUI.Windows.Abstractions;
 
 namespace GUI.Windows.ViewModels;
@@ -13,7 +14,6 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -28,27 +28,51 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _canGoBack;
 
+    [ObservableProperty]
+    private string _pageTitle = "Dizionari";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
+    [NotifyPropertyChangedFor(nameof(CurrentUserDisplayName))]
+    private User? _currentUser;
+
     /// <summary>
-    /// Nome visualizzato dell'utente corrente per la StatusBar.
+    /// True se l'utente ha effettuato il login.
     /// </summary>
-    public string CurrentUserDisplayName =>
-        _currentUserService.CurrentUser?.DisplayName ?? "—";
+    public bool IsLoggedIn => CurrentUser is not null;
+
+    /// <summary>
+    /// Nome visualizzato dell'utente corrente per la sidebar.
+    /// </summary>
+    public string CurrentUserDisplayName => CurrentUser?.DisplayName ?? "—";
+
+    /// <summary>
+    /// Evento fired quando l'utente effettua il logout.
+    /// App.xaml.cs lo usa per mostrare di nuovo la LoginView.
+    /// </summary>
+    public event Action? LoggedOut;
 
     public MainViewModel(
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService,
-        ICurrentUserService currentUserService,
         IServiceProvider serviceProvider)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
-        _currentUserService = currentUserService;
         _serviceProvider = serviceProvider;
 
         // Sottoscrivi ai cambiamenti di navigazione
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
+    }
+
+    /// <summary>
+    /// Imposta l'utente corrente e naviga alla view iniziale.
+    /// </summary>
+    public void SetUserAndNavigate(User user)
+    {
+        CurrentUser = user;
 
         // Naviga alla view iniziale
         NavigateToView(_navigationService.CurrentView, null);
@@ -144,7 +168,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateTitle(ViewType viewType)
     {
-        var suffix = viewType switch
+        PageTitle = viewType switch
         {
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
@@ -156,13 +180,31 @@ public partial class MainViewModel : ObservableObject
             ViewType.BoardEdit => "Modifica Scheda",
             ViewType.UserList => "Utenti",
             ViewType.Settings => "Impostazioni",
-            _ => ""
+            _ => "Stem Dictionaries Manager"
         };
 
-        Title = string.IsNullOrEmpty(suffix) 
-            ? "Stem Dictionaries Manager" 
-            : $"Stem Dictionaries Manager - {suffix}";
+        Title = $"Stem Dictionaries Manager - {PageTitle}";
     }
+
+    [RelayCommand]
+    private void NavigateToDictionaries() =>
+        _navigationService.NavigateTo(ViewType.DictionaryList);
+
+    [RelayCommand]
+    private void NavigateToCommands() =>
+        _navigationService.NavigateTo(ViewType.CommandList);
+
+    [RelayCommand]
+    private void NavigateToBoards() =>
+        _navigationService.NavigateTo(ViewType.BoardList);
+
+    [RelayCommand]
+    private void NavigateToUsers() =>
+        _navigationService.NavigateTo(ViewType.UserList);
+
+    [RelayCommand]
+    private void NavigateToSettings() =>
+        _navigationService.NavigateTo(ViewType.Settings);
 
     [RelayCommand]
     private void GoBack()
@@ -179,11 +221,12 @@ public partial class MainViewModel : ObservableObject
 
         if (result != Abstractions.DialogResult.Yes) return;
 
-        // Segnala logout e chiude la finestra attiva
-        _currentUserService.LogoutRequested = true;
-        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
-        {
-            if (w.IsActive) { w.Close(); break; }
-        }
+        // Pulisci utente corrente
+        CurrentUser = null;
+        CurrentViewModel = null;
+        PageTitle = "Login";
+
+        // Notifica App.xaml.cs per mostrare la LoginView
+        LoggedOut?.Invoke();
     }
 }

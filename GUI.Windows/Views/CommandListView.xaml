@@ -6,117 +6,56 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CommandListViewModel}"
-             Loaded="UserControl_Loaded">
-    
-    <Grid Margin="16">
+             Loaded="UserControl_Loaded"
+             Background="#1E1E1E">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Comandi Protocollo" 
-                       FontSize="24" 
-                       FontWeight="SemiBold"/>
-            <TextBlock Text="Gestione dei comandi di comunicazione con i dispositivi." 
-                       Foreground="Gray" 
-                       Margin="0,4,0,0"/>
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <Button Content="➕ Nuovo" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
-            <Button Command="{Binding AddCommand}" 
-                    Padding="12,6"
-                    Margin="0,0,8,0">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" Margin="0,0,4,0"/>
-                    <TextBlock Text="Nuovo Comando"/>
-                </StackPanel>
-            </Button>
-            <Button Command="{Binding RefreshCommand}" 
-                    Padding="12,6"
-                    Margin="0,0,8,0">
-                <TextBlock Text="↻ Aggiorna"/>
-            </Button>
-            <Separator Margin="8,0"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                     Width="200" 
-                     Padding="4"
-                     VerticalContentAlignment="Center">
-                <TextBox.Style>
-                    <Style TargetType="TextBox">
-                        <Style.Triggers>
-                            <Trigger Property="Text" Value="">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <VisualBrush Stretch="None" AlignmentX="Left">
-                                            <VisualBrush.Visual>
-                                                <TextBlock Text="🔍 Cerca..." Foreground="Gray" Margin="4,0,0,0"/>
-                                            </VisualBrush.Visual>
-                                        </VisualBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBox.Style>
-            </TextBox>
-        </StackPanel>
+        <!-- Errore -->
+        <Border Grid.Row="1" Background="#F44336" Padding="10" Margin="0,0,0,10" CornerRadius="4"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
+        </Border>
 
         <!-- Lista comandi -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding Commands}"
-                  SelectedItem="{Binding SelectedItem}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column"
-                  BorderThickness="1"
-                  BorderBrush="#CCCCCC">
-            
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedItem}"
+                  Style="{StaticResource DarkDataGridStyle}"
+                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                  RowStyle="{StaticResource DarkDataGridRowStyle}"
+                  CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" 
-                                    Binding="{Binding Name}" 
-                                    Width="250"/>
-                <DataGridTextColumn Header="Codice" 
-                                    Binding="{Binding Code}" 
-                                    Width="100"/>
-                <DataGridCheckBoxColumn Header="Risposta" 
-                                        Binding="{Binding IsResponse}" 
-                                        Width="80"/>
-                <DataGridTextColumn Header="Parametri" 
-                                    Binding="{Binding ParameterCount}" 
-                                    Width="80">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="250" MinWidth="120"/>
+                <DataGridTextColumn Header="Codice" Binding="{Binding Code}" Width="100" MinWidth="80"/>
+                <DataGridCheckBoxColumn Header="Risposta" Binding="{Binding IsResponse}" Width="80" MinWidth="70"/>
+                <DataGridTextColumn Header="Parametri" Binding="{Binding ParameterCount}" Width="80" MinWidth="70">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                
-                <!-- Colonna azioni -->
-                <DataGridTemplateColumn Header="Azioni" Width="140">
+                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="✏️" 
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Padding="6,2"
-                                        Margin="0,0,4,0"
-                                        ToolTip="Modifica"/>
-                                <Button Content="🗑️" 
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
-                                        Padding="6,2"
-                                        ToolTip="Elimina"
-                                        Foreground="Red"/>
+                                <Button Content="✏️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
+                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -124,25 +63,10 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Error message -->
-        <Border Grid.Row="3" 
-                Background="#FFEEEE" 
-                BorderBrush="#FF6666" 
-                BorderThickness="1" 
-                Padding="8" 
-                Margin="0,8,0,0"
-                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#CC0000" TextWrapping="Wrap"/>
-        </Border>
-
-        <!-- Loading overlay -->
-        <Border Grid.Row="0" Grid.RowSpan="4" 
-                Background="#80FFFFFF" 
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                <TextBlock Text="Caricamento..." Margin="0,8,0,0" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
     </Grid>
 </UserControl>

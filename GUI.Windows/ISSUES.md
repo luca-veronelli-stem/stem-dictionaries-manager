@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -12,11 +12,11 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 0 | 1 |
+| **Media** | 0 | 2 |
 | **Bassa** | 2 | 0 |
 
 **Totale aperte:** 2  
-**Totale risolte:** 1
+**Totale risolte:** 2
 
 ---
 
@@ -28,6 +28,7 @@
 ## Indice Issue Risolte
 
 - [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
+- [GUI-004 - Refactoring grafico completo e migrazione login](#gui-004--refactoring-grafico-completo-e-migrazione-login)
 
 ---
 
@@ -35,11 +36,11 @@
 
 | Componente | Test Unit | Test Integration | Copertura |
 |------------|:---------:|:----------------:|-----------|
-| ViewModels (11) | ✅ 205 | ✅ 10 | ~95% |
-| Services (4) | ✅ 20 | - | ~85% |
-| DependencyInjection | ✅ 23 | - | 100% |
+| ViewModels (12) | ✅ 216 | ✅ 10 | ~95% |
+| Services (3) | ✅ 12 | - | ~85% |
+| DependencyInjection | ✅ 21 | - | 100% |
 | Converters (2) | ✅ 18 | - | 100% |
-| Views (8) | - | - | N/A (XAML) |
+| Views (9) | - | - | N/A (XAML) |
 
 ---
 
@@ -250,6 +251,70 @@ Creati 8 nuovi ViewModels + aggiornati test e DI:
 - API ViewType 100% consistente con implementazione ✅
 - No runtime errors su navigazione ✅
 - Copertura test GUI da 63 a 172 test ✅
+
+---
+
+### GUI-004 - Refactoring grafico completo e migrazione login
+
+**Categoria:** UX/Struttura  
+**Priorità:** Media  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-20  
+**Data Risoluzione:** 2026-03-20  
+**Branch:** gui/refactoring-completo
+
+#### Descrizione
+
+Refactoring grafico completo della GUI con dark theme VS Code-style e migrazione login da finestra modale separata a view integrata nella MainWindow (pattern Production.Tracker).
+
+#### Modifiche Implementate
+
+**Dark Theme (App.xaml):**
+- Stili globali: SidebarButton, ToolbarButton, WatermarkTextBox, HexAddressTextBox, SearchTextBox
+- DataGrid dark: DarkDataGridStyle, DarkDataGridColumnHeaderStyle, DarkDataGridRowStyle, DarkDataGridCellStyle
+- AccentButton per azioni primarie (Salva, Accedi)
+- Brush globali per colori consistenti
+
+**Layout MainWindow:**
+- Sidebar verticale con navigazione + logo + utente corrente
+- Header con titolo pagina e pulsante Indietro
+- Sidebar/Header visibili solo se `IsLoggedIn`
+- DataGrid con `MinWidth` su tutte le colonne e `HorizontalScrollBarVisibility="Auto"`
+
+**Migrazione Login:**
+- Creato `LoginView` (UserControl integrato nella MainWindow)
+- Creato `LoginViewModel` con `LoadUsersAsync`, `ConfirmLoginCommand`, evento `LoginConfirmed`
+- `MainViewModel`: aggiunta property `CurrentUser` con `IsLoggedIn` computed
+- `App.xaml.cs`: pattern eventi `LoggedOut`/`LoginConfirmed` (come PT)
+- Rimosso `UserSelectionWindow` (finestra modale)
+- Rimosso `CurrentUserService` (semplificato, `CurrentUser` direttamente in MainViewModel)
+
+**Bug Fix:**
+- ComboBox dropdown leggibile (stile light default)
+- `CommandEditViewModel`: `CodeHighHex`/`CodeLowHex` string → no `FormatException` su input hex
+- `BoardRepository.GetAllAsync()`: override con `Include(b => b.BoardType)` → no `BoardType not loaded`
+- `ProtocolAddressDisplay` rimosso da `BoardEditView` (proprietà inesistente)
+- Login button: `[NotifyCanExecuteChangedFor]` su `SelectedUser` e `IsLoading`
+- App shutdown: `Application.Current.Shutdown()` in `MainWindow.Closing`
+
+**File Eliminati:**
+- `Views/UserSelectionWindow.xaml` + `.cs`
+- `Services/CurrentUserService.cs`
+- `Abstractions/ICurrentUserService.cs`
+
+**Test (11 nuovi):**
+- 8 test per `LoginViewModel`
+- 3 test aggiuntivi per `MainViewModel` (IsLoggedIn, SetUserAndNavigate)
+- Aggiornati test esistenti per riflettere nuovo flusso
+
+#### Benefici Ottenuti
+
+- UI dark theme consistente ✅
+- Login integrato nella MainWindow (no flash finestra) ✅
+- YAGNI: rimosso `CurrentUserService` non necessario ✅
+- Bug binding hex risolti ✅
+- 1112/1112 test verdi ✅
 
 ---
 
