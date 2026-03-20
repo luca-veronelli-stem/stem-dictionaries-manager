@@ -33,7 +33,7 @@ public class BitInterpretationMapperTests
     [Fact]
     public void ToDomain_NullEntity_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             BitInterpretationMapper.ToDomain(null!));
     }
 
@@ -54,7 +54,7 @@ public class BitInterpretationMapperTests
     [Fact]
     public void ToEntity_NullDomain_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             BitInterpretationMapper.ToEntity(null!));
     }
 
@@ -84,7 +84,7 @@ public class BitInterpretationMapperTests
     {
         var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test");
 
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             BitInterpretationMapper.UpdateEntity(null!, domain));
     }
 
@@ -93,7 +93,7 @@ public class BitInterpretationMapperTests
     {
         var entity = new BitInterpretationEntity();
 
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             BitInterpretationMapper.UpdateEntity(entity, null!));
     }
 

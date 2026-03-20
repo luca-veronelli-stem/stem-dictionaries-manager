@@ -36,7 +36,7 @@ public class DictionaryService : IDictionaryService
         var entity = await _dictionaryRepository.GetByIdAsync(id, ct);
         if (entity is null)
             return null;
-        
+
         BoardType? boardType = null;
         if (entity.BoardTypeId.HasValue)
         {
@@ -44,7 +44,7 @@ public class DictionaryService : IDictionaryService
             if (boardTypeEntity is not null)
                 boardType = BoardTypeMapper.ToDomain(boardTypeEntity);
         }
-        
+
         return DictionaryMapper.ToDomain(entity, boardType);
     }
 
@@ -52,10 +52,10 @@ public class DictionaryService : IDictionaryService
     {
         var entities = await _dictionaryRepository.GetAllWithBoardTypeAsync(ct);
 
-        return [.. entities.Select(e => 
+        return [.. entities.Select(e =>
         {
-            BoardType? boardType = e.BoardType is not null 
-                ? BoardTypeMapper.ToDomain(e.BoardType) 
+            BoardType? boardType = e.BoardType is not null
+                ? BoardTypeMapper.ToDomain(e.BoardType)
                 : null;
             return DictionaryMapper.ToDomainWithVariables(e, boardType);
         })];
@@ -64,16 +64,16 @@ public class DictionaryService : IDictionaryService
     public async Task<Dictionary> AddAsync(Dictionary dictionary, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
-        
+
         // Verifica unicità nome
         var existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
         if (existingByName is not null)
             throw new InvalidOperationException($"Dictionary with name '{dictionary.Name}' already exists.");
-        
+
         // Verifica BoardType e DeviceType se specificati
         if (dictionary.BoardType is not null && dictionary.DeviceType.HasValue)
         {
-            _ = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct) 
+            _ = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct)
                 ?? throw new InvalidOperationException($"BoardType with Id {dictionary.BoardType.Id} not found.");
 
             // Verifica unicità combinazione (DeviceType, BoardTypeId) (BR-002)
@@ -91,21 +91,21 @@ public class DictionaryService : IDictionaryService
                 throw new InvalidOperationException(
                     "A Standard dictionary (without BoardType) already exists. Only one is allowed.");
         }
-        
+
         var entity = DictionaryMapper.ToEntity(dictionary);
         var created = await _dictionaryRepository.AddAsync(entity, ct);
-        
-        return await GetByIdAsync(created.Id, ct) 
+
+        return await GetByIdAsync(created.Id, ct)
             ?? throw new InvalidOperationException("Failed to retrieve created dictionary.");
     }
 
     public async Task UpdateAsync(Dictionary dictionary, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
-        
+
         var entity = await _dictionaryRepository.GetByIdAsync(dictionary.Id, ct)
             ?? throw new KeyNotFoundException($"Dictionary with Id {dictionary.Id} not found.");
-        
+
         // Verifica unicità nome (se cambiato)
         if (!entity.Name.Equals(dictionary.Name, StringComparison.OrdinalIgnoreCase))
         {
@@ -137,11 +137,11 @@ public class DictionaryService : IDictionaryService
     public async Task<Dictionary?> GetByNameAsync(string name, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        
+
         var entity = await _dictionaryRepository.GetByNameAsync(name, ct);
         if (entity is null)
             return null;
-        
+
         return await GetByIdAsync(entity.Id, ct);
     }
 
@@ -150,7 +150,7 @@ public class DictionaryService : IDictionaryService
         var entity = await _dictionaryRepository.GetByBoardTypeAsync(boardTypeId, ct);
         if (entity is null)
             return null;
-        
+
         return await GetByIdAsync(entity.Id, ct);
     }
 
@@ -172,7 +172,7 @@ public class DictionaryService : IDictionaryService
         var entity = await _dictionaryRepository.GetWithVariablesAsync(id, ct);
         if (entity is null)
             return null;
-        
+
         BoardType? boardType = null;
         if (entity.BoardTypeId.HasValue)
         {
@@ -180,14 +180,14 @@ public class DictionaryService : IDictionaryService
             if (boardTypeEntity is not null)
                 boardType = BoardTypeMapper.ToDomain(boardTypeEntity);
         }
-        
+
         return DictionaryMapper.ToDomainWithVariables(entity, boardType);
     }
 
     public async Task<Variable> AddVariableAsync(int dictionaryId, Variable variable, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(variable);
-        
+
         // Verifica che il dizionario esista
         var dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
             ?? throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
@@ -203,7 +203,7 @@ public class DictionaryService : IDictionaryService
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                 $"already exists in dictionary '{dictionary.Name}'.");
-        
+
         var entity = VariableMapper.ToEntity(variable, dictionaryId);
         var created = await _variableRepository.AddAsync(entity, ct);
         return VariableMapper.ToDomain(created);
@@ -215,15 +215,15 @@ public class DictionaryService : IDictionaryService
         var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
             throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
-        
+
         // Verifica che la variabile appartenga al dizionario
         var variable = await _variableRepository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
-        
+
         if (variable.DictionaryId != dictionaryId)
             throw new InvalidOperationException(
                 $"Variable {variableId} does not belong to dictionary {dictionaryId}.");
-        
+
         await _variableRepository.DeleteAsync(variableId, ct);
     }
 }

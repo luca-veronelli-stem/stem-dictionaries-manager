@@ -98,7 +98,7 @@ public class CommandListViewModelTests
         await _viewModel.InitializeAsync();
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("Caricati") && m.Severity == MessageSeverity.Success);
     }
 

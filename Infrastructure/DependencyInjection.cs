@@ -10,7 +10,7 @@ public static class DependencyInjection
     /// <summary>
     /// Registra i servizi di Infrastructure (DbContext, Repositories).
     /// </summary>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, 
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         string connectionString)
     {
         // DbContext con SQLite

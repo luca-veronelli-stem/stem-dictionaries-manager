@@ -37,7 +37,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "Temperature";
         _viewModel.AddressHighHex = "80";
         _viewModel.AddressLowHex = "10";
@@ -62,7 +62,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "StatusFlags";
         _viewModel.AddressHighHex = "00";
         _viewModel.AddressLowHex = "20";
@@ -84,7 +84,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "DeviceName";
         _viewModel.AddressHighHex = "00";
         _viewModel.AddressLowHex = "30";
@@ -172,7 +172,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "TestVar";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         _viewModel.MinValue = 100;
@@ -244,11 +244,83 @@ public class VariableEditFlowTests
         Assert.True(_navigationService.GoBackCalled);
     }
 
+    [Fact]
+    public async Task SaveBitmappedVariable_WithBitInterpretations_CallsUpdateBitInterpretations()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+
+        _viewModel.Name = "StatusFlags";
+        _viewModel.AddressHighHex = "00";
+        _viewModel.AddressLowHex = "40";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 1;
+
+        // Modifica il meaning della riga iniziale
+        _viewModel.WordGroups[0].Items[0].Meaning = "Motor Running";
+        // Aggiungi un altro bit
+        _viewModel.AddBitToWordCommand.Execute(_viewModel.WordGroups[0]);
+        _viewModel.WordGroups[0].Items[1].Meaning = "Error Flag";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("AddAsync:1:StatusFlags"));
+        Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("UpdateBitInterpretationsAsync:"));
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task LoadBitmappedVariable_PopulatesWordGroups()
+    {
+        // Arrange
+        var bitmappedVar = Variable.Restore(
+            id: 5,
+            name: "BitsVar",
+            addressHigh: 0x00,
+            addressLow: 0x50,
+            dataTypeKind: DataTypeKind.Bitmapped,
+            dataTypeRaw: "Bitmapped",
+            dataTypeParam: 2,
+            accessMode: AccessMode.ReadOnly,
+            isEnabled: true,
+            format: null,
+            minValue: null,
+            maxValue: null,
+            unit: null,
+            usage: null,
+            description: null);
+        _variableService.SeedData(bitmappedVar);
+
+        // Seed bit interpretations nel mock
+        _variableService.SeedBitInterpretations(5,
+        [
+            new BitInterpretation(5, 0, 0, "Motor"),
+            new BitInterpretation(5, 0, 3, "Pump"),
+            new BitInterpretation(5, 1, 0, "Alarm")
+        ]);
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 5, dictionaryId: 1);
+
+        // Assert
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+        // Word 0: 2 items (BitIndex 0, 3)
+        Assert.Equal(2, _viewModel.WordGroups[0].Items.Count);
+        Assert.Equal("Motor", _viewModel.WordGroups[0].Items[0].Meaning);
+        Assert.Equal("Pump", _viewModel.WordGroups[0].Items[1].Meaning);
+        // Word 1: 1 item (BitIndex 0)
+        Assert.Single(_viewModel.WordGroups[1].Items);
+        Assert.Equal("Alarm", _viewModel.WordGroups[1].Items[0].Meaning);
+    }
+
     #region Mock Services
 
     private class MockVariableService : IVariableService
     {
         private readonly Dictionary<int, Variable> _variables = [];
+        private readonly Dictionary<int, List<BitInterpretation>> _bitInterpretations = [];
         private int _nextId = 1;
         public List<string> MethodCalls { get; } = [];
         public Exception? ExceptionToThrow { get; set; }
@@ -257,6 +329,11 @@ public class VariableEditFlowTests
         {
             _variables[variable.Id] = variable;
             if (variable.Id >= _nextId) _nextId = variable.Id + 1;
+        }
+
+        public void SeedBitInterpretations(int variableId, List<BitInterpretation> bits)
+        {
+            _bitInterpretations[variableId] = bits;
         }
 
         public Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -303,10 +380,21 @@ public class VariableEditFlowTests
             => Task.FromResult<Variable?>(null);
 
         public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId, CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
+        {
+            if (_bitInterpretations.TryGetValue(variableId, out var bits))
+                return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
+            return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
+        }
 
         public Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation, CancellationToken ct = default)
             => Task.FromResult(interpretation);
+
+        public Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+        {
+            MethodCalls.Add($"UpdateBitInterpretationsAsync:{variableId}");
+            if (ExceptionToThrow != null) throw ExceptionToThrow;
+            return Task.CompletedTask;
+        }
     }
 
     private class MockNavigationService : INavigationService

@@ -155,7 +155,7 @@ Infrastructure/
 | `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync, GetAllWithBoardTypeAsync, ExistsAsync |
 | `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
 | `ICommandRepository` | GetByCodeAsync |
-| `IBitInterpretationRepository` | GetByVariableIdAsync |
+| `IBitInterpretationRepository` | GetByVariableIdAsync, SyncByVariableIdAsync |
 | `ICommandDeviceStateRepository` | GetByCommandIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync (⚠️ Update/Delete bloccati) |
 

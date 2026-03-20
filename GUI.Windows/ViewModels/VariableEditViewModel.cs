@@ -4,6 +4,7 @@ using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -65,6 +66,17 @@ public partial class VariableEditViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private int? _dataTypeParam;
 
+    /// <summary>
+    /// Rigenera i WordGroups quando cambia il DataTypeParam (WordCount per Bitmapped).
+    /// </summary>
+    partial void OnDataTypeParamChanged(int? value)
+    {
+        if (IsBitmapped && value.HasValue && value.Value > 0)
+            RegenerateWordGroups(value.Value);
+        else if (IsBitmapped)
+            WordGroups.Clear();
+    }
+
     [ObservableProperty]
     private AccessMode _selectedAccessMode = AccessMode.ReadOnly;
 
@@ -89,6 +101,12 @@ public partial class VariableEditViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isEnabled = true;
+
+    /// <summary>
+    /// Gruppi di bit per word (solo per DataType == Bitmapped).
+    /// Ogni WordBitGroup contiene max 16 BitInterpretationItem.
+    /// </summary>
+    public ObservableCollection<WordBitGroup> WordGroups { get; } = [];
 
     // === Computed Properties ===
 
@@ -219,6 +237,19 @@ public partial class VariableEditViewModel : ObservableObject
                 }
 
                 LoadFromVariable(variable);
+
+                if (variable.DataTypeKind == DataTypeKind.Bitmapped)
+                {
+                    var bits = await _variableService.GetBitInterpretationsAsync(variableId.Value);
+                    var existingItems = bits.Select(b => new BitInterpretationItem
+                    {
+                        WordIndex = b.WordIndex,
+                        BitIndex = b.BitIndex,
+                        Meaning = b.Meaning ?? string.Empty
+                    }).ToList();
+
+                    RegenerateWordGroups(variable.DataTypeParam ?? 1, existingItems);
+                }
             }
 
             _isInitialized = true;
@@ -260,8 +291,8 @@ public partial class VariableEditViewModel : ObservableObject
         }
     }
 
-    private bool CanSave() => 
-        !string.IsNullOrWhiteSpace(Name) && 
+    private bool CanSave() =>
+        !string.IsNullOrWhiteSpace(Name) &&
         !string.IsNullOrWhiteSpace(DataTypeForSave) &&
         IsAddressHighValid &&
         IsAddressLowValid &&
@@ -296,7 +327,8 @@ public partial class VariableEditViewModel : ObservableObject
                     usage: null,
                     description: Description);
 
-                await _variableService.AddAsync(_dictionaryId, variable);
+                var created = await _variableService.AddAsync(_dictionaryId, variable);
+                _editingId = created.Id; // per il salvataggio dei bit
                 _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
             }
             else
@@ -320,6 +352,19 @@ public partial class VariableEditViewModel : ObservableObject
 
                 await _variableService.UpdateAsync(existing);
                 _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
+            }
+
+            if (SelectedDataTypeKind == DataTypeKind.Bitmapped)
+            {
+                var bitsToSave = WordGroups
+                    .SelectMany(g => g.Items)
+                    .Select(b => new BitInterpretation(
+                        variableId: _editingId!.Value,
+                        wordIndex: b.WordIndex,
+                        bitIndex: b.BitIndex,
+                        meaning: b.Meaning))
+                    .ToList();
+                await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
             }
 
             HasChanges = false;
@@ -347,5 +392,64 @@ public partial class VariableEditViewModel : ObservableObject
         }
 
         _navigationService.GoBack();
+    }
+
+    [RelayCommand]
+    private void AddBitToWord(WordBitGroup? group)
+    {
+        if (group is null) return;
+        if (group.TryAddBit())
+        {
+            var newItem = group.Items[^1];
+            newItem.PropertyChanged += (_, _) => HasChanges = true;
+            HasChanges = true;
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveBitFromWord(BitInterpretationItem? item)
+    {
+        if (item is null) return;
+        var group = WordGroups.FirstOrDefault(g => g.WordIndex == item.WordIndex);
+        if (group?.TryRemoveBit(item) == true)
+            HasChanges = true;
+    }
+
+    /// <summary>
+    /// Rigenera i WordGroups per il wordCount specificato.
+    /// Preserva gli items esistenti per le word che già esistono.
+    /// </summary>
+    private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
+    {
+        // Raccogli items correnti da UI (se non forniti dal DB)
+        existingItems ??= [.. WordGroups.SelectMany(g => g.Items)];
+
+        WordGroups.Clear();
+
+        for (var w = 0; w < wordCount; w++)
+        {
+            var group = new WordBitGroup(w);
+            var wordItems = existingItems
+                .Where(i => i.WordIndex == w)
+                .OrderBy(i => i.BitIndex)
+                .ToList();
+
+            if (wordItems.Count > 0)
+            {
+                foreach (var item in wordItems)
+                {
+                    item.PropertyChanged += (_, _) => HasChanges = true;
+                    group.AddExisting(item);
+                }
+            }
+            else
+            {
+                // Word nuova: una riga iniziale con BitIndex = 0
+                group.TryAddBit();
+                group.Items[0].PropertyChanged += (_, _) => HasChanges = true;
+            }
+
+            WordGroups.Add(group);
+        }
     }
 }

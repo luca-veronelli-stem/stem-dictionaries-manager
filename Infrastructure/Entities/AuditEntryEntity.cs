@@ -16,7 +16,7 @@ public class AuditEntryEntity
     public string? PreviousValue { get; set; }
     public string? NewValue { get; set; }
     public string? Notes { get; set; }
-    
+
     // Navigation
     public UserEntity ChangedBy { get; set; } = null!;
 }

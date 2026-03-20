@@ -35,7 +35,7 @@ public partial class SettingsViewModel : ObservableObject
         // TODO: Caricare impostazioni reali
         DatabasePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
             + @"\Stem.Dictionaries.Manager\dictionaries.db";
-        
+
         return Task.CompletedTask;
     }
 

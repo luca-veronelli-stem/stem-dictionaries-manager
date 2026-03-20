@@ -40,7 +40,7 @@ public class CommandService : ICommandService
     public async Task<Command> AddAsync(Command command, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(command);
-        
+
         // Verifica unicità codice
         var existing = await _repository.GetByCodeAsync(
             command.CodeHigh, command.CodeLow, command.IsResponse, ct);
@@ -48,7 +48,7 @@ public class CommandService : ICommandService
             throw new InvalidOperationException(
                 $"Command with code 0x{command.CodeHigh:X2}{command.CodeLow:X2} " +
                 $"(IsResponse={command.IsResponse}) already exists.");
-        
+
         var entity = CommandMapper.ToEntity(command);
         var created = await _repository.AddAsync(entity, ct);
         return CommandMapper.ToDomain(created);
@@ -57,10 +57,10 @@ public class CommandService : ICommandService
     public async Task UpdateAsync(Command command, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(command);
-        
+
         var entity = await _repository.GetByIdAsync(command.Id, ct)
             ?? throw new KeyNotFoundException($"Command with Id {command.Id} not found.");
-        
+
         CommandMapper.UpdateEntity(entity, command);
         await _repository.UpdateAsync(entity, ct);
     }
@@ -72,7 +72,7 @@ public class CommandService : ICommandService
 
     // === Query Specifiche ===
 
-    public async Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse, 
+    public async Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse,
         CancellationToken ct = default)
     {
         var entity = await _repository.GetByCodeAsync(codeHigh, codeLow, isResponse, ct);
@@ -86,14 +86,14 @@ public class CommandService : ICommandService
         var entity = await _repository.GetWithDeviceStatesAsync(id, ct);
         if (entity is null)
             return null;
-        
+
         var command = CommandMapper.ToDomain(entity);
         // Nota: DeviceStates sono caricati ma non esposti nel Domain Model Command.
         // Per accedere agli stati, usare GetDeviceStateAsync o SetDeviceStateAsync.
         return command;
     }
 
-    public async Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled, 
+    public async Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled,
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
@@ -120,7 +120,7 @@ public class CommandService : ICommandService
         }
     }
 
-    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType, 
+    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType,
         CancellationToken ct = default)
     {
         var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);

@@ -191,7 +191,7 @@ public class CommandMapperTests
             IsResponse = false,
             ParametersJson = "[]"
         };
-        
+
         var domain = Command.Restore(
             id: 1,
             name: "NewName",
@@ -220,11 +220,11 @@ public class CommandMapperTests
         // Arrange
         var entities = new List<CommandEntity>
         {
-            new() { Id = 1, Name = "CMD1", CodeHigh = 0x01, CodeLow = 0x00, 
+            new() { Id = 1, Name = "CMD1", CodeHigh = 0x01, CodeLow = 0x00,
                     IsResponse = false, ParametersJson = "[\"a\"]" },
-            new() { Id = 2, Name = "CMD2", CodeHigh = 0x02, CodeLow = 0x00, 
+            new() { Id = 2, Name = "CMD2", CodeHigh = 0x02, CodeLow = 0x00,
                     IsResponse = false, ParametersJson = "[\"b\", \"c\"]" },
-            new() { Id = 3, Name = "CMD3", CodeHigh = 0x01, CodeLow = 0x00, 
+            new() { Id = 3, Name = "CMD3", CodeHigh = 0x01, CodeLow = 0x00,
                     IsResponse = true, ParametersJson = "[]" }
         };
 

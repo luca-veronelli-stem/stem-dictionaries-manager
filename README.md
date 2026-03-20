@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1112%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1160%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -41,7 +41,7 @@
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 8 mappers |
 | **GUI Desktop** | ✅ | WPF + MVVM con 12 ViewModels, 11 Views, dark theme |
-| **Test Suite** | ✅ | 1112 test (901 unit + 211 integration) |
+| **Test Suite** | ✅ | 1160 test (unit + integration, 2 framework) |
 
 ---
 

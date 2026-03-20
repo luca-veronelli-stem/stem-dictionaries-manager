@@ -11,13 +11,13 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     {
     }
 
-    public async Task<DictionaryEntity?> GetByNameAsync(string name, 
+    public async Task<DictionaryEntity?> GetByNameAsync(string name,
         CancellationToken cancellationToken = default)
     {
         return await DbSet.FirstOrDefaultAsync(d => d.Name == name, cancellationToken);
     }
 
-    public async Task<DictionaryEntity?> GetByBoardTypeAsync(int boardTypeId, 
+    public async Task<DictionaryEntity?> GetByBoardTypeAsync(int boardTypeId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -25,7 +25,7 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
             .FirstOrDefaultAsync(d => d.BoardTypeId == boardTypeId, cancellationToken);
     }
 
-    public async Task<DictionaryEntity?> GetWithVariablesAsync(int id, 
+    public async Task<DictionaryEntity?> GetWithVariablesAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

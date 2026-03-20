@@ -62,30 +62,30 @@ public class AuditEntry
     /// <summary>
     /// Crea entry per operazione CREATE.
     /// </summary>
-    public static AuditEntry ForCreate(AuditEntityType entityType, int entityId, 
+    public static AuditEntry ForCreate(AuditEntityType entityType, int entityId,
         int changedById, string newValueJson, string? notes = null)
     {
-        return new AuditEntry(entityType, entityId, AuditOperation.Create, 
+        return new AuditEntry(entityType, entityId, AuditOperation.Create,
             changedById, null, null, newValueJson, notes);
     }
 
     /// <summary>
     /// Crea entry per operazione UPDATE.
     /// </summary>
-    public static AuditEntry ForUpdate(AuditEntityType entityType, int entityId, 
+    public static AuditEntry ForUpdate(AuditEntityType entityType, int entityId,
         int changedById, string previousValueJson, string newValueJson, string? notes = null)
     {
-        return new AuditEntry(entityType, entityId, AuditOperation.Update, 
+        return new AuditEntry(entityType, entityId, AuditOperation.Update,
             changedById, null, previousValueJson, newValueJson, notes);
     }
 
     /// <summary>
     /// Crea entry per operazione DELETE.
     /// </summary>
-    public static AuditEntry ForDelete(AuditEntityType entityType, int entityId, 
+    public static AuditEntry ForDelete(AuditEntityType entityType, int entityId,
         int changedById, string previousValueJson, string? notes = null)
     {
-        return new AuditEntry(entityType, entityId, AuditOperation.Delete, 
+        return new AuditEntry(entityType, entityId, AuditOperation.Delete,
             changedById, null, previousValueJson, null, notes);
     }
 }

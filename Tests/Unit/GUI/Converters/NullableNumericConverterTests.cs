@@ -1,7 +1,7 @@
 #if WINDOWS
+using GUI.Windows.Converters;
 using System.Globalization;
 using System.Windows.Data;
-using GUI.Windows.Converters;
 
 namespace Tests.Unit.GUI.Converters;
 

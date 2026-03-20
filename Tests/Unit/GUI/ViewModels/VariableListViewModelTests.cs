@@ -114,7 +114,7 @@ public class VariableListViewModelTests
     public void AddCommand_NavigatesToVariableEdit()
     {
         // Arrange - Set dictionaryId via reflection or initialize
-        var field = typeof(VariableListViewModel).GetField("_dictionaryId", 
+        var field = typeof(VariableListViewModel).GetField("_dictionaryId",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         field!.SetValue(_viewModel, 42);
 
@@ -211,7 +211,7 @@ public class VariableListViewModelTests
         await _viewModel.InitializeAsync(1);
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("Caricate") && m.Severity == MessageSeverity.Success);
     }
 

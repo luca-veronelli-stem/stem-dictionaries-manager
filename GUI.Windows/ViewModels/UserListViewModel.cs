@@ -122,12 +122,12 @@ public partial class UserListViewModel : ObservableObject
 
             var user = new User(NewUsername, NewDisplayName);
             await _userService.AddAsync(user);
-            
+
             _messageService.Show($"Utente '{NewUsername}' creato", MessageSeverity.Success);
-            
+
             NewUsername = string.Empty;
             NewDisplayName = string.Empty;
-            
+
             await RefreshAsync();
         }
         catch (Exception ex)

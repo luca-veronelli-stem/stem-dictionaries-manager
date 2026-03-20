@@ -1,7 +1,3 @@
-using Infrastructure;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-
 namespace Tests.Integration.Infrastructure;
 
 /// <summary>

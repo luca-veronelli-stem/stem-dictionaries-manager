@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -108,7 +108,8 @@ Tests/
 │   │   │   ├── DictionaryEditViewModelTests.cs   # 17 test
 │   │   │   ├── MainViewModelTests.cs             # 7 test
 │   │   │   ├── VariableListViewModelTests.cs     # 14 test
-│   │   │   ├── VariableEditViewModelTests.cs     # 46 test
+│   │   │   ├── VariableEditViewModelTests.cs     # 54 test
+│   │   │   ├── WordBitGroupTests.cs               # 9 test
 │   │   │   ├── CommandListViewModelTests.cs      # 14 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 16 test
 │   │   │   ├── BoardListViewModelTests.cs        # 13 test
@@ -142,17 +143,17 @@ Tests/
     │   ├── DatabaseCreationTests.cs           # 3 test
     │   ├── DictionaryRepositoryTests.cs       # 15 test
     │   ├── UserRepositoryTests.cs             # 6 test
-    │   ├── BitInterpretationRepositoryTests.cs    # 10 test
+    │   ├── BitInterpretationRepositoryTests.cs    # 14 test
     │   └── CommandDeviceStateRepositoryTests.cs   # 10 test
     └── Services/
         ├── UserServiceTests.cs            # 16 test
         ├── DictionaryServiceTests.cs      # 17 test
         ├── BoardServiceTests.cs           # 17 test
         ├── CommandServiceTests.cs         # 15 test
-        └── VariableServiceTests.cs        # 23 test
+        └── VariableServiceTests.cs        # 28 test
 ```
 
-> **Nota:** `Integration/GUI/VariableEditFlowTests.cs` (10 test) include mock services inline per test flow completi.
+> **Nota:** `Integration/GUI/VariableEditFlowTests.cs` (12 test) include mock services inline per test flow completi.
 
 ---
 
@@ -215,15 +216,15 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
 | Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI/ViewModels | 189 | 11 ViewModels con CRUD, navigation, validation |
+| Unit/GUI/ViewModels | 206 | 12 ViewModels (incl. WordBitGroup) con CRUD, navigation, validation, bitmapped |
 | Unit/GUI/Converters | 18 | NullableInt/Double converters |
 | Unit/GUI/Services | 12 | NavigationService |
 | Unit/GUI/DI | 21 | Registrazione ViewModels + UI services |
-| Integration/Infrastructure | 104 | Repository, audit, DB, CRUD scenarios |
-| Integration/Services | 88 | Business logic, validazione |
-| Integration/GUI | 10 | VariableEdit flow completo |
-| **Totale CI** | **~440** | net10.0 (Linux) |
-| **Totale Windows** | **1074** | net10.0-windows (+GUI tests) |
+| Integration/Infrastructure | 108 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
+| Integration/Services | 93 | Business logic, validazione, smart update |
+| Integration/GUI | 12 | VariableEdit flow completo + bitmapped |
+| **Totale CI** | **~450** | net10.0 (Linux) |
+| **Totale Windows** | **1160** | net10.0 + net10.0-windows |
 
 ---
 

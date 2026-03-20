@@ -26,12 +26,12 @@ public record NavigationParameter
     /// ID dell'entità da editare (null = nuova entità).
     /// </summary>
     public int? EntityId { get; init; }
-    
+
     /// <summary>
     /// ID del parent (es. DictionaryId per VariableList).
     /// </summary>
     public int? ParentId { get; init; }
-    
+
     /// <summary>
     /// Parametri aggiuntivi.
     /// </summary>
@@ -58,18 +58,18 @@ public interface INavigationService
     /// Indica se è possibile tornare indietro.
     /// </summary>
     bool CanGoBack { get; }
-    
+
     /// <summary>
     /// Naviga verso una view specifica.
     /// </summary>
     void NavigateTo(ViewType viewType, NavigationParameter? parameter = null);
-    
+
     /// <summary>
     /// Torna alla view precedente.
     /// </summary>
     /// <returns>True se la navigazione è avvenuta, false se non c'è history.</returns>
     bool GoBack();
-    
+
     /// <summary>
     /// Evento sollevato quando cambia la view corrente.
     /// </summary>

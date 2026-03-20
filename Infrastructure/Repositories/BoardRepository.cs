@@ -19,7 +19,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
             .ToListAsync(cancellationToken);
     }
 
-    public override async Task<BoardEntity?> GetByIdAsync(int id, 
+    public override async Task<BoardEntity?> GetByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -27,7 +27,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<BoardEntity>> GetByDeviceTypeAsync(DeviceType deviceType, 
+    public async Task<IReadOnlyList<BoardEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -36,7 +36,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<BoardEntity?> GetByProtocolAddressAsync(uint protocolAddress, 
+    public async Task<BoardEntity?> GetByProtocolAddressAsync(uint protocolAddress,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

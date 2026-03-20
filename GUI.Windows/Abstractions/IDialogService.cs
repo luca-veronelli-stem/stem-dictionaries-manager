@@ -21,22 +21,22 @@ public interface IDialogService
     /// Mostra un dialog di conferma con pulsanti Sì/No.
     /// </summary>
     Task<DialogResult> ShowConfirmAsync(string title, string message);
-    
+
     /// <summary>
     /// Mostra un dialog di conferma con pulsanti Ok/Annulla.
     /// </summary>
     Task<DialogResult> ShowOkCancelAsync(string title, string message);
-    
+
     /// <summary>
     /// Mostra un messaggio di errore.
     /// </summary>
     Task ShowErrorAsync(string title, string message);
-    
+
     /// <summary>
     /// Mostra un messaggio informativo.
     /// </summary>
     Task ShowInfoAsync(string title, string message);
-    
+
     /// <summary>
     /// Mostra un messaggio di warning.
     /// </summary>

@@ -21,12 +21,13 @@
                    Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid HorizontalAlignment="Left" Width="600">
+            <Grid HorizontalAlignment="Left" Width="750">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -76,14 +77,51 @@
                          Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
                          PreviewTextInput="IntTextBox_PreviewTextInput"/>
 
+                <!-- Sezione BitInterpretations (solo per Bitmapped) -->
+                <ItemsControl Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+                              ItemsSource="{Binding WordGroups}"
+                              Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}"
+                              Margin="0,0,0,12">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="{Binding Label}" Foreground="#007ACC" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,6"/>
+                                <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False"
+                                          IsReadOnly="False"
+                                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
+                                          Style="{StaticResource DarkDataGridStyle}"
+                                          ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                                          RowStyle="{StaticResource DarkDataGridRowStyle}"
+                                          CellStyle="{StaticResource DarkDataGridCellStyle}"
+                                          MinHeight="38" MaxHeight="500"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
+                                                            IsReadOnly="True" Width="80" MinWidth="60"/>
+                                        <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
+                                                            Width="*" MinWidth="200"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <Button Content="+ Aggiungi Bit" 
+                                            Command="{Binding DataContext.AddBitToWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource ToolbarButtonStyle}"
+                                            Visibility="{Binding CanAddBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
                 <!-- Accesso -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Accesso" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Accesso" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="5" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
                           Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
 
                 <!-- Min/Max/Unita -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Min - Max / Unità" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,12">
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Min - Max / Unità" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal">
                         <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
                                  Style="{StaticResource WatermarkTextBoxStyle}" Tag="Min" Width="80" Margin="0,0,8,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
@@ -97,20 +135,20 @@
                 </StackPanel>
 
                 <!-- Formato -->
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Formato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Format}" 
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Formato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Format}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: %.2f"
                          Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
 
                 <!-- Descrizione -->
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Descrizione" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Description}" 
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Descrizione" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Description}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
                          AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"/>
 
                 <!-- Abilitata -->
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
                           Foreground="White" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>

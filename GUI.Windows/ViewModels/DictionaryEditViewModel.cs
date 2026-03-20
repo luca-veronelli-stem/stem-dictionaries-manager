@@ -173,7 +173,7 @@ public partial class DictionaryEditViewModel : ObservableObject
                 var dictionary = new Core.Models.Dictionary(
                     Name,
                     SelectedDeviceType,
-                    boardType, 
+                    boardType,
                     string.IsNullOrWhiteSpace(Description) ? null : Description);
 
                 await _dictionaryService.AddAsync(dictionary);

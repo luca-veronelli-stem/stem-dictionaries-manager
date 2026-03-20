@@ -1,5 +1,5 @@
-using System.Timers;
 using GUI.Windows.Abstractions;
+using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace GUI.Windows.Services;

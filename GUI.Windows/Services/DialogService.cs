@@ -1,5 +1,5 @@
-using System.Windows;
 using GUI.Windows.Abstractions;
+using System.Windows;
 
 namespace GUI.Windows.Services;
 

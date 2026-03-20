@@ -195,7 +195,7 @@ public class VariableMapperTests
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
-        
+
         var domain = Variable.Restore(
             id: 1,
             name: "NewName",
@@ -234,14 +234,14 @@ public class VariableMapperTests
         // Arrange
         var entities = new List<VariableEntity>
         {
-            new() { Id = 1, Name = "Var1", AddressHigh = 0x00, AddressLow = 0x01, 
-                    DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = "uint8_t", 
+            new() { Id = 1, Name = "Var1", AddressHigh = 0x00, AddressLow = 0x01,
+                    DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = "uint8_t",
                     AccessMode = AccessMode.ReadOnly, IsEnabled = true },
-            new() { Id = 2, Name = "Var2", AddressHigh = 0x00, AddressLow = 0x02, 
-                    DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t", 
+            new() { Id = 2, Name = "Var2", AddressHigh = 0x00, AddressLow = 0x02,
+                    DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
                     AccessMode = AccessMode.ReadWrite, IsEnabled = true },
-            new() { Id = 3, Name = "Var3", AddressHigh = 0x80, AddressLow = 0x01, 
-                    DataTypeKind = DataTypeKind.Float, DataTypeRaw = "float", 
+            new() { Id = 3, Name = "Var3", AddressHigh = 0x80, AddressLow = 0x01,
+                    DataTypeKind = DataTypeKind.Float, DataTypeRaw = "float",
                     AccessMode = AccessMode.ReadOnly, IsEnabled = false }
         };
 

@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -116,7 +116,7 @@ Services/
 | Interface | Metodi Principali | Aggregate |
 |-----------|-------------------|-----------|
 | `IDictionaryService` | GetWithVariablesAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
-| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync | - |
+| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync | - |
 | `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync | - |
 | `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync, AddBoardTypeAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
@@ -295,8 +295,8 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Integration | `DictionaryServiceTests.cs` | 17 |
 | Integration | `BoardServiceTests.cs` | 17 |
 | Integration | `CommandServiceTests.cs` | 15 |
-| Integration | `VariableServiceTests.cs` | 23 |
-| **Totale** | | **168 test** |
+| Integration | `VariableServiceTests.cs` | 28 |
+| **Totale** | | **173 test** |
 
 ```bash
 # Eseguire test Services

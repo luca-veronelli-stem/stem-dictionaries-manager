@@ -10,7 +10,7 @@ public class VariableRepository : RepositoryBase<VariableEntity>, IVariableRepos
     {
     }
 
-    public async Task<IReadOnlyList<VariableEntity>> GetByDictionaryIdAsync(int dictionaryId, 
+    public async Task<IReadOnlyList<VariableEntity>> GetByDictionaryIdAsync(int dictionaryId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -20,14 +20,14 @@ public class VariableRepository : RepositoryBase<VariableEntity>, IVariableRepos
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<VariableEntity?> GetByAddressAsync(int dictionaryId, byte addressHigh, 
+    public async Task<VariableEntity?> GetByAddressAsync(int dictionaryId, byte addressHigh,
         byte addressLow, CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .FirstOrDefaultAsync(v => 
-                v.DictionaryId == dictionaryId && 
-                v.AddressHigh == addressHigh && 
-                v.AddressLow == addressLow, 
+            .FirstOrDefaultAsync(v =>
+                v.DictionaryId == dictionaryId &&
+                v.AddressHigh == addressHigh &&
+                v.AddressLow == addressLow,
                 cancellationToken);
     }
 
@@ -36,7 +36,7 @@ public class VariableRepository : RepositoryBase<VariableEntity>, IVariableRepos
         return await DbSet.AnyAsync(v => v.Id == id, cancellationToken);
     }
 
-    public async Task<VariableEntity?> GetWithBitInterpretationsAsync(int id, 
+    public async Task<VariableEntity?> GetWithBitInterpretationsAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

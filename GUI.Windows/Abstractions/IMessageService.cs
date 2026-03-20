@@ -20,12 +20,12 @@ public interface IMessageService
     /// Messaggio corrente visualizzato.
     /// </summary>
     string? CurrentMessage { get; }
-    
+
     /// <summary>
     /// Severità del messaggio corrente.
     /// </summary>
     MessageSeverity CurrentSeverity { get; }
-    
+
     /// <summary>
     /// Mostra un messaggio nella status bar.
     /// </summary>
@@ -33,12 +33,12 @@ public interface IMessageService
     /// <param name="severity">Severità (default: Info).</param>
     /// <param name="autoHideSeconds">Secondi dopo i quali nascondere (0 = permanente).</param>
     void Show(string message, MessageSeverity severity = MessageSeverity.Info, int autoHideSeconds = 5);
-    
+
     /// <summary>
     /// Nasconde il messaggio corrente.
     /// </summary>
     void Clear();
-    
+
     /// <summary>
     /// Evento sollevato quando cambia il messaggio.
     /// </summary>

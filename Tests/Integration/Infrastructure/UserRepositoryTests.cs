@@ -18,10 +18,10 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task AddAsync_CreatesUser()
     {
-        var user = new UserEntity 
-        { 
-            Username = "luca", 
-            DisplayName = "Luca V." 
+        var user = new UserEntity
+        {
+            Username = "luca",
+            DisplayName = "Luca V."
         };
 
         var result = await _repository.AddAsync(user);
