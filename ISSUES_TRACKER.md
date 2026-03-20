@@ -1,6 +1,6 @@
 # Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -11,10 +11,10 @@
 | [Core](./Core/ISSUES.md) | 3 | 2 | 5 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
 | [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 1 | 3 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 2 | 4 |
 | [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
 | **Trasversali** | **0** | **1** | **1** |
-| **Totale** | **16** | **12** | **28** |
+| **Totale** | **16** | **13** | **29** |
 
 ---
 
@@ -119,11 +119,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 
-### GUI.Windows (2 issue aperte, 1 risolta)
+### GUI.Windows (2 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
@@ -152,12 +153,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | Infrastructure/Repositories (9) | - | ✅ 86 | ~98% |
 | Services/Mapping (8) | ✅ 80 | - | ~100% |
 | Services (5) | - | ✅ 90 | ~95% |
-| GUI.Windows/ViewModels (11) | ✅ 205 | ✅ 10 | ~95% |
-| GUI.Windows/Services (4) | ✅ 20 | - | ~85% |
+| GUI.Windows/ViewModels (12) | ✅ 216 | ✅ 10 | ~95% |
+| GUI.Windows/Services (3) | ✅ 12 | - | ~85% |
 | GUI.Windows/Converters (2) | ✅ 18 | - | 100% |
-| GUI.Windows/DI | ✅ 23 | - | 100% |
+| GUI.Windows/DI | ✅ 21 | - | 100% |
 
-**Totale test:** ~440 CI (net10.0) / 1111 Windows (net10.0-windows)
+**Totale test:** ~440 CI (net10.0) / 1112 Windows (net10.0-windows)
 
 ---
 
@@ -170,7 +171,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 1111 test Windows, copertura ~95% |
+| **Test Coverage** | ✅ 90% | 1112 test Windows, copertura ~95% |
 
 ---
 
@@ -211,6 +212,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-20 | ✅ **GUI-004 risolta** - Refactoring grafico completo: dark theme VS Code-style, login integrato nella MainWindow (pattern PT), rimosso CurrentUserService, +11 test (1112 totali Windows) (branch `gui/refactoring-completo`) |
 | 2026-03-19 | ✨ **Filtro/ricerca nelle liste** - SearchText filtra client-side in tutti i 5 ListViewModel (case-insensitive), +15 test (1111 totali Windows) (branch `feature/filtro-ricerca`) |
 | 2026-03-19 | ✨ **Selezione utente all'avvio**
 | 2026-03-19 | ✅ **CORE-001 + CORE-002 risolte**
