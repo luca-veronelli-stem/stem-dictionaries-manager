@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 
@@ -19,7 +18,6 @@ public static class BitInterpretationMapper
         return BitInterpretation.Restore(
             entity.Id,
             entity.VariableId,
-            entity.DeviceType,
             entity.WordIndex,
             entity.BitIndex,
             entity.Meaning);
@@ -36,7 +34,6 @@ public static class BitInterpretationMapper
         {
             Id = domain.Id,
             VariableId = domain.VariableId,
-            DeviceType = domain.DeviceType,
             WordIndex = domain.WordIndex,
             BitIndex = domain.BitIndex,
             Meaning = domain.Meaning
@@ -52,7 +49,6 @@ public static class BitInterpretationMapper
         ArgumentNullException.ThrowIfNull(domain);
 
         entity.VariableId = domain.VariableId;
-        entity.DeviceType = domain.DeviceType;
         entity.WordIndex = domain.WordIndex;
         entity.BitIndex = domain.BitIndex;
         entity.Meaning = domain.Meaning;

@@ -31,6 +31,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -42,13 +43,17 @@
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
                          MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" 
-                          IsEnabled="{Binding CanChangeBoardType}" DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Dispositivo" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding DeviceTypes}" SelectedItem="{Binding SelectedDeviceType}" 
+                          IsEnabled="{Binding CanChangeDeviceAndBoardType}" Padding="8,6" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="Il tipo scheda non può essere modificato dopo la creazione." 
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Tipo Scheda" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" 
+                          IsEnabled="{Binding CanChangeDeviceAndBoardType}" DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="Dispositivo e tipo scheda non modificabili dopo la creazione. Lasciare vuoti per dizionario Standard." 
                            Foreground="#888888" FontSize="11" 
-                           Visibility="{Binding CanChangeBoardType, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" Margin="0,0,0,12"/>
+                           Visibility="{Binding CanChangeDeviceAndBoardType, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 

@@ -74,13 +74,15 @@ public static class DatabaseSeeder
         {
             Name = "Standard",
             Description = "Variabili comuni a tutti i dispositivi STEM",
-            BoardTypeId = null  // Standard = senza BoardType
+            DeviceType = null,
+            BoardTypeId = null  // Standard = senza DeviceType e BoardType
         };
 
         var dictOptimus = new DictionaryEntity
         {
             Name = "Optimus",
             Description = "Variabili specifiche per schede madre Optimus (FW Type 17)",
+            DeviceType = DeviceType.Optimus,
             BoardTypeId = btMadreOptimus.Id
         };
 
@@ -88,20 +90,23 @@ public static class DatabaseSeeder
         {
             Name = "Eden",
             Description = "Variabili specifiche per schede madre Eden (FW Type 18)",
+            DeviceType = DeviceType.Eden,
             BoardTypeId = btMadreEden.Id
         };
 
         var dictPulsantiere = new DictionaryEntity
         {
-            Name = "Pulsantiere",
-            Description = "Variabili per tastiere e pulsantiere 4x4 e 8x8",
+            Name = "Pulsantiere OptimusXp",
+            Description = "Variabili per tastiere e pulsantiere OptimusXp",
+            DeviceType = DeviceType.OptimusXp,
             BoardTypeId = btPulsantiera4.Id
         };
 
         var dictMotore = new DictionaryEntity
         {
-            Name = "Driver Motore",
-            Description = "Variabili per controllo motori",
+            Name = "Driver Motore Optimus",
+            Description = "Variabili per controllo motori Optimus",
+            DeviceType = DeviceType.Optimus,
             BoardTypeId = btMotore.Id
         };
 
@@ -219,33 +224,29 @@ public static class DatabaseSeeder
         // === Bit Interpretations ===
         var bitInterpretations = new[]
         {
-            // Device Status bits
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Optimus, 
+            // Device Status bits (Word 0)
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
                 WordIndex = 0, BitIndex = 0, Meaning = "Power OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
                 WordIndex = 0, BitIndex = 1, Meaning = "Communication OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
                 WordIndex = 0, BitIndex = 2, Meaning = "Sensor OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
                 WordIndex = 0, BitIndex = 7, Meaning = "Error Flag" },
+            // Device Status bits (Word 1)
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
+                WordIndex = 1, BitIndex = 0, Meaning = "Overtemp Warning" },
+            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
+                WordIndex = 1, BitIndex = 1, Meaning = "Low Battery" },
 
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Eden, 
-                WordIndex = 0, BitIndex = 0, Meaning = "Power OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Eden, 
-                WordIndex = 0, BitIndex = 1, Meaning = "Lift OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Eden, 
-                WordIndex = 0, BitIndex = 2, Meaning = "Weight OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id, DeviceType = DeviceType.Eden, 
-                WordIndex = 0, BitIndex = 7, Meaning = "Error Flag" },
-
-            // Relay Status bits (Optimus)
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id, DeviceType = DeviceType.Optimus, 
+            // Relay Status bits
+            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
                 WordIndex = 0, BitIndex = 0, Meaning = "Relay 1 (Main Power)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
                 WordIndex = 0, BitIndex = 1, Meaning = "Relay 2 (Aux Power)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
                 WordIndex = 0, BitIndex = 2, Meaning = "Relay 3 (Heater)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id, DeviceType = DeviceType.Optimus, 
+            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
                 WordIndex = 0, BitIndex = 3, Meaning = "Relay 4 (Fan)" },
         };
         context.BitInterpretations.AddRange(bitInterpretations);

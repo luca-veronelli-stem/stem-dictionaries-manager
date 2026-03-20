@@ -21,6 +21,7 @@ public class DictionaryMapperTests
             Name = "optimus-xp",
             Description = "Dizionario Optimus XP",
             BoardTypeId = 5,
+            DeviceType = DeviceType.Optimus,
             BoardType = new BoardTypeEntity { Id = 5, Name = "Madre", FirmwareType = 17 }
         };
 
@@ -31,6 +32,7 @@ public class DictionaryMapperTests
         Assert.Equal(1, result.Id);
         Assert.Equal("optimus-xp", result.Name);
         Assert.Equal("Dizionario Optimus XP", result.Description);
+        Assert.Equal(DeviceType.Optimus, result.DeviceType);
         Assert.NotNull(result.BoardType);
         Assert.Equal("Madre", result.BoardType!.Name);
     }
@@ -53,6 +55,7 @@ public class DictionaryMapperTests
 
         // Assert
         Assert.Equal("standard", result.Name);
+        Assert.Null(result.DeviceType);
         Assert.Null(result.BoardType);
     }
 
@@ -65,6 +68,7 @@ public class DictionaryMapperTests
             Id = 3,
             Name = "test-dict",
             Description = null,
+            DeviceType = DeviceType.Eden,
             BoardTypeId = 10,
             BoardType = null // Non caricato
         };
@@ -167,6 +171,7 @@ public class DictionaryMapperTests
         var dictionary = Dictionary.Restore(
             id: 10,
             name: "test-dictionary",
+            deviceType: DeviceType.Optimus,
             boardType: boardType,
             description: "Test description",
             variables: []);
@@ -178,6 +183,7 @@ public class DictionaryMapperTests
         Assert.Equal(10, result.Id);
         Assert.Equal("test-dictionary", result.Name);
         Assert.Equal("Test description", result.Description);
+        Assert.Equal(DeviceType.Optimus, result.DeviceType);
         Assert.Equal(5, result.BoardTypeId);
     }
 
@@ -188,6 +194,7 @@ public class DictionaryMapperTests
         var dictionary = Dictionary.Restore(
             id: 1,
             name: "standard",
+            deviceType: null,
             boardType: null,
             description: "Standard variables",
             variables: []);
@@ -218,7 +225,7 @@ public class DictionaryMapperTests
         };
         
         var newBoardType = BoardType.Restore(10, "NewBoard", 20);
-        var domain = Dictionary.Restore(1, "new-name", newBoardType, "New description", []);
+        var domain = Dictionary.Restore(1, "new-name", DeviceType.Eden, newBoardType, "New description", []);
 
         // Act
         DictionaryMapper.UpdateEntity(entity, domain);
@@ -242,7 +249,7 @@ public class DictionaryMapperTests
             BoardTypeId = 5
         };
         
-        var domain = Dictionary.Restore(1, "standard", null, null, []);
+        var domain = Dictionary.Restore(1, "standard", null, null, null, []);
 
         // Act
         DictionaryMapper.UpdateEntity(entity, domain);
@@ -257,10 +264,10 @@ public class DictionaryMapperTests
         // Arrange
         var entities = new List<DictionaryEntity>
         {
-            new() { Id = 1, Name = "dict1", Description = "D1", BoardTypeId = null },
-            new() { Id = 2, Name = "dict2", Description = "D2", BoardTypeId = 5,
+            new() { Id = 1, Name = "dict1", Description = "D1", DeviceType = null, BoardTypeId = null },
+            new() { Id = 2, Name = "dict2", Description = "D2", DeviceType = DeviceType.Optimus, BoardTypeId = 5,
                     BoardType = new BoardTypeEntity { Id = 5, Name = "Board5", FirmwareType = 5 } },
-            new() { Id = 3, Name = "dict3", Description = null, BoardTypeId = null }
+            new() { Id = 3, Name = "dict3", Description = null, DeviceType = null, BoardTypeId = null }
         };
 
         // Act
@@ -285,6 +292,7 @@ public class DictionaryMapperTests
             Name = "roundtrip-dict",
             Description = "RoundTrip Test",
             BoardTypeId = 99,
+            DeviceType = DeviceType.Optimus,
             BoardType = new BoardTypeEntity { Id = 99, Name = "RoundTripBoard", FirmwareType = 88 }
         };
 

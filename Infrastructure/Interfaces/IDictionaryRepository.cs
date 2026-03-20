@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Entities;
 
 namespace Infrastructure.Interfaces;
@@ -8,6 +9,12 @@ public interface IDictionaryRepository : IRepository<DictionaryEntity>
     Task<DictionaryEntity?> GetByBoardTypeAsync(int boardTypeId, CancellationToken cancellationToken = default);
     Task<DictionaryEntity?> GetWithVariablesAsync(int id, CancellationToken cancellationToken = default);
     Task<DictionaryEntity?> GetStandardDictionaryAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cerca un dizionario per combinazione (DeviceType, BoardTypeId).
+    /// </summary>
+    Task<DictionaryEntity?> GetByDeviceTypeAndBoardTypeAsync(DeviceType deviceType, int boardTypeId, 
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Ottiene tutti i dizionari con BoardType incluso.

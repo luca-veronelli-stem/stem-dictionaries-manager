@@ -194,7 +194,6 @@ public class CrudScenariosTests : IntegrationTestBase
         };
         var bit1 = new BitInterpretationEntity
         {
-            DeviceType = DeviceType.SherpaSlim,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Bit 0",
@@ -202,7 +201,6 @@ public class CrudScenariosTests : IntegrationTestBase
         };
         var bit2 = new BitInterpretationEntity
         {
-            DeviceType = DeviceType.SherpaSlim,
             WordIndex = 0,
             BitIndex = 1,
             Meaning = "Bit 1",
@@ -236,13 +234,13 @@ public class CrudScenariosTests : IntegrationTestBase
         };
         var state1 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.SherpaSlim,
+            DeviceType = DeviceType.Optimus,
             IsEnabled = true,
             Command = command
         };
         var state2 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.Optimus,
+            DeviceType = DeviceType.Eden,
             IsEnabled = false,
             Command = command
         };

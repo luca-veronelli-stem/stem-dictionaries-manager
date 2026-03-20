@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 
@@ -23,7 +24,7 @@ public static class DictionaryMapper
             boardType = BoardTypeMapper.ToDomain(entity.BoardType);
         }
 
-        return Dictionary.Restore(entity.Id, entity.Name, boardType, entity.Description, []);
+        return Dictionary.Restore(entity.Id, entity.Name, entity.DeviceType, boardType, entity.Description, []);
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ public static class DictionaryMapper
             ? entity.Variables.Select(VariableMapper.ToDomain)
             : [];
 
-        return Dictionary.Restore(entity.Id, entity.Name, boardType, entity.Description, variables);
+        return Dictionary.Restore(entity.Id, entity.Name, entity.DeviceType, boardType, entity.Description, variables);
     }
 
     /// <summary>
@@ -60,6 +61,7 @@ public static class DictionaryMapper
             Id = domain.Id,
             Name = domain.Name,
             Description = domain.Description,
+            DeviceType = domain.DeviceType,
             BoardTypeId = domain.BoardType?.Id
         };
     }
@@ -75,6 +77,7 @@ public static class DictionaryMapper
 
         entity.Name = domain.Name;
         entity.Description = domain.Description;
+        entity.DeviceType = domain.DeviceType;
         entity.BoardTypeId = domain.BoardType?.Id;
     }
 

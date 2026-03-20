@@ -1,4 +1,5 @@
 #if WINDOWS
+using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
@@ -49,7 +50,7 @@ public class DictionaryEditViewModelTests
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
         // Arrange
-        var dict = new Dictionary("Existing", null, "Desc");
+        var dict = new Dictionary("Existing", description: "Desc");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -80,7 +81,7 @@ public class DictionaryEditViewModelTests
     public async Task InitializeAsync_WithId_LoadsExistingData()
     {
         // Arrange
-        var dict = Dictionary.Restore(1, "TestDict", null, "TestDesc", []);
+        var dict = Dictionary.Restore(1, "TestDict", null, null, "TestDesc", []);
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -127,24 +128,24 @@ public class DictionaryEditViewModelTests
     }
 
     [Fact]
-    public void CanChangeBoardType_IsTrue_WhenNew()
+    public void CanChangeDeviceAndBoardType_IsTrue_WhenNew()
     {
         // Assert (default state is new)
-        Assert.True(_viewModel.CanChangeBoardType);
+        Assert.True(_viewModel.CanChangeDeviceAndBoardType);
     }
 
     [Fact]
-    public async Task CanChangeBoardType_IsFalse_WhenEditing()
+    public async Task CanChangeDeviceAndBoardType_IsFalse_WhenEditing()
     {
         // Arrange
-        var dict = new Dictionary("Existing", null, null);
+        var dict = new Dictionary("Existing");
         _dictionaryService.SeedData(dict);
 
         // Act
         await _viewModel.InitializeAsync(1);
 
         // Assert
-        Assert.False(_viewModel.CanChangeBoardType);
+        Assert.False(_viewModel.CanChangeDeviceAndBoardType);
     }
 
     [Fact]
@@ -188,7 +189,7 @@ public class DictionaryEditViewModelTests
     public async Task SaveCommand_WhenEditing_CallsUpdateAsync()
     {
         // Arrange
-        var dict = new Dictionary("Existing", null, null);
+        var dict = new Dictionary("Existing");
         _dictionaryService.SeedData(dict);
         await _viewModel.InitializeAsync(1);
         _viewModel.Name = "Updated";
@@ -260,6 +261,42 @@ public class DictionaryEditViewModelTests
     }
 
     [Fact]
+    public async Task OnSelectedDeviceTypeChanged_SetsHasChanges()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null);
+        Assert.False(_viewModel.HasChanges);
+
+        // Act
+        _viewModel.SelectedDeviceType = DeviceType.Eden;
+
+        // Assert
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithDeviceType_LoadsDeviceType()
+    {
+        // Arrange
+        var boardType = new BoardType("TestType", 5);
+        _boardService.SeedBoardTypes(boardType);
+        var dict = Dictionary.Restore(1, "TestDict", DeviceType.OptimusXp, boardType, "Desc", []);
+        _dictionaryService.SeedData(dict);
+
+        // Act
+        await _viewModel.InitializeAsync(1);
+
+        // Assert
+        Assert.Equal(DeviceType.OptimusXp, _viewModel.SelectedDeviceType);
+    }
+
+    [Fact]
+    public void DeviceTypes_ExposesAllValues()
+    {
+        Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.DeviceTypes.Count);
+    }
+
+    [Fact]
     public async Task SaveCommand_WithBoardType_CreatesWithBoardType()
     {
         // Arrange
@@ -267,6 +304,7 @@ public class DictionaryEditViewModelTests
         _boardService.SeedBoardTypes(boardType);
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
+        _viewModel.SelectedDeviceType = DeviceType.Optimus;
         _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes.First();
 
         // Act

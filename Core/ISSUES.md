@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -175,15 +175,13 @@ Il costruttore di `BitInterpretation` non valida che `variableId` sia positivo. 
 #### Codice Problematico
 
 ```csharp
-public BitInterpretation(int variableId, DeviceType deviceType, 
-    int wordIndex, int bitIndex, string meaning)
+public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? meaning)
 {
     if (wordIndex < 0)
         throw new ArgumentOutOfRangeException(nameof(wordIndex), "...");
     if (bitIndex < 0 || bitIndex > 15)
         throw new ArgumentOutOfRangeException(nameof(bitIndex), "...");
-    ArgumentException.ThrowIfNullOrWhiteSpace(meaning);
-    
+
     // Manca: validazione variableId > 0
     VariableId = variableId;
     // ...
@@ -193,8 +191,7 @@ public BitInterpretation(int variableId, DeviceType deviceType,
 #### Soluzione Proposta
 
 ```csharp
-public BitInterpretation(int variableId, DeviceType deviceType, 
-    int wordIndex, int bitIndex, string meaning)
+public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? meaning)
 {
     if (variableId <= 0)
         throw new ArgumentOutOfRangeException(nameof(variableId), 

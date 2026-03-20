@@ -39,7 +39,7 @@ public class VariableListViewModelTests
     public async Task InitializeAsync_LoadsDictionaryName()
     {
         // Arrange
-        var dict = new Dictionary("TestDict", null, "Test");
+        var dict = new Dictionary("TestDict", description: "Test");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -55,7 +55,7 @@ public class VariableListViewModelTests
         // Arrange
         var variable = new Variable("Temp", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t");
         _variableService.SeedData(variable);
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
 
         // Act
         await _viewModel.InitializeAsync(1);
@@ -71,7 +71,7 @@ public class VariableListViewModelTests
         // Arrange
         var variable = new Variable("Temp", 0x80, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t");
         _variableService.SeedData(variable);
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
 
         // Act
         await _viewModel.InitializeAsync(1);
@@ -84,7 +84,7 @@ public class VariableListViewModelTests
     public async Task RefreshCommand_CallsGetByDictionaryIdAsync()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         await _viewModel.InitializeAsync(1);
         _variableService.MethodCalls.Clear();
 
@@ -99,7 +99,7 @@ public class VariableListViewModelTests
     public async Task RefreshCommand_WhenServiceThrows_SetsErrorMessage()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         await _viewModel.InitializeAsync(1);
         _variableService.ExceptionToThrow = new Exception("DB error");
 
@@ -160,7 +160,7 @@ public class VariableListViewModelTests
     public async Task DeleteCommand_WithConfirmation_DeletesAndRefreshes()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         var variable = new Variable("ToDelete", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t");
         _variableService.SeedData(variable);
         await _viewModel.InitializeAsync(1);
@@ -203,7 +203,7 @@ public class VariableListViewModelTests
     public async Task InitializeAsync_ShowsSuccessMessage()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t");
         _variableService.SeedData(variable);
 
@@ -219,7 +219,7 @@ public class VariableListViewModelTests
     public async Task InitializeAsync_CanOnlyBeCalledOnce()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         await _viewModel.InitializeAsync(1);
         _variableService.MethodCalls.Clear();
 
@@ -234,7 +234,7 @@ public class VariableListViewModelTests
     public async Task SearchText_FiltersListByName()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         _variableService.SeedData(
             new Variable("Temperature", 0x80, 0x01, DataTypeKind.Int16, AccessMode.ReadOnly, "Int16"),
             new Variable("Pressure", 0x80, 0x02, DataTypeKind.Float, AccessMode.ReadOnly, "Float"),
@@ -253,7 +253,7 @@ public class VariableListViewModelTests
     public async Task SearchText_FiltersListByAddress()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         _variableService.SeedData(
             new Variable("Var1", 0x80, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
             new Variable("Var2", 0x00, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
@@ -271,7 +271,7 @@ public class VariableListViewModelTests
     public async Task SearchText_EmptyString_ShowsAll()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Dict", null, null));
+        _dictionaryService.SeedData(new Dictionary("Dict"));
         _variableService.SeedData(
             new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
             new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));

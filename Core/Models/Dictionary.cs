@@ -1,14 +1,21 @@
+using Core.Enums;
+
 namespace Core.Models;
 
 /// <summary>
-/// Dizionario: set di variabili per un tipo di scheda.
+/// Dizionario: set di variabili per un tipo di scheda su un dispositivo.
 /// </summary>
 public class Dictionary
 {
     public int Id { get; private set; }
     public string Name { get; private set; }
     public string? Description { get; private set; }
-    
+
+    /// <summary>
+    /// Tipo dispositivo associato. Null per dizionario "Standard" (condiviso).
+    /// </summary>
+    public DeviceType? DeviceType { get; private set; }
+
     /// <summary>
     /// BoardType associato. Null per dizionario "Standard" (condiviso).
     /// </summary>
@@ -17,11 +24,16 @@ public class Dictionary
     private readonly List<Variable> _variables = [];
     public IReadOnlyList<Variable> Variables => _variables.AsReadOnly();
 
-    public Dictionary(string name, BoardType? boardType = null, string? description = null)
+    public Dictionary(string name, DeviceType? deviceType = null, BoardType? boardType = null, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
+        // Standard: entrambi null. Non-standard: entrambi obbligatori.
+        if (deviceType.HasValue != (boardType is not null))
+            throw new ArgumentException("DeviceType and BoardType must be both null (Standard) or both specified.");
+
         Name = name;
+        DeviceType = deviceType;
         BoardType = boardType;
         Description = description;
     }
@@ -29,10 +41,10 @@ public class Dictionary
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
-    public static Dictionary Restore(int id, string name, BoardType? boardType, 
+    public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType, 
         string? description, IEnumerable<Variable> variables)
     {
-        var dictionary = new Dictionary(name, boardType, description)
+        var dictionary = new Dictionary(name, deviceType, boardType, description)
         {
             Id = id
         };

@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,15 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     {
         return await DbSet
             .Include(d => d.Variables)
-            .FirstOrDefaultAsync(d => d.BoardTypeId == null, cancellationToken);
+            .FirstOrDefaultAsync(d => d.BoardTypeId == null && d.DeviceType == null, cancellationToken);
+    }
+
+    public async Task<DictionaryEntity?> GetByDeviceTypeAndBoardTypeAsync(DeviceType deviceType, int boardTypeId,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(d => d.BoardType)
+            .FirstOrDefaultAsync(d => d.DeviceType == deviceType && d.BoardTypeId == boardTypeId, cancellationToken);
     }
 
     public async Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(

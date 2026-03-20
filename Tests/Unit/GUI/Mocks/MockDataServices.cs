@@ -31,6 +31,7 @@ public class MockDictionaryService : IDictionaryService
         var restored = Dictionary.Restore(
             _nextId++,
             dictionary.Name,
+            dictionary.DeviceType,
             dictionary.BoardType,
             dictionary.Description,
             dictionary.Variables);
@@ -124,6 +125,7 @@ public class MockDictionaryService : IDictionaryService
             var restored = Dictionary.Restore(
                 _nextId++,
                 dict.Name,
+                dict.DeviceType,
                 dict.BoardType,
                 dict.Description,
                 dict.Variables);
