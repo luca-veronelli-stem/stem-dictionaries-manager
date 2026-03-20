@@ -86,23 +86,22 @@
                     <Button Content="📋  Schede"
                             Command="{Binding NavigateToBoardsCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
-                    <Button Content="👥  Utenti"
-                            Command="{Binding NavigateToUsersCommand}"
-                            Style="{StaticResource SidebarButtonStyle}"/>
+                </StackPanel>
 
-                    <Separator Margin="10,20,10,10" Background="#3E3E42"/>
+                <!-- Sezione bassa: Settings, Utenti, Logout -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,20">
+                    <Separator Margin="10,10,10,10" Background="#3E3E42"/>
 
                     <Button Content="⚙️  Impostazioni"
                             Command="{Binding NavigateToSettingsCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
+                    <Button Content="👥  Utenti"
+                            Command="{Binding NavigateToUsersCommand}"
+                            Style="{StaticResource SidebarButtonStyle}"/>
+                    <Button Content="🚪  Logout"
+                            Command="{Binding LogoutCommand}"
+                            Style="{StaticResource SidebarButtonStyle}"/>
                 </StackPanel>
-
-                <!-- Logout in basso -->
-                <Button Grid.Row="1"
-                        Content="🚪  Logout"
-                        Command="{Binding LogoutCommand}"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Margin="0,0,0,20"/>
             </Grid>
         </Border>
 
