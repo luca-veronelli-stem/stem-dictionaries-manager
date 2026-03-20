@@ -133,5 +133,33 @@ public class MainViewModelTests
         // Assert
         Assert.False(_viewModel.IsBusy);
     }
+
+    [Fact]
+    public void IsLoggedIn_FalseByDefault()
+    {
+        // Assert
+        Assert.False(_viewModel.IsLoggedIn);
+    }
+
+    [Fact]
+    public void SetUserAndNavigate_SetsIsLoggedInTrue()
+    {
+        // Act
+        _viewModel.SetUserAndNavigate(User.Restore(1, "admin", "Admin"));
+
+        // Assert
+        Assert.True(_viewModel.IsLoggedIn);
+        Assert.Equal("Admin", _viewModel.CurrentUserDisplayName);
+    }
+
+    [Fact]
+    public void SetUserAndNavigate_NavigatesToInitialView()
+    {
+        // Act
+        _viewModel.SetUserAndNavigate(User.Restore(1, "admin", "Admin"));
+
+        // Assert
+        Assert.NotNull(_viewModel.CurrentViewModel);
+    }
 }
 #endif
