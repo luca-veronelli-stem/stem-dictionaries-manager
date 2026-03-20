@@ -102,6 +102,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => new { e.DeviceType, e.BoardTypeId }).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.HasOne(e => e.BoardType)
@@ -131,8 +132,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BitInterpretationEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.VariableId, e.DeviceType, e.WordIndex, e.BitIndex }).IsUnique();
-            entity.Property(e => e.Meaning).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => new { e.VariableId, e.WordIndex, e.BitIndex }).IsUnique();
+            entity.Property(e => e.Meaning).HasMaxLength(200);
             entity.HasOne(e => e.Variable)
                   .WithMany(v => v.BitInterpretations)
                   .HasForeignKey(e => e.VariableId)
