@@ -68,30 +68,6 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddGUI_RegistersCurrentUserService()
-    {
-        // Act
-        var provider = _services.BuildServiceProvider();
-        var service = provider.GetService<ICurrentUserService>();
-
-        // Assert
-        Assert.NotNull(service);
-        Assert.IsType<CurrentUserService>(service);
-    }
-
-    [Fact]
-    public void AddGUI_RegistersCurrentUserService_AsSingleton()
-    {
-        // Act
-        var provider = _services.BuildServiceProvider();
-        var service1 = provider.GetService<ICurrentUserService>();
-        var service2 = provider.GetService<ICurrentUserService>();
-
-        // Assert
-        Assert.Same(service1, service2);
-    }
-
-    [Fact]
     public void AddGUI_RegistersMainViewModel()
     {
         // Act

@@ -69,8 +69,8 @@ public class CommandEditViewModelTests
 
         // Assert
         Assert.Equal("ReadStatus", _viewModel.Name);
-        Assert.Equal(0x12, _viewModel.CodeHigh);
-        Assert.Equal(0x34, _viewModel.CodeLow);
+        Assert.Equal("12", _viewModel.CodeHighHex);
+        Assert.Equal("34", _viewModel.CodeLowHex);
         Assert.True(_viewModel.IsResponse);
         Assert.Contains("param1", _viewModel.ParametersText);
         Assert.Contains("param2", _viewModel.ParametersText);
@@ -127,8 +127,8 @@ public class CommandEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewCommand";
-        _viewModel.CodeHigh = 0x20;
-        _viewModel.CodeLow = 0x01;
+        _viewModel.CodeHighHex = "20";
+        _viewModel.CodeLowHex = "01";
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -216,8 +216,8 @@ public class CommandEditViewModelTests
     public void FullCodeDisplay_FormatsCorrectly()
     {
         // Arrange
-        _viewModel.CodeHigh = 0xAB;
-        _viewModel.CodeLow = 0xCD;
+        _viewModel.CodeHighHex = "AB";
+        _viewModel.CodeLowHex = "CD";
 
         // Assert
         Assert.Equal("0xABCD", _viewModel.FullCodeDisplay);
