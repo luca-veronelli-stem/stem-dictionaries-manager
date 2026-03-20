@@ -359,6 +359,13 @@ public class MockVariableService : IVariableService
         return Task.FromResult(interpretation);
     }
 
+    public Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateBitInterpretationsAsync:{variableId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
     public Task UpdateAsync(Variable variable, CancellationToken ct = default)
     {
         MethodCalls.Add($"UpdateAsync:{variable.Id}");

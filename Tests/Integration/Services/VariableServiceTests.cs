@@ -570,4 +570,171 @@ public class VariableServiceTests : IntegrationTestBase
         await Assert.ThrowsAsync<ArgumentNullException>(
             () => _service.AddBitInterpretationAsync(variable.Id, null!));
     }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_ReplacesExisting_AndAddsNew()
+    {
+        // Arrange
+        var variable = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "UpdateBits",
+            AddressHigh = 0x00,
+            AddressLow = 0xE0,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[1]",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true
+        };
+        await _variableRepo.AddAsync(variable);
+
+        // Aggiungi interpretazioni iniziali
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = variable.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Old Motor"
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = variable.Id,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "To Delete"
+        });
+
+        // Nuove interpretazioni (0 modificata, 1 eliminata, 2 nuova)
+        var newInterpretations = new List<BitInterpretation>
+        {
+            new(variable.Id, 0, 0, "Updated Motor"),
+            new(variable.Id, 0, 2, "New Error")
+        };
+
+        // Act
+        await _service.UpdateBitInterpretationsAsync(variable.Id, newInterpretations);
+        var result = await _service.GetBitInterpretationsAsync(variable.Id);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, r => r.BitIndex == 0 && r.Meaning == "Updated Motor");
+        Assert.Contains(result, r => r.BitIndex == 2 && r.Meaning == "New Error");
+        Assert.DoesNotContain(result, r => r.BitIndex == 1);
+    }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_VariableNotFound_ThrowsKeyNotFoundException()
+    {
+        var interpretations = new List<BitInterpretation>
+        {
+            new(999, 0, 0, "Test")
+        };
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.UpdateBitInterpretationsAsync(999, interpretations));
+    }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_NotBitmapped_ThrowsInvalidOperationException()
+    {
+        // Arrange - variabile NON bitmapped
+        var variable = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "NotBitmapped",
+            AddressHigh = 0x00,
+            AddressLow = 0xE1,
+            DataTypeKind = DataTypeKind.UInt16,
+            DataTypeRaw = "uint16_t",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true
+        };
+        await _variableRepo.AddAsync(variable);
+
+        var interpretations = new List<BitInterpretation>
+        {
+            new(variable.Id, 0, 0, "Test")
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.UpdateBitInterpretationsAsync(variable.Id, interpretations));
+        Assert.Contains("not bitmapped", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_DuplicateKeys_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var variable = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "DupKeys",
+            AddressHigh = 0x00,
+            AddressLow = 0xE2,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[1]",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true
+        };
+        await _variableRepo.AddAsync(variable);
+
+        var interpretations = new List<BitInterpretation>
+        {
+            new(variable.Id, 0, 0, "First"),
+            new(variable.Id, 0, 0, "Duplicate")
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.UpdateBitInterpretationsAsync(variable.Id, interpretations));
+        Assert.Contains("Duplicate", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_NullInterpretations_ThrowsArgumentNullException()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => _service.UpdateBitInterpretationsAsync(1, null!));
+    }
+
+    [Fact]
+    public async Task UpdateBitInterpretationsAsync_PreservesExistingIds()
+    {
+        // Arrange
+        var variable = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "PreserveIds",
+            AddressHigh = 0x00,
+            AddressLow = 0xE3,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[1]",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true
+        };
+        await _variableRepo.AddAsync(variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = variable.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Motor"
+        });
+        var originalBits = await _service.GetBitInterpretationsAsync(variable.Id);
+        var originalId = originalBits[0].Id;
+
+        // Act - aggiorna meaning, stessa chiave
+        var updated = new List<BitInterpretation>
+        {
+            new(variable.Id, 0, 0, "Motor Updated")
+        };
+        await _service.UpdateBitInterpretationsAsync(variable.Id, updated);
+
+        var result = await _service.GetBitInterpretationsAsync(variable.Id);
+
+        // Assert - ID preservato
+        Assert.Single(result);
+        Assert.Equal(originalId, result[0].Id);
+        Assert.Equal("Motor Updated", result[0].Meaning);
+    }
 }

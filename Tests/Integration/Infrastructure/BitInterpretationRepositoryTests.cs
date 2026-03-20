@@ -197,4 +197,112 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _repository.DeleteAsync(999));
     }
+
+    // === SyncByVariableIdAsync Tests ===
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_AddsNewAndDeletesMissing()
+    {
+        // Arrange - aggiungi interpretazione iniziale
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "To Delete"
+        });
+
+        // Incoming: solo bit 1 (nuovo), bit 0 non presente → deve essere eliminato
+        var incoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 1, Meaning = "New Bit" }
+        };
+
+        // Act
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
+        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(1, result[0].BitIndex);
+        Assert.Equal("New Bit", result[0].Meaning);
+    }
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_UpdatesExistingMeaning()
+    {
+        // Arrange
+        var existing = new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Old Meaning"
+        };
+        await _repository.AddAsync(existing);
+        var existingId = existing.Id;
+
+        var incoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 0, Meaning = "Updated Meaning" }
+        };
+
+        // Act
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
+        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        // Assert - stessa riga aggiornata, ID preservato
+        Assert.Single(result);
+        Assert.Equal(existingId, result[0].Id);
+        Assert.Equal("Updated Meaning", result[0].Meaning);
+    }
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_PreservesIdForUnchangedRows()
+    {
+        // Arrange
+        var existing = new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            WordIndex = 0,
+            BitIndex = 3,
+            Meaning = "Unchanged"
+        };
+        await _repository.AddAsync(existing);
+        var existingId = existing.Id;
+
+        var incoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 3, Meaning = "Unchanged" }
+        };
+
+        // Act
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
+        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        // Assert - ID preservato, meaning invariato
+        Assert.Single(result);
+        Assert.Equal(existingId, result[0].Id);
+        Assert.Equal("Unchanged", result[0].Meaning);
+    }
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_EmptyIncoming_DeletesAll()
+    {
+        // Arrange
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Will Delete"
+        });
+
+        // Act
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, []);
+        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        // Assert
+        Assert.Empty(result);
+    }
 }

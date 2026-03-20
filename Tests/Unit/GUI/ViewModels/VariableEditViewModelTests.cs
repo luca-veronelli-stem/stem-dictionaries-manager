@@ -477,5 +477,116 @@ public class VariableEditViewModelTests
     }
 
     #endregion
+
+    #region WordGroups / Bitmapped Tests
+
+    [Fact]
+    public void DataTypeParam_WhenBitmapped_GeneratesWordGroups()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 3;
+
+        Assert.Equal(3, _viewModel.WordGroups.Count);
+        Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
+        Assert.Equal("Word 1", _viewModel.WordGroups[1].Label);
+        Assert.Equal("Word 2", _viewModel.WordGroups[2].Label);
+        // Ogni word parte con 1 riga (BitIndex = 0)
+        Assert.Single(_viewModel.WordGroups[0].Items);
+        Assert.Equal(0, _viewModel.WordGroups[0].Items[0].BitIndex);
+    }
+
+    [Fact]
+    public void DataTypeParam_WhenNotBitmapped_DoesNotGenerateWordGroups()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.String;
+        _viewModel.DataTypeParam = 20;
+
+        Assert.Empty(_viewModel.WordGroups);
+    }
+
+    [Fact]
+    public void DataTypeParam_ChangingWordCount_RegeneratesGroups()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 2;
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+
+        _viewModel.DataTypeParam = 4;
+        Assert.Equal(4, _viewModel.WordGroups.Count);
+    }
+
+    [Fact]
+    public void DataTypeParam_SetToNull_ClearsWordGroups()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 2;
+        Assert.NotEmpty(_viewModel.WordGroups);
+
+        _viewModel.DataTypeParam = null;
+        Assert.Empty(_viewModel.WordGroups);
+    }
+
+    [Fact]
+    public void AddBitToWordCommand_AddsBitToCorrectGroup()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 1;
+        var group = _viewModel.WordGroups[0];
+        Assert.Single(group.Items); // riga iniziale BitIndex=0
+
+        _viewModel.AddBitToWordCommand.Execute(group);
+
+        Assert.Equal(2, group.Items.Count);
+        Assert.Equal(1, group.Items[1].BitIndex);
+    }
+
+    [Fact]
+    public void AddBitToWordCommand_SetsHasChanges()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 1;
+        _viewModel.HasChanges = false;
+
+        _viewModel.AddBitToWordCommand.Execute(_viewModel.WordGroups[0]);
+
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void RemoveBitFromWordCommand_RemovesBitAndSetsHasChanges()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 1;
+        var group = _viewModel.WordGroups[0];
+        group.TryAddBit(); // ora 2 items
+        _viewModel.HasChanges = false;
+
+        _viewModel.RemoveBitFromWordCommand.Execute(group.Items[0]);
+
+        Assert.Single(group.Items);
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public async Task SaveCommand_Bitmapped_CallsUpdateBitInterpretationsAsync()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+        _viewModel.Name = "BitmappedVar";
+        _viewModel.AddressHighHex = "00";
+        _viewModel.AddressLowHex = "50";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 1;
+        _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains(_variableService.MethodCalls,
+            m => m.StartsWith("UpdateBitInterpretationsAsync:"));
+    }
+
+    #endregion
 }
 #endif
