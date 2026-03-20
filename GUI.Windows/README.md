@@ -37,6 +37,7 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **DI Container** | ✅ | Generic Host pattern |
 | **Auto-Migration** | ✅ | EF Core migrations all'avvio |
 | **Database Seeder** | ✅ | Dati demo per sviluppo |
+| **BitInterpretations** | ✅ | Gestione bit per variabili Bitmapped (WordGroups, max 16 bit/word) |
 
 ---
 
@@ -104,7 +105,9 @@ GUI.Windows/
 │   ├── BoardListViewModel.cs      # Lista schede
 │   ├── BoardEditViewModel.cs      # Crea/modifica scheda
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
-│   └── SettingsViewModel.cs       # Impostazioni app (stub)
+│   ├── SettingsViewModel.cs       # Impostazioni app (stub)
+│   ├── WordBitGroup.cs            # Gruppo bit per word (max 16, Bitmapped)
+│   └── BitInterpretationItem.cs   # Item singolo bit (WordIndex, BitIndex, Meaning)
 ├── Views/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
 │   ├── DictionaryListView.xaml    # UI lista dizionari
