@@ -38,7 +38,7 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     {
         return await DbSet
             .Include(d => d.Variables)
-            .FirstOrDefaultAsync(d => d.BoardTypeId == null, cancellationToken);
+            .FirstOrDefaultAsync(d => d.BoardTypeId == null && d.DeviceType == null, cancellationToken);
     }
 
     public async Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(
