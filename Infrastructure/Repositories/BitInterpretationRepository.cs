@@ -15,7 +15,8 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
     {
         return await DbSet
             .Where(bi => bi.VariableId == variableId)
-            .OrderBy(bi => bi.BitIndex)
+            .OrderBy(bi => bi.WordIndex)
+            .ThenBy(bi => bi.BitIndex)
             .ToListAsync(cancellationToken);
     }
 }
