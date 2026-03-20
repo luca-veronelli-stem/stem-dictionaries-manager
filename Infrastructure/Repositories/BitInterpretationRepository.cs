@@ -19,4 +19,48 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
             .ThenBy(bi => bi.BitIndex)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task SyncByVariableIdAsync(int variableId,
+        IReadOnlyList<BitInterpretationEntity> incoming,
+        CancellationToken cancellationToken = default)
+    {
+        var existing = await DbSet
+            .Where(bi => bi.VariableId == variableId)
+            .ToListAsync(cancellationToken);
+
+        var existingByKey = existing.ToDictionary(e => (e.WordIndex, e.BitIndex));
+        var incomingByKey = incoming.ToDictionary(i => (i.WordIndex, i.BitIndex));
+
+        // Delete: nel DB ma non nella lista incoming
+        foreach (var e in existing)
+        {
+            if (!incomingByKey.ContainsKey((e.WordIndex, e.BitIndex)))
+                DbSet.Remove(e);
+        }
+
+        // Add o Update
+        foreach (var i in incoming)
+        {
+            var key = (i.WordIndex, i.BitIndex);
+            if (existingByKey.TryGetValue(key, out var e))
+            {
+                // Update solo se il meaning è cambiato
+                if (e.Meaning != i.Meaning)
+                    e.Meaning = i.Meaning;
+            }
+            else
+            {
+                // Add
+                await DbSet.AddAsync(new BitInterpretationEntity
+                {
+                    VariableId = variableId,
+                    WordIndex = i.WordIndex,
+                    BitIndex = i.BitIndex,
+                    Meaning = i.Meaning
+                }, cancellationToken);
+            }
+        }
+
+        await Context.SaveChangesAsync(cancellationToken);
+    }
 }
