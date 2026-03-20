@@ -269,7 +269,6 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         Context.BitInterpretations.Add(new BitInterpretationEntity
         {
             VariableId = variable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Bit 0"
@@ -277,7 +276,6 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         Context.BitInterpretations.Add(new BitInterpretationEntity
         {
             VariableId = variable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 1,
             Meaning = "Bit 1"

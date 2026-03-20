@@ -1,4 +1,5 @@
 #if WINDOWS
+using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
@@ -45,8 +46,8 @@ public class DictionaryListViewModelTests
     public async Task LoadAsync_PopulatesDictionariesList()
     {
         // Arrange
-        var dict1 = new Dictionary("Test1", null, "Description 1");
-        var dict2 = new Dictionary("Test2", null, "Description 2");
+        var dict1 = new Dictionary("Test1", description: "Description 1");
+        var dict2 = new Dictionary("Test2", description: "Description 2");
         _dictionaryService.SeedData(dict1, dict2);
 
         // Act
@@ -62,7 +63,7 @@ public class DictionaryListViewModelTests
     public async Task LoadAsync_ShowsSuccessMessage()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Test", null, null));
+        _dictionaryService.SeedData(new Dictionary("Test"));
 
         // Act
         await _viewModel.LoadAsync();
@@ -91,7 +92,7 @@ public class DictionaryListViewModelTests
     public async Task LoadAsync_SetsIsBusyDuringExecution()
     {
         // Arrange
-        var dict = new Dictionary("Test", null, null);
+        var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
 
         // Act - Check IsBusy state during the call
@@ -143,7 +144,7 @@ public class DictionaryListViewModelTests
     public async Task DeleteCommand_WithConfirmation_DeletesAndRefreshes()
     {
         // Arrange
-        var dict = new Dictionary("Test", null, null);
+        var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
         await _viewModel.LoadAsync();
         var item = _viewModel.Dictionaries.First();
@@ -161,7 +162,7 @@ public class DictionaryListViewModelTests
     public async Task DeleteCommand_WithCancel_DoesNotDelete()
     {
         // Arrange
-        var dict = new Dictionary("Test", null, null);
+        var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
         await _viewModel.LoadAsync();
         var item = _viewModel.Dictionaries.First();
@@ -178,7 +179,7 @@ public class DictionaryListViewModelTests
     public async Task DeleteCommand_WhenServiceThrows_ShowsErrorDialog()
     {
         // Arrange
-        var dict = new Dictionary("Test", null, null);
+        var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
         await _viewModel.LoadAsync();
         var item = _viewModel.Dictionaries.First();
@@ -210,7 +211,7 @@ public class DictionaryListViewModelTests
     public async Task DictionaryListItem_BoardTypeDisplay_ReturnsStandardWhenNull()
     {
         // Arrange
-        var dict = new Dictionary("Test", null, "Desc");
+        var dict = new Dictionary("Test", description: "Desc");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -226,7 +227,7 @@ public class DictionaryListViewModelTests
     {
         // Arrange
         var boardType = new BoardType("Madre Optimus", 17);
-        var dict = new Dictionary("Test", boardType, "Desc");
+        var dict = new Dictionary("Test", DeviceType.Optimus, boardType, "Desc");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -242,9 +243,9 @@ public class DictionaryListViewModelTests
     {
         // Arrange
         _dictionaryService.SeedData(
-            new Dictionary("optimus-xp", null, null),
-            new Dictionary("pulsantiere", null, null),
-            new Dictionary("standard", null, null));
+            new Dictionary("optimus-xp"),
+            new Dictionary("pulsantiere"),
+            new Dictionary("standard"));
         await _viewModel.LoadAsync();
 
         // Act
@@ -261,8 +262,8 @@ public class DictionaryListViewModelTests
         // Arrange
         var bt = new BoardType("Madre Optimus", 17);
         _dictionaryService.SeedData(
-            new Dictionary("dict1", bt, null),
-            new Dictionary("dict2", null, null));
+            new Dictionary("dict1", DeviceType.Optimus, bt),
+            new Dictionary("dict2"));
         await _viewModel.LoadAsync();
 
         // Act
@@ -278,8 +279,8 @@ public class DictionaryListViewModelTests
     {
         // Arrange
         _dictionaryService.SeedData(
-            new Dictionary("dict1", null, null),
-            new Dictionary("dict2", null, null));
+            new Dictionary("dict1"),
+            new Dictionary("dict2"));
         await _viewModel.LoadAsync();
         _viewModel.SearchText = "dict1";
         Assert.Single(_viewModel.Dictionaries);
@@ -295,7 +296,7 @@ public class DictionaryListViewModelTests
     public async Task SearchText_CaseInsensitive()
     {
         // Arrange
-        _dictionaryService.SeedData(new Dictionary("Optimus-XP", null, null));
+        _dictionaryService.SeedData(new Dictionary("Optimus-XP"));
         await _viewModel.LoadAsync();
 
         // Act

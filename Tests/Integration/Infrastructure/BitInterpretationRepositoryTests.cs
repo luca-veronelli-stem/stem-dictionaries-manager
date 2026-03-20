@@ -47,7 +47,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Motor Running"
@@ -57,8 +56,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         Assert.True(result.Id > 0);
         Assert.Equal("Motor Running", result.Meaning);
-        Assert.Equal(DeviceType.OptimusXp, result.DeviceType);
-    }
+            }
 
     [Fact]
     public async Task GetByIdAsync_ReturnsInterpretation()
@@ -66,7 +64,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Eden,
             WordIndex = 0,
             BitIndex = 1,
             Meaning = "Error Flag"
@@ -94,7 +91,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Bit 0"
@@ -102,7 +98,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 1,
             Meaning = "Bit 1"
@@ -130,7 +125,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 5,
             Meaning = "Bit 5"
@@ -138,7 +132,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 2,
             Meaning = "Bit 2"
@@ -146,7 +139,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 8,
             Meaning = "Bit 8"
@@ -168,7 +160,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Spark,
             WordIndex = 0,
             BitIndex = 3,
             Meaning = "Original"
@@ -188,7 +179,6 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Eden,
             WordIndex = 1,
             BitIndex = 0,
             Meaning = "To Delete"

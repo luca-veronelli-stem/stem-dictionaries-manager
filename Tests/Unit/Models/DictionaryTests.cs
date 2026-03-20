@@ -23,8 +23,9 @@ public class DictionaryTests
     public void Constructor_WithBoardType()
     {
         var boardType = new BoardType("Madre", 17);
-        var dictionary = new Dictionary("optimus-xp", boardType, "Dizionario OPTIMUS XP");
+        var dictionary = new Dictionary("optimus-xp", DeviceType.OptimusXp, boardType, "Dizionario OPTIMUS XP");
 
+        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
         Assert.Equal(boardType, dictionary.BoardType);
         Assert.Equal("Dizionario OPTIMUS XP", dictionary.Description);
     }
@@ -124,11 +125,46 @@ public class DictionaryTests
             new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t")
         };
 
-        var dictionary = Dictionary.Restore(10, "test", boardType, "Description", variables);
+        var dictionary = Dictionary.Restore(10, "test", DeviceType.Optimus, boardType, "Description", variables);
 
         Assert.Equal(10, dictionary.Id);
         Assert.Equal("test", dictionary.Name);
+        Assert.Equal(DeviceType.Optimus, dictionary.DeviceType);
         Assert.Equal(boardType, dictionary.BoardType);
         Assert.Equal(2, dictionary.Variables.Count);
+    }
+
+    [Fact]
+    public void Constructor_Standard_BothNull_IsAccepted()
+    {
+        var dictionary = new Dictionary("standard");
+
+        Assert.Null(dictionary.DeviceType);
+        Assert.Null(dictionary.BoardType);
+    }
+
+    [Fact]
+    public void Constructor_DeviceTypeWithoutBoardType_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new Dictionary("bad", DeviceType.Optimus, null));
+    }
+
+    [Fact]
+    public void Constructor_BoardTypeWithoutDeviceType_ThrowsArgumentException()
+    {
+        var boardType = new BoardType("Madre", 17);
+
+        Assert.Throws<ArgumentException>(() =>
+            new Dictionary("bad", null, boardType));
+    }
+
+    [Fact]
+    public void Restore_Standard_BothNull_IsAccepted()
+    {
+        var dictionary = Dictionary.Restore(1, "standard", null, null, "desc", []);
+
+        Assert.Null(dictionary.DeviceType);
+        Assert.Null(dictionary.BoardType);
     }
 }

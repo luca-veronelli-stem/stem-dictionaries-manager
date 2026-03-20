@@ -456,7 +456,6 @@ public class VariableServiceTests : IntegrationTestBase
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = variable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Motor"
@@ -464,7 +463,6 @@ public class VariableServiceTests : IntegrationTestBase
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = variable.Id,
-            DeviceType = DeviceType.OptimusXp,
             WordIndex = 0,
             BitIndex = 1,
             Meaning = "Error"
@@ -501,10 +499,7 @@ public class VariableServiceTests : IntegrationTestBase
         };
         await _variableRepo.AddAsync(variable);
 
-        var interpretation = new BitInterpretation(
-            variableId: variable.Id,
-            deviceType: DeviceType.Eden,
-            wordIndex: 0,
+        var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 5,
             meaning: "Pump Active");
 
@@ -520,10 +515,7 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task AddBitInterpretationAsync_VariableNotFound_ThrowsKeyNotFoundException()
     {
-        var interpretation = new BitInterpretation(
-            variableId: 999,
-            deviceType: DeviceType.Spark,
-            wordIndex: 0,
+        var interpretation = new BitInterpretation(variableId: 999, wordIndex: 0,
             bitIndex: 0,
             meaning: "Test");
 
@@ -548,10 +540,7 @@ public class VariableServiceTests : IntegrationTestBase
         };
         await _variableRepo.AddAsync(variable);
 
-        var interpretation = new BitInterpretation(
-            variableId: variable.Id,
-            deviceType: DeviceType.Gradino,
-            wordIndex: 0,
+        var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 0,
             meaning: "Test");
 
