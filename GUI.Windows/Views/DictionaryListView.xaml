@@ -37,10 +37,10 @@
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200"/>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*"/>
-                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeDisplay}" Width="150"/>
-                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200" MinWidth="120"/>
+                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="100"/>
+                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeDisplay}" Width="150" MinWidth="100"/>
+                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -48,7 +48,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Azioni" Width="220">
+                <DataGridTemplateColumn Header="Azioni" Width="220" MinWidth="220">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

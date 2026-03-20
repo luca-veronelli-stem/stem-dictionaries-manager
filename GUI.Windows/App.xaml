@@ -168,6 +168,7 @@
             <Setter Property="SelectionMode" Value="Single"/>
             <Setter Property="RowHeaderWidth" Value="0"/>
             <Setter Property="CanUserResizeRows" Value="False"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
         </Style>
 
         <Style x:Key="DarkDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">

@@ -37,10 +37,10 @@
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="250"/>
-                <DataGridTextColumn Header="Codice" Binding="{Binding Code}" Width="100"/>
-                <DataGridCheckBoxColumn Header="Risposta" Binding="{Binding IsResponse}" Width="80"/>
-                <DataGridTextColumn Header="Parametri" Binding="{Binding ParameterCount}" Width="80">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="250" MinWidth="120"/>
+                <DataGridTextColumn Header="Codice" Binding="{Binding Code}" Width="100" MinWidth="80"/>
+                <DataGridCheckBoxColumn Header="Risposta" Binding="{Binding IsResponse}" Width="80" MinWidth="70"/>
+                <DataGridTextColumn Header="Parametri" Binding="{Binding ParameterCount}" Width="80" MinWidth="70">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -48,7 +48,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Azioni" Width="120">
+                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

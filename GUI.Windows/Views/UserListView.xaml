@@ -61,10 +61,10 @@
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-                <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="200"/>
-                <DataGridTextColumn Header="Nome Visualizzato" Binding="{Binding DisplayName}" Width="*"/>
-                <DataGridTemplateColumn Header="Azioni" Width="80">
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" MinWidth="40"/>
+                <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="200" MinWidth="100"/>
+                <DataGridTextColumn Header="Nome Visualizzato" Binding="{Binding DisplayName}" Width="*" MinWidth="120"/>
+                <DataGridTemplateColumn Header="Azioni" Width="80" MinWidth="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"

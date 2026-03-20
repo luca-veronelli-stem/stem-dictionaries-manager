@@ -42,13 +42,13 @@
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180"/>
-                <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90"/>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110"/>
-                <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90"/>
-                <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60"/>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*"/>
-                <DataGridTemplateColumn Header="Azioni" Width="120">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
+                <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
+                <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
+                <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50"/>
+                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
+                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

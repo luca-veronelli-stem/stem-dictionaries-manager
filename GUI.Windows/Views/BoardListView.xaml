@@ -37,10 +37,10 @@
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180"/>
-                <DataGridTextColumn Header="Dispositivo" Binding="{Binding DeviceType}" Width="110"/>
-                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardType}" Width="120"/>
-                <DataGridTextColumn Header="N°" Binding="{Binding BoardNumber}" Width="50">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                <DataGridTextColumn Header="Dispositivo" Binding="{Binding DeviceType}" Width="110" MinWidth="80"/>
+                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardType}" Width="120" MinWidth="80"/>
+                <DataGridTextColumn Header="N°" Binding="{Binding BoardNumber}" Width="50" MinWidth="40">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -48,9 +48,9 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120"/>
-                <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110"/>
-                <DataGridTemplateColumn Header="Azioni" Width="120">
+                <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120" MinWidth="80"/>
+                <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>
+                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
