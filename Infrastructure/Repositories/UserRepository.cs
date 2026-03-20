@@ -10,7 +10,7 @@ public class UserRepository : RepositoryBase<UserEntity>, IUserRepository
     {
     }
 
-    public async Task<UserEntity?> GetByUsernameAsync(string username, 
+    public async Task<UserEntity?> GetByUsernameAsync(string username,
         CancellationToken cancellationToken = default)
     {
         var normalizedUsername = username.ToLowerInvariant();

@@ -12,11 +12,11 @@ public class BoardEntity : IAuditable
     public int BoardNumber { get; set; }
     public string? PartNumber { get; set; }
     public uint ProtocolAddress { get; set; }
-    
+
     // IAuditable
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Navigation
     public BoardTypeEntity BoardType { get; set; } = null!;
 }

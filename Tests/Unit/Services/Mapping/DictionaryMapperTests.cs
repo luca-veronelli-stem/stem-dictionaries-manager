@@ -223,7 +223,7 @@ public class DictionaryMapperTests
             Description = "Old description",
             BoardTypeId = 5
         };
-        
+
         var newBoardType = BoardType.Restore(10, "NewBoard", 20);
         var domain = Dictionary.Restore(1, "new-name", DeviceType.Eden, newBoardType, "New description", []);
 
@@ -248,7 +248,7 @@ public class DictionaryMapperTests
             Description = null,
             BoardTypeId = 5
         };
-        
+
         var domain = Dictionary.Restore(1, "standard", null, null, null, []);
 
         // Act

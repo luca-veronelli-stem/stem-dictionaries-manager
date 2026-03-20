@@ -13,7 +13,7 @@ public sealed class NavigationService : INavigationService
     private NavigationParameter? _currentParameter;
 
     public ViewType CurrentView => _currentView;
-    
+
     /// <summary>
     /// Parametro della navigazione corrente.
     /// </summary>

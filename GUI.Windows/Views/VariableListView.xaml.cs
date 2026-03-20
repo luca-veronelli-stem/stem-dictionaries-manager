@@ -1,6 +1,6 @@
+using GUI.Windows.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using GUI.Windows.ViewModels;
 
 namespace GUI.Windows.Views;
 
@@ -20,7 +20,7 @@ public partial class VariableListView : UserControl
         {
             // L'inizializzazione con dictionaryId viene fatta dal NavigationService
             // tramite il parametro ParentId
-            var parameter = App.Services.GetService(typeof(GUI.Windows.Abstractions.INavigationService)) 
+            var parameter = App.Services.GetService(typeof(GUI.Windows.Abstractions.INavigationService))
                 as GUI.Windows.Abstractions.INavigationService;
             // Il ViewModel viene inizializzato esternamente
         }

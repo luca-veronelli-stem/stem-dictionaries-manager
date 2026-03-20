@@ -10,10 +10,10 @@ public class AuditFieldsTests : IntegrationTestBase
     [Fact]
     public async Task Add_SetsCreatedAt()
     {
-        var user = new UserEntity 
-        { 
-            Username = "testuser", 
-            DisplayName = "Test User" 
+        var user = new UserEntity
+        {
+            Username = "testuser",
+            DisplayName = "Test User"
         };
 
         Context.Users.Add(user);
@@ -27,10 +27,10 @@ public class AuditFieldsTests : IntegrationTestBase
     public async Task Update_SetsUpdatedAt()
     {
         // Arrange - crea utente
-        var user = new UserEntity 
-        { 
-            Username = "testuser", 
-            DisplayName = "Test User" 
+        var user = new UserEntity
+        {
+            Username = "testuser",
+            DisplayName = "Test User"
         };
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
@@ -51,10 +51,10 @@ public class AuditFieldsTests : IntegrationTestBase
     public async Task AuditEntry_DoesNotHaveAuditFields()
     {
         // Prima crea un utente (necessario per FK)
-        var user = new UserEntity 
-        { 
-            Username = "admin", 
-            DisplayName = "Admin" 
+        var user = new UserEntity
+        {
+            Username = "admin",
+            DisplayName = "Admin"
         };
         Context.Users.Add(user);
         await Context.SaveChangesAsync();

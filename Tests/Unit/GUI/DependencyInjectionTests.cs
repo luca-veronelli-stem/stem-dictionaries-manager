@@ -20,13 +20,13 @@ public class DependencyInjectionTests
     public DependencyInjectionTests()
     {
         _services = new ServiceCollection();
-        
+
         // Setup prerequisites (Infrastructure + Services)
         _services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite("Data Source=:memory:"));
         _services.AddInfrastructure("Data Source=:memory:");
         _services.AddServices();
-        
+
         // Add GUI
         _services.AddGUI();
     }

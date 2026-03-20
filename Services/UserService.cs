@@ -33,11 +33,11 @@ public class UserService : IUserService
     public async Task<User> AddAsync(User user, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(user);
-        
+
         // Verifica unicità username
         if (await UsernameExistsAsync(user.Username, ct))
             throw new InvalidOperationException($"Username '{user.Username}' already exists.");
-        
+
         var entity = UserMapper.ToEntity(user);
         var created = await _repository.AddAsync(entity, ct);
         return UserMapper.ToDomain(created);
@@ -46,17 +46,17 @@ public class UserService : IUserService
     public async Task UpdateAsync(User user, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(user);
-        
+
         var entity = await _repository.GetByIdAsync(user.Id, ct)
             ?? throw new KeyNotFoundException($"User with Id {user.Id} not found.");
-        
+
         // Verifica unicità username (se cambiato)
         if (!entity.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
         {
             if (await UsernameExistsAsync(user.Username, ct))
                 throw new InvalidOperationException($"Username '{user.Username}' already exists.");
         }
-        
+
         UserMapper.UpdateEntity(entity, user);
         await _repository.UpdateAsync(entity, ct);
     }
@@ -69,7 +69,7 @@ public class UserService : IUserService
     public async Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
-        
+
         var entity = await _repository.GetByUsernameAsync(username, ct);
         return entity is null ? null : UserMapper.ToDomain(entity);
     }
@@ -77,7 +77,7 @@ public class UserService : IUserService
     public async Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
-        
+
         var existing = await _repository.GetByUsernameAsync(username, ct);
         return existing is not null;
     }

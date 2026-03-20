@@ -5,10 +5,10 @@ namespace Infrastructure.Interfaces;
 
 public interface IAuditEntryRepository : IRepository<AuditEntryEntity>
 {
-    Task<IReadOnlyList<AuditEntryEntity>> GetByEntityAsync(AuditEntityType entityType, int entityId, 
+    Task<IReadOnlyList<AuditEntryEntity>> GetByEntityAsync(AuditEntityType entityType, int entityId,
         CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AuditEntryEntity>> GetByUserAsync(int userId, 
+    Task<IReadOnlyList<AuditEntryEntity>> GetByUserAsync(int userId,
         CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AuditEntryEntity>> GetRecentAsync(int count, 
+    Task<IReadOnlyList<AuditEntryEntity>> GetRecentAsync(int count,
         CancellationToken cancellationToken = default);
 }

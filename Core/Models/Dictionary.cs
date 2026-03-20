@@ -41,7 +41,7 @@ public class Dictionary
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
-    public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType, 
+    public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType,
         string? description, IEnumerable<Variable> variables)
     {
         var dictionary = new Dictionary(name, deviceType, boardType, description)
@@ -55,7 +55,7 @@ public class Dictionary
     public void AddVariable(Variable variable)
     {
         ArgumentNullException.ThrowIfNull(variable);
-        
+
         // Verifica unicità indirizzo
         if (_variables.Any(v => v.FullAddress == variable.FullAddress))
             throw new InvalidOperationException(

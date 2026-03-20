@@ -36,7 +36,7 @@ public class BoardTests
     [Fact]
     public void Constructor_NullBoardType_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new Board(DeviceType.OptimusXp, null!, "Madre", 1));
     }
 
@@ -45,14 +45,14 @@ public class BoardTests
     [InlineData("   ")]
     public void Constructor_InvalidName_ThrowsArgumentException(string name)
     {
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new Board(DeviceType.OptimusXp, _madreBoardType, name, 1));
     }
 
     [Fact]
     public void Constructor_NullName_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new Board(DeviceType.OptimusXp, _madreBoardType, null!, 1));
     }
 
@@ -63,7 +63,7 @@ public class BoardTests
     [InlineData(100)]
     public void Constructor_InvalidBoardNumber_ThrowsArgumentOutOfRangeException(int boardNumber)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", boardNumber));
     }
 

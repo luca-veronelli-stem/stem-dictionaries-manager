@@ -21,11 +21,11 @@ public class VariableEntity : IAuditable
     public string? Usage { get; set; }
     public string? Description { get; set; }
     public bool IsEnabled { get; set; }
-    
+
     // IAuditable
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Navigation
     public DictionaryEntity Dictionary { get; set; } = null!;
     public ICollection<BitInterpretationEntity> BitInterpretations { get; set; } = [];

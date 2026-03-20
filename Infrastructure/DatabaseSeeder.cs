@@ -114,53 +114,53 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === Variables per Standard ===
-        var varDeviceStatus = CreateVariable(dictStandard.Id, "Device Status", 0x00, 0x10, "Bitmapped[2]", 
+        var varDeviceStatus = CreateVariable(dictStandard.Id, "Device Status", 0x00, 0x10, "Bitmapped[2]",
             "Stato generale dispositivo", accessMode: AccessMode.ReadOnly, unit: null, minValue: null, maxValue: null);
 
         var standardVars = new[]
         {
-            CreateVariable(dictStandard.Id, "Firmware Version", 0x00, 0x01, "UInt16", 
+            CreateVariable(dictStandard.Id, "Firmware Version", 0x00, 0x01, "UInt16",
                 "Versione firmware (major.minor)", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Firmware Build", 0x00, 0x02, "UInt16", 
+            CreateVariable(dictStandard.Id, "Firmware Build", 0x00, 0x02, "UInt16",
                 "Build number firmware", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Serial Number", 0x00, 0x03, "String[16]", 
+            CreateVariable(dictStandard.Id, "Serial Number", 0x00, 0x03, "String[16]",
                 "Numero seriale dispositivo", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Production Date", 0x00, 0x04, "UInt32", 
+            CreateVariable(dictStandard.Id, "Production Date", 0x00, 0x04, "UInt32",
                 "Data produzione (Unix timestamp)", accessMode: AccessMode.ReadOnly),
             varDeviceStatus,
-            CreateVariable(dictStandard.Id, "Error Code", 0x00, 0x11, "UInt16", 
+            CreateVariable(dictStandard.Id, "Error Code", 0x00, 0x11, "UInt16",
                 "Ultimo codice errore", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Error Count", 0x00, 0x12, "UInt16", 
+            CreateVariable(dictStandard.Id, "Error Count", 0x00, 0x12, "UInt16",
                 "Contatore errori totali", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Uptime", 0x00, 0x20, "UInt32", 
+            CreateVariable(dictStandard.Id, "Uptime", 0x00, 0x20, "UInt32",
                 "Tempo di attività", accessMode: AccessMode.ReadOnly, unit: "s"),
-            CreateVariable(dictStandard.Id, "Boot Count", 0x00, 0x21, "UInt16", 
+            CreateVariable(dictStandard.Id, "Boot Count", 0x00, 0x21, "UInt16",
                 "Numero di riavvii", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Debug Mode", 0x00, 0x30, "UInt8", 
+            CreateVariable(dictStandard.Id, "Debug Mode", 0x00, 0x30, "UInt8",
                 "Modalità debug (0=off, 1=on)", accessMode: AccessMode.ReadWrite),
         };
         context.Variables.AddRange(standardVars);
 
         // === Variables per Optimus ===
-        var varRelayStatus = CreateVariable(dictOptimus.Id, "Relay Status", 0x80, 0x20, "Bitmapped[1]", 
+        var varRelayStatus = CreateVariable(dictOptimus.Id, "Relay Status", 0x80, 0x20, "Bitmapped[1]",
             "Stato dei relè", accessMode: AccessMode.ReadOnly);
 
         var optimusVars = new[]
         {
-            CreateVariable(dictOptimus.Id, "Temperature CPU", 0x80, 0x01, "Int16", 
+            CreateVariable(dictOptimus.Id, "Temperature CPU", 0x80, 0x01, "Int16",
                 "Temperatura CPU", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1200),
-            CreateVariable(dictOptimus.Id, "Temperature Board", 0x80, 0x02, "Int16", 
+            CreateVariable(dictOptimus.Id, "Temperature Board", 0x80, 0x02, "Int16",
                 "Temperatura scheda", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1000),
-            CreateVariable(dictOptimus.Id, "Fan Speed", 0x80, 0x03, "UInt16", 
+            CreateVariable(dictOptimus.Id, "Fan Speed", 0x80, 0x03, "UInt16",
                 "Velocità ventola", accessMode: AccessMode.ReadOnly, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimus.Id, "Fan Target", 0x80, 0x04, "UInt16", 
+            CreateVariable(dictOptimus.Id, "Fan Target", 0x80, 0x04, "UInt16",
                 "Velocità ventola target", accessMode: AccessMode.ReadWrite, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimus.Id, "Power Mode", 0x80, 0x10, "UInt8", 
+            CreateVariable(dictOptimus.Id, "Power Mode", 0x80, 0x10, "UInt8",
                 "Modalità alimentazione (0=eco, 1=normal, 2=boost)", accessMode: AccessMode.ReadWrite, minValue: 0, maxValue: 2),
-            CreateVariable(dictOptimus.Id, "Supply Voltage", 0x80, 0x11, "UInt16", 
+            CreateVariable(dictOptimus.Id, "Supply Voltage", 0x80, 0x11, "UInt16",
                 "Tensione alimentazione", accessMode: AccessMode.ReadOnly, unit: "mV", minValue: 0, maxValue: 30000),
             varRelayStatus,
-            CreateVariable(dictOptimus.Id, "Relay Control", 0x80, 0x21, "Bitmapped[1]", 
+            CreateVariable(dictOptimus.Id, "Relay Control", 0x80, 0x21, "Bitmapped[1]",
                 "Controllo relè", accessMode: AccessMode.ReadWrite),
         };
         context.Variables.AddRange(optimusVars);
@@ -168,17 +168,17 @@ public static class DatabaseSeeder
         // === Variables per Eden ===
         var edenVars = new[]
         {
-            CreateVariable(dictEden.Id, "Lift Position", 0x80, 0x01, "Int32", 
+            CreateVariable(dictEden.Id, "Lift Position", 0x80, 0x01, "Int32",
                 "Posizione sollevatore", accessMode: AccessMode.ReadOnly, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEden.Id, "Lift Target", 0x80, 0x02, "Int32", 
+            CreateVariable(dictEden.Id, "Lift Target", 0x80, 0x02, "Int32",
                 "Posizione target sollevatore", accessMode: AccessMode.ReadWrite, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEden.Id, "Lift Speed", 0x80, 0x03, "UInt16", 
+            CreateVariable(dictEden.Id, "Lift Speed", 0x80, 0x03, "UInt16",
                 "Velocità sollevamento", accessMode: AccessMode.ReadWrite, unit: "mm/s", minValue: 1, maxValue: 100),
-            CreateVariable(dictEden.Id, "Weight", 0x80, 0x10, "UInt32", 
+            CreateVariable(dictEden.Id, "Weight", 0x80, 0x10, "UInt32",
                 "Peso rilevato", accessMode: AccessMode.ReadOnly, unit: "g", minValue: 0, maxValue: 500000),
-            CreateVariable(dictEden.Id, "Weight Tare", 0x80, 0x11, "UInt32", 
+            CreateVariable(dictEden.Id, "Weight Tare", 0x80, 0x11, "UInt32",
                 "Tara peso", accessMode: AccessMode.ReadWrite, unit: "g", minValue: 0, maxValue: 50000),
-            CreateVariable(dictEden.Id, "Sensor Status", 0x80, 0x20, "Bitmapped[2]", 
+            CreateVariable(dictEden.Id, "Sensor Status", 0x80, 0x20, "Bitmapped[2]",
                 "Stato sensori", accessMode: AccessMode.ReadOnly),
         };
         context.Variables.AddRange(edenVars);
@@ -186,17 +186,17 @@ public static class DatabaseSeeder
         // === Variables per Pulsantiere ===
         var pulsantiereVars = new[]
         {
-            CreateVariable(dictPulsantiere.Id, "Button State", 0x80, 0x01, "Bitmapped[2]", 
+            CreateVariable(dictPulsantiere.Id, "Button State", 0x80, 0x01, "Bitmapped[2]",
                 "Stato pulsanti (1 bit per pulsante)", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictPulsantiere.Id, "Button Event", 0x80, 0x02, "UInt8", 
+            CreateVariable(dictPulsantiere.Id, "Button Event", 0x80, 0x02, "UInt8",
                 "Ultimo evento pulsante", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictPulsantiere.Id, "LED State", 0x80, 0x10, "Bitmapped[2]", 
+            CreateVariable(dictPulsantiere.Id, "LED State", 0x80, 0x10, "Bitmapped[2]",
                 "Stato LED (1 bit per LED)", accessMode: AccessMode.ReadWrite),
-            CreateVariable(dictPulsantiere.Id, "LED Blink", 0x80, 0x11, "Bitmapped[2]", 
+            CreateVariable(dictPulsantiere.Id, "LED Blink", 0x80, 0x11, "Bitmapped[2]",
                 "LED in lampeggio", accessMode: AccessMode.ReadWrite),
-            CreateVariable(dictPulsantiere.Id, "Backlight Level", 0x80, 0x20, "UInt8", 
+            CreateVariable(dictPulsantiere.Id, "Backlight Level", 0x80, 0x20, "UInt8",
                 "Luminosità retroilluminazione", accessMode: AccessMode.ReadWrite, unit: "%", minValue: 0, maxValue: 100),
-            CreateVariable(dictPulsantiere.Id, "Buzzer", 0x80, 0x21, "UInt8", 
+            CreateVariable(dictPulsantiere.Id, "Buzzer", 0x80, 0x21, "UInt8",
                 "Controllo buzzer (0=off, 1-255=frequenza)", accessMode: AccessMode.ReadWrite),
         };
         context.Variables.AddRange(pulsantiereVars);
@@ -204,17 +204,17 @@ public static class DatabaseSeeder
         // === Variables per Driver Motore ===
         var motoreVars = new[]
         {
-            CreateVariable(dictMotore.Id, "Motor Speed", 0x80, 0x01, "Int16", 
+            CreateVariable(dictMotore.Id, "Motor Speed", 0x80, 0x01, "Int16",
                 "Velocità motore", accessMode: AccessMode.ReadOnly, unit: "RPM", minValue: -3000, maxValue: 3000),
-            CreateVariable(dictMotore.Id, "Motor Target", 0x80, 0x02, "Int16", 
+            CreateVariable(dictMotore.Id, "Motor Target", 0x80, 0x02, "Int16",
                 "Velocità target", accessMode: AccessMode.ReadWrite, unit: "RPM", minValue: -3000, maxValue: 3000),
-            CreateVariable(dictMotore.Id, "Motor Current", 0x80, 0x03, "UInt16", 
+            CreateVariable(dictMotore.Id, "Motor Current", 0x80, 0x03, "UInt16",
                 "Corrente motore", accessMode: AccessMode.ReadOnly, unit: "mA", minValue: 0, maxValue: 20000),
-            CreateVariable(dictMotore.Id, "Motor Temperature", 0x80, 0x04, "Int16", 
+            CreateVariable(dictMotore.Id, "Motor Temperature", 0x80, 0x04, "Int16",
                 "Temperatura motore", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -200, maxValue: 1500),
-            CreateVariable(dictMotore.Id, "Motor Status", 0x80, 0x10, "Bitmapped[1]", 
+            CreateVariable(dictMotore.Id, "Motor Status", 0x80, 0x10, "Bitmapped[1]",
                 "Stato motore", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictMotore.Id, "Motor Enable", 0x80, 0x11, "UInt8", 
+            CreateVariable(dictMotore.Id, "Motor Enable", 0x80, 0x11, "UInt8",
                 "Abilitazione motore (0=off, 1=on)", accessMode: AccessMode.ReadWrite),
         };
         context.Variables.AddRange(motoreVars);
@@ -255,82 +255,93 @@ public static class DatabaseSeeder
         var cmdReadVar = new CommandEntity
         {
             Name = "Read Variable",
-            CodeHigh = 0x01, CodeLow = 0x00,
+            CodeHigh = 0x01,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[\"address:UInt16\"]"
         };
         var cmdReadVarResp = new CommandEntity
         {
             Name = "Read Variable Response",
-            CodeHigh = 0x01, CodeLow = 0x00,
+            CodeHigh = 0x01,
+            CodeLow = 0x00,
             IsResponse = true,
             ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
         };
         var cmdWriteVar = new CommandEntity
         {
             Name = "Write Variable",
-            CodeHigh = 0x02, CodeLow = 0x00,
+            CodeHigh = 0x02,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
         };
         var cmdWriteVarResp = new CommandEntity
         {
             Name = "Write Variable Response",
-            CodeHigh = 0x02, CodeLow = 0x00,
+            CodeHigh = 0x02,
+            CodeLow = 0x00,
             IsResponse = true,
             ParametersJson = "[\"address:UInt16\",\"result:UInt8\"]"
         };
         var cmdGetInfo = new CommandEntity
         {
             Name = "Get Device Info",
-            CodeHigh = 0x10, CodeLow = 0x00,
+            CodeHigh = 0x10,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[]"
         };
         var cmdGetInfoResp = new CommandEntity
         {
             Name = "Get Device Info Response",
-            CodeHigh = 0x10, CodeLow = 0x00,
+            CodeHigh = 0x10,
+            CodeLow = 0x00,
             IsResponse = true,
             ParametersJson = "[\"fwVersion:UInt16\",\"fwBuild:UInt16\",\"serial:String[16]\"]"
         };
         var cmdReset = new CommandEntity
         {
             Name = "Reset Device",
-            CodeHigh = 0x20, CodeLow = 0x00,
+            CodeHigh = 0x20,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[\"mode:UInt8\"]"
         };
         var cmdResetResp = new CommandEntity
         {
             Name = "Reset Device Response",
-            CodeHigh = 0x20, CodeLow = 0x00,
+            CodeHigh = 0x20,
+            CodeLow = 0x00,
             IsResponse = true,
             ParametersJson = "[\"result:UInt8\"]"
         };
         var cmdSetConfig = new CommandEntity
         {
             Name = "Set Configuration",
-            CodeHigh = 0x30, CodeLow = 0x00,
+            CodeHigh = 0x30,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
         };
         var cmdGetConfig = new CommandEntity
         {
             Name = "Get Configuration",
-            CodeHigh = 0x31, CodeLow = 0x00,
+            CodeHigh = 0x31,
+            CodeLow = 0x00,
             IsResponse = false,
             ParametersJson = "[\"configId:UInt8\"]"
         };
         var cmdGetConfigResp = new CommandEntity
         {
             Name = "Get Configuration Response",
-            CodeHigh = 0x31, CodeLow = 0x00,
+            CodeHigh = 0x31,
+            CodeLow = 0x00,
             IsResponse = true,
             ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
         };
 
-        var commands = new[] { cmdReadVar, cmdReadVarResp, cmdWriteVar, cmdWriteVarResp, 
+        var commands = new[] { cmdReadVar, cmdReadVarResp, cmdWriteVar, cmdWriteVarResp,
             cmdGetInfo, cmdGetInfoResp, cmdReset, cmdResetResp, cmdSetConfig, cmdGetConfig, cmdGetConfigResp };
         context.Commands.AddRange(commands);
         await context.SaveChangesAsync();

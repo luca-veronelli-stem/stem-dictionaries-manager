@@ -24,7 +24,7 @@ public class DictionaryListViewModelTests
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
-        
+
         _viewModel = new DictionaryListViewModel(
             _dictionaryService,
             _navigationService,
@@ -69,7 +69,7 @@ public class DictionaryListViewModelTests
         await _viewModel.LoadAsync();
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("Caricati") && m.Severity == MessageSeverity.Success);
     }
 
@@ -84,7 +84,7 @@ public class DictionaryListViewModelTests
 
         // Assert
         Assert.Equal("Database error", _viewModel.ErrorMessage);
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("Errore") && m.Severity == MessageSeverity.Error);
     }
 

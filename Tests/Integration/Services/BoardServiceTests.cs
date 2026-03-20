@@ -86,7 +86,7 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task GetBoardTypeByNameAsync_ExistingName_ReturnsBoardType()
     {
         var result = await _service.GetBoardTypeByNameAsync("Madre");
-        
+
         Assert.NotNull(result);
         Assert.Equal(17, result.FirmwareType);
     }
@@ -95,7 +95,7 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task GetBoardTypeByFirmwareTypeAsync_ExistingType_ReturnsBoardType()
     {
         var result = await _service.GetBoardTypeByFirmwareTypeAsync(17);
-        
+
         Assert.NotNull(result);
         Assert.Equal("Madre", result.Name);
     }

@@ -26,7 +26,7 @@ public class DictionaryEditViewModelTests
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
-        
+
         _viewModel = new DictionaryEditViewModel(
             _dictionaryService,
             _boardService,
@@ -213,7 +213,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("creato") && m.Severity == MessageSeverity.Success);
     }
 

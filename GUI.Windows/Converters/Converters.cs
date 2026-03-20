@@ -17,7 +17,7 @@ public class BoolToVisibilityConverter : IValueConverter
             // Se parameter è "Inverse", inverte la logica
             if (parameter is string param && param == "Inverse")
                 return boolValue ? Visibility.Collapsed : Visibility.Visible;
-            
+
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
         return Visibility.Collapsed;
@@ -60,11 +60,11 @@ public class NullToVisibilityConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var isVisible = value is not null;
-        
+
         // Se parameter è "Inverse", inverte la logica
         if (parameter is string param && param == "Inverse")
             isVisible = !isVisible;
-            
+
         return isVisible ? Visibility.Visible : Visibility.Collapsed;
     }
 

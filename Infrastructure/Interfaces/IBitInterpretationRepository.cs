@@ -7,7 +7,7 @@ public interface IBitInterpretationRepository : IRepository<BitInterpretationEnt
     /// <summary>
     /// Ottiene tutte le interpretazioni bit per una variabile.
     /// </summary>
-    Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableIdAsync(int variableId, 
+    Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableIdAsync(int variableId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -16,7 +16,7 @@ public interface IBitInterpretationRepository : IRepository<BitInterpretationEnt
     /// - Aggiunge le nuove, aggiorna le modificate, elimina le rimosse.
     /// Operazione atomica (singolo SaveChanges).
     /// </summary>
-    Task SyncByVariableIdAsync(int variableId, 
+    Task SyncByVariableIdAsync(int variableId,
         IReadOnlyList<BitInterpretationEntity> incoming,
         CancellationToken cancellationToken = default);
 }

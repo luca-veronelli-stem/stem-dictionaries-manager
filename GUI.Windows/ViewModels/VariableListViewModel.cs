@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -130,8 +129,8 @@ public partial class VariableListViewModel : ObservableObject
     [RelayCommand]
     private void Add()
     {
-        _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter 
-        { 
+        _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
+        {
             EntityId = null,
             ParentId = _dictionaryId
         });
@@ -141,8 +140,8 @@ public partial class VariableListViewModel : ObservableObject
     private void Edit(VariableListItem? item)
     {
         if (item is null) return;
-        _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter 
-        { 
+        _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
+        {
             EntityId = item.Id,
             ParentId = _dictionaryId
         });

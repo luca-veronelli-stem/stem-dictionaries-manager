@@ -68,7 +68,7 @@ public class UserListViewModelTests
         await _viewModel.InitializeAsync();
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("Caricati") && m.Severity == MessageSeverity.Success);
     }
 
@@ -172,7 +172,7 @@ public class UserListViewModelTests
         await _viewModel.AddCommand.ExecuteAsync(null);
 
         // Assert
-        Assert.Contains(_messageService.Messages, m => 
+        Assert.Contains(_messageService.Messages, m =>
             m.Message.Contains("creato") && m.Severity == MessageSeverity.Success);
     }
 

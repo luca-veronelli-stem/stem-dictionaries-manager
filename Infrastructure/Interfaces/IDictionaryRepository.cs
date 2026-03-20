@@ -13,7 +13,7 @@ public interface IDictionaryRepository : IRepository<DictionaryEntity>
     /// <summary>
     /// Cerca un dizionario per combinazione (DeviceType, BoardTypeId).
     /// </summary>
-    Task<DictionaryEntity?> GetByDeviceTypeAndBoardTypeAsync(DeviceType deviceType, int boardTypeId, 
+    Task<DictionaryEntity?> GetByDeviceTypeAndBoardTypeAsync(DeviceType deviceType, int boardTypeId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

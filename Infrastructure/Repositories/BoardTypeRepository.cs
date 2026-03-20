@@ -10,13 +10,13 @@ public class BoardTypeRepository : RepositoryBase<BoardTypeEntity>, IBoardTypeRe
     {
     }
 
-    public async Task<BoardTypeEntity?> GetByNameAsync(string name, 
+    public async Task<BoardTypeEntity?> GetByNameAsync(string name,
         CancellationToken cancellationToken = default)
     {
         return await DbSet.FirstOrDefaultAsync(bt => bt.Name == name, cancellationToken);
     }
 
-    public async Task<BoardTypeEntity?> GetByFirmwareTypeAsync(int firmwareType, 
+    public async Task<BoardTypeEntity?> GetByFirmwareTypeAsync(int firmwareType,
         CancellationToken cancellationToken = default)
     {
         return await DbSet.FirstOrDefaultAsync(bt => bt.FirmwareType == firmwareType, cancellationToken);

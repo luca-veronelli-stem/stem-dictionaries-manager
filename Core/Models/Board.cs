@@ -41,7 +41,7 @@ public class Board
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
-    public static Board Restore(int id, DeviceType deviceType, BoardType boardType, 
+    public static Board Restore(int id, DeviceType deviceType, BoardType boardType,
         string name, int boardNumber, string? partNumber)
     {
         var board = new Board(deviceType, boardType, name, boardNumber, partNumber)

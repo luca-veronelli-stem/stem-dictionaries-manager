@@ -37,7 +37,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "Temperature";
         _viewModel.AddressHighHex = "80";
         _viewModel.AddressLowHex = "10";
@@ -62,7 +62,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "StatusFlags";
         _viewModel.AddressHighHex = "00";
         _viewModel.AddressLowHex = "20";
@@ -84,7 +84,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "DeviceName";
         _viewModel.AddressHighHex = "00";
         _viewModel.AddressLowHex = "30";
@@ -172,7 +172,7 @@ public class VariableEditFlowTests
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        
+
         _viewModel.Name = "TestVar";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         _viewModel.MinValue = 100;

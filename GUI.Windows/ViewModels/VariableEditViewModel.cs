@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -291,8 +291,8 @@ public partial class VariableEditViewModel : ObservableObject
         }
     }
 
-    private bool CanSave() => 
-        !string.IsNullOrWhiteSpace(Name) && 
+    private bool CanSave() =>
+        !string.IsNullOrWhiteSpace(Name) &&
         !string.IsNullOrWhiteSpace(DataTypeForSave) &&
         IsAddressHighValid &&
         IsAddressLowValid &&
@@ -422,9 +422,7 @@ public partial class VariableEditViewModel : ObservableObject
     private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
     {
         // Raccogli items correnti da UI (se non forniti dal DB)
-        existingItems ??= WordGroups
-            .SelectMany(g => g.Items)
-            .ToList();
+        existingItems ??= [.. WordGroups.SelectMany(g => g.Items)];
 
         WordGroups.Clear();
 

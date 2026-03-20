@@ -21,8 +21,8 @@ public class DictionaryServiceTests : IntegrationTestBase
         var boardTypeRepository = new BoardTypeRepository(Context);
 
         _service = new DictionaryService(
-            dictionaryRepository, 
-            variableRepository, 
+            dictionaryRepository,
+            variableRepository,
             boardTypeRepository);
     }
 
@@ -186,12 +186,12 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var created = await _service.AddAsync(new Core.Models.Dictionary("with-vars"));
-        
-        var var1 = new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, 
+
+        var var1 = new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t");
-        var var2 = new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16, 
+        var var2 = new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16,
             AccessMode.ReadWrite, "uint16_t");
-        
+
         await _service.AddVariableAsync(created.Id, var1);
         await _service.AddVariableAsync(created.Id, var2);
 
@@ -224,7 +224,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("add-var"));
-        var variable = new Variable("NewVar", 0x00, 0x10, DataTypeKind.UInt32, 
+        var variable = new Variable("NewVar", 0x00, 0x10, DataTypeKind.UInt32,
             AccessMode.ReadWrite, "uint32_t");
 
         // Act
@@ -240,12 +240,12 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("dup-addr"));
-        await _service.AddVariableAsync(dict.Id, 
+        await _service.AddVariableAsync(dict.Id,
             new Variable("First", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AddVariableAsync(dict.Id, 
+            () => _service.AddVariableAsync(dict.Id,
                 new Variable("Second", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t")));
         Assert.Contains("already exists", exception.Message);
     }
@@ -253,7 +253,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task AddVariableAsync_NonExistingDictionary_ThrowsKeyNotFoundException()
     {
-        var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8, 
+        var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t");
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -265,7 +265,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("remove-var"));
-        var variable = await _service.AddVariableAsync(dict.Id, 
+        var variable = await _service.AddVariableAsync(dict.Id,
             new Variable("ToRemove", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
         // Act
@@ -283,7 +283,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         var dict1 = await _service.AddAsync(new Core.Models.Dictionary("dict1"));
         var dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.Optimus, boardType));
-        var variable = await _service.AddVariableAsync(dict1.Id, 
+        var variable = await _service.AddVariableAsync(dict1.Id,
             new Variable("InDict1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
         // Act & Assert

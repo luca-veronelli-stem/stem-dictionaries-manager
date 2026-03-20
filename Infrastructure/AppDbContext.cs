@@ -9,7 +9,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
-    
+
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<BoardTypeEntity> BoardTypes => Set<BoardTypeEntity>();
     public DbSet<BoardEntity> Boards => Set<BoardEntity>();
@@ -38,7 +38,7 @@ public class AppDbContext : DbContext
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, 
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default)
     {
         SetAuditFields();
@@ -48,7 +48,7 @@ public class AppDbContext : DbContext
     private void SetAuditFields()
     {
         var now = DateTime.UtcNow;
-        
+
         foreach (var entry in ChangeTracker.Entries<IAuditable>())
         {
             switch (entry.State)
@@ -66,7 +66,7 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // User
         modelBuilder.Entity<UserEntity>(entity =>
         {

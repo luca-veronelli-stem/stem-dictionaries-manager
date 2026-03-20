@@ -56,7 +56,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         Assert.True(result.Id > 0);
         Assert.Equal("Motor Running", result.Meaning);
-            }
+    }
 
     [Fact]
     public async Task GetByIdAsync_ReturnsInterpretation()

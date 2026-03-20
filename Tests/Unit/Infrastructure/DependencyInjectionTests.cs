@@ -1,8 +1,6 @@
 using Infrastructure;
 using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Tests.Unit.Infrastructure;
 

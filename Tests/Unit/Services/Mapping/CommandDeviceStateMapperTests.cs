@@ -48,7 +48,7 @@ public class CommandDeviceStateMapperTests
     [Fact]
     public void ToDomain_NullEntity_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.ToDomain(null!));
     }
 
@@ -68,7 +68,7 @@ public class CommandDeviceStateMapperTests
     [Fact]
     public void ToEntity_NullDomain_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.ToEntity(null!));
     }
 
@@ -96,7 +96,7 @@ public class CommandDeviceStateMapperTests
     {
         var domain = CommandDeviceState.Restore(1, 10, DeviceType.Eden, true);
 
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.UpdateEntity(null!, domain));
     }
 
@@ -105,7 +105,7 @@ public class CommandDeviceStateMapperTests
     {
         var entity = new CommandDeviceStateEntity();
 
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.UpdateEntity(entity, null!));
     }
 

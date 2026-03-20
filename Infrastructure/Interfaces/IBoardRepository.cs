@@ -5,8 +5,8 @@ namespace Infrastructure.Interfaces;
 
 public interface IBoardRepository : IRepository<BoardEntity>
 {
-    Task<IReadOnlyList<BoardEntity>> GetByDeviceTypeAsync(DeviceType deviceType, 
+    Task<IReadOnlyList<BoardEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
         CancellationToken cancellationToken = default);
-    Task<BoardEntity?> GetByProtocolAddressAsync(uint protocolAddress, 
+    Task<BoardEntity?> GetByProtocolAddressAsync(uint protocolAddress,
         CancellationToken cancellationToken = default);
 }

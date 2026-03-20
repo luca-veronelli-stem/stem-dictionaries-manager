@@ -10,7 +10,7 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
     {
     }
 
-    public async Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableIdAsync(int variableId, 
+    public async Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableIdAsync(int variableId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

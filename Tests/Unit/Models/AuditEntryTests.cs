@@ -59,7 +59,7 @@ public class AuditEntryTests
     public void ForUpdate_CreatesCorrectEntry()
     {
         var entry = AuditEntry.ForUpdate(
-            AuditEntityType.Variable, 10, 1, 
+            AuditEntityType.Variable, 10, 1,
             "{\"name\":\"old\"}", "{\"name\":\"new\"}", "Updated name");
 
         Assert.Equal(AuditOperation.Update, entry.Operation);

@@ -11,7 +11,7 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
     {
     }
 
-    public override async Task<AuditEntryEntity?> GetByIdAsync(int id, 
+    public override async Task<AuditEntryEntity?> GetByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -19,7 +19,7 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<AuditEntryEntity>> GetByEntityAsync(AuditEntityType entityType, 
+    public async Task<IReadOnlyList<AuditEntryEntity>> GetByEntityAsync(AuditEntityType entityType,
         int entityId, CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -29,7 +29,7 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<AuditEntryEntity>> GetByUserAsync(int userId, 
+    public async Task<IReadOnlyList<AuditEntryEntity>> GetByUserAsync(int userId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -39,7 +39,7 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<AuditEntryEntity>> GetRecentAsync(int count, 
+    public async Task<IReadOnlyList<AuditEntryEntity>> GetRecentAsync(int count,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

@@ -464,7 +464,7 @@ public class MockCommandService : ICommandService
     {
         MethodCalls.Add($"GetByCodeAsync:0x{codeHigh:X2}{codeLow:X2}:{isResponse}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_commands.FirstOrDefault(c => 
+        return Task.FromResult(_commands.FirstOrDefault(c =>
             c.CodeHigh == codeHigh && c.CodeLow == codeLow && c.IsResponse == isResponse));
     }
 
@@ -572,7 +572,7 @@ public class MockUserService : IUserService
     {
         MethodCalls.Add($"GetByUsernameAsync:{username}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_users.FirstOrDefault(u => 
+        return Task.FromResult(_users.FirstOrDefault(u =>
             u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)));
     }
 
@@ -580,7 +580,7 @@ public class MockUserService : IUserService
     {
         MethodCalls.Add($"UsernameExistsAsync:{username}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_users.Any(u => 
+        return Task.FromResult(_users.Any(u =>
             u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)));
     }
 

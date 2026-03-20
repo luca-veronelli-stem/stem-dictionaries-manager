@@ -26,7 +26,7 @@ public class BitInterpretationTests
     [Fact]
     public void Constructor_NegativeWordIndex_ThrowsArgumentOutOfRangeException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             new BitInterpretation(6, -1, 0, "test"));
     }
 
@@ -36,7 +36,7 @@ public class BitInterpretationTests
     [InlineData(100)]
     public void Constructor_InvalidBitIndex_ThrowsArgumentOutOfRangeException(int bitIndex)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => 
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             new BitInterpretation(6, 0, bitIndex, "test"));
     }
 

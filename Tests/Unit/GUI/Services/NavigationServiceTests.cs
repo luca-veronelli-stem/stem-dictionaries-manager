@@ -145,13 +145,13 @@ public class NavigationServiceTests
         // Act & Assert
         _service.GoBack();
         Assert.Equal(ViewType.VariableList, _service.CurrentView);
-        
+
         _service.GoBack();
         Assert.Equal(ViewType.DictionaryEdit, _service.CurrentView);
-        
+
         _service.GoBack();
         Assert.Equal(ViewType.DictionaryList, _service.CurrentView);
-        
+
         Assert.False(_service.CanGoBack);
     }
 
@@ -160,11 +160,11 @@ public class NavigationServiceTests
     {
         // Arrange
         var extra = new Dictionary<string, object> { ["key1"] = "value1", ["key2"] = 42 };
-        var param = new NavigationParameter 
-        { 
-            EntityId = 1, 
-            ParentId = 2, 
-            Extra = extra 
+        var param = new NavigationParameter
+        {
+            EntityId = 1,
+            ParentId = 2,
+            Extra = extra
         };
 
         // Act

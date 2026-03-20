@@ -2,7 +2,6 @@ using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Services.Interfaces;
-using Xunit;
 
 namespace Tests.Unit.Services;
 
@@ -130,7 +129,7 @@ public class DependencyInjectionTests
         var provider = services.BuildServiceProvider();
 
         // Act & Assert - Should throw because dependencies are missing
-        Assert.Throws<InvalidOperationException>(() => 
+        Assert.Throws<InvalidOperationException>(() =>
             provider.GetRequiredService<IDictionaryService>());
     }
 

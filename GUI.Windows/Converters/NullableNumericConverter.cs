@@ -39,8 +39,8 @@ public class NullableDoubleConverter : IValueConverter
 
         // Supporta sia '.' che ',' come separatore decimale
         str = str.Replace(',', '.');
-        return double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) 
-            ? result 
+        return double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
+            ? result
             : Binding.DoNothing;
     }
 }

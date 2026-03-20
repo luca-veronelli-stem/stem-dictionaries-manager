@@ -139,9 +139,9 @@ public class MockMessageService : IMessageService
 {
     public string? CurrentMessage { get; private set; }
     public MessageSeverity CurrentSeverity { get; private set; } = MessageSeverity.Info;
-    
+
     public List<(string Message, MessageSeverity Severity)> Messages { get; } = [];
-    
+
     public event EventHandler? MessageChanged;
 
     public void Show(string message, MessageSeverity severity = MessageSeverity.Info, int autoHideSeconds = 5)
@@ -157,7 +157,7 @@ public class MockMessageService : IMessageService
         CurrentMessage = null;
         MessageChanged?.Invoke(this, EventArgs.Empty);
     }
-    
+
     public void Reset()
     {
         CurrentMessage = null;

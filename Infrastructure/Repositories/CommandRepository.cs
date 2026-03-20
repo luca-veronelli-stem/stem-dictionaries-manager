@@ -10,18 +10,18 @@ public class CommandRepository : RepositoryBase<CommandEntity>, ICommandReposito
     {
     }
 
-    public async Task<CommandEntity?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse, 
+    public async Task<CommandEntity?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .FirstOrDefaultAsync(c => 
-                c.CodeHigh == codeHigh && 
-                c.CodeLow == codeLow && 
-                c.IsResponse == isResponse, 
+            .FirstOrDefaultAsync(c =>
+                c.CodeHigh == codeHigh &&
+                c.CodeLow == codeLow &&
+                c.IsResponse == isResponse,
                 cancellationToken);
     }
 
-    public async Task<CommandEntity?> GetWithDeviceStatesAsync(int id, 
+    public async Task<CommandEntity?> GetWithDeviceStatesAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet

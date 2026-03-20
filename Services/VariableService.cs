@@ -1,6 +1,5 @@
 using Core.Enums;
 using Core.Models;
-using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -18,7 +17,7 @@ public class VariableService : IVariableService
     private readonly IBitInterpretationRepository _bitInterpretationRepository;
 
     public VariableService(
-        IVariableRepository repository, 
+        IVariableRepository repository,
         IDictionaryRepository dictionaryRepository,
         IBitInterpretationRepository bitInterpretationRepository)
     {
@@ -52,7 +51,7 @@ public class VariableService : IVariableService
         var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
             throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
-        
+
         // Verifica unicità indirizzo nel dizionario
         var existingByAddress = await _repository.GetByAddressAsync(
             dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
@@ -60,7 +59,7 @@ public class VariableService : IVariableService
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                 $"already exists in dictionary {dictionaryId}.");
-        
+
         var entity = VariableMapper.ToEntity(variable, dictionaryId);
         var created = await _repository.AddAsync(entity, ct);
         return VariableMapper.ToDomain(created);
@@ -69,10 +68,10 @@ public class VariableService : IVariableService
     public async Task UpdateAsync(Variable variable, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(variable);
-        
+
         var entity = await _repository.GetByIdAsync(variable.Id, ct)
             ?? throw new KeyNotFoundException($"Variable with Id {variable.Id} not found.");
-        
+
         // Verifica unicità indirizzo (se cambiato)
         if (entity.AddressHigh != variable.AddressHigh || entity.AddressLow != variable.AddressLow)
         {
@@ -83,7 +82,7 @@ public class VariableService : IVariableService
                     $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                     $"already exists in this dictionary.");
         }
-        
+
         VariableMapper.UpdateEntity(entity, variable);
         await _repository.UpdateAsync(entity, ct);
     }
@@ -101,7 +100,7 @@ public class VariableService : IVariableService
         return VariableMapper.ToDomainList(entities);
     }
 
-    public async Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow, 
+    public async Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow,
         CancellationToken ct = default)
     {
         var entity = await _repository.GetByAddressAsync(dictionaryId, addressHigh, addressLow, ct);
@@ -110,7 +109,7 @@ public class VariableService : IVariableService
 
     // === BitInterpretation Management ===
 
-    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId, 
+    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId,
         CancellationToken ct = default)
     {
         // Verifica che la variabile esista
@@ -123,7 +122,7 @@ public class VariableService : IVariableService
         return BitInterpretationMapper.ToDomainList(entities);
     }
 
-    public async Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation, 
+    public async Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretation);
@@ -144,7 +143,7 @@ public class VariableService : IVariableService
         return BitInterpretationMapper.ToDomain(created);
     }
 
-    public async Task UpdateBitInterpretationsAsync(int variableId, 
+    public async Task UpdateBitInterpretationsAsync(int variableId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretations);

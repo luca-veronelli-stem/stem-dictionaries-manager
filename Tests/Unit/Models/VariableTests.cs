@@ -106,7 +106,7 @@ public class VariableTests
     [Fact]
     public void FullAddress_ReturnsCorrectValue()
     {
-        var variable = new Variable("Test", 0x80, 0x15, DataTypeKind.UInt8, 
+        var variable = new Variable("Test", 0x80, 0x15, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t");
 
         Assert.Equal(0x8015, variable.FullAddress);
@@ -117,7 +117,7 @@ public class VariableTests
     [InlineData(0x80, VariableCategory.DeviceSpecific)]
     public void Category_IsDerivedFromAddressHigh(byte addressHigh, VariableCategory expected)
     {
-        var variable = new Variable("Test", addressHigh, 0x00, DataTypeKind.UInt8, 
+        var variable = new Variable("Test", addressHigh, 0x00, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t");
 
         Assert.Equal(expected, variable.Category);
@@ -137,7 +137,7 @@ public class VariableTests
     [Fact]
     public void Enable_SetsIsEnabledTrue()
     {
-        var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8, 
+        var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t", isEnabled: false);
 
         variable.Enable();
@@ -148,7 +148,7 @@ public class VariableTests
     [Fact]
     public void Disable_SetsIsEnabledFalse()
     {
-        var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8, 
+        var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8,
             AccessMode.ReadOnly, "uint8_t", isEnabled: true);
 
         variable.Disable();
@@ -161,14 +161,14 @@ public class VariableTests
     [InlineData("   ")]
     public void Constructor_InvalidName_ThrowsArgumentException(string name)
     {
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new Variable(name, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
     }
 
     [Fact]
     public void Constructor_NullName_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new Variable(null!, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
     }
 
@@ -177,14 +177,14 @@ public class VariableTests
     [InlineData("   ")]
     public void Constructor_InvalidDataTypeRaw_ThrowsArgumentException(string dataTypeRaw)
     {
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<ArgumentException>(() =>
             new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, dataTypeRaw));
     }
 
     [Fact]
     public void Constructor_NullDataTypeRaw_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, null!));
     }
 

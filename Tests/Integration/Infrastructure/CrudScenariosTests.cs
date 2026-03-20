@@ -1,9 +1,7 @@
 using Core.Enums;
-using Infrastructure;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace Tests.Integration.Infrastructure;
 

@@ -46,7 +46,7 @@ public class BoardService : IBoardService
 
         var entity = BoardMapper.ToEntity(board);
         var created = await _boardRepository.AddAsync(entity, ct);
-        
+
         // Ricarica con BoardType
         var result = await _boardRepository.GetByIdAsync(created.Id, ct);
         return BoardMapper.ToDomain(result!);
@@ -55,10 +55,10 @@ public class BoardService : IBoardService
     public async Task UpdateAsync(Board board, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(board);
-        
+
         var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
             ?? throw new KeyNotFoundException($"Board with Id {board.Id} not found.");
-        
+
         BoardMapper.UpdateEntity(entity, board);
         await _boardRepository.UpdateAsync(entity, ct);
     }
@@ -93,7 +93,7 @@ public class BoardService : IBoardService
     public async Task<BoardType?> GetBoardTypeByNameAsync(string name, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        
+
         var entity = await _boardTypeRepository.GetByNameAsync(name, ct);
         return entity is null ? null : BoardTypeMapper.ToDomain(entity);
     }
@@ -107,17 +107,17 @@ public class BoardService : IBoardService
     public async Task<BoardType> AddBoardTypeAsync(BoardType boardType, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(boardType);
-        
+
         // Verifica unicità nome
         var existingByName = await _boardTypeRepository.GetByNameAsync(boardType.Name, ct);
         if (existingByName is not null)
             throw new InvalidOperationException($"BoardType with name '{boardType.Name}' already exists.");
-        
+
         // Verifica unicità firmwareType
         var existingByFw = await _boardTypeRepository.GetByFirmwareTypeAsync(boardType.FirmwareType, ct);
         if (existingByFw is not null)
             throw new InvalidOperationException($"BoardType with firmware type {boardType.FirmwareType} already exists.");
-        
+
         var entity = BoardTypeMapper.ToEntity(boardType);
         var created = await _boardTypeRepository.AddAsync(entity, ct);
         return BoardTypeMapper.ToDomain(created);

@@ -1,5 +1,4 @@
 using Core.Models;
-using Infrastructure;
 using Infrastructure.Repositories;
 using Services;
 
@@ -147,7 +146,7 @@ public class UserServiceTests : IntegrationTestBase
         // Arrange
         await _service.AddAsync(new User("existing", "Existing"));
         var toUpdate = await _service.AddAsync(new User("toupdate", "To Update"));
-        
+
         var conflicting = User.Restore(toUpdate.Id, "existing", "Conflicting");
 
         // Act & Assert

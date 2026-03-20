@@ -27,10 +27,10 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         Context.BoardTypes.Add(boardType);
         await Context.SaveChangesAsync();
 
-        var dictionary = new DictionaryEntity 
-        { 
-            Name = "optimus-xp", 
-            BoardTypeId = boardType.Id 
+        var dictionary = new DictionaryEntity
+        {
+            Name = "optimus-xp",
+            BoardTypeId = boardType.Id
         };
 
         // Act
@@ -45,10 +45,10 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     public async Task GetStandardDictionary_ReturnsNullBoardType()
     {
         // Arrange - dizionario Standard non ha BoardType
-        var dictionary = new DictionaryEntity 
-        { 
-            Name = "standard", 
-            BoardTypeId = null 
+        var dictionary = new DictionaryEntity
+        {
+            Name = "standard",
+            BoardTypeId = null
         };
         await _dictionaryRepo.AddAsync(dictionary);
 
@@ -164,15 +164,15 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         Context.BoardTypes.Add(boardType);
         await Context.SaveChangesAsync();
 
-        await _dictionaryRepo.AddAsync(new DictionaryEntity 
-        { 
-            Name = "dict-with-board", 
-            BoardTypeId = boardType.Id 
+        await _dictionaryRepo.AddAsync(new DictionaryEntity
+        {
+            Name = "dict-with-board",
+            BoardTypeId = boardType.Id
         });
-        await _dictionaryRepo.AddAsync(new DictionaryEntity 
-        { 
-            Name = "dict-standard", 
-            BoardTypeId = null 
+        await _dictionaryRepo.AddAsync(new DictionaryEntity
+        {
+            Name = "dict-standard",
+            BoardTypeId = null
         });
 
         // Act
