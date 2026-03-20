@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-20
 
 ---
 
@@ -13,11 +13,11 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 - **Dependency Injection** - Microsoft.Extensions.Hosting per DI/configurazione
 - **Navigation Service** - Navigazione tra view con history e parametri
 - **Clean Architecture** - UI disaccoppiata da business logic e persistence
-- **Stili Riutilizzabili** - SearchTextBox, HexAddressTextBox, ToolbarButton
+- **Stili Riutilizzabili** - Dark theme VS Code-style con stili globali
 - **Input Validation** - Filtri hex/numerico con converter nullable
 - **Ricerca Client-Side** - Filtro istantaneo in tutte le liste (case-insensitive)
 
-L'applicazione si avvia con selezione utente, poi applica migrations e popola dati demo se DB vuoto.
+L'applicazione si avvia con login integrato nella MainWindow, poi applica migrations e popola dati demo se DB vuoto.
 
 ---
 
@@ -25,15 +25,15 @@ L'applicazione si avvia con selezione utente, poi applica migrations e popola da
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Selezione Utente** | ✅ | Dialog modale all'avvio, ciclo login/logout |
-| **MVVM Pattern** | ✅ | 11 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 11 Views XAML complete (10 + UserSelectionWindow) |
+| **Login Integrato** | ✅ | LoginView nella MainWindow, eventi LoginConfirmed/LoggedOut |
+| **Dark Theme** | ✅ | VS Code-style con sidebar, header, DataGrid dark |
+| **MVVM Pattern** | ✅ | 12 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 11 Views XAML complete (10 + LoginView) |
 | **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
-| **Stili Globali** | ✅ | SearchTextBox, HexAddressTextBox, ToolbarButton |
+| **Stili Globali** | ✅ | Sidebar, Toolbar, Watermark, DataGrid, Accent, HexAddress |
 | **Navigation Service** | ✅ | History, parametri, eventi |
 | **Dialog Service** | ✅ | Conferme, messaggi, errori |
 | **Message Service** | ✅ | StatusBar e notifiche |
-| **Current User Service** | ✅ | Singleton, utente corrente per audit |
 | **DI Container** | ✅ | Generic Host pattern |
 | **Auto-Migration** | ✅ | EF Core migrations all'avvio |
 | **Database Seeder** | ✅ | Dati demo per sviluppo |
@@ -72,10 +72,11 @@ dotnet run --project GUI.Windows
 
 ### Primo Avvio
 
-1. L'app crea il database SQLite in `%AppData%\Stem.Dictionaries.Manager\`
+1. L'app crea il database SQLite in `%AppData%\STEM\DictionariesManager\`
 2. Applica automaticamente le migrations EF Core
 3. Popola con dati demo (utenti, dizionari, variabili di esempio)
-4. Mostra la lista dizionari
+4. Mostra la LoginView integrata — selezionare un utente e premere ACCEDI
+5. Sidebar e header diventano visibili, naviga alla lista dizionari
 
 ---
 
@@ -86,15 +87,14 @@ GUI.Windows/
 ├── Abstractions/
 │   ├── INavigationService.cs      # Interfaccia navigazione + ViewType enum
 │   ├── IDialogService.cs          # Interfaccia dialoghi (conferme, errori)
-│   ├── IMessageService.cs         # Interfaccia messaggi (status bar)
-│   └── ICurrentUserService.cs     # Interfaccia utente corrente (singleton)
+│   └── IMessageService.cs         # Interfaccia messaggi (status bar)
 ├── Services/
 │   ├── NavigationService.cs       # Implementazione con history stack
 │   ├── DialogService.cs           # MessageBox wrapper
-│   ├── MessageService.cs          # Status notifications
-│   └── CurrentUserService.cs      # Utente corrente per audit
+│   └── MessageService.cs          # Status notifications
 ├── ViewModels/
-│   ├── MainViewModel.cs           # Shell principale, navigazione
+│   ├── MainViewModel.cs           # Shell, navigazione, CurrentUser, login/logout
+│   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
 │   ├── DictionaryListViewModel.cs # Lista dizionari CRUD
 │   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario
 │   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
@@ -106,7 +106,7 @@ GUI.Windows/
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   └── SettingsViewModel.cs       # Impostazioni app (stub)
 ├── Views/
-│   ├── UserSelectionWindow.xaml    # Dialog selezione utente all'avvio
+│   ├── LoginView.xaml             # Login integrato nella MainWindow
 │   ├── DictionaryListView.xaml    # UI lista dizionari
 │   ├── DictionaryEditView.xaml    # UI edit dizionario
 │   ├── VariableListView.xaml      # UI lista variabili
@@ -120,10 +120,10 @@ GUI.Windows/
 ├── Converters/
 │   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
 │   └── NullableNumericConverter.cs # NullableInt, NullableDouble converters
-├── App.xaml                       # Application resources + stili globali
-├── App.xaml.cs                    # Startup, DI, ciclo login/logout
-├── MainWindow.xaml                # Shell window
-├── MainWindow.xaml.cs             # Window code-behind
+├── App.xaml                       # Application resources + dark theme styles
+├── App.xaml.cs                    # Startup, DI, ShowLoginView
+├── MainWindow.xaml                # Shell: sidebar + header + content
+├── MainWindow.xaml.cs             # Window code-behind + shutdown
 └── DependencyInjection.cs         # AddGUI() extension method
 ```
 
@@ -248,7 +248,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 1 risolta (0 critiche, 0 alte, 0 medie, 2 basse)
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 2 risolte (0 critiche, 0 alte, 0 medie, 2 basse)
 
 ---
 
