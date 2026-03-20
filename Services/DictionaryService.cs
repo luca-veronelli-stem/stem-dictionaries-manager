@@ -70,17 +70,18 @@ public class DictionaryService : IDictionaryService
         if (existingByName is not null)
             throw new InvalidOperationException($"Dictionary with name '{dictionary.Name}' already exists.");
         
-        // Verifica BoardType se specificato
-        if (dictionary.BoardType is not null)
+        // Verifica BoardType e DeviceType se specificati
+        if (dictionary.BoardType is not null && dictionary.DeviceType.HasValue)
         {
             _ = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct) 
                 ?? throw new InvalidOperationException($"BoardType with Id {dictionary.BoardType.Id} not found.");
 
-            // Verifica che BoardType non abbia già un dizionario (BR-002)
-            var existingByBoardType = await _dictionaryRepository.GetByBoardTypeAsync(dictionary.BoardType.Id, ct);
-            if (existingByBoardType is not null)
+            // Verifica unicità combinazione (DeviceType, BoardTypeId) (BR-002)
+            var existingByCombo = await _dictionaryRepository.GetByDeviceTypeAndBoardTypeAsync(
+                dictionary.DeviceType.Value, dictionary.BoardType.Id, ct);
+            if (existingByCombo is not null)
                 throw new InvalidOperationException(
-                    $"BoardType {dictionary.BoardType.Id} already has a dictionary assigned.");
+                    $"A dictionary for DeviceType {dictionary.DeviceType.Value} and BoardType {dictionary.BoardType.Id} already exists.");
         }
         else
         {
