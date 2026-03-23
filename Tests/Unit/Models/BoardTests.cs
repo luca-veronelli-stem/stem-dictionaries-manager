@@ -107,10 +107,34 @@ public class BoardTests
     [Fact]
     public void Restore_SetsIdAndProperties()
     {
-        var board = Board.Restore(99, DeviceType.EdenBs8, _madreBoardType, "Madre", 1, "DIS123");
+        var board = Board.Restore(99, DeviceType.EdenBs8, _madreBoardType, "Madre", 1, "DIS123", false);
 
         Assert.Equal(99, board.Id);
         Assert.Equal(DeviceType.EdenBs8, board.DeviceType);
         Assert.Equal("DIS123", board.PartNumber);
+    }
+
+    [Fact]
+    public void Constructor_DefaultIsPrimary_IsFalse()
+    {
+        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Periferica", 2);
+
+        Assert.False(board.IsPrimary);
+    }
+
+    [Fact]
+    public void Constructor_IsPrimaryTrue_SetsProperty()
+    {
+        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", 1, isPrimary: true);
+
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public void Restore_IsPrimaryTrue_SetsProperty()
+    {
+        var board = Board.Restore(1, DeviceType.Spyke, _madreBoardType, "HMI", 1, null, true);
+
+        Assert.True(board.IsPrimary);
     }
 }

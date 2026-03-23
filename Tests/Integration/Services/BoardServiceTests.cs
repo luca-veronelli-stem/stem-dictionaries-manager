@@ -194,7 +194,7 @@ public class BoardServiceTests : IntegrationTestBase
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         var created = await _service.AddAsync(new Board(DeviceType.Gradino, boardType, "Before", 1));
-        var updated = Board.Restore(created.Id, DeviceType.Gradino, boardType, "After", 1, "NEW-PN");
+        var updated = Board.Restore(created.Id, DeviceType.Gradino, boardType, "After", 1, "NEW-PN", false);
 
         // Act
         await _service.UpdateAsync(updated);
@@ -209,7 +209,7 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task UpdateAsync_NonExisting_ThrowsKeyNotFoundException()
     {
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var nonExisting = Board.Restore(999, DeviceType.Spyke, boardType, "Ghost", 1, null);
+        var nonExisting = Board.Restore(999, DeviceType.Spyke, boardType, "Ghost", 1, null, false);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.UpdateAsync(nonExisting));
@@ -250,5 +250,84 @@ public class BoardServiceTests : IntegrationTestBase
 
         // Assert
         Assert.Equal(2, result.Count);
+    }
+
+    // === IsPrimary Validation Tests ===
+
+    [Fact]
+    public async Task AddAsync_IsPrimaryTrue_CreatesBoard()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        var board = new Board(DeviceType.Gradino, boardType, "Principale", 1, isPrimary: true);
+
+        var created = await _service.AddAsync(board);
+
+        Assert.True(created.IsPrimary);
+    }
+
+    [Fact]
+    public async Task AddAsync_SecondPrimarySameDevice_ThrowsInvalidOperationException()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        await _service.AddAsync(new Board(DeviceType.Spyke, boardType, "HMI", 1, isPrimary: true));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.AddAsync(new Board(DeviceType.Spyke, boardType, "Display", 2, isPrimary: true)));
+    }
+
+    [Fact]
+    public async Task AddAsync_PrimaryOnDifferentDevices_IsAllowed()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        await _service.AddAsync(new Board(DeviceType.Spyke, boardType, "Spyke Main", 1, isPrimary: true));
+
+        var second = await _service.AddAsync(
+            new Board(DeviceType.Spark, boardType, "Spark Main", 1, isPrimary: true));
+
+        Assert.True(second.IsPrimary);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_SetPrimaryWhenAnotherExists_ThrowsInvalidOperationException()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        await _service.AddAsync(new Board(DeviceType.O3zTech, boardType, "Display", 1, isPrimary: true));
+        var peripheral = await _service.AddAsync(
+            new Board(DeviceType.O3zTech, boardType, "Periferica", 2));
+
+        var updated = Board.Restore(
+            peripheral.Id, DeviceType.O3zTech, boardType, "Periferica", 2, null, true);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.UpdateAsync(updated));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_KeepSamePrimary_IsAllowed()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        var primary = await _service.AddAsync(
+            new Board(DeviceType.EdenBs8, boardType, "Madre", 1, isPrimary: true));
+
+        var updated = Board.Restore(
+            primary.Id, DeviceType.EdenBs8, boardType, "Madre Rinominata", 1, null, true);
+
+        await _service.UpdateAsync(updated);
+
+        var result = await _service.GetByIdAsync(primary.Id);
+        Assert.Equal("Madre Rinominata", result!.Name);
+        Assert.True(result.IsPrimary);
+    }
+
+    [Fact]
+    public async Task AddAsync_NonPrimary_DoesNotConflict()
+    {
+        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
+        await _service.AddAsync(new Board(DeviceType.TopLiftA2, boardType, "Madre", 1, isPrimary: true));
+
+        var peripheral = await _service.AddAsync(
+            new Board(DeviceType.TopLiftA2, boardType, "Tastiera", 2, isPrimary: false));
+
+        Assert.False(peripheral.IsPrimary);
     }
 }
