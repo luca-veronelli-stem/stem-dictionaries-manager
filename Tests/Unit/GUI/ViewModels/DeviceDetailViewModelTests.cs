@@ -32,7 +32,6 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void Constructor_DefaultValues()
     {
-        // Assert
         Assert.Null(_viewModel.DeviceType);
         Assert.Empty(_viewModel.DeviceName);
         Assert.Empty(_viewModel.Dictionaries);
@@ -41,36 +40,26 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
-    public void OnCurrentViewChanged_SetsDeviceTypeAndName()
+    public async Task LoadAsync_SetsDeviceTypeAndName()
     {
-        // Act - simula navigazione a DeviceDetail
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = DeviceType.OptimusXp
-        });
+        await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert
         Assert.Equal(DeviceType.OptimusXp, _viewModel.DeviceType);
         Assert.Equal("Optimus XP", _viewModel.DeviceName);
     }
 
     [Fact]
-    public void OnCurrentViewChanged_SherpaSlim_SetsCorrectName()
+    public async Task LoadAsync_SherpaSlim_SetsCorrectName()
     {
-        // Act
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = DeviceType.SherpaSlim
-        });
+        await _viewModel.LoadAsync(DeviceType.SherpaSlim);
 
-        // Assert
         Assert.Equal("Sherpa Slim", _viewModel.DeviceName);
     }
 
     [Fact]
-    public async Task OnCurrentViewChanged_LoadsDictionaries()
+    public async Task LoadAsync_LoadsDictionaries()
     {
-        // Arrange - prepara dati: un boardType, un dizionario, una board del device
+        // Arrange
         var boardType = new BoardType("Madre OptimusXP", 17);
         _boardService.SeedBoardTypes(boardType);
         var bt = (await _boardService.GetBoardTypesAsync())[0];
@@ -81,98 +70,41 @@ public class DeviceDetailViewModelTests
         var dict = new Dictionary("Optimus XP", DeviceType.OptimusXp, bt, "Variabili Optimus XP");
         _dictionaryService.SeedData(dict);
 
-        // Act - simula navigazione
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = DeviceType.OptimusXp
-        });
-
-        // Aspetta che LoadDictionariesAsync finisca (fire-and-forget)
-        await Task.Delay(200);
+        // Act
+        await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
         // Assert
         Assert.NotEmpty(_viewModel.Dictionaries);
     }
 
     [Fact]
-    public void OnCurrentViewChanged_OtherView_DoesNothing()
-    {
-        // Act - naviga a una view diversa da DeviceDetail
-        _navigationService.NavigateTo(ViewType.DictionaryList);
-
-        // Assert - non cambia nulla
-        Assert.Null(_viewModel.DeviceType);
-        Assert.Empty(_viewModel.DeviceName);
-    }
-
-    [Fact]
-    public void OnCurrentViewChanged_NullDeviceType_DoesNothing()
-    {
-        // Act - naviga a DeviceDetail senza DeviceType
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter());
-
-        // Assert
-        Assert.Null(_viewModel.DeviceType);
-    }
-
-    [Fact]
     public void GoBackCommand_CallsNavigationGoBack()
     {
-        // Arrange
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = DeviceType.OptimusXp
-        });
-
-        // Act
         _viewModel.GoBackCommand.Execute(null);
 
-        // Assert
         Assert.True(_navigationService.GoBackCalled);
     }
 
     [Fact]
     public void OpenDictionaryCommand_WithNull_DoesNotNavigate()
     {
-        // Arrange
         _viewModel.SelectedDictionary = null;
         var historyBefore = _navigationService.NavigationHistory.Count;
 
-        // Act
         _viewModel.OpenDictionaryCommand.Execute(null);
 
-        // Assert - nessuna navigazione aggiuntiva
         Assert.Equal(historyBefore, _navigationService.NavigationHistory.Count);
     }
 
     [Fact]
     public void OpenDictionaryCommand_WithSelection_NavigatesToVariableList()
     {
-        // Arrange
         _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Madre", 10);
 
-        // Act
         _viewModel.OpenDictionaryCommand.Execute(null);
 
-        // Assert
         Assert.Equal(ViewType.VariableList, _navigationService.LastNavigatedView);
         Assert.Equal(42, _navigationService.LastParameter?.ParentId);
-    }
-
-    [Fact]
-    public void ClearSubscriptions_PreventsEventHandling()
-    {
-        // Arrange
-        _viewModel.ClearSubscriptions();
-
-        // Act - naviga a DeviceDetail, non deve essere gestito
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = DeviceType.Gradino
-        });
-
-        // Assert - non deve aver reagito all'evento
-        Assert.Null(_viewModel.DeviceType);
     }
 
     [Theory]
@@ -187,15 +119,10 @@ public class DeviceDetailViewModelTests
     [InlineData(DeviceType.OptimusXp, "Optimus XP")]
     [InlineData(DeviceType.R3lXp, "R3L-XP")]
     [InlineData(DeviceType.EdenBs8, "Eden BS8")]
-    public void DeviceName_MapsAllDeviceTypes(DeviceType deviceType, string expectedName)
+    public async Task DeviceName_MapsAllDeviceTypes(DeviceType deviceType, string expectedName)
     {
-        // Act
-        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
-        {
-            DeviceType = deviceType
-        });
+        await _viewModel.LoadAsync(deviceType);
 
-        // Assert
         Assert.Equal(expectedName, _viewModel.DeviceName);
     }
 }
