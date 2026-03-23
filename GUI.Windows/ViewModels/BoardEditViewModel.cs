@@ -35,7 +35,7 @@ public partial class BoardEditViewModel : ObservableObject
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private DeviceType _selectedDeviceType = DeviceType.Optimus;
+    private DeviceType _selectedDeviceType = DeviceType.OptimusXp;
 
     [ObservableProperty]
     private BoardTypeItem? _selectedBoardType;
