@@ -44,6 +44,10 @@ public class BoardService : IBoardService
         _ = await _boardTypeRepository.GetByIdAsync(board.BoardType.Id, ct)
             ?? throw new InvalidOperationException($"BoardType with Id {board.BoardType.Id} not found.");
 
+        // Validazione: max 1 IsPrimary per DeviceType
+        if (board.IsPrimary)
+            await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: null, ct);
+
         var entity = BoardMapper.ToEntity(board);
         var created = await _boardRepository.AddAsync(entity, ct);
 
@@ -58,6 +62,10 @@ public class BoardService : IBoardService
 
         var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
             ?? throw new KeyNotFoundException($"Board with Id {board.Id} not found.");
+
+        // Validazione: max 1 IsPrimary per DeviceType
+        if (board.IsPrimary)
+            await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: board.Id, ct);
 
         BoardMapper.UpdateEntity(entity, board);
         await _boardRepository.UpdateAsync(entity, ct);
@@ -121,5 +129,22 @@ public class BoardService : IBoardService
         var entity = BoardTypeMapper.ToEntity(boardType);
         var created = await _boardTypeRepository.AddAsync(entity, ct);
         return BoardTypeMapper.ToDomain(created);
+    }
+
+    // === Private helpers ===
+
+    /// <summary>
+    /// Verifica che non esista già una Board IsPrimary per il DeviceType dato.
+    /// </summary>
+    private async Task EnsureNoPrimaryExistsAsync(
+        DeviceType deviceType, int? excludeBoardId, CancellationToken ct)
+    {
+        var boards = await _boardRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var existing = boards.FirstOrDefault(b =>
+            b.IsPrimary && b.Id != (excludeBoardId ?? -1));
+
+        if (existing is not null)
+            throw new InvalidOperationException(
+                $"DeviceType '{deviceType}' already has a primary board (Id={existing.Id}).");
     }
 }
