@@ -165,7 +165,8 @@ public class MockBoardService : IBoardService
             board.BoardType,
             board.Name,
             board.BoardNumber,
-            board.PartNumber);
+            board.PartNumber,
+            board.IsPrimary);
         _boards.Add(restored);
         return Task.FromResult(restored);
     }

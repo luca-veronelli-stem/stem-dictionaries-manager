@@ -243,5 +243,46 @@ public class BoardEditViewModelTests
         // Assert
         Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.DeviceTypes.Count);
     }
+
+    [Fact]
+    public void IsPrimary_DefaultFalse()
+    {
+        Assert.False(_viewModel.IsPrimary);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithPrimaryBoard_SetsIsPrimary()
+    {
+        // Arrange
+        var boardType = new BoardType("Madre", 17);
+        _boardService.SeedBoardTypes(boardType);
+        var bt = (await _boardService.GetBoardTypesAsync())[0];
+        var board = new Board(DeviceType.OptimusXp, bt, "Madre", 1, isPrimary: true);
+        await _boardService.AddAsync(board);
+
+        // Act
+        await _viewModel.InitializeAsync(2);
+
+        // Assert
+        Assert.True(_viewModel.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SaveCommand_NewBoardWithIsPrimary_PassesToService()
+    {
+        // Arrange
+        var boardType = new BoardType("Madre", 17);
+        _boardService.SeedBoardTypes(boardType);
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Principale";
+        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
+        _viewModel.IsPrimary = true;
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains(_boardService.MethodCalls, c => c == "AddAsync:Principale");
+    }
 }
 #endif

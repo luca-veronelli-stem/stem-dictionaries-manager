@@ -46,20 +46,20 @@ public static class DatabaseSeeder
         var boards = new[]
         {
             // OptimusXp
-            CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Master", 1, "DIS0100001"),
+            CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Master", 1, "DIS0100001", isPrimary: true),
             CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Slave", 2, "DIS0100002"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 1", 1, "DIS0100010"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 2", 2, "DIS0100011"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 3", 3, "DIS0100012"),
 
             // EdenXp
-            CreateBoard(DeviceType.EdenXp, btMadreEden.Id, "Madre Eden XP #1", 1, "DIS0030001"),
+            CreateBoard(DeviceType.EdenXp, btMadreEden.Id, "Madre Eden XP #1", 1, "DIS0030001", isPrimary: true),
             CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Main", 1, "DIS0030010"),
             CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Aux", 2, "DIS0030011"),
             CreateBoard(DeviceType.EdenXp, btMotore.Id, "Driver Motore Eden", 1, "DIS0030030"),
 
             // SherpaSlim
-            CreateBoard(DeviceType.SherpaSlim, btSherpa.Id, "Sherpa Slim Main", 1, "DIS0010001"),
+            CreateBoard(DeviceType.SherpaSlim, btSherpa.Id, "Sherpa Slim Main", 1, "DIS0010001", isPrimary: true),
         };
         context.Boards.AddRange(boards);
         await context.SaveChangesAsync();
@@ -91,9 +91,9 @@ public static class DatabaseSeeder
 
         var dictPulsantiere = new DictionaryEntity
         {
-            Name = "Pulsantiere OptimusXp",
-            Description = "Variabili per tastiere e pulsantiere OptimusXp",
-            DeviceType = DeviceType.OptimusXp,
+            Name = "Pulsantiere 4x4",
+            Description = "Variabili per tastiere e pulsantiere 4x4 (condiviso tra device)",
+            DeviceType = null,  // ② Periferica condivisa
             BoardTypeId = btPulsantiera4.Id
         };
 
@@ -356,7 +356,8 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
     }
 
-    private static BoardEntity CreateBoard(DeviceType deviceType, int boardTypeId, string name, int boardNumber, string? partNumber)
+    private static BoardEntity CreateBoard(DeviceType deviceType, int boardTypeId,
+        string name, int boardNumber, string? partNumber, bool isPrimary = false)
     {
         // Calcola l'indirizzo protocol
         var protocolAddress = ((uint)deviceType << 16) | (((uint)boardTypeId & 0x03FF) << 6) | ((uint)boardNumber & 0x003F);
@@ -368,7 +369,8 @@ public static class DatabaseSeeder
             Name = name,
             BoardNumber = boardNumber,
             PartNumber = partNumber,
-            ProtocolAddress = protocolAddress
+            ProtocolAddress = protocolAddress,
+            IsPrimary = isPrimary
         };
     }
 

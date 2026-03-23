@@ -16,6 +16,11 @@ public class Board
     public string? PartNumber { get; private set; }
 
     /// <summary>
+    /// True se è la scheda principale del dispositivo. Max 1 per DeviceType.
+    /// </summary>
+    public bool IsPrimary { get; private set; }
+
+    /// <summary>
     /// Indirizzo protocol calcolato.
     /// Formula: (MACHINE << 16) | ((FIRMWARE_TYPE & 0x03FF) << 6) | (BOARD_NUMBER & 0x003F)
     /// </summary>
@@ -24,7 +29,8 @@ public class Board
         BoardType.FirmwareType,
         BoardNumber);
 
-    public Board(DeviceType deviceType, BoardType boardType, string name, int boardNumber, string? partNumber = null)
+    public Board(DeviceType deviceType, BoardType boardType, string name, int boardNumber,
+        string? partNumber = null, bool isPrimary = false)
     {
         ArgumentNullException.ThrowIfNull(boardType);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -36,15 +42,16 @@ public class Board
         Name = name;
         BoardNumber = boardNumber;
         PartNumber = partNumber;
+        IsPrimary = isPrimary;
     }
 
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
     public static Board Restore(int id, DeviceType deviceType, BoardType boardType,
-        string name, int boardNumber, string? partNumber)
+        string name, int boardNumber, string? partNumber, bool isPrimary)
     {
-        var board = new Board(deviceType, boardType, name, boardNumber, partNumber)
+        var board = new Board(deviceType, boardType, name, boardNumber, partNumber, isPrimary)
         {
             Id = id
         };

@@ -3,7 +3,9 @@ using Core.Enums;
 namespace Core.Models;
 
 /// <summary>
-/// Dizionario: set di variabili per un tipo di scheda su un dispositivo.
+/// Dizionario: set di variabili.
+/// 3 semantiche: Standard (null,null), Periferica condivisa (null,BT), Dedicato (DT,BT).
+/// Combinazione invalida: (DT, null) — se c'è il device, serve il BoardType.
 /// </summary>
 public class Dictionary
 {
@@ -12,12 +14,12 @@ public class Dictionary
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Tipo dispositivo associato. Null per dizionario "Standard" (condiviso).
+    /// Tipo dispositivo associato. Null per Standard o periferica condivisa.
     /// </summary>
     public DeviceType? DeviceType { get; private set; }
 
     /// <summary>
-    /// BoardType associato. Null per dizionario "Standard" (condiviso).
+    /// BoardType associato. Null solo per dizionario Standard.
     /// </summary>
     public BoardType? BoardType { get; private set; }
 
@@ -28,9 +30,9 @@ public class Dictionary
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        // Standard: entrambi null. Non-standard: entrambi obbligatori.
-        if (deviceType.HasValue != (boardType is not null))
-            throw new ArgumentException("DeviceType and BoardType must be both null (Standard) or both specified.");
+        // Dedicato richiede BoardType: (DeviceType, null) è invalido.
+        if (deviceType.HasValue && boardType is null)
+            throw new ArgumentException("DeviceType requires a BoardType. Use (null, null) for Standard or (null, BoardType) for shared.");
 
         Name = name;
         DeviceType = deviceType;

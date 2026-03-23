@@ -47,6 +47,9 @@ public partial class BoardEditViewModel : ObservableObject
     private string? _partNumber;
 
     [ObservableProperty]
+    private bool _isPrimary;
+
+    [ObservableProperty]
     private List<BoardTypeItem> _availableBoardTypes = [];
 
     // === Computed Properties ===
@@ -127,6 +130,7 @@ public partial class BoardEditViewModel : ObservableObject
         SelectedBoardType = AvailableBoardTypes.FirstOrDefault(bt => bt.Id == b.BoardType.Id);
         BoardNumber = b.BoardNumber;
         PartNumber = b.PartNumber;
+        IsPrimary = b.IsPrimary;
     }
 
     private bool CanSave() => !string.IsNullOrWhiteSpace(Name) && SelectedBoardType is not null;
@@ -155,7 +159,8 @@ public partial class BoardEditViewModel : ObservableObject
                     boardType: boardType,
                     name: Name,
                     boardNumber: BoardNumber,
-                    partNumber: PartNumber);
+                    partNumber: PartNumber,
+                    isPrimary: IsPrimary);
 
                 await _boardService.AddAsync(board);
                 _messageService.Show($"Scheda '{Name}' creata", MessageSeverity.Success);
@@ -168,7 +173,8 @@ public partial class BoardEditViewModel : ObservableObject
                     boardType: boardType,
                     name: Name,
                     boardNumber: BoardNumber,
-                    partNumber: PartNumber);
+                    partNumber: PartNumber,
+                    isPrimary: IsPrimary);
 
                 await _boardService.UpdateAsync(existing);
                 _messageService.Show($"Scheda '{Name}' aggiornata", MessageSeverity.Success);

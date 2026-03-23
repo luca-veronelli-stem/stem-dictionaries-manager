@@ -13,6 +13,11 @@ public class BoardEntity : IAuditable
     public string? PartNumber { get; set; }
     public uint ProtocolAddress { get; set; }
 
+    /// <summary>
+    /// True se è la scheda principale del dispositivo. Max 1 per DeviceType.
+    /// </summary>
+    public bool IsPrimary { get; set; }
+
     // IAuditable
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

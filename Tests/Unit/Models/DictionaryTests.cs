@@ -151,12 +151,14 @@ public class DictionaryTests
     }
 
     [Fact]
-    public void Constructor_BoardTypeWithoutDeviceType_ThrowsArgumentException()
+    public void Constructor_BoardTypeWithoutDeviceType_IsAccepted_SharedPeripheral()
     {
-        var boardType = new BoardType("Madre", 17);
+        var boardType = new BoardType("Pulsantiera 4x4", 4);
 
-        Assert.Throws<ArgumentException>(() =>
-            new Dictionary("bad", null, boardType));
+        var dictionary = new Dictionary("Pulsantiere", null, boardType);
+
+        Assert.Null(dictionary.DeviceType);
+        Assert.Equal(boardType, dictionary.BoardType);
     }
 
     [Fact]
@@ -166,5 +168,27 @@ public class DictionaryTests
 
         Assert.Null(dictionary.DeviceType);
         Assert.Null(dictionary.BoardType);
+    }
+
+    [Fact]
+    public void Restore_SharedPeripheral_NullDeviceTypeWithBoardType_IsAccepted()
+    {
+        var boardType = new BoardType("Pulsantiera 4x4", 4);
+
+        var dictionary = Dictionary.Restore(2, "Pulsantiere", null, boardType, "condiviso", []);
+
+        Assert.Null(dictionary.DeviceType);
+        Assert.Equal(boardType, dictionary.BoardType);
+    }
+
+    [Fact]
+    public void Constructor_Dedicated_DeviceTypeAndBoardType_IsAccepted()
+    {
+        var boardType = new BoardType("Madre Optimus", 17);
+
+        var dictionary = new Dictionary("Optimus XP", DeviceType.OptimusXp, boardType);
+
+        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
+        Assert.Equal(boardType, dictionary.BoardType);
     }
 }

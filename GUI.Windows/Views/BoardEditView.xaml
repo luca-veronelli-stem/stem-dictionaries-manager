@@ -32,6 +32,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -55,6 +56,10 @@
                 <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: DIS0020477"
                          MaxLength="50" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
+                          Content="Scheda principale del dispositivo" Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
