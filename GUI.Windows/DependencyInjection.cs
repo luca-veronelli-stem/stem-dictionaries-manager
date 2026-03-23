@@ -23,6 +23,9 @@ public static class DependencyInjection
 
         // ViewModels (Transient - nuova istanza per ogni navigazione)
         services.AddTransient<MainViewModel>();
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<DeviceListViewModel>();
+        services.AddTransient<DeviceDetailViewModel>();
         services.AddTransient<DictionaryListViewModel>();
         services.AddTransient<DictionaryEditViewModel>();
         services.AddTransient<VariableListViewModel>();

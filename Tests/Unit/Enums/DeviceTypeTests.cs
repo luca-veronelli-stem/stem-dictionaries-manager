@@ -12,16 +12,15 @@ public class DeviceTypeTests
     public void DeviceType_HasExpectedCount()
     {
         var values = Enum.GetValues<DeviceType>();
-        Assert.Equal(12, values.Length);
+        Assert.Equal(11, values.Length);
     }
 
     [Theory]
     [InlineData(DeviceType.SherpaSlim, 1)]
-    [InlineData(DeviceType.Optimus, 2)]
-    [InlineData(DeviceType.Eden, 3)]
+    [InlineData(DeviceType.TopLiftM, 2)]
+    [InlineData(DeviceType.EdenXp, 3)]
     [InlineData(DeviceType.Gradino, 4)]
     [InlineData(DeviceType.Spyke, 5)]
-    [InlineData(DeviceType.BleModule, 6)]
     [InlineData(DeviceType.Spark, 7)]
     [InlineData(DeviceType.TopLiftA2, 8)]
     [InlineData(DeviceType.O3zTech, 9)]

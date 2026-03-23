@@ -7,11 +7,10 @@ namespace Core.Enums;
 public enum DeviceType
 {
     SherpaSlim = 1,
-    Optimus = 2,
-    Eden = 3,
+    TopLiftM = 2,
+    EdenXp = 3,
     Gradino = 4,
     Spyke = 5,
-    BleModule = 6,
     Spark = 7,
     TopLiftA2 = 8,
     O3zTech = 9,

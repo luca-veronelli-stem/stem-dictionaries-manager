@@ -14,6 +14,12 @@
         Background="#1E1E1E">
 
     <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DeviceListViewModel}">
+            <views:DeviceListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeviceDetailViewModel}">
+            <views:DeviceDetailView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:DictionaryListViewModel}">
             <views:DictionaryListView />
         </DataTemplate>
@@ -77,6 +83,9 @@
                                HorizontalAlignment="Center" Margin="0,0,0,25"/>
 
                     <!-- Navigazione principale -->
+                    <Button Content="📱  Dispositivi"
+                            Command="{Binding NavigateToDevicesCommand}"
+                            Style="{StaticResource SidebarButtonStyle}"/>
                     <Button Content="📚  Dizionari"
                             Command="{Binding NavigateToDictionariesCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>

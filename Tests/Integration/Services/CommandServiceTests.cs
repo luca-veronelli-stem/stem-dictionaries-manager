@@ -196,13 +196,13 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange
         var command = await _service.AddAsync(new Command("UPDATE_STATE", 0x51, 0x00, false));
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.Eden, true);
+        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, true);
 
         // Act
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.Eden, false);
+        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, false);
 
         // Assert
-        var state = await _service.GetDeviceStateAsync(command.Id, DeviceType.Eden);
+        var state = await _service.GetDeviceStateAsync(command.Id, DeviceType.EdenXp);
         Assert.NotNull(state);
         Assert.False(state.IsEnabled);
     }
@@ -233,7 +233,7 @@ public class CommandServiceTests : IntegrationTestBase
         // Arrange
         var command = await _service.AddAsync(new Command("MULTI_STATE", 0x53, 0x00, false));
         await _service.SetDeviceStateAsync(command.Id, DeviceType.OptimusXp, true);
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.Eden, false);
+        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, false);
         await _service.SetDeviceStateAsync(command.Id, DeviceType.Spark, true);
 
         // Act
@@ -243,7 +243,7 @@ public class CommandServiceTests : IntegrationTestBase
         Assert.NotNull(result);
         // Stati sono caricati ma accessibili tramite GetDeviceStateAsync
         var state1 = await _service.GetDeviceStateAsync(command.Id, DeviceType.OptimusXp);
-        var state2 = await _service.GetDeviceStateAsync(command.Id, DeviceType.Eden);
+        var state2 = await _service.GetDeviceStateAsync(command.Id, DeviceType.EdenXp);
         Assert.True(state1!.IsEnabled);
         Assert.False(state2!.IsEnabled);
     }

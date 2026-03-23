@@ -124,7 +124,7 @@ public class BoardServiceTests : IntegrationTestBase
     {
         // Arrange
         var fakeBoardType = BoardType.Restore(999, "Fake", 999);
-        var board = new Board(DeviceType.Eden, fakeBoardType, "Test", 1);
+        var board = new Board(DeviceType.EdenXp, fakeBoardType, "Test", 1);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -162,7 +162,7 @@ public class BoardServiceTests : IntegrationTestBase
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         await _service.AddAsync(new Board(DeviceType.R3lXp, boardType, "R3L-1", 1));
         await _service.AddAsync(new Board(DeviceType.R3lXp, boardType, "R3L-2", 2));
-        await _service.AddAsync(new Board(DeviceType.Eden, boardType, "Eden-1", 1));
+        await _service.AddAsync(new Board(DeviceType.EdenXp, boardType, "Eden-1", 1));
 
         // Act
         var result = await _service.GetByDeviceTypeAsync(DeviceType.R3lXp);
@@ -220,7 +220,7 @@ public class BoardServiceTests : IntegrationTestBase
     {
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var created = await _service.AddAsync(new Board(DeviceType.BleModule, boardType, "Delete", 1));
+        var created = await _service.AddAsync(new Board(DeviceType.Spark, boardType, "Delete", 1));
 
         // Act
         await _service.DeleteAsync(created.Id);
@@ -243,7 +243,7 @@ public class BoardServiceTests : IntegrationTestBase
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         await _service.AddAsync(new Board(DeviceType.SherpaSlim, boardType, "Board1", 1));
-        await _service.AddAsync(new Board(DeviceType.Optimus, boardType, "Board2", 1));
+        await _service.AddAsync(new Board(DeviceType.OptimusXp, boardType, "Board2", 1));
 
         // Act
         var result = await _service.GetAllAsync();

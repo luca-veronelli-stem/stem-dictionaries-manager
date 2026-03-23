@@ -5,6 +5,8 @@ namespace GUI.Windows.Abstractions;
 /// </summary>
 public enum ViewType
 {
+    DeviceList,
+    DeviceDetail,
     DictionaryList,
     DictionaryEdit,
     VariableList,
@@ -31,6 +33,11 @@ public record NavigationParameter
     /// ID del parent (es. DictionaryId per VariableList).
     /// </summary>
     public int? ParentId { get; init; }
+
+    /// <summary>
+    /// Tipo dispositivo per filtro (es. DeviceDetail).
+    /// </summary>
+    public Core.Enums.DeviceType? DeviceType { get; init; }
 
     /// <summary>
     /// Parametri aggiuntivi.

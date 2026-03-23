@@ -50,7 +50,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         var board = new BoardEntity
         {
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             BoardTypeId = _testBoardType.Id,
             Name = "TestBoard",
             BoardNumber = 1,
@@ -95,7 +95,7 @@ public class BoardRepositoryTests : IntegrationTestBase
         });
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             BoardTypeId = _testBoardType.Id,
             Name = "EdenBoard",
             BoardNumber = 1,
@@ -185,7 +185,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         var board = new BoardEntity
         {
-            DeviceType = DeviceType.BleModule,
+            DeviceType = DeviceType.Spark,
             BoardTypeId = _testBoardType.Id,
             Name = "ToDelete",
             BoardNumber = 1,

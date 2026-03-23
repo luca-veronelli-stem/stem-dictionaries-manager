@@ -36,7 +36,7 @@ public class CommandDeviceStateMapperTests
         {
             Id = 2,
             CommandId = 20,
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             IsEnabled = false
         };
 
@@ -94,7 +94,7 @@ public class CommandDeviceStateMapperTests
     [Fact]
     public void UpdateEntity_NullEntity_ThrowsArgumentNullException()
     {
-        var domain = CommandDeviceState.Restore(1, 10, DeviceType.Eden, true);
+        var domain = CommandDeviceState.Restore(1, 10, DeviceType.EdenXp, true);
 
         Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.UpdateEntity(null!, domain));
@@ -115,7 +115,7 @@ public class CommandDeviceStateMapperTests
         var entities = new List<CommandDeviceStateEntity>
         {
             new() { Id = 1, CommandId = 10, DeviceType = DeviceType.OptimusXp, IsEnabled = true },
-            new() { Id = 2, CommandId = 10, DeviceType = DeviceType.Eden, IsEnabled = false },
+            new() { Id = 2, CommandId = 10, DeviceType = DeviceType.EdenXp, IsEnabled = false },
             new() { Id = 3, CommandId = 10, DeviceType = DeviceType.Spark, IsEnabled = true }
         };
 

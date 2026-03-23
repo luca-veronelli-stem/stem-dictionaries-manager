@@ -1,0 +1,64 @@
+<UserControl x:Class="GUI.Windows.Views.DeviceDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#2D2D30" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Content="← Indietro" Command="{Binding GoBackCommand}"
+                        Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,16,0"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="Dispositivo:" FontSize="14" Foreground="#999999" 
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding DeviceName}" FontSize="18" FontWeight="SemiBold" 
+                               Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Contenuto -->
+        <Grid Grid.Row="1">
+            <!-- Loading indicator -->
+            <TextBlock Text="Caricamento..." HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="14" Foreground="#999999"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            
+            <!-- Error message -->
+            <TextBlock Text="{Binding ErrorMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="14" Foreground="#E74C3C"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
+            
+            <!-- Lista dizionari -->
+            <DataGrid ItemsSource="{Binding Dictionaries}" 
+                      SelectedItem="{Binding SelectedDictionary}"
+                      Style="{StaticResource DarkDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                      RowStyle="{StaticResource DarkDataGridRowStyle}"
+                      CellStyle="{StaticResource DarkDataGridCellStyle}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      Margin="12">
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDictionaryCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                    <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeName}" Width="200" MinWidth="150"/>
+                    <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="100" MinWidth="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -104,6 +104,8 @@ public partial class MainViewModel : ObservableObject
     {
         return viewType switch
         {
+            ViewType.DeviceList => _serviceProvider.GetService(typeof(DeviceListViewModel)),
+            ViewType.DeviceDetail => _serviceProvider.GetService(typeof(DeviceDetailViewModel)),
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
             ViewType.DictionaryEdit => _serviceProvider.GetService(typeof(DictionaryEditViewModel)),
             ViewType.VariableList => _serviceProvider.GetService(typeof(VariableListViewModel)),
@@ -170,6 +172,8 @@ public partial class MainViewModel : ObservableObject
     {
         PageTitle = viewType switch
         {
+            ViewType.DeviceList => "Dispositivi",
+            ViewType.DeviceDetail => "Dettaglio Dispositivo",
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
             ViewType.VariableList => "Variabili",
@@ -185,6 +189,10 @@ public partial class MainViewModel : ObservableObject
 
         Title = $"Stem Dictionaries Manager - {PageTitle}";
     }
+
+    [RelayCommand]
+    private void NavigateToDevices() =>
+        _navigationService.NavigateTo(ViewType.DeviceList);
 
     [RelayCommand]
     private void NavigateToDictionaries() =>

@@ -268,7 +268,7 @@ public class DictionaryEditViewModelTests
         Assert.False(_viewModel.HasChanges);
 
         // Act
-        _viewModel.SelectedDeviceType = DeviceType.Eden;
+        _viewModel.SelectedDeviceType = DeviceType.EdenXp;
 
         // Assert
         Assert.True(_viewModel.HasChanges);
@@ -304,7 +304,7 @@ public class DictionaryEditViewModelTests
         _boardService.SeedBoardTypes(boardType);
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
-        _viewModel.SelectedDeviceType = DeviceType.Optimus;
+        _viewModel.SelectedDeviceType = DeviceType.OptimusXp;
         _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes.First();
 
         // Act

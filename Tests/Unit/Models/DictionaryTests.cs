@@ -125,11 +125,11 @@ public class DictionaryTests
             new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t")
         };
 
-        var dictionary = Dictionary.Restore(10, "test", DeviceType.Optimus, boardType, "Description", variables);
+        var dictionary = Dictionary.Restore(10, "test", DeviceType.OptimusXp, boardType, "Description", variables);
 
         Assert.Equal(10, dictionary.Id);
         Assert.Equal("test", dictionary.Name);
-        Assert.Equal(DeviceType.Optimus, dictionary.DeviceType);
+        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
         Assert.Equal(boardType, dictionary.BoardType);
         Assert.Equal(2, dictionary.Variables.Count);
     }
@@ -147,7 +147,7 @@ public class DictionaryTests
     public void Constructor_DeviceTypeWithoutBoardType_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            new Dictionary("bad", DeviceType.Optimus, null));
+            new Dictionary("bad", DeviceType.OptimusXp, null));
     }
 
     [Fact]

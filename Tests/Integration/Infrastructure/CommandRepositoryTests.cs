@@ -140,7 +140,7 @@ public class CommandRepositoryTests : IntegrationTestBase
             new CommandDeviceStateEntity
             {
                 CommandId = command.Id,
-                DeviceType = DeviceType.Eden,
+                DeviceType = DeviceType.EdenXp,
                 IsEnabled = false
             }
         );
@@ -151,7 +151,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         Assert.NotNull(result);
         Assert.Equal(2, result.DeviceStates.Count);
         Assert.Contains(result.DeviceStates, ds => ds.DeviceType == DeviceType.OptimusXp && ds.IsEnabled);
-        Assert.Contains(result.DeviceStates, ds => ds.DeviceType == DeviceType.Eden && !ds.IsEnabled);
+        Assert.Contains(result.DeviceStates, ds => ds.DeviceType == DeviceType.EdenXp && !ds.IsEnabled);
     }
 
     [Fact]

@@ -53,7 +53,7 @@ public class BoardEditViewModelTests
         var boardType = new BoardType("Madre", 17);
         _boardService.SeedBoardTypes(boardType);
         var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.Optimus, bt, "Existing", 1);
+        var board = new Board(DeviceType.OptimusXp, bt, "Existing", 1);
         await _boardService.AddAsync(board);
 
         // Act
@@ -88,7 +88,7 @@ public class BoardEditViewModelTests
         var boardType = new BoardType("Madre", 17);
         _boardService.SeedBoardTypes(boardType);
         var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.Eden, bt, "TestBoard", 3, "PN123");
+        var board = new Board(DeviceType.EdenXp, bt, "TestBoard", 3, "PN123");
         await _boardService.AddAsync(board);
 
         // Act
@@ -96,7 +96,7 @@ public class BoardEditViewModelTests
 
         // Assert
         Assert.Equal("TestBoard", _viewModel.Name);
-        Assert.Equal(DeviceType.Eden, _viewModel.SelectedDeviceType);
+        Assert.Equal(DeviceType.EdenXp, _viewModel.SelectedDeviceType);
         Assert.Equal(3, _viewModel.BoardNumber);
         Assert.Equal("PN123", _viewModel.PartNumber);
         Assert.NotNull(_viewModel.SelectedBoardType);
