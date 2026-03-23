@@ -232,13 +232,13 @@ public class CrudScenariosTests : IntegrationTestBase
         };
         var state1 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.Optimus,
+            DeviceType = DeviceType.OptimusXp,
             IsEnabled = true,
             Command = command
         };
         var state2 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             IsEnabled = false,
             Command = command
         };

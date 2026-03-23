@@ -438,6 +438,46 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
+    public void DataTypeForSave_OtherWithEmptyCustom_ReturnsFallback()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
+        _viewModel.CustomDataType = "";
+        Assert.Equal("Other", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_BitmappedWithParam_IncludesParam()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.DataTypeParam = 2;
+        Assert.Equal("Bitmapped[2]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_StringWithParam_IncludesParam()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.String;
+        _viewModel.DataTypeParam = 16;
+        Assert.Equal("String[16]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_ArrayWithParam_IncludesParam()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Array;
+        _viewModel.DataTypeParam = 10;
+        Assert.Equal("Array[10]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_SimpleTypeWithoutParam_NoSuffix()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+        _viewModel.DataTypeParam = null;
+        Assert.Equal("UInt16", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
     public void IsDataTypeOther_TrueOnlyForOther()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Other;

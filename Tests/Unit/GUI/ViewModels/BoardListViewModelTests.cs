@@ -50,8 +50,8 @@ public class BoardListViewModelTests
         _boardService.SeedBoardTypes(boardType);
         var bt = (await _boardService.GetBoardTypesAsync())[0];
 
-        var board1 = new Board(DeviceType.Optimus, bt, "Board1", 1);
-        var board2 = new Board(DeviceType.Eden, bt, "Board2", 2);
+        var board1 = new Board(DeviceType.OptimusXp, bt, "Board1", 1);
+        var board2 = new Board(DeviceType.EdenXp, bt, "Board2", 2);
         await _boardService.AddAsync(board1);
         await _boardService.AddAsync(board2);
         _boardService.MethodCalls.Clear();
@@ -143,7 +143,7 @@ public class BoardListViewModelTests
         var boardType = new BoardType("Madre", 17);
         _boardService.SeedBoardTypes(boardType);
         var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.Optimus, bt, "ToDelete", 1);
+        var board = new Board(DeviceType.OptimusXp, bt, "ToDelete", 1);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync();

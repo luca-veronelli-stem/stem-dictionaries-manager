@@ -54,7 +54,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         var state = new CommandDeviceStateEntity
         {
             CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             IsEnabled = false
         };
         await _repository.AddAsync(state);
@@ -62,7 +62,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         var result = await _repository.GetByIdAsync(state.Id);
 
         Assert.NotNull(result);
-        Assert.Equal(DeviceType.Eden, result.DeviceType);
+        Assert.Equal(DeviceType.EdenXp, result.DeviceType);
         Assert.False(result.IsEnabled);
     }
 
@@ -93,7 +93,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCommandAndDeviceAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, DeviceType.BleModule);
+        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, DeviceType.Spark);
 
         Assert.Null(result);
     }
@@ -111,7 +111,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
             CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Eden,
+            DeviceType = DeviceType.EdenXp,
             IsEnabled = false
         });
         await _repository.AddAsync(new CommandDeviceStateEntity

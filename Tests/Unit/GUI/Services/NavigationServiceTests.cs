@@ -176,5 +176,50 @@ public class NavigationServiceTests
         Assert.Equal("value1", _service.CurrentParameter?.Extra?["key1"]);
         Assert.Equal(42, _service.CurrentParameter?.Extra?["key2"]);
     }
+
+    [Fact]
+    public void NavigationParameter_DeviceType_WorksCorrectly()
+    {
+        // Arrange
+        var param = new NavigationParameter
+        {
+            DeviceType = Core.Enums.DeviceType.OptimusXp
+        };
+
+        // Act
+        _service.NavigateTo(ViewType.DeviceDetail, param);
+
+        // Assert
+        Assert.Equal(ViewType.DeviceDetail, _service.CurrentView);
+        Assert.Equal(Core.Enums.DeviceType.OptimusXp, _service.CurrentParameter?.DeviceType);
+    }
+
+    [Fact]
+    public void NavigateTo_DeviceList_ChangesView()
+    {
+        // Act
+        _service.NavigateTo(ViewType.DeviceList);
+
+        // Assert
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
+    }
+
+    [Fact]
+    public void GoBack_FromDeviceDetail_RestoresDeviceList()
+    {
+        // Arrange
+        _service.NavigateTo(ViewType.DeviceList);
+        _service.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
+        {
+            DeviceType = Core.Enums.DeviceType.SherpaSlim
+        });
+
+        // Act
+        _service.GoBack();
+
+        // Assert
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
+        Assert.Null(_service.CurrentParameter);
+    }
 }
 #endif

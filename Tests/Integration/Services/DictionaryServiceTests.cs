@@ -53,7 +53,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var dictionary = new Core.Models.Dictionary("with-boardtype", DeviceType.Optimus, boardType, "Has BoardType");
+        var dictionary = new Core.Models.Dictionary("with-boardtype", DeviceType.OptimusXp, boardType, "Has BoardType");
 
         // Act
         var result = await _service.AddAsync(dictionary);
@@ -80,11 +80,11 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.Optimus, boardType));
+        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.OptimusXp, boardType));
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.Optimus, boardType)));
+            () => _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.OptimusXp, boardType)));
         Assert.Contains("already exists", exception.Message);
     }
 
@@ -93,14 +93,14 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.Optimus, boardType));
+        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.OptimusXp, boardType));
 
         // Act - Stesso BoardType ma DeviceType diverso → OK
-        var second = await _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.Eden, boardType));
+        var second = await _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.EdenXp, boardType));
 
         // Assert
         Assert.NotNull(second);
-        Assert.Equal(DeviceType.Eden, second.DeviceType);
+        Assert.Equal(DeviceType.EdenXp, second.DeviceType);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         // Arrange - Crea dizionario Standard e uno con BoardType
         await _service.AddAsync(new Core.Models.Dictionary("standard"));
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var withBoardType = await _service.AddAsync(new Core.Models.Dictionary("with-bt", DeviceType.Optimus, boardType));
+        var withBoardType = await _service.AddAsync(new Core.Models.Dictionary("with-bt", DeviceType.OptimusXp, boardType));
 
         // Act & Assert - Cambiare a Standard (null BoardType) deve fallire
         var updated = Core.Models.Dictionary.Restore(
@@ -172,7 +172,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         await _service.AddAsync(new Core.Models.Dictionary("dict1"));
-        await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.Optimus, boardType));
+        await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.OptimusXp, boardType));
 
         // Act
         var result = await _service.GetAllAsync();
@@ -282,7 +282,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         // Arrange
         var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         var dict1 = await _service.AddAsync(new Core.Models.Dictionary("dict1"));
-        var dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.Optimus, boardType));
+        var dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.OptimusXp, boardType));
         var variable = await _service.AddVariableAsync(dict1.Id,
             new Variable("InDict1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 

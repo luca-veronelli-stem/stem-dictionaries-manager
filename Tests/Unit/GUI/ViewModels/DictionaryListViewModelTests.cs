@@ -227,7 +227,7 @@ public class DictionaryListViewModelTests
     {
         // Arrange
         var boardType = new BoardType("Madre Optimus", 17);
-        var dict = new Dictionary("Test", DeviceType.Optimus, boardType, "Desc");
+        var dict = new Dictionary("Test", DeviceType.OptimusXp, boardType, "Desc");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -262,7 +262,7 @@ public class DictionaryListViewModelTests
         // Arrange
         var bt = new BoardType("Madre Optimus", 17);
         _dictionaryService.SeedData(
-            new Dictionary("dict1", DeviceType.Optimus, bt),
+            new Dictionary("dict1", DeviceType.OptimusXp, bt),
             new Dictionary("dict2"));
         await _viewModel.LoadAsync();
 

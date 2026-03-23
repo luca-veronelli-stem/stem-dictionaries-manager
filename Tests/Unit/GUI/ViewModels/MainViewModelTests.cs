@@ -161,5 +161,39 @@ public class MainViewModelTests
         // Assert
         Assert.NotNull(_viewModel.CurrentViewModel);
     }
+
+    [Fact]
+    public void NavigateToDevicesCommand_NavigatesToDeviceList()
+    {
+        // Act
+        _viewModel.NavigateToDevicesCommand.Execute(null);
+
+        // Assert
+        Assert.Equal(ViewType.DeviceList, _navigationService.CurrentView);
+    }
+
+    [Fact]
+    public void NavigateToDeviceList_UpdatesTitle()
+    {
+        // Act
+        _viewModel.NavigateToDevicesCommand.Execute(null);
+
+        // Assert
+        Assert.Equal("Dispositivi", _viewModel.PageTitle);
+        Assert.Contains("Dispositivi", _viewModel.Title);
+    }
+
+    [Fact]
+    public void DeviceDetail_UpdatesTitle()
+    {
+        // Act
+        _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
+        {
+            DeviceType = Core.Enums.DeviceType.OptimusXp
+        });
+
+        // Assert
+        Assert.Equal("Dettaglio Dispositivo", _viewModel.PageTitle);
+    }
 }
 #endif
