@@ -141,7 +141,27 @@ public partial class VariableEditViewModel : ObservableObject
     /// <summary>
     /// Tipo dato per il salvataggio (dal dropdown o custom).
     /// </summary>
-    public string DataTypeForSave => IsDataTypeOther ? CustomDataType : SelectedDataTypeKind.ToString();
+    public string DataTypeForSave
+    {
+        get
+        {
+            if (IsDataTypeOther)
+            {
+                // Se è Other, usa il custom type (o fallback al nome enum se vuoto)
+                return string.IsNullOrWhiteSpace(CustomDataType)
+                    ? SelectedDataTypeKind.ToString()
+                    : CustomDataType;
+            }
+
+            // Per i tipi standard, costruisci la stringa col parametro se necessario
+            var baseName = SelectedDataTypeKind.ToString();
+            if (RequiresDataTypeParam && DataTypeParam.HasValue)
+            {
+                return $"{baseName}[{DataTypeParam.Value}]";
+            }
+            return baseName;
+        }
+    }
 
     /// <summary>
     /// Validazione: AddressHigh deve essere hex valido.
@@ -297,7 +317,8 @@ public partial class VariableEditViewModel : ObservableObject
         IsAddressHighValid &&
         IsAddressLowValid &&
         IsMinMaxValid &&
-        (!RequiresDataTypeParam || DataTypeParam.HasValue);
+        (!RequiresDataTypeParam || DataTypeParam.HasValue) &&
+        (!IsDataTypeOther || !string.IsNullOrWhiteSpace(CustomDataType)); // Se è Other, CustomDataType deve essere compilto
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
