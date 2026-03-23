@@ -45,23 +45,18 @@ public static class DatabaseSeeder
         // === Boards ===
         var boards = new[]
         {
-            // Optimus
-            CreateBoard(DeviceType.Optimus, btMadreOptimus.Id, "Madre Optimus #1", 1, "DIS0020001"),
-            CreateBoard(DeviceType.Optimus, btPulsantiera4.Id, "Tastiera Optimus", 1, "DIS0020010"),
-            CreateBoard(DeviceType.Optimus, btDisplay.Id, "Display Optimus", 1, "DIS0020020"),
-
-            // Eden
-            CreateBoard(DeviceType.Eden, btMadreEden.Id, "Madre Eden #1", 1, "DIS0030001"),
-            CreateBoard(DeviceType.Eden, btPulsantiera8.Id, "Tastiera Eden Main", 1, "DIS0030010"),
-            CreateBoard(DeviceType.Eden, btPulsantiera8.Id, "Tastiera Eden Aux", 2, "DIS0030011"),
-            CreateBoard(DeviceType.Eden, btMotore.Id, "Driver Motore Eden", 1, "DIS0030030"),
-
             // OptimusXp
             CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Master", 1, "DIS0100001"),
             CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Slave", 2, "DIS0100002"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 1", 1, "DIS0100010"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 2", 2, "DIS0100011"),
             CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 3", 3, "DIS0100012"),
+
+            // EdenXp
+            CreateBoard(DeviceType.EdenXp, btMadreEden.Id, "Madre Eden XP #1", 1, "DIS0030001"),
+            CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Main", 1, "DIS0030010"),
+            CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Aux", 2, "DIS0030011"),
+            CreateBoard(DeviceType.EdenXp, btMotore.Id, "Driver Motore Eden", 1, "DIS0030030"),
 
             // SherpaSlim
             CreateBoard(DeviceType.SherpaSlim, btSherpa.Id, "Sherpa Slim Main", 1, "DIS0010001"),
@@ -78,19 +73,19 @@ public static class DatabaseSeeder
             BoardTypeId = null  // Standard = senza DeviceType e BoardType
         };
 
-        var dictOptimus = new DictionaryEntity
+        var dictOptimusXp = new DictionaryEntity
         {
-            Name = "Optimus",
-            Description = "Variabili specifiche per schede madre Optimus (FW Type 17)",
-            DeviceType = DeviceType.Optimus,
+            Name = "Optimus XP",
+            Description = "Variabili specifiche per schede madre Optimus XP (FW Type 17)",
+            DeviceType = DeviceType.OptimusXp,
             BoardTypeId = btMadreOptimus.Id
         };
 
-        var dictEden = new DictionaryEntity
+        var dictEdenXp = new DictionaryEntity
         {
-            Name = "Eden",
-            Description = "Variabili specifiche per schede madre Eden (FW Type 18)",
-            DeviceType = DeviceType.Eden,
+            Name = "Eden XP",
+            Description = "Variabili specifiche per schede madre Eden XP (FW Type 18)",
+            DeviceType = DeviceType.EdenXp,
             BoardTypeId = btMadreEden.Id
         };
 
@@ -104,13 +99,13 @@ public static class DatabaseSeeder
 
         var dictMotore = new DictionaryEntity
         {
-            Name = "Driver Motore Optimus",
-            Description = "Variabili per controllo motori Optimus",
-            DeviceType = DeviceType.Optimus,
+            Name = "Driver Motore",
+            Description = "Variabili per controllo motori",
+            DeviceType = DeviceType.EdenXp,
             BoardTypeId = btMotore.Id
         };
 
-        context.Dictionaries.AddRange(dictStandard, dictOptimus, dictEden, dictPulsantiere, dictMotore);
+        context.Dictionaries.AddRange(dictStandard, dictOptimusXp, dictEdenXp, dictPulsantiere, dictMotore);
         await context.SaveChangesAsync();
 
         // === Variables per Standard ===
@@ -141,44 +136,44 @@ public static class DatabaseSeeder
         };
         context.Variables.AddRange(standardVars);
 
-        // === Variables per Optimus ===
-        var varRelayStatus = CreateVariable(dictOptimus.Id, "Relay Status", 0x80, 0x20, "Bitmapped[1]",
+        // === Variables per Optimus XP ===
+        var varRelayStatus = CreateVariable(dictOptimusXp.Id, "Relay Status", 0x80, 0x20, "Bitmapped[1]",
             "Stato dei relè", accessMode: AccessMode.ReadOnly);
 
         var optimusVars = new[]
         {
-            CreateVariable(dictOptimus.Id, "Temperature CPU", 0x80, 0x01, "Int16",
+            CreateVariable(dictOptimusXp.Id, "Temperature CPU", 0x80, 0x01, "Int16",
                 "Temperatura CPU", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1200),
-            CreateVariable(dictOptimus.Id, "Temperature Board", 0x80, 0x02, "Int16",
+            CreateVariable(dictOptimusXp.Id, "Temperature Board", 0x80, 0x02, "Int16",
                 "Temperatura scheda", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1000),
-            CreateVariable(dictOptimus.Id, "Fan Speed", 0x80, 0x03, "UInt16",
+            CreateVariable(dictOptimusXp.Id, "Fan Speed", 0x80, 0x03, "UInt16",
                 "Velocità ventola", accessMode: AccessMode.ReadOnly, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimus.Id, "Fan Target", 0x80, 0x04, "UInt16",
+            CreateVariable(dictOptimusXp.Id, "Fan Target", 0x80, 0x04, "UInt16",
                 "Velocità ventola target", accessMode: AccessMode.ReadWrite, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimus.Id, "Power Mode", 0x80, 0x10, "UInt8",
+            CreateVariable(dictOptimusXp.Id, "Power Mode", 0x80, 0x10, "UInt8",
                 "Modalità alimentazione (0=eco, 1=normal, 2=boost)", accessMode: AccessMode.ReadWrite, minValue: 0, maxValue: 2),
-            CreateVariable(dictOptimus.Id, "Supply Voltage", 0x80, 0x11, "UInt16",
+            CreateVariable(dictOptimusXp.Id, "Supply Voltage", 0x80, 0x11, "UInt16",
                 "Tensione alimentazione", accessMode: AccessMode.ReadOnly, unit: "mV", minValue: 0, maxValue: 30000),
             varRelayStatus,
-            CreateVariable(dictOptimus.Id, "Relay Control", 0x80, 0x21, "Bitmapped[1]",
+            CreateVariable(dictOptimusXp.Id, "Relay Control", 0x80, 0x21, "Bitmapped[1]",
                 "Controllo relè", accessMode: AccessMode.ReadWrite),
         };
         context.Variables.AddRange(optimusVars);
 
-        // === Variables per Eden ===
+        // === Variables per Eden XP ===
         var edenVars = new[]
         {
-            CreateVariable(dictEden.Id, "Lift Position", 0x80, 0x01, "Int32",
+            CreateVariable(dictEdenXp.Id, "Lift Position", 0x80, 0x01, "Int32",
                 "Posizione sollevatore", accessMode: AccessMode.ReadOnly, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEden.Id, "Lift Target", 0x80, 0x02, "Int32",
+            CreateVariable(dictEdenXp.Id, "Lift Target", 0x80, 0x02, "Int32",
                 "Posizione target sollevatore", accessMode: AccessMode.ReadWrite, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEden.Id, "Lift Speed", 0x80, 0x03, "UInt16",
+            CreateVariable(dictEdenXp.Id, "Lift Speed", 0x80, 0x03, "UInt16",
                 "Velocità sollevamento", accessMode: AccessMode.ReadWrite, unit: "mm/s", minValue: 1, maxValue: 100),
-            CreateVariable(dictEden.Id, "Weight", 0x80, 0x10, "UInt32",
+            CreateVariable(dictEdenXp.Id, "Weight", 0x80, 0x10, "UInt32",
                 "Peso rilevato", accessMode: AccessMode.ReadOnly, unit: "g", minValue: 0, maxValue: 500000),
-            CreateVariable(dictEden.Id, "Weight Tare", 0x80, 0x11, "UInt32",
+            CreateVariable(dictEdenXp.Id, "Weight Tare", 0x80, 0x11, "UInt32",
                 "Tara peso", accessMode: AccessMode.ReadWrite, unit: "g", minValue: 0, maxValue: 50000),
-            CreateVariable(dictEden.Id, "Sensor Status", 0x80, 0x20, "Bitmapped[2]",
+            CreateVariable(dictEdenXp.Id, "Sensor Status", 0x80, 0x20, "Bitmapped[2]",
                 "Stato sensori", accessMode: AccessMode.ReadOnly),
         };
         context.Variables.AddRange(edenVars);
