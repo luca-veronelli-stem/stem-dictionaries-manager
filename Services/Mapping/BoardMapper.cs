@@ -23,7 +23,8 @@ public static class BoardMapper
             boardType,
             entity.Name,
             entity.BoardNumber,
-            entity.PartNumber);
+            entity.PartNumber,
+            entity.IsPrimary);
     }
 
     /// <summary>
@@ -57,7 +58,8 @@ public static class BoardMapper
             Name = domain.Name,
             BoardNumber = domain.BoardNumber,
             PartNumber = domain.PartNumber,
-            ProtocolAddress = domain.ProtocolAddress
+            ProtocolAddress = domain.ProtocolAddress,
+            IsPrimary = domain.IsPrimary
         };
     }
 
@@ -75,6 +77,7 @@ public static class BoardMapper
         entity.BoardNumber = domain.BoardNumber;
         entity.PartNumber = domain.PartNumber;
         entity.ProtocolAddress = domain.ProtocolAddress;
+        entity.IsPrimary = domain.IsPrimary;
     }
 
     /// <summary>
