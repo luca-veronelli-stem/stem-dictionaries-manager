@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -27,8 +27,8 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 |---------|-------|-------------|
 | **Login Integrato** | ✅ | LoginView nella MainWindow, eventi LoginConfirmed/LoggedOut |
 | **Dark Theme** | ✅ | VS Code-style con sidebar, header, DataGrid dark |
-| **MVVM Pattern** | ✅ | 12 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 11 Views XAML complete (10 + LoginView) |
+| **MVVM Pattern** | ✅ | 14 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 13 Views XAML complete (12 + LoginView) |
 | **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
 | **Stili Globali** | ✅ | Sidebar, Toolbar, Watermark, DataGrid, Accent, HexAddress |
 | **Navigation Service** | ✅ | History, parametri, eventi |
@@ -96,6 +96,8 @@ GUI.Windows/
 ├── ViewModels/
 │   ├── MainViewModel.cs           # Shell, navigazione, CurrentUser, login/logout
 │   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
+│   ├── DeviceListViewModel.cs     # Lista dispositivi (enum DeviceType)
+│   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari e schede
 │   ├── DictionaryListViewModel.cs # Lista dizionari CRUD
 │   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario
 │   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
@@ -110,6 +112,8 @@ GUI.Windows/
 │   └── BitInterpretationItem.cs   # Item singolo bit (WordIndex, BitIndex, Meaning)
 ├── Views/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
+│   ├── DeviceListView.xaml        # UI lista dispositivi
+│   ├── DeviceDetailView.xaml      # UI dettaglio device
 │   ├── DictionaryListView.xaml    # UI lista dizionari
 │   ├── DictionaryEditView.xaml    # UI edit dizionario
 │   ├── VariableListView.xaml      # UI lista variabili
@@ -165,6 +169,8 @@ _navigationService.GoBack();
 
 | ViewType | ViewModel | Descrizione |
 |----------|-----------|-------------|
+| `DeviceList` | DeviceListViewModel | Lista dispositivi STEM |
+| `DeviceDetail` | DeviceDetailViewModel | Dettaglio device: dizionari e schede |
 | `DictionaryList` | DictionaryListViewModel | Lista dizionari |
 | `DictionaryEdit` | DictionaryEditViewModel | Crea/modifica dizionario |
 | `VariableList` | VariableListViewModel | Lista variabili |
@@ -186,11 +192,12 @@ _navigationService.GoBack();
 public interface INavigationService
 {
     ViewType CurrentView { get; }
+    NavigationParameter? CurrentParameter { get; }
     bool CanGoBack { get; }
-    
+
     void NavigateTo(ViewType viewType, NavigationParameter? parameter = null);
     bool GoBack();
-    
+
     event EventHandler<ViewType>? CurrentViewChanged;
 }
 ```
@@ -198,22 +205,32 @@ public interface INavigationService
 ### IDialogService
 
 ```csharp
+public enum DialogResult { Ok, Cancel, Yes, No }
+
 public interface IDialogService
 {
-    Task<bool> ConfirmAsync(string message, string title);
-    Task ShowErrorAsync(string message, string title);
-    Task ShowInfoAsync(string message, string title);
+    Task<DialogResult> ShowConfirmAsync(string title, string message);
+    Task<DialogResult> ShowOkCancelAsync(string title, string message);
+    Task ShowErrorAsync(string title, string message);
+    Task ShowInfoAsync(string title, string message);
+    Task ShowWarningAsync(string title, string message);
 }
 ```
 
 ### IMessageService
 
 ```csharp
+public enum MessageSeverity { Info, Success, Warning, Error }
+
 public interface IMessageService
 {
-    void ShowMessage(string message);
-    void ShowError(string message);
+    string? CurrentMessage { get; }
+    MessageSeverity CurrentSeverity { get; }
+
+    void Show(string message, MessageSeverity severity = MessageSeverity.Info, int autoHideSeconds = 5);
     void Clear();
+
+    event EventHandler? MessageChanged;
 }
 ```
 
@@ -251,7 +268,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 2 risolte (0 critiche, 0 alte, 0 medie, 2 basse)
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 5 issue aperte, 2 risolte (0 critiche, 1 alta, 2 medie, 2 basse)
 
 ---
 

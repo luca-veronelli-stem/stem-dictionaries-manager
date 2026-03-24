@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -24,7 +24,7 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 |---------|-------|-------------|
 | **Entities** | ✅ | 9 entity classes con IAuditable |
 | **Repositories** | ✅ | 9 repository + base generica |
-| **Migrations** | ✅ | InitialCreate con schema completo |
+| **Migrations** | ✅ | 3 migrations (InitialCreate, DeviceType, IsPrimary) |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
 | **Database Seeder** | ✅ | Dati demo per sviluppo ✨ |
@@ -86,11 +86,11 @@ Infrastructure/
 ├── Entities/
 │   ├── UserEntity.cs              # Utente sistema
 │   ├── BoardTypeEntity.cs         # Tipo scheda (Madre, Pulsantiera)
-│   ├── BoardEntity.cs             # Scheda fisica
-│   ├── VariableEntity.cs          # Variabile dizionario
-│   ├── DictionaryEntity.cs        # Dizionario (set di variabili)
+│   ├── BoardEntity.cs             # Scheda con IsPrimary e ProtocolAddress
+│   ├── VariableEntity.cs          # Variabile dizionario (incl. Format)
+│   ├── DictionaryEntity.cs        # Dizionario con DeviceType? e BoardType?
 │   ├── BitInterpretationEntity.cs # Interpretazione bit bitmapped
-│   ├── CommandEntity.cs           # Comando protocollo
+│   ├── CommandEntity.cs           # Comando protocollo (ParametersJson)
 │   ├── CommandDeviceStateEntity.cs# Stato comando per device
 │   └── AuditEntryEntity.cs        # Audit trail (no IAuditable)
 ├── Interfaces/
@@ -102,9 +102,9 @@ Infrastructure/
 │   ├── IDictionaryRepository.cs
 │   ├── IVariableRepository.cs
 │   ├── ICommandRepository.cs
-│   ├── IBitInterpretationRepository.cs  # ✨ NUOVO
-│   ├── ICommandDeviceStateRepository.cs # ✨ NUOVO
-│   └── IAuditEntryRepository.cs   # Blocca Update/Delete
+│   ├── IBitInterpretationRepository.cs
+│   ├── ICommandDeviceStateRepository.cs
+│   └── IAuditEntryRepository.cs
 ├── Repositories/
 │   ├── RepositoryBase.cs          # Implementazione CRUD comune
 │   ├── UserRepository.cs
@@ -113,15 +113,15 @@ Infrastructure/
 │   ├── DictionaryRepository.cs
 │   ├── VariableRepository.cs
 │   ├── CommandRepository.cs
-│   ├── BitInterpretationRepository.cs    # ✨ NUOVO
-│   ├── CommandDeviceStateRepository.cs   # ✨ NUOVO
+│   ├── BitInterpretationRepository.cs
+│   ├── CommandDeviceStateRepository.cs
 │   └── AuditEntryRepository.cs
 ├── Migrations/
-│   └── InitialCreate              # Schema iniziale (9 tabelle)
-├── Data/
-│   └── development.db             # DB sviluppo (non versionato)
-├── AppDbContext.cs                # DbContext con audit automatico
-├── DatabaseSeeder.cs              # Dati demo per sviluppo ✨
+│   ├── InitialCreate                                              # Schema 9 tabelle
+│   ├── AddDeviceTypeToDictionary_RemoveDeviceTypeFromBitInterp...  # DeviceType su Dictionary
+│   └── AddIsPrimaryToBoard                                        # IsPrimary su Board
+├── AppDbContext.cs                # DbContext con audit automatico (9 DbSet)
+├── DatabaseSeeder.cs              # Dati demo per sviluppo
 ├── DesignTimeDbContextFactory.cs  # Factory per migrations CLI
 └── DependencyInjection.cs         # Extension method AddInfrastructure()
 ```
@@ -136,13 +136,13 @@ Infrastructure/
 |--------|---------|:----------:|------|
 | `UserEntity` | Users | ✅ | Username univoco |
 | `BoardTypeEntity` | BoardTypes | ✅ | FirmwareType univoco |
-| `BoardEntity` | Boards | ✅ | FK → BoardType |
-| `VariableEntity` | Variables | ✅ | FK → Dictionary |
-| `DictionaryEntity` | Dictionaries | ✅ | FK → BoardType (nullable) |
+| `BoardEntity` | Boards | ✅ | FK → BoardType, IsPrimary, ProtocolAddress |
+| `VariableEntity` | Variables | ✅ | FK → Dictionary, Format, unique (DictionaryId, AddressHigh, AddressLow) |
+| `DictionaryEntity` | Dictionaries | ✅ | DeviceType?, FK → BoardType?, unique (DeviceType, BoardTypeId) |
 | `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable |
-| `CommandEntity` | Commands | ✅ | Parameters JSON |
-| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command |
-| `AuditEntryEntity` | AuditEntries | ❌ | Immutabile |
+| `CommandEntity` | Commands | ✅ | ParametersJson, unique (CodeHigh, CodeLow, IsResponse) |
+| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType |
+| `AuditEntryEntity` | AuditEntries | ❌ | Immutabile, FK → User |
 
 ### Repository Interfaces
 
@@ -150,14 +150,14 @@ Infrastructure/
 |-----------|---------------|
 | `IRepository<T>` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync |
 | `IUserRepository` | GetByUsernameAsync |
-| `IBoardTypeRepository` | GetByFirmwareTypeAsync |
-| `IBoardRepository` | GetByDeviceTypeAsync |
-| `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync, GetAllWithBoardTypeAsync, ExistsAsync |
+| `IBoardTypeRepository` | GetByNameAsync, GetByFirmwareTypeAsync |
+| `IBoardRepository` | GetByDeviceTypeAsync, GetByProtocolAddressAsync |
+| `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync, GetStandardDictionaryAsync, GetByDeviceTypeAndBoardTypeAsync, GetAllWithBoardTypeAsync, ExistsAsync |
 | `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
-| `ICommandRepository` | GetByCodeAsync |
+| `ICommandRepository` | GetByCodeAsync, GetWithDeviceStatesAsync |
 | `IBitInterpretationRepository` | GetByVariableIdAsync, SyncByVariableIdAsync |
-| `ICommandDeviceStateRepository` | GetByCommandIdAsync |
-| `IAuditEntryRepository` | GetByEntityAsync (⚠️ Update/Delete bloccati) |
+| `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
+| `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync |
 
 ### Audit Automatico
 
@@ -204,7 +204,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 5 issue aperte, 2 risolte (0 critiche, 1 alta, 2 medie, 2 basse)
 
 ---
 

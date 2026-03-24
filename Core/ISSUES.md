@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -12,16 +12,17 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
-| **Media** | 0 | 2 |
+| **Media** | 1 | 2 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 3  
+**Totale aperte:** 4  
 **Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
+- [CORE-006 - Dictionary.Restore bypassa validazione unicità indirizzi](#core-006--dictionaryrestore-bypassa-validazione-unicità-indirizzi)
 - [CORE-003 - Dictionary.RemoveVariable non verifica esistenza](#core-003--dictionaryremovevariable-non-verifica-esistenza)
 - [CORE-004 - Mancanza di metodi Update sui modelli](#core-004--mancanza-di-metodi-update-sui-modelli)
 - [CORE-005 - BitInterpretation.VariableId non ha validazione positiva](#core-005--bitinterpretationvariableid-non-ha-validazione-positiva)
@@ -30,6 +31,83 @@
 
 - [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
 - [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
+
+---
+
+## Priorità Media
+
+### CORE-006 - Dictionary.Restore bypassa validazione unicità indirizzi
+
+**Categoria:** Bug (Defensive Programming)  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-23  
+
+#### Descrizione
+
+`Dictionary.Restore` usa `_variables.AddRange(variables)` che bypassa completamente la validazione `FullAddress` unicità imposta da `AddVariable`. Se il database contiene dati corrotti (duplicati di indirizzo), vengono caricati silenziosamente senza errore.
+
+#### File Coinvolti
+
+- `Core/Models/Dictionary.cs` (righe 46-55)
+
+#### Codice Problematico
+
+```csharp
+public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType,
+    string? description, IEnumerable<Variable> variables)
+{
+    var dictionary = new Dictionary(name, deviceType, boardType, description)
+    {
+        Id = id
+    };
+    dictionary._variables.AddRange(variables);  // ← Nessun check unicità FullAddress
+    return dictionary;
+}
+```
+
+#### Problema Specifico
+
+- `AddVariable` verifica `FullAddress` unicità e lancia `InvalidOperationException` su duplicati
+- `Restore` non fa nessun controllo, data corruzione nel DB (specialmente SQLite dev) passa inosservata
+- Pattern DDD prevede Restore senza validazione, ma qui il rischio è concreto con DB locale SQLite
+
+#### Soluzione Proposta
+
+**Opzione A: Assert difensivo in Restore (raccomandata)**
+
+```csharp
+public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType,
+    string? description, IEnumerable<Variable> variables)
+{
+    var dictionary = new Dictionary(name, deviceType, boardType, description)
+    {
+        Id = id
+    };
+    var varList = variables.ToList();
+    var duplicates = varList.GroupBy(v => v.FullAddress).Where(g => g.Count() > 1);
+    if (duplicates.Any())
+        throw new InvalidOperationException(
+            $"Duplicate FullAddress found in dictionary '{name}': " +
+            string.Join(", ", duplicates.Select(g => $"0x{g.Key:X4}")));
+    dictionary._variables.AddRange(varList);
+    return dictionary;
+}
+```
+
+**Opzione B: Usare AddVariable nel Restore**
+
+```csharp
+foreach (var variable in variables)
+    dictionary.AddVariable(variable);
+```
+
+#### Benefici Attesi
+
+- Fail-fast su dati corrotti nel DB
+- Coerenza con le regole di business di `AddVariable`
+- Debug più veloce in sviluppo (SQLite locale)
 
 ---
 
@@ -215,7 +293,7 @@ public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? me
 **Categoria:** Design  
 **Priorità:** Media  
 **Impatto:** Medio  
-**Status:** ✅ Risolto  
+**Status:** Risolto  
 **Data Apertura:** 2026-03-18  
 **Data Risoluzione:** 2026-03-19  
 **Branch:** fix/core-001-002
@@ -224,6 +302,11 @@ public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? me
 
 Implementata **Opzione A: Rimuovere Device**. L'enum ora ha 7 valori.
 
+#### Benefici Ottenuti
+
+- Enum allineato al dominio reale ✅
+- Nessun valore orfano ✅
+
 ---
 
 ### CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00
@@ -231,7 +314,7 @@ Implementata **Opzione A: Rimuovere Device**. L'enum ora ha 7 valori.
 **Categoria:** Design  
 **Priorità:** Media  
 **Impatto:** Basso  
-**Status:** ✅ Risolto  
+**Status:** Risolto  
 **Data Apertura:** 2026-03-18  
 **Data Risoluzione:** 2026-03-19  
 **Branch:** fix/core-001-002
@@ -242,8 +325,14 @@ Implementate **entrambe le opzioni**:
 1. Validazione nel costruttore: `AddressHigh` deve essere `0x00` o `0x80`
 2. Match esplicito con `switch` expression nella proprietà `Category`
 
-**Test aggiunti:**
+#### Test Aggiunti
+
 - `Constructor_InvalidAddressHigh_ThrowsArgumentOutOfRangeException` (3 InlineData: 0x01, 0x40, 0xFF)
+
+#### Benefici Ottenuti
+
+- Fail-fast su AddressHigh invalido ✅
+- Coerenza con enum VariableCategory ✅
 
 ---
 

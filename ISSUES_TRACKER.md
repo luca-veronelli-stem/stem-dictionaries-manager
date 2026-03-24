@@ -1,6 +1,6 @@
 # Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -8,13 +8,13 @@
 
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
-| [Core](./Core/ISSUES.md) | 3 | 2 | 5 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 2 | 6 |
-| [Services](./Services/ISSUES.md) | 6 | 1 | 7 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 2 | 4 |
-| [Tests](./Tests/ISSUES.md) | 1 | 5 | 6 |
+| [Core](./Core/ISSUES.md) | 4 | 2 | 6 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 5 | 2 | 7 |
+| [Services](./Services/ISSUES.md) | 9 | 1 | 10 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 5 | 2 | 7 |
+| [Tests](./Tests/ISSUES.md) | 3 | 5 | 8 |
 | **Trasversali** | **0** | **1** | **1** |
-| **Totale** | **16** | **13** | **29** |
+| **Totale** | **26** | **13** | **39** |
 
 ---
 
@@ -23,16 +23,16 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 0 | 0% |
-| **Media** | 4 | 25% |
-| **Bassa** | 12 | 75% |
-| **Totale** | **16** | 100% |
+| **Alta** | 4 | 15% |
+| **Media** | 9 | 35% |
+| **Bassa** | 13 | 50% |
+| **Totale** | **26** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        ░░░░░░░░░░░░░░░░░░░░  0  ✅ T-001 risolta
-Media:       ██████░░░░░░░░░░░░░░  6
-Bassa:       ████████████░░░░░░░░ 12
+Alta:        ████░░░░░░░░░░░░░░░░  4  ⚠️ Bug attivi
+Media:       █████████░░░░░░░░░░░  9
+Bassa:       █████████████░░░░░░░ 13
 ```
 
 ---
@@ -41,10 +41,14 @@ Bassa:       ████████████░░░░░░░░ 12
 
 | ID | Componente | Titolo | Status |
 |----|------------|--------|--------|
+| **SVC-008** | Services | DictionaryService.AddAsync blocca Shared Peripheral | 🔴 **Aperto** |
+| **INFRA-007** | Infrastructure | DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType | 🔴 **Aperto** |
+| **GUI-005** | GUI.Windows | MainViewModel.NavigateToView async void senza error handling | 🔴 **Aperto** |
+| **TEST-007** | Tests | Manca test integration per Shared Peripheral (copre SVC-008) | 🔴 **Aperto** |
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
 | ~~T-001~~ | Trasversale | Dizionario Standard deve essere unico | ✅ **Risolto** |
 
-*0 issue alta priorità aperte.* ✅
+⚠️ **4 issue alta priorità aperte — 2 bug, 1 crash potenziale, 1 gap copertura critico.**
 
 ---
 
@@ -75,28 +79,57 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 ## Issue per Componente
 
-### Core (3 issue aperte, 2 risolte)
+### Core (4 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~CORE-001~~ | ~~AuditEntityType contiene "Device" non esistente~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
+| [CORE-006](./Core/ISSUES.md#core-006--dictionaryrestore-bypassa-validazione-unicità-indirizzi) | Dictionary.Restore bypassa validazione unicità indirizzi | Media | Bug |
 | [CORE-003](./Core/ISSUES.md#core-003--dictionaryremovevariable-non-verifica-esistenza) | Dictionary.RemoveVariable non verifica esistenza | Bassa | API |
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
-### Infrastructure (4 issue aperte, 2 risolte)
+### Infrastructure (5 issue aperte, 2 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
 | ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
+| [INFRA-007](./Infrastructure/ISSUES.md#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype) | **DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType** | **Alta** | **Bug** |
 | [INFRA-002](./Infrastructure/ISSUES.md#infra-002--getallasync-senza-paginazione-rischia-performance-issues) | GetAllAsync senza paginazione | Media | Performance |
 | [INFRA-003](./Infrastructure/ISSUES.md#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile) | DesignTimeDbContextFactory path fragile | Media | Manutenibilità |
 | ~~INFRA-004~~ | ~~Mancano repository BitInterpretation/CommandDeviceState~~ | ~~Bassa~~ | ✅ **Risolto** (SVC-001) |
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Tests (1 issue aperta, 5 risolte)
+### Services (9 issue aperte, 1 risolta)
+
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|
+| ~~SVC-001~~ | ~~Services dipendono da AppDbContext~~ | ~~Media~~ | ✅ **Risolto** |
+| [SVC-008](./Services/ISSUES.md#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste) | **DictionaryService.AddAsync blocca Shared Peripheral** | **Alta** | **Bug** |
+| [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService | Media | Feature |
+| [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
+| [SVC-009](./Services/ISSUES.md#svc-009--variablemappertodomain-non-mappa-format) | VariableMapper.ToDomain non mappa Format | Media | Bug (Data Loss) |
+| [SVC-004](./Services/ISSUES.md#svc-004--mancano-mapper-per-boardmapper-con-overload) | BoardMapper overload mancanti | Bassa | Code Smell |
+| [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | GetWithDeviceStates non espone stati | Bassa | Design |
+| [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
+| [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
+| [SVC-010](./Services/ISSUES.md#svc-010--class1cs-placeholder-non-rimosso) | Class1.cs placeholder non rimosso | Bassa | Code Smell |
+
+### GUI.Windows (5 issue aperte, 2 risolte)
+
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|
+| ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
+| [GUI-005](./GUI.Windows/ISSUES.md#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling) | **NavigateToView async void senza error handling** | **Alta** | **Bug** |
+| [GUI-006](./GUI.Windows/ISSUES.md#gui-006--loginviewmodel-registrato-due-volte-nel-di-container) | LoginViewModel registrato due volte nel DI | Media | Code Smell |
+| [GUI-007](./GUI.Windows/ISSUES.md#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato) | DictionaryListItem non mostra DeviceType | Media | UX |
+| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
+| [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
+
+### Tests (3 issue aperte, 5 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -105,28 +138,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~TEST-003~~ | ~~Uso .Wait() bloccante~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-004~~ | ~~Mancano test DI~~ | ~~Bassa~~ | ✅ **Risolto** |
 | ~~TEST-005~~ | ~~Mancano test scenari update/delete~~ | ~~Bassa~~ | ✅ **Risolto** |
+| [TEST-007](./Tests/ISSUES.md#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice) | **Manca test Shared Peripheral (copre SVC-008)** | **Alta** | **Copertura** |
+| [TEST-008](./Tests/ISSUES.md#test-008--variablemappertests-non-testa-format-round-trip) | VariableMapperTests non testa Format round-trip | Media | Copertura |
 | [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
-
-### Services (6 issue aperte, 1 risolta)
-
-| ID | Titolo | Priorità | Categoria |
-|----|--------|----------|-----------|
-| ~~SVC-001~~ | ~~Services dipendono da AppDbContext~~ | ~~Media~~ | ✅ **Risolto** |
-| [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService | Media | Feature |
-| [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
-| [SVC-004](./Services/ISSUES.md#svc-004--mancano-mapper-per-boardmapper-con-overload) | BoardMapper overload mancanti | Bassa | Code Smell |
-| [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | GetWithDeviceStates non espone stati | Bassa | Design |
-| [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
-| [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
-
-### GUI.Windows (2 issue aperte, 2 risolte)
-
-| ID | Titolo | Priorità | Categoria |
-|----|--------|----------|-----------|
-| ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
-| ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
-| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
-| [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
 ---
 
@@ -134,13 +148,16 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **SVC-003** | Services | GetAllAsync senza paginazione | M |
-| 2 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
-| 3 | **SVC-002** | Services | Manca IAuditService | M |
-| 4 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
-| 5 | **CORE-003** | Core | Dictionary.RemoveVariable non verifica esistenza | S |
+| 1 | **SVC-008** | Services | DictionaryService.AddAsync blocca Shared Peripheral | S |
+| 2 | **INFRA-007** | Infrastructure | DatabaseSeeder.CreateBoard usa boardTypeId (indirizzi errati) | S |
+| 3 | **GUI-005** | GUI.Windows | NavigateToView async void senza try/catch (crash) | S |
+| 4 | **SVC-009** | Services | VariableMapper.ToDomain non mappa Format (data loss) | S |
+| 5 | **TEST-007** | Tests | Manca test Shared Peripheral (insieme a fix SVC-008) | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
+
+> ⚠️ **Le issue #1 e #5 devono essere risolte insieme** (fix SVC-008 + test TEST-007).  
+> ⚠️ **La issue #4 va risolta con TEST-008** (fix SVC-009 + test round-trip Format).
 
 ---
 
@@ -168,10 +185,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 |---------|-------|------|
 | **Architecture** | ✅ 95% | Layer separation corretta, Services decoupled |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
-| **Input Validation** | ⚠️ 75% | Alcuni edge-case (CORE-002, CORE-005) |
+| **Input Validation** | ⚠️ 70% | SVC-008 (Shared Peripheral), CORE-006, CORE-005 |
+| **Data Integrity** | ⚠️ 75% | SVC-009 (Format data loss), INFRA-007 (indirizzi errati) |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
-| **Code Consistency** | ✅ 85% | Poche inconsistenze (INFRA-006) |
-| **Test Coverage** | ✅ 90% | 1112 test Windows, copertura ~95% |
+| **Resilience** | ⚠️ 75% | GUI-005 (crash su navigazione), INFRA-003 (path fragile) |
+| **Code Consistency** | ✅ 85% | INFRA-006, GUI-006, SVC-010 |
+| **Test Coverage** | ✅ 88% | TEST-007/008 gap su 3 semantiche e Format |
 
 ---
 
@@ -179,13 +198,16 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **API** | 3 | CORE-003, CORE-004, CORE-005 |
-| **Design** | 3 | INFRA-005, GUI-002, GUI-003 |
-| **Copertura** | 0 | *(tutte risolte)* |
+| **Bug** | 5 | **SVC-008**, **INFRA-007**, **SVC-009**, CORE-006, INFRA-006 |
+| **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
+| **UX** | 2 | GUI-003, GUI-007 |
 | **Performance** | 2 | INFRA-002, SVC-003 |
+| **Copertura** | 2 | **TEST-007**, TEST-008 |
+| **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
-| **Bug** | 1 | INFRA-006 |
+| **Code Smell** | 3 | SVC-004, SVC-010, GUI-006 |
 | **Feature** | 1 | SVC-002 |
+| **Robustezza** | 2 | SVC-007, **GUI-005** |
 
 ---
 
@@ -212,6 +234,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-24 | 🔍 **Audit completo tutti i componenti** — Analisi approfondita Core, Infrastructure, Services, GUI.Windows, Tests. +10 nuove issue (CORE-006, INFRA-007, SVC-008/009/010, GUI-005/006/007, TEST-007/008). 4 issue alta priorità identificate: 2 bug (SVC-008 Shared Peripheral, INFRA-007 indirizzi), 1 crash (GUI-005 async void), 1 gap test (TEST-007). Totale: 26 aperte, 13 risolte |
 | 2026-03-20 | :sparkles: **Dictionary Uniqueness** - Aggiunto `DeviceType` a Dictionary, migrazione su `DictionaryEntity` con unique constraint `(DeviceType, BoardType)`, rimosso `DeviceType` da `BitInterpretation` (branch `fix/unicita-dizionario`) |
 | 2026-03-20 | ✅ **GUI-004 risolta** - Refactoring grafico completo: dark theme VS Code-style, login integrato nella MainWindow (pattern PT), rimosso CurrentUserService, +11 test (1112 totali Windows) (branch `gui/refactoring-completo`) |
 | 2026-03-19 | ✨ **Filtro/ricerca nelle liste** - SearchText filtra client-side in tutti i 5 ListViewModel (case-insensitive), +15 test (1111 totali Windows) (branch `feature/filtro-ricerca`) |

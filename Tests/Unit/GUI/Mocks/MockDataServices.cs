@@ -209,7 +209,7 @@ public class MockBoardService : IBoardService
     {
         MethodCalls.Add($"GetByDeviceTypeAsync:{deviceType}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<Board>>([.. _boards.Where(b => b.BoardType.FirmwareType == (int)deviceType)]);
+        return Task.FromResult<IReadOnlyList<Board>>([.. _boards.Where(b => b.DeviceType == deviceType)]);
     }
 
     public Task<Board?> GetByProtocolAddressAsync(uint protocolAddress, CancellationToken ct = default)

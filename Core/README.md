@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-19
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -53,14 +53,20 @@ var variable = new Variable(
     addressHigh: 0x80,
     addressLow: 0x01,
     dataTypeKind: DataTypeKind.Int16,
-    dataTypeRaw: "INT16",
     accessMode: AccessMode.ReadOnly,
-    isEnabled: true
+    dataTypeRaw: "INT16"
 );
 
-// Creare un dizionario
-var dictionary = new Dictionary("optimus-xp", boardType);
-dictionary.AddVariable(variable);
+// 3 semantiche di dizionario:
+// ① Standard (null, null) — variabili comuni a tutti i device
+var standard = new Dictionary("standard", description: "Variabili comuni");
+
+// ② Periferica condivisa (null, BoardType) — periferica usata da più device
+var shared = new Dictionary("pulsantiere", boardType: boardType);
+
+// ③ Dedicato (DeviceType, BoardType) — specifico per un device
+var dedicated = new Dictionary("optimus-xp", DeviceType.OptimusXp, boardType);
+dedicated.AddVariable(variable);
 ```
 
 ---
@@ -74,7 +80,7 @@ Core/
 │   ├── AuditEntityType.cs      # Tipi entità per audit trail
 │   ├── AuditOperation.cs       # Create, Update, Delete
 │   ├── DataTypeKind.cs         # UInt8, Int16, String, Bitmapped, etc.
-│   ├── DeviceType.cs           # SherpaSlim, Optimus, Eden, etc. (12 tipi)
+│   ├── DeviceType.cs           # SherpaSlim, Optimus, Eden, etc. (11 tipi)
 │   └── VariableCategory.cs     # Standard (0x00xx), DeviceSpecific (0x80xx)
 └── Models/
     ├── AuditEntry.cs           # Traccia modifiche con JSON completo
@@ -83,7 +89,7 @@ Core/
     ├── BoardType.cs            # Tipo scheda (Madre, Pulsantiera, etc.)
     ├── Command.cs              # Comando protocollo
     ├── CommandDeviceState.cs   # Stato comando per device specifico
-    ├── Dictionary.cs           # Set di variabili per BoardType
+    ├── Dictionary.cs           # Set di variabili con 3 semantiche (Standard, Condiviso, Dedicato)
     ├── User.cs                 # Utente sistema (audit)
     └── Variable.cs             # Variabile dizionario con tipo e permessi
 ```
@@ -96,33 +102,46 @@ Core/
 
 | Enum | Valori | Uso |
 |------|--------|-----|
-| `DeviceType` | 12 valori | Tipo dispositivo STEM (Optimus, Eden, etc.) |
+| `DeviceType` | 11 valori | Tipo dispositivo STEM (Optimus, Eden, Sherpa, etc.) |
 | `AccessMode` | 3 valori | Permessi variabile (ReadOnly, ReadWrite, WriteOnly) |
-| `DataTypeKind` | 11 valori | Tipo dato (UInt8, Int16, String, Bitmapped, etc.) |
+| `DataTypeKind` | 12 valori | Tipo dato (UInt8, Int16, String, Bitmapped, Array, Other, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
-| `AuditEntityType` | 8 valori | Tipo entità per audit trail |
+| `AuditEntityType` | 7 valori | Tipo entità per audit trail |
 
 ### Modelli Principali
 
 | Modello | Descrizione | Relazioni |
 |---------|-------------|-----------|
-| `Variable` | Variabile con indirizzo, tipo, permessi | → Dictionary, BitInterpretation |
-| `Dictionary` | Set di variabili per un BoardType | → BoardType, Variable[] |
-| `BoardType` | Tipo scheda con firmwareType | → Dictionary, Board[] |
+| `Dictionary` | Set di variabili — 3 semantiche: Standard, Condiviso, Dedicato | → DeviceType?, BoardType?, Variable[] |
+| `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[] |
+| `BoardType` | Tipo scheda con firmwareType | → Dictionary[], Board[] |
 | `Board` | Istanza scheda in un device | → BoardType, DeviceType |
 | `Command` | Comando protocollo universale | → CommandDeviceState[] |
+| `CommandDeviceState` | Stato comando per device specifico | → Command, DeviceType |
+| `BitInterpretation` | Significato bit per variabili bitmapped | → Variable |
+| `User` | Utente sistema (audit) | — |
 | `AuditEntry` | Traccia modifiche | previousValue/newValue JSON |
+
+### Semantiche Dizionario
+
+| Semantica | DeviceType | BoardType | Esempio |
+|-----------|------------|-----------|----------|
+| **Standard** | `null` | `null` | Variabili comuni a tutti i device |
+| **Periferica condivisa** | `null` | ✅ | Pulsantiera 4x4 usata da più device |
+| **Dedicato** | ✅ | ✅ | Madre Optimus-XP |
+
+> Combinazione invalida: `(DeviceType, null)` — se c'è il device, serve il BoardType.
 
 ### Calcolo Indirizzo Protocol
 
 ```csharp
 // Board.CalculateAddress compone l'indirizzo da:
-// - MACHINE (DeviceType)
-// - FIRMWARE_TYPE (BoardType)
-// - BOARD_NUMBER
+// - machineCode (DeviceType)
+// - firmwareType (BoardType)
+// - boardNumber
 
-int address = Board.CalculateAddress(machine: 10, fwType: 17, boardNum: 1);
+uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNumber: 1);
 // Risultato: (10 << 16) | ((17 & 0x03FF) << 6) | (1 & 0x003F)
 ```
 
@@ -130,7 +149,7 @@ int address = Board.CalculateAddress(machine: 10, fwType: 17, boardNum: 1);
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 2 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
+→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
 
 ---
 

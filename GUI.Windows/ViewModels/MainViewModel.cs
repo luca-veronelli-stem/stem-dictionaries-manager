@@ -149,6 +149,11 @@ public partial class MainViewModel : ObservableObject
                 await vm.InitializeAsync();
                 break;
 
+            // Device Detail - carica dizionari per il device selezionato
+            case DeviceDetailViewModel vm when parameter?.DeviceType is not null:
+                await vm.LoadAsync(parameter.DeviceType.Value);
+                break;
+
             // Edit ViewModels - caricano entità esistente o preparano per nuova
             case DictionaryEditViewModel vm:
                 await vm.InitializeAsync(parameter?.EntityId);

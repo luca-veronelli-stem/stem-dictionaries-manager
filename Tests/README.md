@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~450 test per Core + Services/Mapping + GUI |
-| **Integration Tests** | ✅ | ~200 test per Infrastructure + Services + GUI |
+| **Unit Tests** | ✅ | ~500 test per Core + Services/Mapping + GUI (15 ViewModels) |
+| **Integration Tests** | ✅ | ~230 test per Infrastructure + Services + GUI |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
@@ -49,7 +49,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 |----------|-----|
 | Core | Modelli ed enum da testare |
 | Infrastructure | Repositories e DbContext |
-| Services | Business logic (futuro) |
+| Services | Business logic, Mapper, DI |
 | GUI.Windows | UI tests (solo Windows) |
 
 ---
@@ -88,15 +88,15 @@ Tests/
 │   │   ├── DeviceTypeTests.cs        # 5 test
 │   │   └── VariableCategoryTests.cs  # 4 test
 │   ├── Models/
-│   │   ├── AuditEntryTests.cs        # 12 test
-│   │   ├── BitInterpretationTests.cs # 8 test
-│   │   ├── BoardTests.cs             # 10 test
-│   │   ├── BoardTypeTests.cs         # 8 test
-│   │   ├── CommandDeviceStateTests.cs# 6 test
-│   │   ├── CommandTests.cs           # 10 test
-│   │   ├── DictionaryTests.cs        # 14 test
-│   │   ├── UserTests.cs              # 8 test
-│   │   └── VariableTests.cs          # 17 test
+│   │   ├── AuditEntryTests.cs        # 6 test
+│   │   ├── BitInterpretationTests.cs # 6 test
+│   │   ├── BoardTests.cs             # 13 test (incl. IsPrimary)
+│   │   ├── BoardTypeTests.cs         # 6 test
+│   │   ├── CommandDeviceStateTests.cs# 5 test
+│   │   ├── CommandTests.cs           # 7 test
+│   │   ├── DictionaryTests.cs        # 17 test (incl. 3 semantiche)
+│   │   ├── UserTests.cs              # 7 test
+│   │   └── VariableTests.cs          # 15 test
 │   ├── Infrastructure/
 │   │   └── DependencyInjectionTests.cs    # 13 test
 │   ├── GUI/                               # Test GUI (solo Windows)
@@ -104,56 +104,60 @@ Tests/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
 │   │   │   └── MockDataServices.cs        # Mock per data services (4 mock)
 │   │   ├── ViewModels/
-│   │   │   ├── DictionaryListViewModelTests.cs   # 14 test
-│   │   │   ├── DictionaryEditViewModelTests.cs   # 17 test
-│   │   │   ├── MainViewModelTests.cs             # 7 test
-│   │   │   ├── VariableListViewModelTests.cs     # 14 test
-│   │   │   ├── VariableEditViewModelTests.cs     # 54 test
-│   │   │   ├── WordBitGroupTests.cs               # 9 test
-│   │   │   ├── CommandListViewModelTests.cs      # 14 test
-│   │   │   ├── CommandEditViewModelTests.cs      # 16 test
-│   │   │   ├── BoardListViewModelTests.cs        # 13 test
-│   │   │   ├── BoardEditViewModelTests.cs        # 14 test
-│   │   │   ├── UserListViewModelTests.cs         # 14 test
+│   │   │   ├── MainViewModelTests.cs             # 15 test (login/logout, nav)
+│   │   │   ├── LoginViewModelTests.cs            # 8 test
+│   │   │   ├── DeviceListViewModelTests.cs       # 12 test
+│   │   │   ├── DeviceDetailViewModelTests.cs     # 20 test
+│   │   │   ├── DictionaryListViewModelTests.cs   # 18 test
+│   │   │   ├── DictionaryEditViewModelTests.cs   # 22 test (DeviceType)
+│   │   │   ├── VariableListViewModelTests.cs     # 16 test
+│   │   │   ├── VariableEditViewModelTests.cs     # 50 test (Bitmapped)
+│   │   │   ├── WordBitGroupTests.cs              # 9 test
+│   │   │   ├── CommandListViewModelTests.cs      # 16 test
+│   │   │   ├── CommandEditViewModelTests.cs      # 14 test
+│   │   │   ├── BoardListViewModelTests.cs        # 14 test
+│   │   │   ├── BoardEditViewModelTests.cs        # 17 test
+│   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Converters/
-│   │   │   └── NullableNumericConverterTests.cs  # 18 test
+│   │   │   └── NullableNumericConverterTests.cs  # 20 test
 │   │   ├── Services/
-│   │   │   └── NavigationServiceTests.cs         # 12 test
-│   │   └── DependencyInjectionTests.cs           # 21 test
+│   │   │   └── NavigationServiceTests.cs         # 15 test
+│   │   └── DependencyInjectionTests.cs           # 22 test
 │   └── Services/
-├── DependencyInjectionTests.cs    # 10 test
+│       ├── DependencyInjectionTests.cs        # 10 test
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
 │           ├── BoardTypeMapperTests.cs        # 10 test
-│           ├── VariableMapperTests.cs         # 11 test
-│           ├── CommandMapperTests.cs          # 14 test
-│           ├── DictionaryMapperTests.cs       # 15 test
+│           ├── BoardMapperTests.cs            # 6 test
+│           ├── VariableMapperTests.cs         # 10 test
+│           ├── CommandMapperTests.cs          # 13 test
+│           ├── DictionaryMapperTests.cs       # 14 test
 │           ├── BitInterpretationMapperTests.cs    # 10 test
-│           └── CommandDeviceStateMapperTests.cs   # 10 test
+│           └── CommandDeviceStateMapperTests.cs   # 11 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
     │   ├── AuditEntryRepositoryTests.cs       # 5 test
-    │   ├── AuditFieldsTests.cs                # 4 test
-    │   ├── BoardRepositoryTests.cs            # 12 test
+    │   ├── AuditFieldsTests.cs                # 3 test
+    │   ├── BoardRepositoryTests.cs            # 11 test
     │   ├── BoardTypeRepositoryTests.cs        # 10 test
-    │   ├── CommandRepositoryTests.cs          # 11 test
-    ├── CrudScenariosTests.cs              # 18 test
-    │   ├── DatabaseCreationTests.cs           # 3 test
-    │   ├── DictionaryRepositoryTests.cs       # 15 test
-    │   ├── UserRepositoryTests.cs             # 6 test
-    │   ├── BitInterpretationRepositoryTests.cs    # 14 test
+    │   ├── CommandRepositoryTests.cs          # 12 test
+    │   ├── CrudScenariosTests.cs              # 18 test
+    │   ├── DatabaseCreationTests.cs           # 2 test
+    │   ├── DictionaryRepositoryTests.cs       # 14 test
+    │   ├── UserRepositoryTests.cs             # 9 test
+    │   ├── BitInterpretationRepositoryTests.cs    # 13 test
     │   └── CommandDeviceStateRepositoryTests.cs   # 10 test
-    └── Services/
-        ├── UserServiceTests.cs            # 16 test
-        ├── DictionaryServiceTests.cs      # 17 test
-        ├── BoardServiceTests.cs           # 17 test
-        ├── CommandServiceTests.cs         # 15 test
-        └── VariableServiceTests.cs        # 28 test
+    ├── Services/
+    │   ├── UserServiceTests.cs            # 15 test
+    │   ├── DictionaryServiceTests.cs      # 21 test (3 semantiche)
+    │   ├── BoardServiceTests.cs           # 23 test (IsPrimary)
+    │   ├── CommandServiceTests.cs         # 18 test
+    │   └── VariableServiceTests.cs        # 29 test
+    └── GUI/                               # Solo Windows
+        └── VariableEditFlowTests.cs       # 11 test (flow completo + bitmapped)
 ```
-
-> **Nota:** `Integration/GUI/VariableEditFlowTests.cs` (12 test) include mock services inline per test flow completi.
 
 ---
 
@@ -209,22 +213,23 @@ public class MyRepositoryTests : IntegrationTestBase
 
 ## Conteggi Test
 
-| Area | Test | Descrizione |
-|------|------|-------------|
-| Unit/Enums | 22 | Valori, count, casting |
-| Unit/Models | 97 | Costruttori, validazione, metodi |
-| Unit/Services/Mapping | 80 | Mapper Entity ↔ Domain (8 mapper) |
+| Area | Metodi Test | Descrizione |
+|------|-------------|-------------|
+| Unit/Enums | 14 | Valori, count, casting |
+| Unit/Models | 82 | Costruttori, validazione, metodi (incl. 3 semantiche, IsPrimary) |
+| Unit/Services/Mapping | 84 | Mapper Entity ↔ Domain (8 mapper) |
 | Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI/ViewModels | 206 | 12 ViewModels (incl. WordBitGroup) con CRUD, navigation, validation, bitmapped |
-| Unit/GUI/Converters | 18 | NullableInt/Double converters |
-| Unit/GUI/Services | 12 | NavigationService |
-| Unit/GUI/DI | 21 | Registrazione ViewModels + UI services |
-| Integration/Infrastructure | 108 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
-| Integration/Services | 93 | Business logic, validazione, smart update |
-| Integration/GUI | 12 | VariableEdit flow completo + bitmapped |
-| **Totale CI** | **~450** | net10.0 (Linux) |
-| **Totale Windows** | **1160** | net10.0 + net10.0-windows |
+| Unit/GUI/ViewModels | 252 | 15 ViewModels (incl. WordBitGroup, Device*, Login) |
+| Unit/GUI/Converters | 20 | NullableInt/Double converters |
+| Unit/GUI/Services | 15 | NavigationService |
+| Unit/GUI/DI | 22 | Registrazione ViewModels + UI services |
+| Integration/Infrastructure | 107 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
+| Integration/Services | 106 | Business logic, validazione, 3 semantiche, smart update |
+| Integration/GUI | 11 | VariableEdit flow completo + bitmapped |
+| **Totale metodi test** | **736** | Tutti i target combinati |
+
+> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai 736 metodi elencati.
 
 ---
 
@@ -235,7 +240,7 @@ Il progetto supporta due target framework:
 | Target | Piattaforma | Include | Uso |
 |--------|-------------|---------|-----|
 | `net10.0` | Cross-platform | Core, Infrastructure, Services | CI/CD (Linux) |
-| `net10.0-windows` | Windows | + GUI.Windows (63 test) | Test locali + GUI |
+| `net10.0-windows` | Windows | + GUI.Windows (~320 metodi test) | Test locali + GUI |
 
 ```xml
 <!-- Tests.csproj -->
@@ -263,7 +268,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 5 risolte (0 critiche, 0 alte, 0 medie, 1 bassa)
+→ [Tests/ISSUES.md](./ISSUES.md) — 3 issue aperte, 5 risolte (0 critiche, 1 alta, 1 media, 1 bassa)
 
 ---
 

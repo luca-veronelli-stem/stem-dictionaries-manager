@@ -63,37 +63,32 @@ public partial class DeviceDetailViewModel : ObservableObject
         _navigationService = navigationService;
         _dictionaryService = dictionaryService;
         _boardService = boardService;
-
-        navigationService.CurrentViewChanged += OnCurrentViewChanged;
     }
 
-    private void OnCurrentViewChanged(object? sender, ViewType e)
+    /// <summary>
+    /// Carica i dizionari per il device specificato.
+    /// Chiamato da MainViewModel.InitializeViewModelAsync.
+    /// </summary>
+    public async Task LoadAsync(DeviceType deviceType)
     {
-        if (e == ViewType.DeviceDetail)
-        {
-            var param = _navigationService.CurrentParameter;
-            if (param?.DeviceType != null)
-            {
-                DeviceType = param.DeviceType;
-                DeviceName = GetDeviceName(param.DeviceType.Value);
-                _ = LoadDictionariesAsync();
-            }
-        }
+        DeviceType = deviceType;
+        DeviceName = GetDeviceName(deviceType);
+        await LoadDictionariesAsync();
     }
 
     private static string GetDeviceName(DeviceType deviceType) => deviceType switch
     {
         Core.Enums.DeviceType.SherpaSlim => "Sherpa Slim",
-        Core.Enums.DeviceType.TopLiftM => "TopLift M",
-        Core.Enums.DeviceType.EdenXp => "Eden XP",
+        Core.Enums.DeviceType.TopLiftM => "TopLift-M",
+        Core.Enums.DeviceType.EdenXp => "Eden-XP",
         Core.Enums.DeviceType.Gradino => "Gradino",
         Core.Enums.DeviceType.Spyke => "Spyke",
         Core.Enums.DeviceType.Spark => "Spark",
-        Core.Enums.DeviceType.TopLiftA2 => "TopLift A2",
-        Core.Enums.DeviceType.O3zTech => "O3z Tech",
-        Core.Enums.DeviceType.OptimusXp => "Optimus XP",
+        Core.Enums.DeviceType.TopLiftA2 => "TopLift-A2",
+        Core.Enums.DeviceType.O3zTech => "O3Z-Tech",
+        Core.Enums.DeviceType.OptimusXp => "Optimus-XP",
         Core.Enums.DeviceType.R3lXp => "R3L-XP",
-        Core.Enums.DeviceType.EdenBs8 => "Eden BS8",
+        Core.Enums.DeviceType.EdenBs8 => "Eden-BS8",
         _ => deviceType.ToString()
     };
 
@@ -106,27 +101,27 @@ public partial class DeviceDetailViewModel : ObservableObject
 
         try
         {
-            // Trova le board di questo device type
-            var boards = await _boardService.GetByDeviceTypeAsync(DeviceType.Value);
+            var dt = DeviceType.Value;
 
-            // Raccogli i BoardTypeId unici
-            var boardTypeIds = boards.Select(b => b.BoardType?.Id).Where(id => id.HasValue).Distinct().ToList();
+            // BoardType IDs delle board di questo device
+            var boards = await _boardService.GetByDeviceTypeAsync(dt);
+            var boardTypeIds = new HashSet<int>(boards.Select(b => b.BoardType.Id));
 
-            // Trova i dizionari per questi BoardType + il dizionario Standard
+            // Tutti i dizionari (con variabili già caricate)
             var allDicts = await _dictionaryService.GetAllAsync();
+
+            // Filtra per le 3 semantiche:
+            // ① Standard (null, null) → sempre visibile
+            // ② Periferica condivisa (null, BT) → se il device ha una board con quel BT
+            // ③ Dedicato (DT, BT) → se il DeviceType corrisponde
             var relevantDicts = allDicts.Where(d =>
-                d.BoardType == null || // Standard
-                (d.BoardType != null && boardTypeIds.Contains(d.BoardType.Id)) ||
-                d.DeviceType == DeviceType.Value // O associato direttamente al DeviceType
+                (d.DeviceType == null && d.BoardType == null) ||
+                (d.DeviceType == null && d.BoardType != null && boardTypeIds.Contains(d.BoardType.Id)) ||
+                (d.DeviceType == dt)
             ).ToList();
 
-            var items = new List<DictionaryItem>();
-            foreach (var dict in relevantDicts)
-            {
-                var dictWithVars = await _dictionaryService.GetWithVariablesAsync(dict.Id);
-                var varCount = dictWithVars?.Variables.Count ?? 0;
-                items.Add(new DictionaryItem(dict.Id, dict.Name, dict.BoardType?.Name, varCount));
-            }
+            var items = relevantDicts.Select(d =>
+                new DictionaryItem(d.Id, d.Name, d.BoardType?.Name, d.Variables.Count));
 
             Dictionaries = new ObservableCollection<DictionaryItem>(items.OrderBy(d => d.Name));
         }
@@ -155,13 +150,5 @@ public partial class DeviceDetailViewModel : ObservableObject
     private void GoBack()
     {
         _navigationService.GoBack();
-    }
-
-    /// <summary>
-    /// Pulisce le sottoscrizioni agli eventi.
-    /// </summary>
-    public void ClearSubscriptions()
-    {
-        _navigationService.CurrentViewChanged -= OnCurrentViewChanged;
     }
 }
