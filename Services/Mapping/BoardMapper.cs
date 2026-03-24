@@ -5,42 +5,26 @@ namespace Services.Mapping;
 
 /// <summary>
 /// Mapper bidirezionale per Board Entity ↔ Domain.
+/// Domain v2: nessun BoardType, FirmwareType diretto + DictionaryId?.
 /// </summary>
 public static class BoardMapper
 {
     /// <summary>
     /// Converte BoardEntity in Board (Domain).
-    /// Richiede BoardType già mappato.
-    /// </summary>
-    public static Board ToDomain(BoardEntity entity, BoardType boardType)
-    {
-        ArgumentNullException.ThrowIfNull(entity);
-        ArgumentNullException.ThrowIfNull(boardType);
-
-        return Board.Restore(
-            entity.Id,
-            entity.DeviceType,
-            boardType,
-            entity.Name,
-            entity.BoardNumber,
-            entity.PartNumber,
-            entity.IsPrimary);
-    }
-
-    /// <summary>
-    /// Converte BoardEntity in Board (Domain).
-    /// Usa navigation property BoardType (deve essere caricata).
     /// </summary>
     public static Board ToDomain(BoardEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        if (entity.BoardType == null)
-            throw new InvalidOperationException(
-                $"BoardType not loaded for Board {entity.Id}. Use Include() or provide BoardType.");
-
-        var boardType = BoardTypeMapper.ToDomain(entity.BoardType);
-        return ToDomain(entity, boardType);
+        return Board.Restore(
+            entity.Id,
+            entity.DeviceType,
+            entity.Name,
+            entity.FirmwareType,
+            entity.BoardNumber,
+            entity.PartNumber,
+            entity.IsPrimary,
+            entity.DictionaryId);
     }
 
     /// <summary>
@@ -54,12 +38,13 @@ public static class BoardMapper
         {
             Id = domain.Id,
             DeviceType = domain.DeviceType,
-            BoardTypeId = domain.BoardType.Id,
             Name = domain.Name,
+            FirmwareType = domain.FirmwareType,
             BoardNumber = domain.BoardNumber,
             PartNumber = domain.PartNumber,
             ProtocolAddress = domain.ProtocolAddress,
-            IsPrimary = domain.IsPrimary
+            IsPrimary = domain.IsPrimary,
+            DictionaryId = domain.DictionaryId
         };
     }
 
@@ -72,20 +57,20 @@ public static class BoardMapper
         ArgumentNullException.ThrowIfNull(domain);
 
         entity.DeviceType = domain.DeviceType;
-        entity.BoardTypeId = domain.BoardType.Id;
         entity.Name = domain.Name;
+        entity.FirmwareType = domain.FirmwareType;
         entity.BoardNumber = domain.BoardNumber;
         entity.PartNumber = domain.PartNumber;
         entity.ProtocolAddress = domain.ProtocolAddress;
         entity.IsPrimary = domain.IsPrimary;
+        entity.DictionaryId = domain.DictionaryId;
     }
 
     /// <summary>
     /// Converte lista di entities in lista di domain models.
-    /// Richiede BoardType caricato via Include.
     /// </summary>
     public static IReadOnlyList<Board> ToDomainList(IEnumerable<BoardEntity> entities)
     {
-        return [.. entities.Select(e => ToDomain(e))];
+        return [.. entities.Select(ToDomain)];
     }
 }
