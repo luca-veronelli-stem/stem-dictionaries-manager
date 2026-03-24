@@ -208,10 +208,10 @@ public class DictionaryListViewModelTests
     }
 
     [Fact]
-    public async Task DictionaryListItem_BoardTypeDisplay_ReturnsStandardWhenNull()
+    public async Task DictionaryListItem_SemanticDisplay_ReturnsStandardWhenIsStandard()
     {
         // Arrange
-        var dict = new Dictionary("Test", description: "Desc");
+        var dict = new Dictionary("Test", "Desc", true);
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -219,15 +219,14 @@ public class DictionaryListViewModelTests
 
         // Assert
         var item = _viewModel.Dictionaries.First();
-        Assert.Equal("Standard", item.BoardTypeDisplay);
+        Assert.Equal("Standard", item.SemanticDisplay);
     }
 
     [Fact]
-    public async Task DictionaryListItem_BoardTypeDisplay_ReturnsBoardTypeName()
+    public async Task DictionaryListItem_SemanticDisplay_ReturnsSpecificoWhenNotStandard()
     {
         // Arrange
-        var boardType = new BoardType("Madre Optimus", 17);
-        var dict = new Dictionary("Test", DeviceType.OptimusXp, boardType, "Desc");
+        var dict = new Dictionary("Test", "Desc");
         _dictionaryService.SeedData(dict);
 
         // Act
@@ -235,7 +234,7 @@ public class DictionaryListViewModelTests
 
         // Assert
         var item = _viewModel.Dictionaries.First();
-        Assert.Equal("Madre Optimus", item.BoardTypeDisplay);
+        Assert.Equal("Specifico", item.SemanticDisplay);
     }
 
     [Fact]
@@ -257,17 +256,16 @@ public class DictionaryListViewModelTests
     }
 
     [Fact]
-    public async Task SearchText_FiltersListByBoardType()
+    public async Task SearchText_FiltersListBySemantic()
     {
         // Arrange
-        var bt = new BoardType("Madre Optimus", 17);
         _dictionaryService.SeedData(
-            new Dictionary("dict1", DeviceType.OptimusXp, bt),
+            new Dictionary("dict1", isStandard: true),
             new Dictionary("dict2"));
         await _viewModel.LoadAsync();
 
         // Act
-        _viewModel.SearchText = "Madre";
+        _viewModel.SearchText = "Standard";
 
         // Assert
         Assert.Single(_viewModel.Dictionaries);

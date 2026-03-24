@@ -4,40 +4,44 @@ using Core.Models;
 namespace Tests.Unit.Models;
 
 /// <summary>
-/// Test per Board model.
-/// Verifica il calcolo dell'indirizzo protocol.
+/// Test per Board model (Domain v2).
+/// FirmwareType diretto, DictionaryId opzionale, nessun BoardType.
 /// </summary>
 public class BoardTests
 {
-    private readonly BoardType _madreBoardType = new("Madre", 17);
-    private readonly BoardType _pulsantieraBoardType = new("Pulsantiera", 4);
-
     [Fact]
     public void Constructor_ValidInput_CreatesBoard()
     {
-        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", 1, "DIS0020477");
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, "DIS0020477");
 
         Assert.Equal(DeviceType.OptimusXp, board.DeviceType);
-        Assert.Equal(_madreBoardType, board.BoardType);
         Assert.Equal("Madre", board.Name);
+        Assert.Equal(17, board.FirmwareType);
         Assert.Equal(1, board.BoardNumber);
         Assert.Equal("DIS0020477", board.PartNumber);
         Assert.Equal(0, board.Id);
+        Assert.Null(board.DictionaryId);
     }
 
     [Fact]
     public void Constructor_NullPartNumber_IsValid()
     {
-        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", 1);
-
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
         Assert.Null(board.PartNumber);
     }
 
     [Fact]
-    public void Constructor_NullBoardType_ThrowsArgumentNullException()
+    public void Constructor_WithDictionaryId_SetsProperty()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            new Board(DeviceType.OptimusXp, null!, "Madre", 1));
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, dictionaryId: 42);
+        Assert.Equal(42, board.DictionaryId);
+    }
+
+    [Fact]
+    public void Constructor_NullDictionaryId_IsValid()
+    {
+        var board = new Board(DeviceType.Spark, "Motore DX", 21, 2);
+        Assert.Null(board.DictionaryId);
     }
 
     [Theory]
@@ -46,14 +50,21 @@ public class BoardTests
     public void Constructor_InvalidName_ThrowsArgumentException(string name)
     {
         Assert.Throws<ArgumentException>(() =>
-            new Board(DeviceType.OptimusXp, _madreBoardType, name, 1));
+            new Board(DeviceType.OptimusXp, name, 17, 1));
     }
 
     [Fact]
     public void Constructor_NullName_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new Board(DeviceType.OptimusXp, _madreBoardType, null!, 1));
+            new Board(DeviceType.OptimusXp, null!, 17, 1));
+    }
+
+    [Fact]
+    public void Constructor_NegativeFirmwareType_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new Board(DeviceType.OptimusXp, "Madre", -1, 1));
     }
 
     [Theory]
@@ -64,7 +75,7 @@ public class BoardTests
     public void Constructor_InvalidBoardNumber_ThrowsArgumentOutOfRangeException(int boardNumber)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", boardNumber));
+            new Board(DeviceType.OptimusXp, "Madre", 17, boardNumber));
     }
 
     [Theory]
@@ -72,12 +83,10 @@ public class BoardTests
     [InlineData(63)]
     public void Constructor_ValidBoardNumber_IsAccepted(int boardNumber)
     {
-        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Test", boardNumber);
-
+        var board = new Board(DeviceType.OptimusXp, "Test", 17, boardNumber);
         Assert.Equal(boardNumber, board.BoardNumber);
     }
 
-    // Test calcolo indirizzo protocol da indirizzi.csv
     [Theory]
     [InlineData(10, 17, 1, 0x000A0441)]  // OPTIMUS-XP Madre
     [InlineData(10, 4, 1, 0x000A0101)]   // OPTIMUS-XP Tastiera1
@@ -89,52 +98,46 @@ public class BoardTests
     [InlineData(1, 1, 1, 0x00010041)]    // SHERPA SLIM Azionamento
     public void CalculateAddress_ReturnsCorrectValue(int machine, int fwType, int boardNum, uint expected)
     {
-        var result = Board.CalculateAddress(machine, fwType, boardNum);
-
-        Assert.Equal(expected, result);
+        Assert.Equal(expected, Board.CalculateAddress(machine, fwType, boardNum));
     }
 
     [Fact]
     public void ProtocolAddress_ReturnsCalculatedValue()
     {
-        var boardType = new BoardType("Madre", 17);
-        var board = new Board(DeviceType.OptimusXp, boardType, "Madre", 1);
-
-        // OPTIMUS-XP = 10, firmwareType = 17, boardNumber = 1 => 0x000A0441
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
         Assert.Equal(0x000A0441u, board.ProtocolAddress);
     }
 
     [Fact]
     public void Restore_SetsIdAndProperties()
     {
-        var board = Board.Restore(99, DeviceType.EdenBs8, _madreBoardType, "Madre", 1, "DIS123", false);
+        var board = Board.Restore(99, DeviceType.EdenBs8, "Madre", 19, 1, "DIS123", false, 5);
 
         Assert.Equal(99, board.Id);
         Assert.Equal(DeviceType.EdenBs8, board.DeviceType);
+        Assert.Equal(19, board.FirmwareType);
         Assert.Equal("DIS123", board.PartNumber);
+        Assert.Equal(5, board.DictionaryId);
     }
 
     [Fact]
     public void Constructor_DefaultIsPrimary_IsFalse()
     {
-        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Periferica", 2);
-
+        var board = new Board(DeviceType.OptimusXp, "Periferica", 4, 2);
         Assert.False(board.IsPrimary);
     }
 
     [Fact]
     public void Constructor_IsPrimaryTrue_SetsProperty()
     {
-        var board = new Board(DeviceType.OptimusXp, _madreBoardType, "Madre", 1, isPrimary: true);
-
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, isPrimary: true);
         Assert.True(board.IsPrimary);
     }
 
     [Fact]
     public void Restore_IsPrimaryTrue_SetsProperty()
     {
-        var board = Board.Restore(1, DeviceType.Spyke, _madreBoardType, "HMI", 1, null, true);
-
+        var board = Board.Restore(1, DeviceType.Spyke, "HMI", 20, 1, null, true, null);
         Assert.True(board.IsPrimary);
     }
 }

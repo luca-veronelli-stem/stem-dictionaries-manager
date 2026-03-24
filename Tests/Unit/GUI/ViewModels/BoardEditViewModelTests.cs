@@ -8,11 +8,13 @@ using Tests.Unit.GUI.Mocks;
 namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
-/// Test per BoardEditViewModel.
+/// Test per BoardEditViewModel (Domain v2).
+/// FirmwareType diretto, DictionaryId opzionale, nessun BoardType.
 /// </summary>
 public class BoardEditViewModelTests
 {
     private readonly MockBoardService _boardService;
+    private readonly MockDictionaryService _dictionaryService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +23,14 @@ public class BoardEditViewModelTests
     public BoardEditViewModelTests()
     {
         _boardService = new MockBoardService();
+        _dictionaryService = new MockDictionaryService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
         _viewModel = new BoardEditViewModel(
             _boardService,
+            _dictionaryService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -35,13 +39,8 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithNull_SetsIsNewTrue()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
-
-        // Act
         await _viewModel.InitializeAsync(null);
 
-        // Assert
         Assert.True(_viewModel.IsNew);
         Assert.Equal("Nuova Scheda", _viewModel.FormTitle);
     }
@@ -49,70 +48,65 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
-        // Arrange
-        var boardType = new BoardType("Madre", 17);
-        _boardService.SeedBoardTypes(boardType);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.OptimusXp, bt, "Existing", 1);
+        var board = new Board(DeviceType.OptimusXp, "Existing", 17, 1);
         await _boardService.AddAsync(board);
 
-        // Act
-        await _viewModel.InitializeAsync(2);
+        await _viewModel.InitializeAsync(1);
 
-        // Assert
         Assert.False(_viewModel.IsNew);
         Assert.Equal("Modifica Scheda", _viewModel.FormTitle);
     }
 
     [Fact]
-    public async Task InitializeAsync_LoadsBoardTypes()
+    public async Task InitializeAsync_LoadsDictionaries()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(
-            new BoardType("Madre", 17),
-            new BoardType("Pulsantiera", 4));
+        _dictionaryService.SeedData(
+            new Dictionary("Dict1"),
+            new Dictionary("Dict2"));
 
-        // Act
         await _viewModel.InitializeAsync(null);
 
-        // Assert
-        Assert.Equal(2, _viewModel.AvailableBoardTypes.Count);
-        Assert.Contains(_viewModel.AvailableBoardTypes, bt => bt.Name == "Madre");
-        Assert.Contains(_viewModel.AvailableBoardTypes, bt => bt.Name == "Pulsantiera");
+        Assert.Equal(2, _viewModel.AvailableDictionaries.Count);
+        Assert.Contains(_viewModel.AvailableDictionaries, d => d.Name == "Dict1");
+        Assert.Contains(_viewModel.AvailableDictionaries, d => d.Name == "Dict2");
     }
 
     [Fact]
     public async Task InitializeAsync_LoadsExistingData()
     {
-        // Arrange
-        var boardType = new BoardType("Madre", 17);
-        _boardService.SeedBoardTypes(boardType);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.EdenXp, bt, "TestBoard", 3, "PN123");
+        var board = new Board(DeviceType.EdenXp, "TestBoard", 18, 3, "PN123");
         await _boardService.AddAsync(board);
 
-        // Act
-        await _viewModel.InitializeAsync(2);
+        await _viewModel.InitializeAsync(1);
 
-        // Assert
         Assert.Equal("TestBoard", _viewModel.Name);
         Assert.Equal(DeviceType.EdenXp, _viewModel.SelectedDeviceType);
+        Assert.Equal(18, _viewModel.FirmwareType);
         Assert.Equal(3, _viewModel.BoardNumber);
         Assert.Equal("PN123", _viewModel.PartNumber);
-        Assert.NotNull(_viewModel.SelectedBoardType);
-        Assert.Equal("Madre", _viewModel.SelectedBoardType!.Name);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithDictionaryId_SelectsDictionary()
+    {
+        _dictionaryService.SeedData(new Dictionary("TestDict"));
+        var allDicts = await _dictionaryService.GetAllAsync();
+        var dictId = allDicts[0].Id;
+
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, dictionaryId: dictId);
+        await _boardService.AddAsync(board);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.NotNull(_viewModel.SelectedDictionary);
+        Assert.Equal("TestDict", _viewModel.SelectedDictionary!.Name);
     }
 
     [Fact]
     public async Task InitializeAsync_WithNonExistentId_ShowsErrorAndGoesBack()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
-
-        // Act
         await _viewModel.InitializeAsync(999);
 
-        // Assert
         Assert.True(_dialogService.ShowErrorCalled);
         Assert.True(_navigationService.GoBackCalled);
     }
@@ -120,87 +114,54 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_CanOnlyBeCalledOnce()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _boardService.MethodCalls.Clear();
 
-        // Act
         await _viewModel.InitializeAsync(null);
 
-        // Assert
         Assert.Empty(_boardService.MethodCalls);
     }
 
     [Fact]
     public async Task SaveCommand_CannotExecute_WhenNameEmpty()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
 
-        // Assert
         Assert.False(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public async Task SaveCommand_CannotExecute_WhenBoardTypeNull()
+    public async Task SaveCommand_CanExecute_WhenNameSet()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestBoard";
-        _viewModel.SelectedBoardType = null;
 
-        // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
-    }
-
-    [Fact]
-    public async Task SaveCommand_CanExecute_WhenValid()
-    {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
-        await _viewModel.InitializeAsync(null);
-        _viewModel.Name = "TestBoard";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
-
-        // Assert
         Assert.True(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
     public async Task SaveCommand_WhenNew_CallsAddAsync()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewBoard";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
+        _viewModel.FirmwareType = 17;
         _viewModel.BoardNumber = 1;
 
-        // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.Contains(_boardService.MethodCalls, m => m.StartsWith("AddAsync:NewBoard"));
     }
 
     [Fact]
     public async Task SaveCommand_OnSuccess_ShowsMessage_AndGoesBack()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestBoard";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
+        _viewModel.FirmwareType = 17;
 
-        // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Success);
         Assert.True(_navigationService.GoBackCalled);
     }
@@ -208,17 +169,13 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task SaveCommand_OnError_ShowsErrorDialog()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestBoard";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
+        _viewModel.FirmwareType = 17;
         _boardService.ExceptionToThrow = new Exception("Save failed");
 
-        // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.True(_dialogService.ShowErrorCalled);
         Assert.False(_navigationService.GoBackCalled);
     }
@@ -226,21 +183,16 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task CancelCommand_WithNoChanges_GoesBack()
     {
-        // Arrange
-        _boardService.SeedBoardTypes(new BoardType("Madre", 17));
         await _viewModel.InitializeAsync(null);
 
-        // Act
         await _viewModel.CancelCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.True(_navigationService.GoBackCalled);
     }
 
     [Fact]
     public void DeviceTypes_ContainsAllValues()
     {
-        // Assert
         Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.DeviceTypes.Count);
     }
 
@@ -253,35 +205,24 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithPrimaryBoard_SetsIsPrimary()
     {
-        // Arrange
-        var boardType = new BoardType("Madre", 17);
-        _boardService.SeedBoardTypes(boardType);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-        var board = new Board(DeviceType.OptimusXp, bt, "Madre", 1, isPrimary: true);
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, isPrimary: true);
         await _boardService.AddAsync(board);
 
-        // Act
-        await _viewModel.InitializeAsync(2);
+        await _viewModel.InitializeAsync(1);
 
-        // Assert
         Assert.True(_viewModel.IsPrimary);
     }
 
     [Fact]
     public async Task SaveCommand_NewBoardWithIsPrimary_PassesToService()
     {
-        // Arrange
-        var boardType = new BoardType("Madre", 17);
-        _boardService.SeedBoardTypes(boardType);
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "Principale";
-        _viewModel.SelectedBoardType = _viewModel.AvailableBoardTypes[0];
+        _viewModel.FirmwareType = 17;
         _viewModel.IsPrimary = true;
 
-        // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.Contains(_boardService.MethodCalls, c => c == "AddAsync:Principale");
     }
 }

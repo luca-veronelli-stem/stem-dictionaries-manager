@@ -31,9 +31,8 @@ public class MockDictionaryService : IDictionaryService
         var restored = Dictionary.Restore(
             _nextId++,
             dictionary.Name,
-            dictionary.DeviceType,
-            dictionary.BoardType,
             dictionary.Description,
+            dictionary.IsStandard,
             dictionary.Variables);
         _dictionaries.Add(restored);
         return Task.FromResult(restored);
@@ -70,18 +69,11 @@ public class MockDictionaryService : IDictionaryService
         return Task.FromResult(_dictionaries.FirstOrDefault(d => d.Name == name));
     }
 
-    public Task<Dictionary?> GetByBoardTypeIdAsync(int boardTypeId, CancellationToken ct = default)
-    {
-        MethodCalls.Add($"GetByBoardTypeIdAsync:{boardTypeId}");
-        if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_dictionaries.FirstOrDefault(d => d.BoardType?.Id == boardTypeId));
-    }
-
     public Task<Dictionary?> GetStandardDictionaryAsync(CancellationToken ct = default)
     {
         MethodCalls.Add("GetStandardDictionaryAsync");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_dictionaries.FirstOrDefault(d => d.BoardType is null));
+        return Task.FromResult(_dictionaries.FirstOrDefault(d => d.IsStandard));
     }
 
     public Task<Dictionary?> GetWithVariablesAsync(int id, CancellationToken ct = default)
@@ -125,9 +117,8 @@ public class MockDictionaryService : IDictionaryService
             var restored = Dictionary.Restore(
                 _nextId++,
                 dict.Name,
-                dict.DeviceType,
-                dict.BoardType,
                 dict.Description,
+                dict.IsStandard,
                 dict.Variables);
             _dictionaries.Add(restored);
         }
@@ -144,11 +135,11 @@ public class MockDictionaryService : IDictionaryService
 
 /// <summary>
 /// Mock implementation di IBoardService per i test dei ViewModels.
+/// Domain v2: nessun BoardType.
 /// </summary>
 public class MockBoardService : IBoardService
 {
     private readonly List<Board> _boards = [];
-    private readonly List<BoardType> _boardTypes = [];
     private int _nextId = 1;
 
     public Exception? ExceptionToThrow { get; set; }
@@ -162,22 +153,13 @@ public class MockBoardService : IBoardService
         var restored = Board.Restore(
             _nextId++,
             board.DeviceType,
-            board.BoardType,
             board.Name,
+            board.FirmwareType,
             board.BoardNumber,
             board.PartNumber,
-            board.IsPrimary);
+            board.IsPrimary,
+            board.DictionaryId);
         _boards.Add(restored);
-        return Task.FromResult(restored);
-    }
-
-    public Task<BoardType> AddBoardTypeAsync(BoardType boardType, CancellationToken ct = default)
-    {
-        MethodCalls.Add($"AddBoardTypeAsync:{boardType.Name}");
-        if (ExceptionToThrow is not null) throw ExceptionToThrow;
-
-        var restored = BoardType.Restore(_nextId++, boardType.Name, boardType.FirmwareType);
-        _boardTypes.Add(restored);
         return Task.FromResult(restored);
     }
 
@@ -219,27 +201,6 @@ public class MockBoardService : IBoardService
         return Task.FromResult<Board?>(null);
     }
 
-    public Task<BoardType?> GetBoardTypeByNameAsync(string name, CancellationToken ct = default)
-    {
-        MethodCalls.Add($"GetBoardTypeByNameAsync:{name}");
-        if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_boardTypes.FirstOrDefault(bt => bt.Name == name));
-    }
-
-    public Task<BoardType?> GetBoardTypeByFirmwareTypeAsync(int firmwareType, CancellationToken ct = default)
-    {
-        MethodCalls.Add($"GetBoardTypeByFirmwareTypeAsync:{firmwareType}");
-        if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_boardTypes.FirstOrDefault(bt => bt.FirmwareType == firmwareType));
-    }
-
-    public Task<IReadOnlyList<BoardType>> GetBoardTypesAsync(CancellationToken ct = default)
-    {
-        MethodCalls.Add("GetBoardTypesAsync");
-        if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<BoardType>>(_boardTypes);
-    }
-
     public Task UpdateAsync(Board board, CancellationToken ct = default)
     {
         MethodCalls.Add($"UpdateAsync:{board.Id}");
@@ -250,22 +211,20 @@ public class MockBoardService : IBoardService
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Pre-popola il mock con BoardTypes per i test.
-    /// </summary>
-    public void SeedBoardTypes(params BoardType[] boardTypes)
+    public void SeedBoards(params Board[] boards)
     {
-        foreach (var bt in boardTypes)
+        foreach (var b in boards)
         {
-            var restored = BoardType.Restore(_nextId++, bt.Name, bt.FirmwareType);
-            _boardTypes.Add(restored);
+            var restored = Board.Restore(
+                _nextId++, b.DeviceType, b.Name, b.FirmwareType,
+                b.BoardNumber, b.PartNumber, b.IsPrimary, b.DictionaryId);
+            _boards.Add(restored);
         }
     }
 
     public void Reset()
     {
         _boards.Clear();
-        _boardTypes.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();

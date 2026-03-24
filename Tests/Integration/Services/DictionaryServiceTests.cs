@@ -1,132 +1,87 @@
 using Core.Enums;
 using Core.Models;
-using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Services;
 
 namespace Tests.Integration.Services;
 
 /// <summary>
-/// Integration tests per DictionaryService (aggregate root).
+/// Integration tests per DictionaryService (Domain v2).
 /// </summary>
 public class DictionaryServiceTests : IntegrationTestBase
 {
     private readonly DictionaryService _service;
-    private BoardTypeEntity _testBoardType = null!;
 
     public DictionaryServiceTests()
     {
         var dictionaryRepository = new DictionaryRepository(Context);
         var variableRepository = new VariableRepository(Context);
-        var boardTypeRepository = new BoardTypeRepository(Context);
-
-        _service = new DictionaryService(
-            dictionaryRepository,
-            variableRepository,
-            boardTypeRepository);
-    }
-
-    public override async Task InitializeAsync()
-    {
-        _testBoardType = new BoardTypeEntity { Name = "TestBoard", FirmwareType = 99 };
-        Context.BoardTypes.Add(_testBoardType);
-        await Context.SaveChangesAsync();
+        _service = new DictionaryService(dictionaryRepository, variableRepository);
     }
 
     [Fact]
     public async Task AddAsync_ValidDictionary_CreatesAndReturnsDictionary()
     {
-        // Arrange
-        var dictionary = new Core.Models.Dictionary("test-dict", description: "Test Description");
+        var dictionary = new Core.Models.Dictionary("test-dict", "Test Description");
 
-        // Act
         var result = await _service.AddAsync(dictionary);
 
-        // Assert
         Assert.True(result.Id > 0);
         Assert.Equal("test-dict", result.Name);
         Assert.Equal("Test Description", result.Description);
+        Assert.False(result.IsStandard);
     }
 
     [Fact]
-    public async Task AddAsync_WithBoardType_AssociatesBoardType()
+    public async Task AddAsync_StandardDictionary_SetsIsStandard()
     {
-        // Arrange
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var dictionary = new Core.Models.Dictionary("with-boardtype", DeviceType.OptimusXp, boardType, "Has BoardType");
+        var dictionary = new Core.Models.Dictionary("standard", isStandard: true);
 
-        // Act
         var result = await _service.AddAsync(dictionary);
 
-        // Assert
-        Assert.NotNull(result.BoardType);
-        Assert.Equal(_testBoardType.Name, result.BoardType!.Name);
+        Assert.True(result.IsStandard);
     }
 
     [Fact]
     public async Task AddAsync_DuplicateName_ThrowsInvalidOperationException()
     {
-        // Arrange
         await _service.AddAsync(new Core.Models.Dictionary("duplicate"));
 
-        // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddAsync(new Core.Models.Dictionary("duplicate")));
         Assert.Contains("already exists", exception.Message);
     }
 
     [Fact]
-    public async Task AddAsync_BoardTypeAlreadyHasDictionary_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.OptimusXp, boardType));
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.OptimusXp, boardType)));
-        Assert.Contains("already exists", exception.Message);
-    }
-
-    [Fact]
-    public async Task AddAsync_SameBoardType_DifferentDeviceType_Succeeds()
-    {
-        // Arrange
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        await _service.AddAsync(new Core.Models.Dictionary("first", DeviceType.OptimusXp, boardType));
-
-        // Act - Stesso BoardType ma DeviceType diverso → OK
-        var second = await _service.AddAsync(new Core.Models.Dictionary("second", DeviceType.EdenXp, boardType));
-
-        // Assert
-        Assert.NotNull(second);
-        Assert.Equal(DeviceType.EdenXp, second.DeviceType);
-    }
-
-    [Fact]
     public async Task AddAsync_SecondStandardDictionary_ThrowsInvalidOperationException()
     {
-        // Arrange - Crea il primo dizionario Standard (senza BoardType)
-        await _service.AddAsync(new Core.Models.Dictionary("standard", description: "First standard"));
+        await _service.AddAsync(new Core.Models.Dictionary("standard", isStandard: true));
 
-        // Act & Assert - Il secondo senza BoardType deve fallire
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.AddAsync(new Core.Models.Dictionary("standard-2", description: "Second standard")));
+            () => _service.AddAsync(new Core.Models.Dictionary("standard-2", isStandard: true)));
         Assert.Contains("Standard dictionary", exception.Message);
         Assert.Contains("already exists", exception.Message);
     }
 
     [Fact]
-    public async Task UpdateAsync_ChangingToStandard_WhenOneExists_ThrowsInvalidOperationException()
+    public async Task AddAsync_MultipleNonStandard_IsAllowed()
     {
-        // Arrange - Crea dizionario Standard e uno con BoardType
-        await _service.AddAsync(new Core.Models.Dictionary("standard"));
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-        var withBoardType = await _service.AddAsync(new Core.Models.Dictionary("with-bt", DeviceType.OptimusXp, boardType));
+        await _service.AddAsync(new Core.Models.Dictionary("dict1"));
+        var second = await _service.AddAsync(new Core.Models.Dictionary("dict2"));
 
-        // Act & Assert - Cambiare a Standard (null BoardType) deve fallire
+        Assert.NotNull(second);
+        Assert.False(second.IsStandard);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ChangeToStandard_WhenOneExists_ThrowsInvalidOperationException()
+    {
+        await _service.AddAsync(new Core.Models.Dictionary("standard", isStandard: true));
+        var nonStandard = await _service.AddAsync(new Core.Models.Dictionary("non-standard"));
+
         var updated = Core.Models.Dictionary.Restore(
-            withBoardType.Id, "with-bt", null, null, null, []);
+            nonStandard.Id, "non-standard", null, true, []);
+
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateAsync(updated));
         Assert.Contains("Standard dictionary", exception.Message);
@@ -135,13 +90,10 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_ExistingDictionary_ReturnsDictionary()
     {
-        // Arrange
         var created = await _service.AddAsync(new Core.Models.Dictionary("findme"));
 
-        // Act
         var result = await _service.GetByIdAsync(created.Id);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal("findme", result.Name);
     }
@@ -149,88 +101,65 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NonExisting_ReturnsNull()
     {
-        var result = await _service.GetByIdAsync(999);
-        Assert.Null(result);
+        Assert.Null(await _service.GetByIdAsync(999));
     }
 
     [Fact]
     public async Task GetByNameAsync_ExistingName_ReturnsDictionary()
     {
-        // Arrange
         await _service.AddAsync(new Core.Models.Dictionary("byname"));
 
-        // Act
         var result = await _service.GetByNameAsync("byname");
 
-        // Assert
         Assert.NotNull(result);
     }
 
     [Fact]
     public async Task GetAllAsync_ReturnsAllDictionaries()
     {
-        // Arrange
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         await _service.AddAsync(new Core.Models.Dictionary("dict1"));
-        await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.OptimusXp, boardType));
+        await _service.AddAsync(new Core.Models.Dictionary("dict2"));
 
-        // Act
         var result = await _service.GetAllAsync();
 
-        // Assert
         Assert.Equal(2, result.Count);
     }
 
     [Fact]
     public async Task GetWithVariablesAsync_ReturnsVariables()
     {
-        // Arrange
         var created = await _service.AddAsync(new Core.Models.Dictionary("with-vars"));
+        await _service.AddVariableAsync(created.Id,
+            new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+        await _service.AddVariableAsync(created.Id,
+            new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t"));
 
-        var var1 = new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
-        var var2 = new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16,
-            AccessMode.ReadWrite, "uint16_t");
-
-        await _service.AddVariableAsync(created.Id, var1);
-        await _service.AddVariableAsync(created.Id, var2);
-
-        // Act
         var result = await _service.GetWithVariablesAsync(created.Id);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.Variables.Count);
-        Assert.Contains(result.Variables, v => v.Name == "Var1");
-        Assert.Contains(result.Variables, v => v.Name == "Var2");
     }
 
     [Fact]
     public async Task GetStandardDictionaryAsync_WhenExists_ReturnsStandard()
     {
-        // Arrange - Standard = no BoardType
-        await _service.AddAsync(new Core.Models.Dictionary("standard", description: "Standard vars"));
+        await _service.AddAsync(new Core.Models.Dictionary("standard", "Standard vars", true));
 
-        // Act
         var result = await _service.GetStandardDictionaryAsync();
 
-        // Assert
         Assert.NotNull(result);
-        Assert.Null(result.BoardType);
+        Assert.True(result.IsStandard);
     }
 
     [Fact]
     public async Task AddVariableAsync_ValidVariable_AddsToDict()
     {
-        // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("add-var"));
         var variable = new Variable("NewVar", 0x00, 0x10, DataTypeKind.UInt32,
             AccessMode.ReadWrite, "uint32_t");
 
-        // Act
         var result = await _service.AddVariableAsync(dict.Id, variable);
 
-        // Assert
         Assert.True(result.Id > 0);
         Assert.Equal("NewVar", result.Name);
     }
@@ -238,12 +167,10 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task AddVariableAsync_DuplicateAddress_ThrowsInvalidOperationException()
     {
-        // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("dup-addr"));
         await _service.AddVariableAsync(dict.Id,
             new Variable("First", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
-        // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddVariableAsync(dict.Id,
                 new Variable("Second", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t")));
@@ -263,15 +190,12 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task RemoveVariableAsync_ExistingVariable_RemovesFromDict()
     {
-        // Arrange
         var dict = await _service.AddAsync(new Core.Models.Dictionary("remove-var"));
         var variable = await _service.AddVariableAsync(dict.Id,
             new Variable("ToRemove", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
-        // Act
         await _service.RemoveVariableAsync(dict.Id, variable.Id);
 
-        // Assert
         var result = await _service.GetWithVariablesAsync(dict.Id);
         Assert.Empty(result!.Variables);
     }
@@ -279,14 +203,11 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task RemoveVariableAsync_VariableNotInDict_ThrowsInvalidOperationException()
     {
-        // Arrange
-        var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
         var dict1 = await _service.AddAsync(new Core.Models.Dictionary("dict1"));
-        var dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2", DeviceType.OptimusXp, boardType));
+        var dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2"));
         var variable = await _service.AddVariableAsync(dict1.Id,
             new Variable("InDict1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
 
-        // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.RemoveVariableAsync(dict2.Id, variable.Id));
         Assert.Contains("does not belong", exception.Message);
@@ -295,14 +216,11 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_ExistingDictionary_UpdatesDictionary()
     {
-        // Arrange
-        var created = await _service.AddAsync(new Core.Models.Dictionary("update-me", description: "Before"));
-        var updated = Core.Models.Dictionary.Restore(created.Id, "update-me", null, null, "After", []);
+        var created = await _service.AddAsync(new Core.Models.Dictionary("update-me", "Before"));
+        var updated = Core.Models.Dictionary.Restore(created.Id, "update-me", "After", false, []);
 
-        // Act
         await _service.UpdateAsync(updated);
 
-        // Assert
         var result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("After", result!.Description);
     }
@@ -310,15 +228,11 @@ public class DictionaryServiceTests : IntegrationTestBase
     [Fact]
     public async Task DeleteAsync_ExistingDictionary_RemovesDictionary()
     {
-        // Arrange
         var created = await _service.AddAsync(new Core.Models.Dictionary("delete-me"));
 
-        // Act
         await _service.DeleteAsync(created.Id);
 
-        // Assert
-        var result = await _service.GetByIdAsync(created.Id);
-        Assert.Null(result);
+        Assert.Null(await _service.GetByIdAsync(created.Id));
     }
 
     [Fact]

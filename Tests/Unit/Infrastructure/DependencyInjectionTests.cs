@@ -55,21 +55,6 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddInfrastructure_RegistersBoardTypeRepository()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
-
-        // Assert
-        var repository = provider.GetService<IBoardTypeRepository>();
-        Assert.NotNull(repository);
-    }
-
-    [Fact]
     public void AddInfrastructure_RegistersBoardRepository()
     {
         // Arrange
