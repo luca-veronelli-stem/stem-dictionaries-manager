@@ -1,11 +1,9 @@
-using Core.Enums;
-
 namespace Core.Models;
 
 /// <summary>
 /// Dizionario: set di variabili.
-/// 3 semantiche: Standard (null,null), Periferica condivisa (null,BT), Dedicato (DT,BT).
-/// Combinazione invalida: (DT, null) — se c'è il device, serve il BoardType.
+/// IsStandard = variabili comuni a tutti (0x00xx), max 1 nel sistema (BR-004).
+/// La semantica (Standard/Dedicated/Shared/Orphan) è derivata dai Board che lo referenziano.
 /// </summary>
 public class Dictionary
 {
@@ -14,39 +12,29 @@ public class Dictionary
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Tipo dispositivo associato. Null per Standard o periferica condivisa.
+    /// True se è il dizionario delle variabili comuni (0x00xx). Max 1 nel sistema.
     /// </summary>
-    public DeviceType? DeviceType { get; private set; }
-
-    /// <summary>
-    /// BoardType associato. Null solo per dizionario Standard.
-    /// </summary>
-    public BoardType? BoardType { get; private set; }
+    public bool IsStandard { get; private set; }
 
     private readonly List<Variable> _variables = [];
     public IReadOnlyList<Variable> Variables => _variables.AsReadOnly();
 
-    public Dictionary(string name, DeviceType? deviceType = null, BoardType? boardType = null, string? description = null)
+    public Dictionary(string name, string? description = null, bool isStandard = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        // Dedicato richiede BoardType: (DeviceType, null) è invalido.
-        if (deviceType.HasValue && boardType is null)
-            throw new ArgumentException("DeviceType requires a BoardType. Use (null, null) for Standard or (null, BoardType) for shared.");
-
         Name = name;
-        DeviceType = deviceType;
-        BoardType = boardType;
         Description = description;
+        IsStandard = isStandard;
     }
 
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
-    public static Dictionary Restore(int id, string name, DeviceType? deviceType, BoardType? boardType,
-        string? description, IEnumerable<Variable> variables)
+    public static Dictionary Restore(int id, string name, string? description,
+        bool isStandard, IEnumerable<Variable> variables)
     {
-        var dictionary = new Dictionary(name, deviceType, boardType, description)
+        var dictionary = new Dictionary(name, description, isStandard)
         {
             Id = id
         };
