@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -91,20 +91,21 @@ Services/
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
 │   ├── BoardTypeMapper.cs         # BoardType Entity ↔ Domain
-│   ├── BoardMapper.cs             # Board Entity ↔ Domain
-│   ├── VariableMapper.cs          # Variable Entity ↔ Domain
-│   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (con Variables)
+│   ├── BoardMapper.cs             # Board Entity ↔ Domain (richiede Include BoardType)
+│   ├── VariableMapper.cs          # Variable Entity ↔ Domain (⚠️ Format non mappato, SVC-009)
+│   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (con DeviceType + Variables)
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
 │   ├── CommandDeviceStateMapper.cs# CommandDeviceState Entity ↔ Domain
 │   └── BitInterpretationMapper.cs # BitInterpretation Entity ↔ Domain
-├── DictionaryService.cs           # Implementazione aggregate root
+├── DictionaryService.cs           # Aggregate root (3 semantiche dizionario)
 ├── VariableService.cs             # Implementazione
 ├── CommandService.cs              # Implementazione
 ├── BoardService.cs                # Implementazione
 ├── UserService.cs                 # Implementazione
+├── Class1.cs                      # ⚠️ Placeholder non rimosso (SVC-010)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 6 issue aperte, 1 risolta
+└── ISSUES.md                      # 9 issue aperte, 1 risolta
 ```
 
 ---
@@ -114,11 +115,11 @@ Services/
 ### Service Interfaces
 
 | Interface | Metodi Principali | Aggregate |
-|-----------|-------------------|-----------|
-| `IDictionaryService` | GetWithVariablesAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
+|-----------|-------------------|:---------:|
+| `IDictionaryService` | GetWithVariablesAsync, GetStandardDictionaryAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
 | `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync | - |
-| `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync | - |
-| `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync, AddBoardTypeAsync | - |
+| `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync | - |
+| `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync, GetBoardTypesAsync, GetBoardTypeByNameAsync, GetBoardTypeByFirmwareTypeAsync, AddBoardTypeAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
 
 ### IDictionaryService (Aggregate Root)
@@ -219,13 +220,14 @@ public static class UserMapper
 
 | Regola | Enforced In | Descrizione |
 |--------|-------------|-------------|
-| **BR-001** | DictionaryService | Dizionario "Standard" non ha BoardType |
-| **BR-002** | DictionaryService | Ogni BoardType ha al massimo UN dizionario |
+| **BR-001** | DictionaryService | 3 semantiche: Standard (null,null), Condiviso (null,BT), Dedicato (DT,BT) |
+| **BR-002** | DictionaryService | Unicità combinazione (DeviceType, BoardTypeId) |
 | **BR-003** | DictionaryService, VariableService | Indirizzo variabile univoco per dizionario |
 | **BR-004** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
 | **BR-005** | UserService | Username univoco |
 | **BR-006** | BoardService | FirmwareType univoco per BoardType |
-| **BR-007** | DictionaryService | Al massimo UN dizionario Standard (senza BoardType) |
+| **BR-007** | DictionaryService | Al massimo UN dizionario Standard (senza BoardType e DeviceType) |
+| **BR-008** | Core/Dictionary | Combinazione (DeviceType, null) invalida — se c'è il device, serve il BoardType |
 
 ---
 
@@ -282,21 +284,23 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 
 ## Test
 
-| Categoria | File | Test |
-|-----------|------|------|
+| Categoria | File | Metodi Test |
+|-----------|------|:-----------:|
 | Unit/Mapping | `UserMapperTests.cs` | 10 |
 | Unit/Mapping | `BoardTypeMapperTests.cs` | 10 |
-| Unit/Mapping | `VariableMapperTests.cs` | 11 |
-| Unit/Mapping | `CommandMapperTests.cs` | 14 |
-| Unit/Mapping | `DictionaryMapperTests.cs` | 15 |
+| Unit/Mapping | `BoardMapperTests.cs` | 6 |
+| Unit/Mapping | `VariableMapperTests.cs` | 10 |
+| Unit/Mapping | `CommandMapperTests.cs` | 13 |
+| Unit/Mapping | `DictionaryMapperTests.cs` | 14 |
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
-| Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 10 |
-| Integration | `UserServiceTests.cs` | 16 |
-| Integration | `DictionaryServiceTests.cs` | 17 |
-| Integration | `BoardServiceTests.cs` | 17 |
-| Integration | `CommandServiceTests.cs` | 15 |
-| Integration | `VariableServiceTests.cs` | 28 |
-| **Totale** | | **173 test** |
+| Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
+| Unit/DI | `DependencyInjectionTests.cs` | 10 |
+| Integration | `UserServiceTests.cs` | 15 |
+| Integration | `DictionaryServiceTests.cs` | 21 |
+| Integration | `BoardServiceTests.cs` | 23 |
+| Integration | `CommandServiceTests.cs` | 18 |
+| Integration | `VariableServiceTests.cs` | 29 |
+| **Totale** | | **200** |
 
 ```bash
 # Eseguire test Services
@@ -307,12 +311,14 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 6 issue aperte, 1 risolta (0 critiche, 0 alte, 2 medie, 4 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 9 issue aperte, 1 risolta (0 critiche, 1 alta, 3 medie, 5 basse)
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
+| **SVC-008** | **Alta** | DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste |
+| SVC-009 | Media | VariableMapper.ToDomain non mappa Format (data loss) |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 | SVC-003 | Media | GetAllAsync senza paginazione |
 

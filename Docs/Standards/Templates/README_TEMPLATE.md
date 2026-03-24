@@ -254,10 +254,10 @@ Stem.Dictionaries.Manager/
 | Progetto | Note |
 |----------|------|
 | **Core** | Modelli dominio (9), enums (6), nessuna dipendenza esterna |
-| **Infrastructure** | EF Core, AppDbContext, 8 Repositories, Migrations |
-| **Services** | Mapping entities↔models, business logic, export (da sviluppare) |
-| **GUI.Windows** | Applicazione WPF, MVVM, DI setup (da sviluppare) |
-| **Tests** | xUnit, test unitari e integrazione |
+| **Infrastructure** | EF Core, AppDbContext, 9 Repositories, 3 Migrations, Seeder |
+| **Services** | 5 services, 8 mapper bidirezionali, 8 business rules, DI |
+| **GUI.Windows** | WPF + MVVM, 14 ViewModels, 13 Views, dark theme, navigation |
+| **Tests** | xUnit, unit e integration, multi-target net10.0 + net10.0-windows |
 
 ---
 
@@ -284,5 +284,5 @@ Stem.Dictionaries.Manager/
 
 | Data | Versione | Descrizione |
 |------|----------|-------------|
-| 2026-02-18 | 1.1 | README di root: badge subito sotto il titolo |
-| 2026-03-18 | 1.0 | Adattato per Stem.Dictionaries.Manager |
+| 2026-03-18 | 1.1 | README di root: badge subito sotto il titolo; adattato per Stem.Dictionaries.Manager |
+| 2026-02-18 | 1.0 | Versione iniziale |
