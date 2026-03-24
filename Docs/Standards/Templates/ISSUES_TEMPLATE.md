@@ -1,7 +1,7 @@
 # ISSUES Template - Struttura Standard per File ISSUES.md
 
-> **Versione:** 1.0  
-> **Data:** 2026-03-18  
+> **Versione:** 1.1  
+> **Data:** 2026-03-24  
 > **Stato:** Active
 
 ---
@@ -46,12 +46,20 @@ Si applica a: tutti i file `ISSUES.md` nella soluzione (`Core/`, `Services/`, `I
 - **Design**: Problema architetturale o di design (include feature limitate per scelte architetturali)
 - **Code Smell**: Violazione DRY, SOLID, clean code
 - **Performance**: Problemi di velocità o memoria
+- **UX**: Problemi di usabilità o esperienza utente
+- **Feature Mancante**: Funzionalità assente rispetto ai requisiti
+- **Copertura**: Gap nella suite di test
 - **Security**: Vulnerabilità o hardening mancante
 - **Resource Management**: Memory leak, handle leak, dispose
 - **Anti-Pattern**: Pattern noti da evitare (.Result, object lock, etc.)
 - **Observability**: Logging, metriche, diagnostica mancante
 - **Documentation**: Documentazione mancante o errata
 - **API**: Usabilità, completezza, ergonomia delle interfacce pubbliche
+- **Manutenibilità**: Leggibilità, refactoring, complessità eccessiva
+- **Robustezza**: Gestione errori, resilienza, defensive programming
+
+> **Qualificatori:** È ammesso aggiungere un qualificatore tra parentesi per precisare il sottotipo,
+> es. `Bug (Data Loss)`, `Bug (Anti-Pattern)`, `Copertura (legata a SVC-008)`, `Design/Architettura`.
 
 ### Sezione Issue Trasversali Correlate [OPZIONALE]
 
@@ -134,15 +142,17 @@ Questa sezione va inclusa **solo** quando esistono issue trasversali (T-xxx) che
 
 ### XXX-001 - Titolo Descrittivo dell'Issue
 
-**Categoria:** Bug | Design | Code Smell | Performance | Security | Anti-Pattern  
+**Categoria:** Bug | Design | Code Smell | Performance | UX | Feature Mancante | ...  
 **Priorità:** Alta  
-**Impatto:** Alto | Medio | Basso  
+**Impatto:** Alto | Medio | Basso | Nullo  
 **Status:** Aperto  
 **Data Apertura:** YYYY-MM-DD  
 
 #### Descrizione
 
 Descrizione chiara e concisa del problema. Una o due frasi che spiegano cosa non funziona o cosa manca.
+
+> **Nota:** Per issue molto semplici (es. placeholder da rimuovere), le sezioni `#### Problema Specifico` e `#### Codice Problematico` possono essere omesse. Le sezioni `#### Descrizione`, `#### Soluzione Proposta` e `#### Benefici Attesi` sono sempre obbligatorie.
 
 #### File Coinvolti
 
@@ -357,4 +367,5 @@ Aperto --> In Corso --> Risolto
 
 | Data | Versione | Descrizione |
 |------|----------|-------------|
+| 2026-03-24 | 1.1 | Aggiunte categorie UX, Feature Mancante, Copertura, Manutenibilità, Robustezza; Impatto Nullo; qualificatori Categoria; nota sezioni opzionali |
 | 2026-03-18 | 1.0 | Adattato per Stem.Dictionaries.Manager |
