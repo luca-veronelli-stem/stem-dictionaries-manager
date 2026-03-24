@@ -9,10 +9,12 @@ namespace GUI.Windows.ViewModels;
 
 /// <summary>
 /// ViewModel per la creazione/modifica di una scheda.
+/// Domain v2: FirmwareType diretto, DictionaryId?, nessun BoardType.
 /// </summary>
 public partial class BoardEditViewModel : ObservableObject
 {
     private readonly IBoardService _boardService;
+    private readonly IDictionaryService _dictionaryService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
@@ -29,8 +31,6 @@ public partial class BoardEditViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi editabili ===
-
     [ObservableProperty]
     private string _name = string.Empty;
 
@@ -38,7 +38,7 @@ public partial class BoardEditViewModel : ObservableObject
     private DeviceType _selectedDeviceType = DeviceType.OptimusXp;
 
     [ObservableProperty]
-    private BoardTypeItem? _selectedBoardType;
+    private int _firmwareType;
 
     [ObservableProperty]
     private int _boardNumber = 1;
@@ -50,30 +50,29 @@ public partial class BoardEditViewModel : ObservableObject
     private bool _isPrimary;
 
     [ObservableProperty]
-    private List<BoardTypeItem> _availableBoardTypes = [];
+    private DictionarySelectItem? _selectedDictionary;
 
-    // === Computed Properties ===
+    [ObservableProperty]
+    private List<DictionarySelectItem> _availableDictionaries = [];
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
-
     public IReadOnlyList<DeviceType> DeviceTypes { get; } = Enum.GetValues<DeviceType>();
 
     public BoardEditViewModel(
         IBoardService boardService,
+        IDictionaryService dictionaryService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _boardService = boardService;
+        _dictionaryService = dictionaryService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
     }
 
-    /// <summary>
-    /// Inizializza il ViewModel.
-    /// </summary>
     public async Task InitializeAsync(int? boardId)
     {
         if (_isInitialized) return;
@@ -83,15 +82,10 @@ public partial class BoardEditViewModel : ObservableObject
             IsBusy = true;
             _editingId = boardId;
 
-            // Carica i BoardType disponibili
-            var boardTypes = await _boardService.GetBoardTypesAsync();
-            AvailableBoardTypes = [.. boardTypes
-                .Select(bt => new BoardTypeItem
-                {
-                    Id = bt.Id,
-                    Name = bt.Name,
-                    FirmwareType = bt.FirmwareType
-                })];
+            // Carica i dizionari disponibili per il dropdown
+            var dictionaries = await _dictionaryService.GetAllAsync();
+            AvailableDictionaries = [.. dictionaries
+                .Select(d => new DictionarySelectItem { Id = d.Id, Name = d.Name })];
 
             if (boardId.HasValue)
             {
@@ -127,40 +121,34 @@ public partial class BoardEditViewModel : ObservableObject
     {
         Name = b.Name;
         SelectedDeviceType = b.DeviceType;
-        SelectedBoardType = AvailableBoardTypes.FirstOrDefault(bt => bt.Id == b.BoardType.Id);
+        FirmwareType = b.FirmwareType;
         BoardNumber = b.BoardNumber;
         PartNumber = b.PartNumber;
         IsPrimary = b.IsPrimary;
+        SelectedDictionary = b.DictionaryId.HasValue
+            ? AvailableDictionaries.FirstOrDefault(d => d.Id == b.DictionaryId.Value)
+            : null;
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name) && SelectedBoardType is not null;
+    private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
-        if (SelectedBoardType is null) return;
-
         try
         {
             IsBusy = true;
-
-            // Recupera il BoardType completo
-            var boardType = await _boardService.GetBoardTypeByNameAsync(SelectedBoardType.Name);
-            if (boardType is null)
-            {
-                await _dialogService.ShowErrorAsync("Errore", "BoardType non valido.");
-                return;
-            }
 
             if (IsNew)
             {
                 var board = new Board(
                     deviceType: SelectedDeviceType,
-                    boardType: boardType,
                     name: Name,
+                    firmwareType: FirmwareType,
                     boardNumber: BoardNumber,
                     partNumber: PartNumber,
-                    isPrimary: IsPrimary);
+                    isPrimary: IsPrimary,
+                    dictionaryId: SelectedDictionary?.Id);
 
                 await _boardService.AddAsync(board);
                 _messageService.Show($"Scheda '{Name}' creata", MessageSeverity.Success);
@@ -170,11 +158,12 @@ public partial class BoardEditViewModel : ObservableObject
                 var existing = Board.Restore(
                     id: _editingId!.Value,
                     deviceType: SelectedDeviceType,
-                    boardType: boardType,
                     name: Name,
+                    firmwareType: FirmwareType,
                     boardNumber: BoardNumber,
                     partNumber: PartNumber,
-                    isPrimary: IsPrimary);
+                    isPrimary: IsPrimary,
+                    dictionaryId: SelectedDictionary?.Id);
 
                 await _boardService.UpdateAsync(existing);
                 _messageService.Show($"Scheda '{Name}' aggiornata", MessageSeverity.Success);
@@ -206,4 +195,15 @@ public partial class BoardEditViewModel : ObservableObject
 
         _navigationService.GoBack();
     }
+}
+
+/// <summary>
+/// Item per il dropdown di selezione dizionario.
+/// </summary>
+public class DictionarySelectItem
+{
+    public int Id { get; init; }
+    public required string Name { get; init; }
+
+    public override string ToString() => Name;
 }
