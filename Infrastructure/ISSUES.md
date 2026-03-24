@@ -1,4 +1,4 @@
-# Infrastructure - ISSUES
+﻿# Infrastructure - ISSUES
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Infrastructure**.
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 1 |
+| **Alta** | 2 | 1 |
 | **Media** | 2 | 0 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 5  
+**Totale aperte:** 6  
 **Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
+- [INFRA-008 - Refactoring Infrastructure per Domain v2](#infra-008--refactoring-infrastructure-per-domain-v2)
 - [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
@@ -36,6 +37,36 @@
 ---
 
 ## Priorità Alta
+
+
+### INFRA-008 - Refactoring Infrastructure per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-25  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Eliminazione `BoardTypeEntity`, `IBoardTypeRepository`, `BoardTypeRepository`. Aggiunta `FirmwareType`, `DictionaryId?`, `IsStandard` su entities. Nuova migration. Riscrittura `DatabaseSeeder`.
+
+#### Azioni
+
+| Azione | File |
+|--------|------|
+| DELETE | `BoardTypeEntity.cs`, `IBoardTypeRepository.cs`, `BoardTypeRepository.cs` |
+| MODIFY | `BoardEntity.cs`: +FirmwareType, +DictionaryId?, -BoardTypeId |
+| MODIFY | `DictionaryEntity.cs`: +IsStandard, -DeviceType?, -BoardTypeId? |
+| MODIFY | `AppDbContext.cs`: -BoardTypes DbSet, aggiorna FK |
+| MODIFY | `DatabaseSeeder.cs`: riscrivi senza BoardType |
+| MODIFY | `DependencyInjection.cs`: -IBoardTypeRepository |
+| ADD | Migration `RemoveBoardType_DirectBoardDictionary` |
+
+> **Nota:** Risolve anche INFRA-007 (DatabaseSeeder usa boardTypeId).
+
+---
 
 ### INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType
 

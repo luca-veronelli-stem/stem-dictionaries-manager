@@ -1,4 +1,4 @@
-# GUI.Windows - ISSUES
+﻿# GUI.Windows - ISSUES
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 2 | 0 |
 | **Media** | 2 | 2 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 5  
+**Totale aperte:** 6  
 **Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
+- [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
 - [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
@@ -36,6 +37,28 @@
 ---
 
 ## Priorità Alta
+
+
+### GUI-008 - Refactoring GUI per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-25  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Rimuovi ComboBox DeviceType/BoardType da DictionaryEdit, aggiungi CheckBox IsStandard. BoardEdit: rimuovi ComboBox BoardType, aggiungi FirmwareType + ComboBox Dictionary nullable. DictionaryList: colonna `Usato da` derivata. DeviceDetail: 2 sezioni (Dizionari derivati + Schede).
+
+#### File coinvolti
+
+`DictionaryEditViewModel`, `DictionaryListViewModel`, `BoardEditViewModel`, `BoardListViewModel`, `DeviceDetailViewModel` + rispettive Views XAML.
+
+> **Nota:** Risolve anche GUI-007 (DictionaryListItem non mostra DeviceType).
+
+---
 
 ### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
 

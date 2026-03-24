@@ -1,4 +1,4 @@
-# Tests - ISSUES
+﻿# Tests - ISSUES
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 2 | 0 |
 | **Media** | 1 | 3 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 3  
+**Totale aperte:** 4  
 **Totale risolte:** 5
 
 ---
 
 ## Indice Issue Aperte
 
+- [TEST-009 - Aggiornamento test per Domain v2](#test-009--aggiornamento-test-per-domain-v2)
 - [TEST-007 - Manca test integration per Shared Peripheral in DictionaryService](#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice)
 - [TEST-008 - VariableMapperTests non testa Format round-trip](#test-008--variablemappertests-non-testa-format-round-trip)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
@@ -57,6 +58,32 @@
 ---
 
 ## Priorità Alta
+
+
+### TEST-009 - Aggiornamento test per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-25  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Eliminazione test BoardType (`BoardTypeTests`, `BoardTypeMapperTests`, `BoardTypeRepositoryTests`). Riscrittura test Board e Dictionary (nuovi campi). Aggiornamento ~30 file test per rimozione BoardType e nuova semantica.
+
+#### Azioni
+
+| Azione | Scope |
+|--------|-------|
+| DELETE | `BoardTypeTests.cs`, `BoardTypeMapperTests.cs`, `BoardTypeRepositoryTests.cs` |
+| REWRITE | `BoardTests.cs`, `DictionaryTests.cs`, `BoardMapperTests.cs`, `DictionaryMapperTests.cs` |
+| UPDATE | ~20 file test (integration + GUI mocks) |
+
+> **Nota:** Risolve anche TEST-007 (Manca test Shared Peripheral).
+
+---
 
 ### TEST-007 - Manca test integration per Shared Peripheral in DictionaryService
 

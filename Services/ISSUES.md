@@ -1,4 +1,4 @@
-# Services - ISSUES
+﻿# Services - ISSUES
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 2 | 0 |
 | **Media** | 3 | 1 |
 | **Bassa** | 5 | 0 |
 
-**Totale aperte:** 9  
+**Totale aperte:** 10  
 **Totale risolte:** 1
 
 ---
 
 ## Indice Issue Aperte
 
+- [SVC-011 - Refactoring Services per Domain v2](#svc-011--refactoring-services-per-domain-v2)
 - [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
@@ -39,6 +40,33 @@
 ---
 
 ## Priorità Alta
+
+
+### SVC-011 - Refactoring Services per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-25  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Eliminazione `BoardTypeMapper`. Riscrittura `BoardMapper` (FirmwareType da Board, DictionaryId?), `DictionaryMapper` (IsStandard, no DeviceType/BoardType). Aggiornamento `BoardService` e `DictionaryService` (Standard check via IsStandard flag).
+
+#### Azioni
+
+| Azione | File |
+|--------|------|
+| DELETE | `Mapping/BoardTypeMapper.cs` |
+| MODIFY | `Mapping/BoardMapper.cs`, `Mapping/DictionaryMapper.cs` |
+| MODIFY | `BoardService.cs`, `DictionaryService.cs` |
+| MODIFY | `Interfaces/IBoardService.cs`, `Interfaces/IDictionaryService.cs` |
+
+> **Nota:** Risolve anche SVC-008 e SVC-004.
+
+---
 
 ### SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste
 
