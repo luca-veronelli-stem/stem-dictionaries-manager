@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Infrastructure**.
 
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 1 |
+| **Alta** | 1 | 1 |
 | **Media** | 2 | 0 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 4  
+**Totale aperte:** 5  
 **Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
+- [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
@@ -31,6 +32,95 @@
 
 - [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
 - [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate-risolto)
+
+---
+
+## Priorità Alta
+
+### INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType
+
+**Categoria:** Bug  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-23  
+
+#### Descrizione
+
+`DatabaseSeeder.CreateBoard` calcola il `ProtocolAddress` usando `boardTypeId` (chiave primaria auto-increment del DB) invece di `FirmwareType` (valore reale del firmware). Tutti gli indirizzi protocol nel DB di sviluppo sono **errati**.
+
+#### File Coinvolti
+
+- `Infrastructure/DatabaseSeeder.cs` (righe 359-375)
+
+#### Codice Problematico
+
+```csharp
+private static BoardEntity CreateBoard(DeviceType deviceType, int boardTypeId,
+    string name, int boardNumber, string? partNumber, bool isPrimary = false)
+{
+    // BUG: boardTypeId è l'ID auto-generato (1, 2, 3...)
+    // Dovrebbe usare FirmwareType (17, 18, 4...)
+    var protocolAddress = ((uint)deviceType << 16) 
+        | (((uint)boardTypeId & 0x03FF) << 6)    // ← ERRATO
+        | ((uint)boardNumber & 0x003F);
+    // ...
+}
+```
+
+#### Confronto con Domain Model
+
+```csharp
+// Core/Models/Board.cs — formula CORRETTA
+public static uint CalculateAddress(int machineCode, int firmwareType, int boardNumber)
+{
+    return (uint)(
+        (machineCode << 16) |
+        ((firmwareType & 0x03FF) << 6) |    // ← usa firmwareType
+        (boardNumber & 0x003F));
+}
+```
+
+#### Problema Specifico
+
+- `boardTypeId` = chiave primaria auto-generata (1, 2, 3, 4, 5, 6, 7)
+- `FirmwareType` = valore reale del firmware (17, 18, 4, 8, 20, 10, 25)
+- Esempio: Madre Optimus ha `FirmwareType=17` ma `boardTypeId=1` → indirizzo completamente diverso
+- Il DB di sviluppo contiene indirizzi protocol **tutti sbagliati**
+- L'unique constraint su `ProtocolAddress` funziona per caso (valori diversi ma errati)
+
+#### Soluzione Proposta
+
+**Cambiare la firma del metodo per accettare il BoardTypeEntity intero:**
+
+```csharp
+private static BoardEntity CreateBoard(DeviceType deviceType, BoardTypeEntity boardType,
+    string name, int boardNumber, string? partNumber, bool isPrimary = false)
+{
+    var protocolAddress = ((uint)deviceType << 16) 
+        | (((uint)boardType.FirmwareType & 0x03FF) << 6)
+        | ((uint)boardNumber & 0x003F);
+
+    return new BoardEntity
+    {
+        DeviceType = deviceType,
+        BoardTypeId = boardType.Id,
+        Name = name,
+        BoardNumber = boardNumber,
+        PartNumber = partNumber,
+        ProtocolAddress = protocolAddress,
+        IsPrimary = isPrimary
+    };
+}
+```
+
+Oppure riusare `Board.CalculateAddress` dal domain model per evitare duplicazione formula.
+
+#### Benefici Attesi
+
+- Indirizzi protocol corretti nel DB di sviluppo
+- Coerenza con il domain model `Board.CalculateAddress`
+- Dati di demo affidabili per testing manuale
 
 ---
 
@@ -371,10 +461,12 @@ public virtual async Task DeleteAsync(int id, CancellationToken cancellationToke
 **Categoria:** API  
 **Priorità:** Bassa  
 **Impatto:** Basso  
-**Status:** ✅ Risolto (parte di SVC-001)  
+**Status:** Risolto  
 **Data Apertura:** 2026-03-18  
 **Data Risoluzione:** 2026-03-18  
 **Branch:** fix/svc-001  
+
+> Nota: Risolto come parte di SVC-001.
 
 #### Descrizione
 
@@ -392,9 +484,10 @@ Le entities `BitInterpretationEntity` e `CommandDeviceStateEntity` non avevano r
 
 3. **Registrazione in DependencyInjection.cs**
 
-4. **Test aggiunti:**
-   - `BitInterpretationRepositoryTests.cs` (10 test)
-   - `CommandDeviceStateRepositoryTests.cs` (10 test)
+#### Test Aggiunti
+
+- `BitInterpretationRepositoryTests.cs` (10 test)
+- `CommandDeviceStateRepositoryTests.cs` (10 test)
 
 #### Benefici Ottenuti
 

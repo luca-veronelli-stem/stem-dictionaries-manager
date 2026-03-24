@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-03-18
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -11,27 +11,119 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 0 |
-| **Media** | 2 | 1 |
-| **Bassa** | 4 | 0 |
+| **Alta** | 1 | 0 |
+| **Media** | 3 | 1 |
+| **Bassa** | 5 | 0 |
 
-**Totale aperte:** 6  
+**Totale aperte:** 9  
 **Totale risolte:** 1
 
 ---
 
 ## Indice Issue Aperte
 
+- [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
+- [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
 - [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
 - [SVC-007 - DependencyInjection non valida prerequisiti](#svc-007--dependencyinjection-non-valida-prerequisiti)
+- [SVC-010 - Class1.cs placeholder non rimosso](#svc-010--class1cs-placeholder-non-rimosso)
 
 ## Indice Issue Risolte
 
 - [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext-risolto)
+
+---
+
+## Priorità Alta
+
+### SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste
+
+**Categoria:** Bug  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+`DictionaryService.AddAsync` ha una condizione errata che impedisce la creazione di dizionari **Periferica condivisa** (`null, BoardType`) se un dizionario **Standard** (`null, null`) esiste già. Le 3 semantiche definite in SESSION_022 non sono gestite correttamente.
+
+#### File Coinvolti
+
+- `Services/DictionaryService.cs` (righe 73-93)
+
+#### Codice Problematico
+
+```csharp
+// Riga 74: la condizione cattura solo Dedicato (DT, BT)
+if (dictionary.BoardType is not null && dictionary.DeviceType.HasValue)
+{
+    // SOLO Dedicato (DT, BT) → entra qui
+}
+else
+{
+    // Cattura ENTRAMBI:
+    // - Standard (null, null) ✅ corretto → controlla unicità
+    // - Shared Peripheral (null, BT) ❌ BUG → blocca se Standard esiste
+    var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+    if (existingStandard is not null)
+        throw new InvalidOperationException(
+            "A Standard dictionary (without BoardType) already exists.");
+}
+```
+
+#### Tabella di verità
+
+| Semantica | BoardType | DeviceType | Condizione riga 74 | Branch | Risultato |
+|-----------|-----------|------------|-------------------|--------|----------|
+| Standard | null | null | `false && false` | else | ✅ Corretto |
+| Shared Peripheral | **not null** | null | `true && false` | **else** | ❌ **BUG** |
+| Dedicato | not null | has value | `true && true` | if | ✅ Corretto |
+
+#### Impatto
+
+- **Seeder funziona** perché scrive entity direttamente, bypassando il service
+- **Da UI è impossibile** creare una periferica condivisa se il dizionario Standard esiste
+- Dato che il dizionario Standard viene creato per primo, **nessuna periferica condivisa può essere creata via service**
+
+#### Soluzione Proposta
+
+Riscrivere la validazione con 3 branch espliciti:
+
+```csharp
+if (dictionary.DeviceType is null && dictionary.BoardType is null)
+{
+    // Standard (null, null) → al massimo uno
+    var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+    if (existingStandard is not null)
+        throw new InvalidOperationException(
+            "A Standard dictionary already exists. Only one is allowed.");
+}
+else if (dictionary.DeviceType is null && dictionary.BoardType is not null)
+{
+    // Shared Peripheral (null, BT) → verifica unicità BoardType
+    var existingByBt = await _dictionaryRepository.GetByBoardTypeAsync(
+        dictionary.BoardType.Id, ct);
+    if (existingByBt is not null)
+        throw new InvalidOperationException(
+            $"A shared peripheral dictionary for BoardType {dictionary.BoardType.Id} already exists.");
+}
+else if (dictionary.DeviceType.HasValue && dictionary.BoardType is not null)
+{
+    // Dedicato (DT, BT) → verifica unicità combo
+    // ... codice esistente
+}
+```
+
+#### Benefici Attesi
+
+- Creazione periferiche condivise funzionante
+- Coerenza con le 3 semantiche definite in Lean 4 spec
+- Validazione corretta per ogni tipo di dizionario
 
 ---
 
@@ -40,7 +132,7 @@
 ### SVC-002 - Manca IAuditService per gestione audit trail
 
 **Categoria:** Feature Mancante  
-**Priorità:** Media
+**Priorità:** Media  
 **Impatto:** Medio  
 **Status:** Aperto  
 **Data Apertura:** 2026-03-18  
@@ -373,6 +465,106 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 
 ---
 
+### SVC-009 - VariableMapper.ToDomain non mappa Format
+
+**Categoria:** Bug (Data Loss)  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+`VariableMapper.ToDomain` passa `format: null` con commento errato "Format non è presente in Entity". In realtà `VariableEntity.Format` esiste (riga 16) ed è configurato in `AppDbContext` (riga 121: `HasMaxLength(50)`). Il campo Format viene **perso in round-trip** perché non è mappato né in lettura, né in scrittura, né in update.
+
+#### File Coinvolti
+
+- `Services/Mapping/VariableMapper.cs` (righe 29, 44-61, 68-86)
+- `Infrastructure/Entities/VariableEntity.cs` (riga 16)
+
+#### Codice Problematico
+
+```csharp
+// ToDomain - riga 29: commento ERRATO
+format: null, // Format non è presente in Entity  ← FALSO
+
+// ToEntity - righe 44-61: Format non mappato
+return new VariableEntity
+{
+    // ... tutte le proprietà TRANNE Format
+};
+
+// UpdateEntity - righe 68-86: Format non aggiornato
+// entity.Format = domain.Format;  ← MANCANTE
+```
+
+#### Problema Specifico
+
+- `VariableEntity.Format` esiste e ha `HasMaxLength(50)` in AppDbContext
+- `Variable.Format` esiste nel domain model
+- Il mapper non copia il valore in **nessuna** direzione
+- Qualsiasi dato Format nel DB viene ignorato in lettura
+- Qualsiasi dato Format dal domain non viene persistito
+
+#### Soluzione Proposta
+
+```csharp
+// ToDomain:
+format: entity.Format,
+
+// ToEntity:
+Format = domain.Format,
+
+// UpdateEntity:
+entity.Format = domain.Format;
+```
+
+#### Benefici Attesi
+
+- Round-trip corretto per il campo Format
+- Nessuna perdita di dati
+- Commento corretto
+
+---
+
+### SVC-010 - Class1.cs placeholder non rimosso
+
+**Categoria:** Code Smell  
+**Priorità:** Bassa  
+**Impatto:** Nullo  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+`Services/Class1.cs` è il placeholder generato da `dotnet new classlib` rimasto nel progetto. I placeholder di `Core` e `Tests` sono stati rimossi in SESSION_002, ma quello di Services no.
+
+#### File Coinvolti
+
+- `Services/Class1.cs`
+
+#### Codice Problematico
+
+```csharp
+namespace Services
+{
+    public class Class1
+    {
+    }
+}
+```
+
+#### Soluzione Proposta
+
+Eliminare il file.
+
+#### Benefici Attesi
+
+- Codebase più pulita
+- Nessuna classe vuota nel namespace
+
+---
+
 ## Issue Risolte
 
 
@@ -381,9 +573,9 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 **Categoria:** Design/Architettura  
 **Priorità:** Media  
 **Impatto:** Medio  
-**Status:** ✅ Risolto  
+**Status:** Risolto  
 **Data Apertura:** 2026-03-18  
-**Data Chiusura:** 2026-03-18
+**Data Risoluzione:** 2026-03-18  
 
 #### Descrizione
 

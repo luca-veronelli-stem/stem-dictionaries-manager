@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-03-20
+> **Ultimo aggiornamento:** 2026-03-24
 
 ---
 
@@ -11,17 +11,20 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 0 |
-| **Media** | 0 | 2 |
+| **Alta** | 1 | 0 |
+| **Media** | 2 | 2 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 2  
+**Totale aperte:** 5  
 **Totale risolte:** 2
 
 ---
 
 ## Indice Issue Aperte
 
+- [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
+- [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
+- [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
@@ -32,15 +35,196 @@
 
 ---
 
-## Copertura Attuale
+## Priorità Alta
 
-| Componente | Test Unit | Test Integration | Copertura |
-|------------|:---------:|:----------------:|-----------|
-| ViewModels (12) | ✅ 216 | ✅ 10 | ~95% |
-| Services (3) | ✅ 12 | - | ~85% |
-| DependencyInjection | ✅ 21 | - | 100% |
-| Converters (2) | ✅ 18 | - | 100% |
-| Views (9) | - | - | N/A (XAML) |
+### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
+
+**Categoria:** Bug (Anti-Pattern)  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+`MainViewModel.NavigateToView` è `async void` e non ha try/catch. Se `InitializeViewModelAsync` lancia un'eccezione (es. DB non raggiungibile, service failure), l'eccezione non viene gestita e **crasha l'applicazione** con `UnhandledTaskException`.
+
+#### File Coinvolti
+
+- `GUI.Windows/ViewModels/MainViewModel.cs` (righe 89-101)
+
+#### Codice Problematico
+
+```csharp
+private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
+{
+    var viewModel = CreateViewModel(viewType);
+
+    if (viewModel is not null)
+    {
+        // Se questo lancia, l'app crasha (async void non cattura)
+        await InitializeViewModelAsync(viewModel, parameter);
+    }
+
+    CurrentViewModel = viewModel;
+    UpdateTitle(viewType);
+}
+```
+
+#### Problema Specifico
+
+- `async void` non consente al chiamante di osservare l'eccezione
+- È invocato da `OnCurrentViewChanged` (event handler → `async void` è accettabile) ma il `try/catch` è comunque mancante
+- Se un qualsiasi ViewModel.LoadAsync/InitializeAsync fallisce, l'app crasha
+- Il pattern è particolarmente pericoloso perché **ogni navigazione** passa da qui
+- `DeviceDetailViewModel.LoadAsync`, `DictionaryListViewModel.LoadAsync` ecc. hanno già `try/catch` interni, ma non tutti i path sono protetti
+
+#### Soluzione Proposta
+
+```csharp
+private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
+{
+    try
+    {
+        var viewModel = CreateViewModel(viewType);
+
+        if (viewModel is not null)
+        {
+            await InitializeViewModelAsync(viewModel, parameter);
+        }
+
+        CurrentViewModel = viewModel;
+        UpdateTitle(viewType);
+    }
+    catch (Exception ex)
+    {
+        // Fallback: mostra errore senza crashare l'app
+        CurrentViewModel = null;
+        UpdateTitle(viewType);
+        // Opzionale: mostra messaggio nella status bar
+    }
+}
+```
+
+#### Benefici Attesi
+
+- Nessun crash dell'app su errori di navigazione
+- UX resiliente: l'utente vede un messaggio di errore invece di un crash
+- Coerenza: error handling a tutti i livelli della pipeline navigazione
+
+---
+
+## Priorità Media
+
+### GUI-006 - LoginViewModel registrato due volte nel DI container
+
+**Categoria:** Code Smell  
+**Priorità:** Media  
+**Impatto:** Basso  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+`LoginViewModel` è registrato come `Transient` sia in `DependencyInjection.AddGUI()` (riga 26) che in `App.xaml.cs` (riga 47). La doppia registrazione non causa errori (l'ultima vince) ma è confusa e indica un residuo di refactoring.
+
+#### File Coinvolti
+
+- `GUI.Windows/DependencyInjection.cs` (riga 26)
+- `GUI.Windows/App.xaml.cs` (riga 47)
+
+#### Codice Problematico
+
+```csharp
+// DependencyInjection.cs - riga 26
+services.AddTransient<LoginViewModel>();   // ← prima registrazione
+
+// App.xaml.cs - riga 47
+services.AddTransient<LoginViewModel>();   // ← duplicato
+```
+
+#### Soluzione Proposta
+
+Rimuovere la registrazione duplicata da `App.xaml.cs` riga 47. La registrazione in `DependencyInjection.AddGUI()` è quella corretta (centralizzata).
+
+```csharp
+// App.xaml.cs - dopo
+services.AddGUI();
+
+// MainWindow + LoginView (Views, NON ViewModels)
+services.AddTransient<MainWindow>();
+services.AddTransient<LoginView>();
+// LoginViewModel già registrato in AddGUI()
+```
+
+#### Benefici Attesi
+
+- Registrazione DI centralizzata e senza duplicati
+- Meno confusione nella manutenzione
+
+---
+
+### GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)
+
+**Categoria:** UX  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-24  
+
+#### Descrizione
+
+Dopo l'introduzione delle 3 semantiche di dizionario (SESSION_022), `DictionaryListItem` mostra solo `BoardTypeName` ma non il `DeviceType`. L'utente nella lista dizionari non distingue tra un dizionario **Dedicato** (`OptimusXp, Madre`) e una **Periferica condivisa** (`null, Madre`).
+
+#### File Coinvolti
+
+- `GUI.Windows/ViewModels/DictionaryListViewModel.cs` (righe 162-174)
+
+#### Codice Attuale
+
+```csharp
+public class DictionaryListItem
+{
+    public int Id { get; init; }
+    public required string Name { get; init; }
+    public string? Description { get; init; }
+    public string? BoardTypeName { get; init; }
+    public int VariableCount { get; init; }
+
+    // Manca: DeviceType? DeviceTypeName
+    public string BoardTypeDisplay => BoardTypeName ?? "Standard";
+}
+```
+
+#### Problema Specifico
+
+- Due dizionari "Madre Optimus" e "Pulsantiere 4x4" hanno entrambi un BoardTypeName, ma uno è Dedicato e l'altro Condiviso
+- L'utente non può distinguerli nella lista
+- `BoardTypeDisplay` mostra "Standard" per `null`, ma non indica se il dizionario è condiviso o dedicato
+
+#### Soluzione Proposta
+
+Aggiungere `DeviceTypeName` e una proprietà `SemanticDisplay`:
+
+```csharp
+public class DictionaryListItem
+{
+    // ... existing
+    public string? DeviceTypeName { get; init; }
+
+    public string SemanticDisplay => (DeviceTypeName, BoardTypeName) switch
+    {
+        (null, null) => "Standard",
+        (null, _) => $"Condiviso ({BoardTypeName})",
+        (_, _) => $"{DeviceTypeName} — {BoardTypeName}"
+    };
+}
+```
+
+#### Benefici Attesi
+
+- L'utente distingue le 3 semantiche nella lista
+- UX coerente con la nuova architettura dizionari
 
 ---
 
