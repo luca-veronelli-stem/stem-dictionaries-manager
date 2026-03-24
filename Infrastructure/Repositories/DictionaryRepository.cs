@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -17,20 +16,11 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
         return await DbSet.FirstOrDefaultAsync(d => d.Name == name, cancellationToken);
     }
 
-    public async Task<DictionaryEntity?> GetByBoardTypeAsync(int boardTypeId,
-        CancellationToken cancellationToken = default)
-    {
-        return await DbSet
-            .Include(d => d.BoardType)
-            .FirstOrDefaultAsync(d => d.BoardTypeId == boardTypeId, cancellationToken);
-    }
-
     public async Task<DictionaryEntity?> GetWithVariablesAsync(int id,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Include(d => d.Variables)
-            .Include(d => d.BoardType)
             .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
     }
 
@@ -39,22 +29,13 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     {
         return await DbSet
             .Include(d => d.Variables)
-            .FirstOrDefaultAsync(d => d.BoardTypeId == null && d.DeviceType == null, cancellationToken);
+            .FirstOrDefaultAsync(d => d.IsStandard, cancellationToken);
     }
 
-    public async Task<DictionaryEntity?> GetByDeviceTypeAndBoardTypeAsync(DeviceType deviceType, int boardTypeId,
+    public async Task<IReadOnlyList<DictionaryEntity>> GetAllWithVariablesAsync(
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Include(d => d.BoardType)
-            .FirstOrDefaultAsync(d => d.DeviceType == deviceType && d.BoardTypeId == boardTypeId, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<DictionaryEntity>> GetAllWithBoardTypeAsync(
-        CancellationToken cancellationToken = default)
-    {
-        return await DbSet
-            .Include(d => d.BoardType)
             .Include(d => d.Variables)
             .ToListAsync(cancellationToken);
     }
