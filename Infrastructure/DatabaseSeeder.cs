@@ -361,6 +361,27 @@ public static class DatabaseSeeder
         };
         context.CommandDeviceStates.AddRange(commandDeviceStates);
 
+        // === Variable Device States ===
+        // Override per-device su variabili Standard (BR-009)
+        // "Debug Mode" non supportata su SherpaSlim e Gradino
+        var varDebugMode = standardVars.First(v => v.Name == "Debug Mode");
+        var variableDeviceStates = new[]
+        {
+            new VariableDeviceStateEntity
+            {
+                VariableId = varDebugMode.Id,
+                DeviceType = DeviceType.SherpaSlim,
+                IsEnabled = false
+            },
+            new VariableDeviceStateEntity
+            {
+                VariableId = varDebugMode.Id,
+                DeviceType = DeviceType.Gradino,
+                IsEnabled = false
+            },
+        };
+        context.VariableDeviceStates.AddRange(variableDeviceStates);
+
         await context.SaveChangesAsync();
     }
 

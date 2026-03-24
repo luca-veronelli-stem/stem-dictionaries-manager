@@ -15,6 +15,7 @@ public class VariableServiceTests : IntegrationTestBase
     private readonly VariableRepository _variableRepo;
     private readonly DictionaryRepository _dictionaryRepo;
     private readonly BitInterpretationRepository _bitInterpretationRepo;
+    private readonly VariableDeviceStateRepository _deviceStateRepo;
     private DictionaryEntity _testDictionary = null!;
 
     public VariableServiceTests()
@@ -22,11 +23,13 @@ public class VariableServiceTests : IntegrationTestBase
         _dictionaryRepo = new DictionaryRepository(Context);
         _variableRepo = new VariableRepository(Context);
         _bitInterpretationRepo = new BitInterpretationRepository(Context);
+        _deviceStateRepo = new VariableDeviceStateRepository(Context);
 
         _service = new VariableService(
             _variableRepo,
             _dictionaryRepo,
-            _bitInterpretationRepo);
+            _bitInterpretationRepo,
+            _deviceStateRepo);
     }
 
     public override async Task InitializeAsync()
@@ -736,5 +739,108 @@ public class VariableServiceTests : IntegrationTestBase
         Assert.Single(result);
         Assert.Equal(originalId, result[0].Id);
         Assert.Equal("Motor Updated", result[0].Meaning);
+    }
+
+    // === DeviceState Tests ===
+
+    [Fact]
+    public async Task SetDeviceStateAsync_CreatesNewState()
+    {
+        var variable = await CreateTestVariable();
+
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
+
+        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim);
+        Assert.NotNull(state);
+        Assert.False(state.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SetDeviceStateAsync_UpdatesExistingState()
+    {
+        var variable = await CreateTestVariable();
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
+
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, true);
+
+        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim);
+        Assert.NotNull(state);
+        Assert.True(state.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SetDeviceStateAsync_VariableNotFound_ThrowsKeyNotFoundException()
+    {
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _service.SetDeviceStateAsync(999, DeviceType.Spark, false));
+    }
+
+    [Fact]
+    public async Task SetDeviceStateAsync_BR011_EnableOnDeprecated_ThrowsInvalidOperationException()
+    {
+        // Crea variabile disabilitata (deprecata)
+        var variable = await CreateTestVariable(isEnabled: false);
+
+        // BR-011: tentativo di abilitare per un device → errore
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.SetDeviceStateAsync(variable.Id, DeviceType.OptimusXp, true));
+
+        Assert.Contains("deprecated globally", ex.Message);
+    }
+
+    [Fact]
+    public async Task SetDeviceStateAsync_BR011_DisableOnDeprecated_Allowed()
+    {
+        var variable = await CreateTestVariable(isEnabled: false);
+
+        // Disabilitare per device su variabile deprecata è consentito (no-op logico ma valido)
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.OptimusXp, false);
+
+        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.OptimusXp);
+        Assert.NotNull(state);
+        Assert.False(state.IsEnabled);
+    }
+
+    [Fact]
+    public async Task GetDeviceStateAsync_NotExists_ReturnsNull()
+    {
+        var variable = await CreateTestVariable();
+
+        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.Spark);
+
+        Assert.Null(state);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesAsync_ReturnsAllOverrides()
+    {
+        var variable = await CreateTestVariable();
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Gradino, false);
+
+        var states = await _service.GetDeviceStatesAsync(variable.Id);
+
+        Assert.Equal(2, states.Count);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesAsync_NoOverrides_ReturnsEmpty()
+    {
+        var variable = await CreateTestVariable();
+
+        var states = await _service.GetDeviceStatesAsync(variable.Id);
+
+        Assert.Empty(states);
+    }
+
+    private async Task<Variable> CreateTestVariable(
+        byte addressLow = 0x01,
+        bool isEnabled = true)
+    {
+        var variable = new Variable(
+            "TestVar", 0x00, addressLow,
+            DataTypeKind.UInt16, AccessMode.ReadWrite, "UInt16",
+            isEnabled: isEnabled);
+        return await _service.AddAsync(_testDictionary.Id, variable);
     }
 }

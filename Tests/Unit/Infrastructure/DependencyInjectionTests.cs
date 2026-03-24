@@ -160,6 +160,21 @@ public class DependencyInjectionTests
     }
 
     [Fact]
+    public void AddInfrastructure_RegistersVariableDeviceStateRepository()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddInfrastructure(TestConnectionString);
+        var provider = services.BuildServiceProvider();
+
+        // Assert
+        var repository = provider.GetService<IVariableDeviceStateRepository>();
+        Assert.NotNull(repository);
+    }
+
+    [Fact]
     public void AddInfrastructure_RegistersRepositoriesAsScoped()
     {
         // Arrange

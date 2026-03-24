@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
         services.AddScoped<IBitInterpretationRepository, BitInterpretationRepository>();
         services.AddScoped<ICommandDeviceStateRepository, CommandDeviceStateRepository>();
+        services.AddScoped<IVariableDeviceStateRepository, VariableDeviceStateRepository>();
 
         return services;
     }

@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<BitInterpretationEntity> BitInterpretations => Set<BitInterpretationEntity>();
     public DbSet<CommandEntity> Commands => Set<CommandEntity>();
     public DbSet<CommandDeviceStateEntity> CommandDeviceStates => Set<CommandDeviceStateEntity>();
+    public DbSet<VariableDeviceStateEntity> VariableDeviceStates => Set<VariableDeviceStateEntity>();
     public DbSet<AuditEntryEntity> AuditEntries => Set<AuditEntryEntity>();
 
     public override int SaveChanges()
@@ -143,6 +144,17 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Command)
                   .WithMany(c => c.DeviceStates)
                   .HasForeignKey(e => e.CommandId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // VariableDeviceState
+        modelBuilder.Entity<VariableDeviceStateEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.VariableId, e.DeviceType }).IsUnique();
+            entity.HasOne(e => e.Variable)
+                  .WithMany(v => v.DeviceStates)
+                  .HasForeignKey(e => e.VariableId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

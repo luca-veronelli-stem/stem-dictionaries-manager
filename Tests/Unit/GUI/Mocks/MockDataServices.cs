@@ -326,6 +326,27 @@ public class MockVariableService : IVariableService
         return Task.CompletedTask;
     }
 
+    public Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceType}:{isEnabled}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
+    public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetDeviceStateAsync:{variableId}:{deviceType}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<VariableDeviceState?>(null);
+    }
+
+    public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetDeviceStatesAsync:{variableId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<VariableDeviceState>>([]);
+    }
+
     public Task UpdateAsync(Variable variable, CancellationToken ct = default)
     {
         MethodCalls.Add($"UpdateAsync:{variable.Id}");

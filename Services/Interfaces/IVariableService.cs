@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Models;
 
 namespace Services.Interfaces;
@@ -48,5 +49,26 @@ public interface IVariableService
     /// Smart update: confronta per (WordIndex, BitIndex), aggiunge/aggiorna/elimina.
     /// </summary>
     Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations,
+        CancellationToken ct = default);
+
+    // === DeviceState Management ===
+
+    /// <summary>
+    /// Imposta lo stato abilitato/disabilitato di una variabile per un device.
+    /// BR-011: se Variable.IsEnabled=false, isEnabled=true è vietato.
+    /// </summary>
+    Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene lo stato di una variabile per un device specifico.
+    /// </summary>
+    Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene tutti gli override per-device di una variabile.
+    /// </summary>
+    Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId,
         CancellationToken ct = default);
 }
