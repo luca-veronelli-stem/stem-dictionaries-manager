@@ -7,8 +7,8 @@ public class BoardEntity : IAuditable
 {
     public int Id { get; set; }
     public DeviceType DeviceType { get; set; }
-    public int BoardTypeId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public int FirmwareType { get; set; }
     public int BoardNumber { get; set; }
     public string? PartNumber { get; set; }
     public uint ProtocolAddress { get; set; }
@@ -18,10 +18,15 @@ public class BoardEntity : IAuditable
     /// </summary>
     public bool IsPrimary { get; set; }
 
+    /// <summary>
+    /// Dizionario associato. Null = board senza dizionario proprio.
+    /// </summary>
+    public int? DictionaryId { get; set; }
+
     // IAuditable
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation
-    public BoardTypeEntity BoardType { get; set; } = null!;
+    public DictionaryEntity? Dictionary { get; set; }
 }
