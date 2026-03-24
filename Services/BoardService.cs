@@ -7,22 +7,21 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione schede e tipi scheda.
+/// Implementazione service per gestione schede.
+/// Domain v2: nessun BoardType, FirmwareType diretto su Board.
 /// </summary>
 public class BoardService : IBoardService
 {
     private readonly IBoardRepository _boardRepository;
-    private readonly IBoardTypeRepository _boardTypeRepository;
+    private readonly IDictionaryRepository _dictionaryRepository;
 
-    public BoardService(IBoardRepository boardRepository, IBoardTypeRepository boardTypeRepository)
+    public BoardService(IBoardRepository boardRepository, IDictionaryRepository dictionaryRepository)
     {
         ArgumentNullException.ThrowIfNull(boardRepository);
-        ArgumentNullException.ThrowIfNull(boardTypeRepository);
+        ArgumentNullException.ThrowIfNull(dictionaryRepository);
         _boardRepository = boardRepository;
-        _boardTypeRepository = boardTypeRepository;
+        _dictionaryRepository = dictionaryRepository;
     }
-
-    // === Board CRUD ===
 
     public async Task<Board?> GetByIdAsync(int id, CancellationToken ct = default)
     {
@@ -40,18 +39,21 @@ public class BoardService : IBoardService
     {
         ArgumentNullException.ThrowIfNull(board);
 
-        // Verifica che BoardType esista
-        _ = await _boardTypeRepository.GetByIdAsync(board.BoardType.Id, ct)
-            ?? throw new InvalidOperationException($"BoardType with Id {board.BoardType.Id} not found.");
+        // Verifica che il dizionario esista (se specificato)
+        if (board.DictionaryId.HasValue)
+        {
+            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+                throw new InvalidOperationException(
+                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+        }
 
-        // Validazione: max 1 IsPrimary per DeviceType
+        // Validazione: max 1 IsPrimary per DeviceType (BR-005)
         if (board.IsPrimary)
             await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: null, ct);
 
         var entity = BoardMapper.ToEntity(board);
         var created = await _boardRepository.AddAsync(entity, ct);
 
-        // Ricarica con BoardType
         var result = await _boardRepository.GetByIdAsync(created.Id, ct);
         return BoardMapper.ToDomain(result!);
     }
@@ -63,7 +65,15 @@ public class BoardService : IBoardService
         var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
             ?? throw new KeyNotFoundException($"Board with Id {board.Id} not found.");
 
-        // Validazione: max 1 IsPrimary per DeviceType
+        // Verifica dizionario se specificato
+        if (board.DictionaryId.HasValue)
+        {
+            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+                throw new InvalidOperationException(
+                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+        }
+
+        // Validazione: max 1 IsPrimary per DeviceType (BR-005)
         if (board.IsPrimary)
             await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: board.Id, ct);
 
@@ -76,66 +86,22 @@ public class BoardService : IBoardService
         await _boardRepository.DeleteAsync(id, ct);
     }
 
-    // === Board Query ===
-
-    public async Task<IReadOnlyList<Board>> GetByDeviceTypeAsync(DeviceType deviceType, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Board>> GetByDeviceTypeAsync(DeviceType deviceType,
+        CancellationToken ct = default)
     {
         var entities = await _boardRepository.GetByDeviceTypeAsync(deviceType, ct);
         return BoardMapper.ToDomainList(entities);
     }
 
-    public async Task<Board?> GetByProtocolAddressAsync(uint protocolAddress, CancellationToken ct = default)
+    public async Task<Board?> GetByProtocolAddressAsync(uint protocolAddress,
+        CancellationToken ct = default)
     {
         var entity = await _boardRepository.GetByProtocolAddressAsync(protocolAddress, ct);
         return entity is null ? null : BoardMapper.ToDomain(entity);
     }
 
-    // === BoardType Operations ===
-
-    public async Task<IReadOnlyList<BoardType>> GetBoardTypesAsync(CancellationToken ct = default)
-    {
-        var entities = await _boardTypeRepository.GetAllAsync(ct);
-        return BoardTypeMapper.ToDomainList(entities);
-    }
-
-    public async Task<BoardType?> GetBoardTypeByNameAsync(string name, CancellationToken ct = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        var entity = await _boardTypeRepository.GetByNameAsync(name, ct);
-        return entity is null ? null : BoardTypeMapper.ToDomain(entity);
-    }
-
-    public async Task<BoardType?> GetBoardTypeByFirmwareTypeAsync(int firmwareType, CancellationToken ct = default)
-    {
-        var entity = await _boardTypeRepository.GetByFirmwareTypeAsync(firmwareType, ct);
-        return entity is null ? null : BoardTypeMapper.ToDomain(entity);
-    }
-
-    public async Task<BoardType> AddBoardTypeAsync(BoardType boardType, CancellationToken ct = default)
-    {
-        ArgumentNullException.ThrowIfNull(boardType);
-
-        // Verifica unicità nome
-        var existingByName = await _boardTypeRepository.GetByNameAsync(boardType.Name, ct);
-        if (existingByName is not null)
-            throw new InvalidOperationException($"BoardType with name '{boardType.Name}' already exists.");
-
-        // Verifica unicità firmwareType
-        var existingByFw = await _boardTypeRepository.GetByFirmwareTypeAsync(boardType.FirmwareType, ct);
-        if (existingByFw is not null)
-            throw new InvalidOperationException($"BoardType with firmware type {boardType.FirmwareType} already exists.");
-
-        var entity = BoardTypeMapper.ToEntity(boardType);
-        var created = await _boardTypeRepository.AddAsync(entity, ct);
-        return BoardTypeMapper.ToDomain(created);
-    }
-
     // === Private helpers ===
 
-    /// <summary>
-    /// Verifica che non esista già una Board IsPrimary per il DeviceType dato.
-    /// </summary>
     private async Task EnsureNoPrimaryExistsAsync(
         DeviceType deviceType, int? excludeBoardId, CancellationToken ct)
     {
