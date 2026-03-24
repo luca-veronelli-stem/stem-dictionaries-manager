@@ -101,27 +101,27 @@ public partial class DeviceDetailViewModel : ObservableObject
 
         try
         {
-            // Trova le board di questo device type
-            var boards = await _boardService.GetByDeviceTypeAsync(DeviceType.Value);
+            var dt = DeviceType.Value;
 
-            // Raccogli i BoardTypeId unici
-            var boardTypeIds = boards.Select(b => b.BoardType?.Id).Where(id => id.HasValue).Distinct().ToList();
+            // BoardType IDs delle board di questo device
+            var boards = await _boardService.GetByDeviceTypeAsync(dt);
+            var boardTypeIds = new HashSet<int>(boards.Select(b => b.BoardType.Id));
 
-            // Trova i dizionari per questi BoardType + il dizionario Standard
+            // Tutti i dizionari (con variabili già caricate)
             var allDicts = await _dictionaryService.GetAllAsync();
+
+            // Filtra per le 3 semantiche:
+            // ① Standard (null, null) → sempre visibile
+            // ② Periferica condivisa (null, BT) → se il device ha una board con quel BT
+            // ③ Dedicato (DT, BT) → se il DeviceType corrisponde
             var relevantDicts = allDicts.Where(d =>
-                d.BoardType == null || // Standard
-                (d.BoardType != null && boardTypeIds.Contains(d.BoardType.Id)) ||
-                d.DeviceType == DeviceType.Value // O associato direttamente al DeviceType
+                (d.DeviceType == null && d.BoardType == null) ||
+                (d.DeviceType == null && d.BoardType != null && boardTypeIds.Contains(d.BoardType.Id)) ||
+                (d.DeviceType == dt)
             ).ToList();
 
-            var items = new List<DictionaryItem>();
-            foreach (var dict in relevantDicts)
-            {
-                var dictWithVars = await _dictionaryService.GetWithVariablesAsync(dict.Id);
-                var varCount = dictWithVars?.Variables.Count ?? 0;
-                items.Add(new DictionaryItem(dict.Id, dict.Name, dict.BoardType?.Name, varCount));
-            }
+            var items = relevantDicts.Select(d =>
+                new DictionaryItem(d.Id, d.Name, d.BoardType?.Name, d.Variables.Count));
 
             Dictionaries = new ObservableCollection<DictionaryItem>(items.OrderBy(d => d.Name));
         }
