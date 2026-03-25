@@ -88,16 +88,27 @@ public partial class MainViewModel : ObservableObject
 
     private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
     {
-        var viewModel = CreateViewModel(viewType);
-
-        if (viewModel is not null)
+        try
         {
-            // Inizializza il ViewModel con i parametri appropriati
-            await InitializeViewModelAsync(viewModel, parameter);
-        }
+            var viewModel = CreateViewModel(viewType);
 
-        CurrentViewModel = viewModel;
-        UpdateTitle(viewType);
+            if (viewModel is not null)
+            {
+                await InitializeViewModelAsync(viewModel, parameter);
+            }
+
+            CurrentViewModel = viewModel;
+            UpdateTitle(viewType);
+        }
+        catch (Exception ex)
+        {
+            CurrentViewModel = null;
+            UpdateTitle(viewType);
+            _messageService.Show(
+                $"Errore durante la navigazione: {ex.Message}",
+                Abstractions.MessageSeverity.Error,
+                autoHideSeconds: 0);
+        }
     }
 
     private object? CreateViewModel(ViewType viewType)
