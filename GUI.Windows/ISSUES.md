@@ -12,22 +12,22 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 2 |
-| **Media** | 1 | 3 |
+| **Media** | 0 | 4 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 5
+**Totale aperte:** 2  
+**Totale risolte:** 6
 
 ---
 
 ## Indice Issue Aperte
 
-- [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
 ## Indice Issue Risolte
 
+- [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
 - [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
@@ -44,51 +44,7 @@
 
 ## Priorità Media
 
-### GUI-006 - LoginViewModel registrato due volte nel DI container
-
-**Categoria:** Code Smell  
-**Priorità:** Media  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`LoginViewModel` è registrato come `Transient` sia in `DependencyInjection.AddGUI()` (riga 26) che in `App.xaml.cs` (riga 47). La doppia registrazione non causa errori (l'ultima vince) ma è confusa e indica un residuo di refactoring.
-
-#### File Coinvolti
-
-- `GUI.Windows/DependencyInjection.cs` (riga 26)
-- `GUI.Windows/App.xaml.cs` (riga 47)
-
-#### Codice Problematico
-
-```csharp
-// DependencyInjection.cs - riga 26
-services.AddTransient<LoginViewModel>();   // ← prima registrazione
-
-// App.xaml.cs - riga 47
-services.AddTransient<LoginViewModel>();   // ← duplicato
-```
-
-#### Soluzione Proposta
-
-Rimuovere la registrazione duplicata da `App.xaml.cs` riga 47. La registrazione in `DependencyInjection.AddGUI()` è quella corretta (centralizzata).
-
-```csharp
-// App.xaml.cs - dopo
-services.AddGUI();
-
-// MainWindow + LoginView (Views, NON ViewModels)
-services.AddTransient<MainWindow>();
-services.AddTransient<LoginView>();
-// LoginViewModel già registrato in AddGUI()
-```
-
-#### Benefici Attesi
-
-- Registrazione DI centralizzata e senza duplicati
-- Meno confusione nella manutenzione
+*(Nessuna issue media priorità aperta)*
 
 ---
 
@@ -247,6 +203,37 @@ public async Task<bool> ConfirmAsync(string message, string title)
 ---
 
 ## Issue Risolte
+
+### GUI-006 - LoginViewModel registrato due volte nel DI container
+
+**Categoria:** Code Smell  
+**Priorità:** Media  
+**Impatto:** Basso  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/gui-006
+
+#### Soluzione Implementata
+
+Rimossa registrazione duplicata da `App.xaml.cs` riga 47. La registrazione in `DependencyInjection.AddGUI()` è quella corretta (centralizzata).
+
+```csharp
+// App.xaml.cs - prima
+services.AddTransient<LoginViewModel>();   // ← duplicato rimosso
+
+// App.xaml.cs - dopo
+// MainWindow + LoginView (ViewModels già registrati in AddGUI)
+services.AddTransient<MainWindow>();
+services.AddTransient<LoginView>();
+```
+
+#### Benefici Ottenuti
+
+- Registrazione DI centralizzata e senza duplicati ✅
+- Codice più pulito ✅
+
+---
 
 ### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
 

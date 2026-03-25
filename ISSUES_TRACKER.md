@@ -11,10 +11,10 @@
 | [Core](./Core/ISSUES.md) | 3 | 4 | 7 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 4 | 8 |
 | [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 5 | 8 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
 | **Trasversali** | **0** | **2** | **2** |
-| **Totale** | **17** | **28** | **45** |
+| **Totale** | **16** | **29** | **45** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 5 | 29% |
-| **Bassa** | 12 | 71% |
-| **Totale** | **17** | 100% |
+| **Media** | 4 | 25% |
+| **Bassa** | 12 | 75% |
+| **Totale** | **16** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       █████░░░░░░░░░░░░░░░  5
+Media:       ████░░░░░░░░░░░░░░░░  4
 Bassa:       ████████████░░░░░░░░ 12
 ```
 
@@ -125,7 +125,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-007~~ | ~~Refactoring Core models per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~CORE-006~~ | ~~Dictionary.Restore bypassa validazione unicità indirizzi~~ | ~~Media~~ | ✅ **Risolto** |
-| [CORE-003]
+| [CORE-003](./Core/ISSUES.md#core-003--dictionaryremovevariable-non-verifica-esistenza) | Dictionary.RemoveVariable non verifica esistenza | Bassa | Bug |
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
@@ -167,8 +167,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-008~~ | ~~Refactoring GUI per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-007~~ | ~~DictionaryListItem non mostra DeviceType~~ | ~~Media~~ | ✅ **Risolto (T-002)** |
 | ~~GUI-005~~ | ~~NavigateToView async void senza error handling~~ | ~~Alta~~ | ✅ **Risolto** |
-| [GUI-006](./GUI.Windows/ISSUES.md#gui-006--loginviewmodel-registrato-due-volte-nel-di-container) | LoginViewModel registrato due volte nel DI | Media | Code Smell |
-| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
+| ~~GUI-006~~ | ~~LoginViewModel registrato due volte nel DI~~ | ~~Media~~ | ✅ **Risolto** |
+| [GUI-002]
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
 ### Tests (2 issue aperte, 7 risolte)
@@ -206,7 +206,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-002** | Services | Manca IAuditService | M |
-| 2 | **GUI-006** | GUI.Windows | LoginViewModel registrato due volte | S |
+| 2 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -258,7 +258,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
-| **Code Smell** | 2 | SVC-010, GUI-006 |
+| **Code Smell** | 1 | SVC-010 |
 | **Feature** | 1 | SVC-002 |
 | **Robustezza** | 1 | SVC-007 |
 
@@ -287,7 +287,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ✅ **CORE-006 risolta** — Dictionary.Restore ora valida unicità indirizzi (fail-fast su dati corrotti). +1 test. 17 aperte, 28 risolte. Branch: `fix/core-006` |
+| 2026-03-25 | ✅ **GUI-006 risolta** — Rimossa registrazione duplicata LoginViewModel in App.xaml.cs. DI centralizzato in AddGUI(). 16 aperte, 29 risolte. Branch: `fix/gui-006` |
+| 2026-03-25 | ✅ **CORE-006 risolta**
 | 2026-03-25 | ✅ **SVC-009 + TEST-008 risolte**
 | 2026-03-25 | ✅ **GUI-005 risolta**
 | 2026-03-25 | ✅ **T-002 completata** — Domain v2 implementato: BoardType rimosso, Board→Dictionary diretto, IsStandard flag, semantica derivata. 11 issue risolte (T-002, CORE-007, INFRA-008, SVC-011, GUI-008, TEST-009, SVC-008, INFRA-007, TEST-007, SVC-004, GUI-007). +VariableDeviceState (BR-009/010/011). 1252 test verdi. Branch: `domain/ridefinizione-dominio-v2` |

@@ -41,10 +41,9 @@ public partial class App : Application
                 // GUI layer (ViewModels + UI Services)
                 services.AddGUI();
 
-                // MainWindow + LoginView
+                // MainWindow + LoginView (ViewModels già registrati in AddGUI)
                 services.AddTransient<MainWindow>();
                 services.AddTransient<LoginView>();
-                services.AddTransient<LoginViewModel>();
             })
             .Build();
     }
