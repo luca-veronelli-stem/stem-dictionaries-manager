@@ -27,6 +27,7 @@ public class VariableMapperTests
             DataTypeRaw = "uint16_t",
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true,
+            Format = "%04X",
             MinValue = 0,
             MaxValue = 65535,
             Unit = null,
@@ -47,6 +48,7 @@ public class VariableMapperTests
         Assert.Equal("uint16_t", result.DataTypeRaw);
         Assert.Equal(AccessMode.ReadOnly, result.AccessMode);
         Assert.True(result.IsEnabled);
+        Assert.Equal("%04X", result.Format);
         Assert.Equal(0, result.MinValue);
         Assert.Equal(65535, result.MaxValue);
         Assert.Equal("Versione firmware", result.Usage);
@@ -149,7 +151,7 @@ public class VariableMapperTests
             dataTypeParam: null,
             accessMode: AccessMode.ReadWrite,
             isEnabled: true,
-            format: null,
+            format: "%.2f",
             minValue: -100.0,
             maxValue: 100.0,
             unit: "°C",
@@ -171,6 +173,7 @@ public class VariableMapperTests
         Assert.Equal(-100.0, result.MinValue);
         Assert.Equal(100.0, result.MaxValue);
         Assert.Equal("°C", result.Unit);
+        Assert.Equal("%.2f", result.Format);
     }
 
     [Fact]
@@ -206,7 +209,7 @@ public class VariableMapperTests
             dataTypeParam: null,
             accessMode: AccessMode.ReadWrite,
             isEnabled: false,
-            format: null,
+            format: "%d ms",
             minValue: 0,
             maxValue: 1000,
             unit: "ms",
@@ -224,6 +227,7 @@ public class VariableMapperTests
         Assert.Equal("uint32_t", entity.DataTypeRaw);
         Assert.Equal(AccessMode.ReadWrite, entity.AccessMode);
         Assert.False(entity.IsEnabled);
+        Assert.Equal("%d ms", entity.Format);
         Assert.Equal(1, entity.Id); // Id non cambia
         Assert.Equal(10, entity.DictionaryId); // DictionaryId non cambia
     }
@@ -273,6 +277,7 @@ public class VariableMapperTests
             DataTypeRaw = "Bitmapped[4]",
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true,
+            Format = "0x%04X",
             MinValue = null,
             MaxValue = null,
             Unit = null,
@@ -295,5 +300,6 @@ public class VariableMapperTests
         Assert.Equal(originalEntity.DataTypeRaw, resultEntity.DataTypeRaw);
         Assert.Equal(originalEntity.AccessMode, resultEntity.AccessMode);
         Assert.Equal(originalEntity.IsEnabled, resultEntity.IsEnabled);
+        Assert.Equal(originalEntity.Format, resultEntity.Format);
     }
 }
