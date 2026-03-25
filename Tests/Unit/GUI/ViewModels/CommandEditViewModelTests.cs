@@ -394,5 +394,34 @@ public class CommandEditViewModelTests
         Assert.True(_dialogService.ShowErrorCalled);
         Assert.False(_navigationService.GoBackCalled);
     }
+
+    // === Test CancelCommand con HasChanges ===
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_ShowsConfirmDialog()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.HasChanges = true;
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        await _viewModel.CancelCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Confirm" && c.Message.Contains("annullare"));
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_UserDenies_StaysOnPage()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.HasChanges = true;
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        await _viewModel.CancelCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
+        Assert.False(_navigationService.GoBackCalled);
+    }
 }
 #endif

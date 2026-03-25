@@ -302,5 +302,73 @@ public class MainViewModelTests
         Assert.Equal("Secondo", _viewModel.StatusMessage);
         Assert.Equal(MessageSeverity.Success, _viewModel.StatusSeverity);
     }
+
+    // === Test GoBackCommand con HasChanges ===
+
+    [Fact]
+    public async Task GoBackCommand_WithNoEditableViewModel_GoesBackDirectly()
+    {
+        // Arrange - navigate to a list view (not editable)
+        _navigationService.NavigateTo(ViewType.DictionaryList);
+
+        // Act
+        await _viewModel.GoBackCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task GoBackCommand_WithEditableViewModel_NoChanges_GoesBackDirectly()
+    {
+        // Arrange - navigate, then set CurrentViewModel to an editable with no changes
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        var editVm = (DictionaryEditViewModel)_viewModel.CurrentViewModel!;
+        // HasChanges is false by default
+
+        // Act
+        await _viewModel.GoBackCommand.ExecuteAsync(null);
+
+        // Assert - goes back without dialog
+        Assert.DoesNotContain(_dialogService.Calls, c => c.Type == "Confirm");
+    }
+
+    [Fact]
+    public async Task GoBackCommand_WithEditableViewModel_HasChanges_ShowsWarning()
+    {
+        // Arrange
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        var editVm = (DictionaryEditViewModel)_viewModel.CurrentViewModel!;
+        await editVm.InitializeAsync(null);
+        editVm.Name = "Modified"; // triggers HasChanges = true
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        // Act
+        await _viewModel.GoBackCommand.ExecuteAsync(null);
+
+        // Assert - showed warning, then went back
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Confirm" && c.Message.Contains("modifiche non salvate"));
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task GoBackCommand_WithEditableViewModel_HasChanges_UserCancels_StaysOnPage()
+    {
+        // Arrange
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        var editVm = (DictionaryEditViewModel)_viewModel.CurrentViewModel!;
+        await editVm.InitializeAsync(null);
+        editVm.Name = "Modified";
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        // Act
+        await _viewModel.GoBackCommand.ExecuteAsync(null);
+
+        // Assert - showed warning, but stayed
+        Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
+        Assert.False(_navigationService.GoBackCalled);
+        Assert.Equal(ViewType.DictionaryEdit, _navigationService.CurrentView);
+    }
 }
 #endif

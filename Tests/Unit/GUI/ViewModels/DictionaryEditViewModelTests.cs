@@ -445,5 +445,45 @@ public class DictionaryEditViewModelTests
         Assert.False(_viewModel.IsStandard);
         Assert.False(_viewModel.CanSetStandard);
     }
+
+    // === Test CancelCommand ===
+
+    [Fact]
+    public async Task CancelCommand_WithNoChanges_GoesBack()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        await _viewModel.CancelCommand.ExecuteAsync(null);
+
+        Assert.True(_navigationService.GoBackCalled);
+        Assert.DoesNotContain(_dialogService.Calls, c => c.Type == "Confirm");
+    }
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_ShowsConfirmDialog()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Modified";
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        await _viewModel.CancelCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Confirm" && c.Message.Contains("annullare"));
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_UserDenies_StaysOnPage()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Modified";
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        await _viewModel.CancelCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
+        Assert.False(_navigationService.GoBackCalled);
+    }
 }
 #endif
