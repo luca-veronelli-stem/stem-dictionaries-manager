@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -24,7 +24,7 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 |---------|-------|-------------|
 | **Entities** | ✅ | 9 entity classes con IAuditable |
 | **Repositories** | ✅ | 9 repository + base generica |
-| **Migrations** | ✅ | 3 migrations (InitialCreate, DeviceType, IsPrimary) |
+| **Migrations** | ✅ | 1 migration (InitialCreate_DomainV2) |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
 | **Database Seeder** | ✅ | Dati demo per sviluppo ✨ |
@@ -84,46 +84,44 @@ public class MyService
 ```
 Infrastructure/
 ├── Entities/
-│   ├── UserEntity.cs              # Utente sistema
-│   ├── BoardTypeEntity.cs         # Tipo scheda (Madre, Pulsantiera)
-│   ├── BoardEntity.cs             # Scheda con IsPrimary e ProtocolAddress
-│   ├── VariableEntity.cs          # Variabile dizionario (incl. Format)
-│   ├── DictionaryEntity.cs        # Dizionario con DeviceType? e BoardType?
-│   ├── BitInterpretationEntity.cs # Interpretazione bit bitmapped
-│   ├── CommandEntity.cs           # Comando protocollo (ParametersJson)
-│   ├── CommandDeviceStateEntity.cs# Stato comando per device
-│   └── AuditEntryEntity.cs        # Audit trail (no IAuditable)
+│   ├── UserEntity.cs                  # Utente sistema
+│   ├── BoardEntity.cs                 # Scheda con FirmwareType, DictionaryId?, IsPrimary
+│   ├── VariableEntity.cs              # Variabile dizionario (incl. Format)
+│   ├── DictionaryEntity.cs            # Dizionario con IsStandard flag
+│   ├── BitInterpretationEntity.cs     # Interpretazione bit bitmapped
+│   ├── CommandEntity.cs               # Comando protocollo (ParametersJson)
+│   ├── CommandDeviceStateEntity.cs    # Stato comando per device
+│   ├── VariableDeviceStateEntity.cs   # Override variabile per device (BR-009)
+│   └── AuditEntryEntity.cs            # Audit trail (no IAuditable)
 ├── Interfaces/
-│   ├── IAuditable.cs              # Interface per audit fields
-│   ├── IRepository.cs             # Interface generica CRUD
+│   ├── IAuditable.cs                  # Interface per audit fields
+│   ├── IRepository.cs                 # Interface generica CRUD
 │   ├── IUserRepository.cs
-│   ├── IBoardTypeRepository.cs
 │   ├── IBoardRepository.cs
 │   ├── IDictionaryRepository.cs
 │   ├── IVariableRepository.cs
 │   ├── ICommandRepository.cs
 │   ├── IBitInterpretationRepository.cs
 │   ├── ICommandDeviceStateRepository.cs
+│   ├── IVariableDeviceStateRepository.cs
 │   └── IAuditEntryRepository.cs
 ├── Repositories/
-│   ├── RepositoryBase.cs          # Implementazione CRUD comune
+│   ├── RepositoryBase.cs              # Implementazione CRUD comune
 │   ├── UserRepository.cs
-│   ├── BoardTypeRepository.cs
 │   ├── BoardRepository.cs
 │   ├── DictionaryRepository.cs
 │   ├── VariableRepository.cs
 │   ├── CommandRepository.cs
 │   ├── BitInterpretationRepository.cs
 │   ├── CommandDeviceStateRepository.cs
+│   ├── VariableDeviceStateRepository.cs
 │   └── AuditEntryRepository.cs
 ├── Migrations/
-│   ├── InitialCreate                                              # Schema 9 tabelle
-│   ├── AddDeviceTypeToDictionary_RemoveDeviceTypeFromBitInterp...  # DeviceType su Dictionary
-│   └── AddIsPrimaryToBoard                                        # IsPrimary su Board
-├── AppDbContext.cs                # DbContext con audit automatico (9 DbSet)
-├── DatabaseSeeder.cs              # Dati demo per sviluppo
-├── DesignTimeDbContextFactory.cs  # Factory per migrations CLI
-└── DependencyInjection.cs         # Extension method AddInfrastructure()
+│   └── InitialCreate_DomainV2             # Schema completo Domain v2
+├── AppDbContext.cs                    # DbContext con audit automatico (9 DbSet)
+├── DatabaseSeeder.cs                  # Dati demo per sviluppo
+├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI
+└── DependencyInjection.cs             # Extension method AddInfrastructure()
 ```
 
 ---
@@ -135,13 +133,13 @@ Infrastructure/
 | Entity | Tabella | IAuditable | Note |
 |--------|---------|:----------:|------|
 | `UserEntity` | Users | ✅ | Username univoco |
-| `BoardTypeEntity` | BoardTypes | ✅ | FirmwareType univoco |
-| `BoardEntity` | Boards | ✅ | FK → BoardType, IsPrimary, ProtocolAddress |
+| `BoardEntity` | Boards | ✅ | FirmwareType, DictionaryId?, IsPrimary, ProtocolAddress |
 | `VariableEntity` | Variables | ✅ | FK → Dictionary, Format, unique (DictionaryId, AddressHigh, AddressLow) |
-| `DictionaryEntity` | Dictionaries | ✅ | DeviceType?, FK → BoardType?, unique (DeviceType, BoardTypeId) |
+| `DictionaryEntity` | Dictionaries | ✅ | IsStandard flag, Name univoco |
 | `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable |
 | `CommandEntity` | Commands | ✅ | ParametersJson, unique (CodeHigh, CodeLow, IsResponse) |
-| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType |
+| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType, unique (CommandId, DeviceType) |
+| `VariableDeviceStateEntity` | VariableDeviceStates | ✅ | FK → Variable, DeviceType, unique (VariableId, DeviceType) |
 | `AuditEntryEntity` | AuditEntries | ❌ | Immutabile, FK → User |
 
 ### Repository Interfaces
@@ -150,13 +148,13 @@ Infrastructure/
 |-----------|---------------|
 | `IRepository<T>` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync |
 | `IUserRepository` | GetByUsernameAsync |
-| `IBoardTypeRepository` | GetByNameAsync, GetByFirmwareTypeAsync |
 | `IBoardRepository` | GetByDeviceTypeAsync, GetByProtocolAddressAsync |
-| `IDictionaryRepository` | GetByNameAsync, GetByBoardTypeAsync, GetWithVariablesAsync, GetStandardDictionaryAsync, GetByDeviceTypeAndBoardTypeAsync, GetAllWithBoardTypeAsync, ExistsAsync |
+| `IDictionaryRepository` | GetByNameAsync, GetWithVariablesAsync, GetStandardDictionaryAsync, ExistsAsync |
 | `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
 | `ICommandRepository` | GetByCodeAsync, GetWithDeviceStatesAsync |
 | `IBitInterpretationRepository` | GetByVariableIdAsync, SyncByVariableIdAsync |
 | `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
+| `IVariableDeviceStateRepository` | GetByVariableAndDeviceAsync, GetByVariableIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync |
 
 ### Audit Automatico
@@ -204,7 +202,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 5 issue aperte, 2 risolte (0 critiche, 1 alta, 2 medie, 2 basse)
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 4 issue aperte, 4 risolte (0 critiche, 0 alte, 2 medie, 2 basse)
 
 ---
 

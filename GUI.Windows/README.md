@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -27,8 +27,8 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 |---------|-------|-------------|
 | **Login Integrato** | ✅ | LoginView nella MainWindow, eventi LoginConfirmed/LoggedOut |
 | **Dark Theme** | ✅ | VS Code-style con sidebar, header, DataGrid dark |
-| **MVVM Pattern** | ✅ | 14 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 13 Views XAML complete (12 + LoginView) |
+| **MVVM Pattern** | ✅ | 15 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 14 Views XAML complete (13 + LoginView) |
 | **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
 | **Stili Globali** | ✅ | Sidebar, Toolbar, Watermark, DataGrid, Accent, HexAddress |
 | **Navigation Service** | ✅ | History, parametri, eventi |
@@ -98,14 +98,14 @@ GUI.Windows/
 │   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
 │   ├── DeviceListViewModel.cs     # Lista dispositivi (enum DeviceType)
 │   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari e schede
-│   ├── DictionaryListViewModel.cs # Lista dizionari CRUD
-│   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario
+│   ├── DictionaryListViewModel.cs # Lista dizionari CRUD (SemanticDisplay)
+│   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario (IsStandard)
 │   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
-│   ├── VariableEditViewModel.cs   # Crea/modifica variabile
+│   ├── VariableEditViewModel.cs   # Crea/modifica variabile + DeviceStates
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo
 │   ├── CommandEditViewModel.cs    # Crea/modifica comando
 │   ├── BoardListViewModel.cs      # Lista schede
-│   ├── BoardEditViewModel.cs      # Crea/modifica scheda
+│   ├── BoardEditViewModel.cs      # Crea/modifica scheda (FirmwareType, DictionaryId?)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   ├── SettingsViewModel.cs       # Impostazioni app (stub)
 │   ├── WordBitGroup.cs            # Gruppo bit per word (max 16, Bitmapped)
@@ -115,13 +115,13 @@ GUI.Windows/
 │   ├── DeviceListView.xaml        # UI lista dispositivi
 │   ├── DeviceDetailView.xaml      # UI dettaglio device
 │   ├── DictionaryListView.xaml    # UI lista dizionari
-│   ├── DictionaryEditView.xaml    # UI edit dizionario
+│   ├── DictionaryEditView.xaml    # UI edit dizionario (IsStandard checkbox)
 │   ├── VariableListView.xaml      # UI lista variabili
-│   ├── VariableEditView.xaml      # UI edit variabile
+│   ├── VariableEditView.xaml      # UI edit variabile + DeviceStates
 │   ├── CommandListView.xaml       # UI lista comandi
 │   ├── CommandEditView.xaml       # UI edit comando
 │   ├── BoardListView.xaml         # UI lista schede
-│   ├── BoardEditView.xaml         # UI edit scheda
+│   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, DictionaryId?)
 │   ├── UserListView.xaml          # UI lista utenti
 │   └── SettingsView.xaml          # UI impostazioni
 ├── Converters/
@@ -268,7 +268,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 5 issue aperte, 2 risolte (0 critiche, 1 alta, 2 medie, 2 basse)
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 4 issue aperte, 4 risolte (0 critiche, 1 alta, 1 media, 2 basse)
 
 ---
 

@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -90,33 +90,33 @@ Tests/
 │   ├── Models/
 │   │   ├── AuditEntryTests.cs        # 6 test
 │   │   ├── BitInterpretationTests.cs # 6 test
-│   │   ├── BoardTests.cs             # 13 test (incl. IsPrimary)
-│   │   ├── BoardTypeTests.cs         # 6 test
+│   │   ├── BoardTests.cs             # 13 test (FirmwareType, DictionaryId?, IsPrimary)
 │   │   ├── CommandDeviceStateTests.cs# 5 test
 │   │   ├── CommandTests.cs           # 7 test
-│   │   ├── DictionaryTests.cs        # 17 test (incl. 3 semantiche)
+│   │   ├── DictionaryTests.cs        # 17 test (IsStandard flag)
 │   │   ├── UserTests.cs              # 7 test
-│   │   └── VariableTests.cs          # 15 test
+│   │   ├── VariableTests.cs          # 15 test
+│   │   └── VariableDeviceStateTests.cs # 8 test (BR-009/010/011)
 │   ├── Infrastructure/
-│   │   └── DependencyInjectionTests.cs    # 13 test
+│   │   └── DependencyInjectionTests.cs    # 14 test
 │   ├── GUI/                               # Test GUI (solo Windows)
 │   │   ├── Mocks/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
-│   │   │   └── MockDataServices.cs        # Mock per data services (4 mock)
+│   │   │   └── MockDataServices.cs        # Mock per data services
 │   │   ├── ViewModels/
 │   │   │   ├── MainViewModelTests.cs             # 15 test (login/logout, nav)
 │   │   │   ├── LoginViewModelTests.cs            # 8 test
 │   │   │   ├── DeviceListViewModelTests.cs       # 12 test
 │   │   │   ├── DeviceDetailViewModelTests.cs     # 20 test
 │   │   │   ├── DictionaryListViewModelTests.cs   # 18 test
-│   │   │   ├── DictionaryEditViewModelTests.cs   # 22 test (DeviceType)
+│   │   │   ├── DictionaryEditViewModelTests.cs   # 22 test (IsStandard)
 │   │   │   ├── VariableListViewModelTests.cs     # 16 test
-│   │   │   ├── VariableEditViewModelTests.cs     # 50 test (Bitmapped)
+│   │   │   ├── VariableEditViewModelTests.cs     # 50 test (Bitmapped + DeviceStates)
 │   │   │   ├── WordBitGroupTests.cs              # 9 test
 │   │   │   ├── CommandListViewModelTests.cs      # 16 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 14 test
 │   │   │   ├── BoardListViewModelTests.cs        # 14 test
-│   │   │   ├── BoardEditViewModelTests.cs        # 17 test
+│   │   │   ├── BoardEditViewModelTests.cs        # 17 test (FirmwareType, DictionaryId?)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Converters/
@@ -128,33 +128,33 @@ Tests/
 │       ├── DependencyInjectionTests.cs        # 10 test
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
-│           ├── BoardTypeMapperTests.cs        # 10 test
-│           ├── BoardMapperTests.cs            # 6 test
+│           ├── BoardMapperTests.cs            # 10 test
 │           ├── VariableMapperTests.cs         # 10 test
 │           ├── CommandMapperTests.cs          # 13 test
 │           ├── DictionaryMapperTests.cs       # 14 test
 │           ├── BitInterpretationMapperTests.cs    # 10 test
-│           └── CommandDeviceStateMapperTests.cs   # 11 test
+│           ├── CommandDeviceStateMapperTests.cs   # 11 test
+│           └── VariableDeviceStateMapperTests.cs  # 9 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
     │   ├── AuditEntryRepositoryTests.cs       # 5 test
     │   ├── AuditFieldsTests.cs                # 3 test
     │   ├── BoardRepositoryTests.cs            # 11 test
-    │   ├── BoardTypeRepositoryTests.cs        # 10 test
     │   ├── CommandRepositoryTests.cs          # 12 test
     │   ├── CrudScenariosTests.cs              # 18 test
     │   ├── DatabaseCreationTests.cs           # 2 test
     │   ├── DictionaryRepositoryTests.cs       # 14 test
     │   ├── UserRepositoryTests.cs             # 9 test
     │   ├── BitInterpretationRepositoryTests.cs    # 13 test
-    │   └── CommandDeviceStateRepositoryTests.cs   # 10 test
+    │   ├── CommandDeviceStateRepositoryTests.cs   # 10 test
+    │   └── VariableDeviceStateRepositoryTests.cs  # 10 test
     ├── Services/
     │   ├── UserServiceTests.cs            # 15 test
-    │   ├── DictionaryServiceTests.cs      # 21 test (3 semantiche)
-    │   ├── BoardServiceTests.cs           # 23 test (IsPrimary)
+    │   ├── DictionaryServiceTests.cs      # 21 test (IsStandard uniqueness)
+    │   ├── BoardServiceTests.cs           # 23 test
     │   ├── CommandServiceTests.cs         # 18 test
-    │   └── VariableServiceTests.cs        # 29 test
+    │   └── VariableServiceTests.cs        # 37 test (DeviceStates BR-009/010/011)
     └── GUI/                               # Solo Windows
         └── VariableEditFlowTests.cs       # 11 test (flow completo + bitmapped)
 ```
@@ -216,18 +216,18 @@ public class MyRepositoryTests : IntegrationTestBase
 | Area | Metodi Test | Descrizione |
 |------|-------------|-------------|
 | Unit/Enums | 14 | Valori, count, casting |
-| Unit/Models | 82 | Costruttori, validazione, metodi (incl. 3 semantiche, IsPrimary) |
-| Unit/Services/Mapping | 84 | Mapper Entity ↔ Domain (8 mapper) |
-| Unit/Infrastructure/DI | 13 | Registrazione DI repositories |
+| Unit/Models | 84 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DeviceStates) |
+| Unit/Services/Mapping | 87 | Mapper Entity ↔ Domain (9 mapper incl. VariableDeviceState) |
+| Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
 | Unit/GUI/ViewModels | 252 | 15 ViewModels (incl. WordBitGroup, Device*, Login) |
 | Unit/GUI/Converters | 20 | NullableInt/Double converters |
 | Unit/GUI/Services | 15 | NavigationService |
 | Unit/GUI/DI | 22 | Registrazione ViewModels + UI services |
 | Integration/Infrastructure | 107 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
-| Integration/Services | 106 | Business logic, validazione, 3 semantiche, smart update |
+| Integration/Services | 114 | Business logic, IsStandard, DeviceStates, smart update |
 | Integration/GUI | 11 | VariableEdit flow completo + bitmapped |
-| **Totale metodi test** | **736** | Tutti i target combinati |
+| **Totale metodi test** | **~750** | Tutti i target combinati |
 
 > **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai 736 metodi elencati.
 
@@ -268,7 +268,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 3 issue aperte, 5 risolte (0 critiche, 1 alta, 1 media, 1 bassa)
+→ [Tests/ISSUES.md](./ISSUES.md) — 2 issue aperte, 7 risolte (0 critiche, 0 alte, 1 media, 1 bassa)
 
 ---
 
