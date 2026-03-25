@@ -93,7 +93,7 @@ Tests/
 │   │   ├── BoardTests.cs             # 13 test (FirmwareType, DictionaryId?, IsPrimary)
 │   │   ├── CommandDeviceStateTests.cs# 5 test
 │   │   ├── CommandTests.cs           # 7 test
-│   │   ├── DictionaryTests.cs        # 17 test (IsStandard flag)
+│   │   ├── DictionaryTests.cs        # 17 test (IsStandard, Restore validation)
 │   │   ├── UserTests.cs              # 7 test
 │   │   ├── VariableTests.cs          # 15 test
 │   │   └── VariableDeviceStateTests.cs # 8 test (BR-009/010/011)

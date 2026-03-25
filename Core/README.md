@@ -152,7 +152,7 @@ uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNu
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte, 3 risolte (0 critiche, 0 alte, 1 media, 3 basse)
+→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 4 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
 
 ---
 

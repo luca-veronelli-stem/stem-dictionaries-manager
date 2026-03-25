@@ -144,4 +144,54 @@ public class DictionaryTests
 
         Assert.True(dictionary.IsStandard);
     }
+
+    [Fact]
+    public void Restore_DuplicateAddress_ThrowsInvalidOperationException()
+    {
+        var variables = new List<Variable>
+        {
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("Var2", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t") // stesso indirizzo
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => Dictionary.Restore(10, "test", "Description", false, variables));
+
+        Assert.Contains("0x0001", ex.Message);
+        Assert.Contains("Duplicate", ex.Message);
+    }
+
+    [Fact]
+    public void Restore_MultipleDuplicates_ListsAllInMessage()
+    {
+        var variables = new List<Variable>
+        {
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("Var2", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"), // dup 0x0001
+            new("Var3", 0x00, 0x02, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("Var4", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("Var5", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t")  // dup 0x8010
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => Dictionary.Restore(10, "test", null, false, variables));
+
+        Assert.Contains("0x0001", ex.Message);
+        Assert.Contains("0x8010", ex.Message);
+    }
+
+    [Fact]
+    public void Restore_SameAddressLowDifferentHigh_Succeeds()
+    {
+        // 0x0001 (Standard) e 0x8001 (DeviceSpecific) sono indirizzi DIVERSI
+        var variables = new List<Variable>
+        {
+            new("StandardVar", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
+            new("DeviceVar", 0x80, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t")
+        };
+
+        var dictionary = Dictionary.Restore(10, "test", null, false, variables);
+
+        Assert.Equal(2, dictionary.Variables.Count);
+    }
 }
