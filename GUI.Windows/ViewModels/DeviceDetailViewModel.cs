@@ -15,14 +15,14 @@ public partial class DictionaryItem : ObservableObject
 {
     public int Id { get; }
     public string Name { get; }
-    public string? BoardTypeName { get; }
+    public string Semantic { get; }
     public int VariableCount { get; }
 
-    public DictionaryItem(int id, string name, string? boardTypeName, int variableCount)
+    public DictionaryItem(int id, string name, string semantic, int variableCount)
     {
         Id = id;
         Name = name;
-        BoardTypeName = boardTypeName;
+        Semantic = semantic;
         VariableCount = variableCount;
     }
 }
@@ -103,25 +103,25 @@ public partial class DeviceDetailViewModel : ObservableObject
         {
             var dt = DeviceType.Value;
 
-            // BoardType IDs delle board di questo device
+            // Board di questo device (link diretto Board→Dictionary)
             var boards = await _boardService.GetByDeviceTypeAsync(dt);
-            var boardTypeIds = new HashSet<int>(boards.Select(b => b.BoardType.Id));
+            var linkedDictIds = new HashSet<int>(
+                boards.Where(b => b.DictionaryId.HasValue).Select(b => b.DictionaryId!.Value));
 
-            // Tutti i dizionari (con variabili già caricate)
+            // Tutti i dizionari
             var allDicts = await _dictionaryService.GetAllAsync();
 
-            // Filtra per le 3 semantiche:
-            // ① Standard (null, null) → sempre visibile
-            // ② Periferica condivisa (null, BT) → se il device ha una board con quel BT
-            // ③ Dedicato (DT, BT) → se il DeviceType corrisponde
-            var relevantDicts = allDicts.Where(d =>
-                (d.DeviceType == null && d.BoardType == null) ||
-                (d.DeviceType == null && d.BoardType != null && boardTypeIds.Contains(d.BoardType.Id)) ||
-                (d.DeviceType == dt)
-            ).ToList();
+            // ① Standard (IsStandard=true) → sempre visibile
+            // ② Linked (Board di questo device punta a quel dizionario)
+            var relevantDicts = allDicts
+                .Where(d => d.IsStandard || linkedDictIds.Contains(d.Id))
+                .ToList();
 
             var items = relevantDicts.Select(d =>
-                new DictionaryItem(d.Id, d.Name, d.BoardType?.Name, d.Variables.Count));
+            {
+                var semantic = d.IsStandard ? "Standard" : "Specifico";
+                return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count);
+            });
 
             Dictionaries = new ObservableCollection<DictionaryItem>(items.OrderBy(d => d.Name));
         }

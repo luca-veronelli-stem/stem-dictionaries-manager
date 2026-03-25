@@ -395,6 +395,15 @@ public class VariableEditFlowTests
             if (ExceptionToThrow != null) throw ExceptionToThrow;
             return Task.CompletedTask;
         }
+
+        public Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
+            => Task.CompletedTask;
+
+        public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType, CancellationToken ct = default)
+            => Task.FromResult<VariableDeviceState?>(null);
+
+        public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<VariableDeviceState>>([]);
     }
 
     private class MockNavigationService : INavigationService

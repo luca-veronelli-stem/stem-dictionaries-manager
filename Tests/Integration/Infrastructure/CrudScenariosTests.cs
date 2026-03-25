@@ -256,42 +256,6 @@ public class CrudScenariosTests : IntegrationTestBase
         Assert.Empty(await Context.CommandDeviceStates.Where(s => s.CommandId == cmdId).ToListAsync());
     }
 
-    [Fact]
-    public async Task DeleteBoardType_WithBoards_ThrowsException()
-    {
-        // Arrange - BoardType ha Restrict, non Cascade
-        var boardType = new BoardTypeEntity
-        {
-            Name = "MotherBoard",
-            FirmwareType = 1
-        };
-        var board = new BoardEntity
-        {
-            Name = "Board1",
-            ProtocolAddress = 0x01,
-            BoardType = boardType
-        };
-        await Context.BoardTypes.AddAsync(boardType);
-        await Context.Boards.AddAsync(board);
-        await Context.SaveChangesAsync();
-        var boardTypeId = boardType.Id;
-
-        // Detach entities to avoid EF Core tracking interference
-        Context.ChangeTracker.Clear();
-
-        // Act & Assert - Re-fetch and delete should throw due to FK restriction
-        var toDelete = await Context.BoardTypes.FindAsync(boardTypeId);
-        Assert.NotNull(toDelete);
-        Context.BoardTypes.Remove(toDelete);
-
-        // EF Core with SQLite throws InvalidOperationException when deleting
-        // an entity with tracked dependent entities that have Restrict behavior
-        var exception = await Assert.ThrowsAnyAsync<Exception>(() => Context.SaveChangesAsync());
-        Assert.True(
-            exception is DbUpdateException || exception is InvalidOperationException,
-            $"Expected DbUpdateException or InvalidOperationException, got {exception.GetType().Name}");
-    }
-
     #endregion
 
     #region Unique Constraint Violations

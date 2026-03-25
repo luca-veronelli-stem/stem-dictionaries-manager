@@ -1,4 +1,4 @@
-# Core - ISSUES
+﻿# Core - ISSUES
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
@@ -11,12 +11,12 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 0 |
+| **Alta** | 0 | 1 |
 | **Media** | 1 | 2 |
 | **Bassa** | 3 | 0 |
 
 **Totale aperte:** 4  
-**Totale risolte:** 2
+**Totale risolte:** 3
 
 ---
 
@@ -29,6 +29,7 @@
 
 ## Indice Issue Risolte
 
+- [CORE-007 - Refactoring Core models per Domain v2](#core-007--refactoring-core-models-per-domain-v2)
 - [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
 - [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
 
@@ -287,6 +288,38 @@ public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? me
 ---
 
 ## Issue Risolte
+
+### CORE-007 - Refactoring Core models per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Rimozione entità `BoardType`, spostamento `FirmwareType` su `Board`, sostituzione semantica 3-tuple con `IsStandard` flag. Riferimento: Lean 4 Specification v2 (SESSION_024).
+
+#### Soluzione Implementata
+
+**Modifiche Effettuate:**
+
+1. **`Core/Models/BoardType.cs`:** Rimosso (entità eliminata dal dominio)
+2. **`Core/Models/Board.cs`:** Rimosso `BoardType`, aggiunto `FirmwareType` (int), `DictionaryId?` (int?), `IsPrimary` (bool)
+3. **`Core/Models/Dictionary.cs`:** Rimosso `DeviceType?`, `BoardType?`. Aggiunto `IsStandard` (bool)
+4. **`Core/Enums/AuditEntityType.cs`:** Rimosso `BoardType` (7→6 valori)
+
+#### Benefici Ottenuti
+
+- Domain model allineato alla realtà hardware ✅
+- Semantica dizionario derivata (Standard/Dedicated/Shared/Orphan) ✅
+- Meno entità = meno codice = meno bug ✅
+
+---
 
 ### CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio
 

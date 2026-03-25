@@ -6,6 +6,7 @@ namespace Infrastructure;
 
 /// <summary>
 /// Popola il database con dati di esempio per sviluppo/demo.
+/// Domain v2: Board→Dictionary diretto, nessun BoardType.
 /// </summary>
 public static class DatabaseSeeder
 {
@@ -29,83 +30,90 @@ public static class DatabaseSeeder
         };
         context.Users.AddRange(users);
 
-        // === BoardTypes ===
-        var btMadreOptimus = new BoardTypeEntity { Name = "Madre Optimus", FirmwareType = 17 };
-        var btMadreEden = new BoardTypeEntity { Name = "Madre Eden", FirmwareType = 18 };
-        var btPulsantiera4 = new BoardTypeEntity { Name = "Pulsantiera 4x4", FirmwareType = 4 };
-        var btPulsantiera8 = new BoardTypeEntity { Name = "Pulsantiera 8x8", FirmwareType = 8 };
-        var btSherpa = new BoardTypeEntity { Name = "Sherpa Slim", FirmwareType = 20 };
-        var btDisplay = new BoardTypeEntity { Name = "Display LCD", FirmwareType = 10 };
-        var btMotore = new BoardTypeEntity { Name = "Driver Motore", FirmwareType = 25 };
-
-        var boardTypes = new[] { btMadreOptimus, btMadreEden, btPulsantiera4, btPulsantiera8, btSherpa, btDisplay, btMotore };
-        context.BoardTypes.AddRange(boardTypes);
-        await context.SaveChangesAsync();
-
-        // === Boards ===
-        var boards = new[]
-        {
-            // OptimusXp
-            CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Master", 1, "DIS0100001", isPrimary: true),
-            CreateBoard(DeviceType.OptimusXp, btMadreOptimus.Id, "Madre OptimusXP Slave", 2, "DIS0100002"),
-            CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 1", 1, "DIS0100010"),
-            CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 2", 2, "DIS0100011"),
-            CreateBoard(DeviceType.OptimusXp, btPulsantiera4.Id, "Tastiera XP 3", 3, "DIS0100012"),
-
-            // EdenXp
-            CreateBoard(DeviceType.EdenXp, btMadreEden.Id, "Madre Eden XP #1", 1, "DIS0030001", isPrimary: true),
-            CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Main", 1, "DIS0030010"),
-            CreateBoard(DeviceType.EdenXp, btPulsantiera8.Id, "Tastiera Eden Aux", 2, "DIS0030011"),
-            CreateBoard(DeviceType.EdenXp, btMotore.Id, "Driver Motore Eden", 1, "DIS0030030"),
-
-            // SherpaSlim
-            CreateBoard(DeviceType.SherpaSlim, btSherpa.Id, "Sherpa Slim Main", 1, "DIS0010001", isPrimary: true),
-        };
-        context.Boards.AddRange(boards);
-        await context.SaveChangesAsync();
-
         // === Dictionaries ===
         var dictStandard = new DictionaryEntity
         {
             Name = "Standard",
             Description = "Variabili comuni a tutti i dispositivi STEM",
-            DeviceType = null,
-            BoardTypeId = null  // Standard = senza DeviceType e BoardType
+            IsStandard = true
         };
-
         var dictOptimusXp = new DictionaryEntity
         {
             Name = "Optimus XP",
-            Description = "Variabili specifiche per schede madre Optimus XP (FW Type 17)",
-            DeviceType = DeviceType.OptimusXp,
-            BoardTypeId = btMadreOptimus.Id
+            Description = "Variabili specifiche schede madre Optimus XP (FW Type 17)"
         };
-
         var dictEdenXp = new DictionaryEntity
         {
             Name = "Eden XP",
-            Description = "Variabili specifiche per schede madre Eden XP (FW Type 18)",
-            DeviceType = DeviceType.EdenXp,
-            BoardTypeId = btMadreEden.Id
+            Description = "Variabili specifiche schede madre Eden XP (FW Type 18)"
         };
-
         var dictPulsantiere = new DictionaryEntity
         {
-            Name = "Pulsantiere 4x4",
-            Description = "Variabili per tastiere e pulsantiere 4x4 (condiviso tra device)",
-            DeviceType = null,  // ② Periferica condivisa
-            BoardTypeId = btPulsantiera4.Id
+            Name = "Pulsantiere",
+            Description = "Variabili per tastiere e pulsantiere (condiviso tra device)"
         };
-
         var dictMotore = new DictionaryEntity
         {
             Name = "Driver Motore",
-            Description = "Variabili per controllo motori",
-            DeviceType = DeviceType.EdenXp,
-            BoardTypeId = btMotore.Id
+            Description = "Variabili per controllo motori"
+        };
+        var dictR3lMaster = new DictionaryEntity
+        {
+            Name = "R3L-XP Master",
+            Description = "Variabili specifiche R3L-XP scheda Master (FW Type 11)"
+        };
+        var dictR3lSlave = new DictionaryEntity
+        {
+            Name = "R3L-XP Slave",
+            Description = "Variabili specifiche R3L-XP scheda Slave (FW Type 12)"
+        };
+        var dictSpark = new DictionaryEntity
+        {
+            Name = "Spark",
+            Description = "Variabili specifiche Spark HMI (FW Type 20)"
         };
 
-        context.Dictionaries.AddRange(dictStandard, dictOptimusXp, dictEdenXp, dictPulsantiere, dictMotore);
+        context.Dictionaries.AddRange(dictStandard, dictOptimusXp, dictEdenXp,
+            dictPulsantiere, dictMotore, dictR3lMaster, dictR3lSlave, dictSpark);
+        await context.SaveChangesAsync();
+
+        // === Boards ===
+        // OptimusXp
+        var boards = new List<BoardEntity>
+        {
+            CreateBoard(DeviceType.OptimusXp, "Madre Master", 17, 1, "DIS0100001",
+                isPrimary: true, dictionaryId: dictOptimusXp.Id),
+            CreateBoard(DeviceType.OptimusXp, "Pulsantiera 1", 4, 1, "DIS0100010",
+                dictionaryId: dictPulsantiere.Id),
+            CreateBoard(DeviceType.OptimusXp, "Pulsantiera 2", 5, 2, "DIS0100011",
+                dictionaryId: dictPulsantiere.Id),
+
+            // EdenXp
+            CreateBoard(DeviceType.EdenXp, "Madre", 18, 1, "DIS0030001",
+                isPrimary: true, dictionaryId: dictEdenXp.Id),
+            CreateBoard(DeviceType.EdenXp, "Pulsantiera 1", 4, 1, "DIS0030010",
+                dictionaryId: dictPulsantiere.Id),
+            CreateBoard(DeviceType.EdenXp, "Driver Motore", 25, 1, "DIS0030030",
+                dictionaryId: dictMotore.Id),
+
+            // SherpaSlim
+            CreateBoard(DeviceType.SherpaSlim, "Madre", 20, 1, "DIS0010001",
+                isPrimary: true),
+
+            // R3L-XP (2 board con dizionari diversi)
+            CreateBoard(DeviceType.R3lXp, "Master", 11, 1, "DIS0110001",
+                isPrimary: true, dictionaryId: dictR3lMaster.Id),
+            CreateBoard(DeviceType.R3lXp, "Slave", 12, 2, "DIS0110002",
+                dictionaryId: dictR3lSlave.Id),
+
+            // Spark (HMI con dizionario, motori/rostro senza)
+            CreateBoard(DeviceType.Spark, "HMI", 20, 1, "DIS0060001",
+                isPrimary: true, dictionaryId: dictSpark.Id),
+            CreateBoard(DeviceType.Spark, "Motore DX", 21, 2, "DIS0060002"),
+            CreateBoard(DeviceType.Spark, "Motore SX", 21, 3, "DIS0060003"),
+            CreateBoard(DeviceType.Spark, "Rostro", 22, 4, "DIS0060004"),
+        };
+        context.Boards.AddRange(boards);
         await context.SaveChangesAsync();
 
         // === Variables per Standard ===
@@ -353,24 +361,48 @@ public static class DatabaseSeeder
         };
         context.CommandDeviceStates.AddRange(commandDeviceStates);
 
+        // === Variable Device States ===
+        // Override per-device su variabili Standard (BR-009)
+        // "Debug Mode" non supportata su SherpaSlim e Gradino
+        var varDebugMode = standardVars.First(v => v.Name == "Debug Mode");
+        var variableDeviceStates = new[]
+        {
+            new VariableDeviceStateEntity
+            {
+                VariableId = varDebugMode.Id,
+                DeviceType = DeviceType.SherpaSlim,
+                IsEnabled = false
+            },
+            new VariableDeviceStateEntity
+            {
+                VariableId = varDebugMode.Id,
+                DeviceType = DeviceType.Gradino,
+                IsEnabled = false
+            },
+        };
+        context.VariableDeviceStates.AddRange(variableDeviceStates);
+
         await context.SaveChangesAsync();
     }
 
-    private static BoardEntity CreateBoard(DeviceType deviceType, int boardTypeId,
-        string name, int boardNumber, string? partNumber, bool isPrimary = false)
+    private static BoardEntity CreateBoard(DeviceType deviceType,
+        string name, int firmwareType, int boardNumber, string? partNumber,
+        bool isPrimary = false, int? dictionaryId = null)
     {
-        // Calcola l'indirizzo protocol
-        var protocolAddress = ((uint)deviceType << 16) | (((uint)boardTypeId & 0x03FF) << 6) | ((uint)boardNumber & 0x003F);
+        var protocolAddress = ((uint)deviceType << 16) |
+            (((uint)firmwareType & 0x03FF) << 6) |
+            ((uint)boardNumber & 0x003F);
 
         return new BoardEntity
         {
             DeviceType = deviceType,
-            BoardTypeId = boardTypeId,
             Name = name,
+            FirmwareType = firmwareType,
             BoardNumber = boardNumber,
             PartNumber = partNumber,
             ProtocolAddress = protocolAddress,
-            IsPrimary = isPrimary
+            IsPrimary = isPrimary,
+            DictionaryId = dictionaryId
         };
     }
 

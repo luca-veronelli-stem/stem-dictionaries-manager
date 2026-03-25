@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260317160525_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260324143917_AddVariableDeviceState")]
+    partial class AddVariableDeviceState
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,11 +74,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DeviceType")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Meaning")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
@@ -93,7 +89,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VariableId", "DeviceType", "WordIndex", "BitIndex")
+                    b.HasIndex("VariableId", "WordIndex", "BitIndex")
                         .IsUnique();
 
                     b.ToTable("BitInterpretations");
@@ -108,13 +104,19 @@ namespace Infrastructure.Migrations
                     b.Property<int>("BoardNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BoardTypeId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DeviceType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DictionaryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FirmwareType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPrimary")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -134,40 +136,12 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BoardTypeId");
+                    b.HasIndex("DictionaryId");
 
                     b.HasIndex("ProtocolAddress")
                         .IsUnique();
 
                     b.ToTable("Boards");
-                });
-
-            modelBuilder.Entity("Infrastructure.Entities.BoardTypeEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("FirmwareType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("BoardTypes");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.CommandDeviceStateEntity", b =>
@@ -244,15 +218,15 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BoardTypeId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsStandard")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -263,8 +237,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BoardTypeId");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -300,6 +272,35 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.VariableDeviceStateEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DeviceType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VariableId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariableId", "DeviceType")
+                        .IsUnique();
+
+                    b.ToTable("VariableDeviceStates");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
@@ -399,13 +400,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.BoardEntity", b =>
                 {
-                    b.HasOne("Infrastructure.Entities.BoardTypeEntity", "BoardType")
+                    b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
                         .WithMany("Boards")
-                        .HasForeignKey("BoardTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("DictionaryId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("BoardType");
+                    b.Navigation("Dictionary");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.CommandDeviceStateEntity", b =>
@@ -419,14 +419,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("Command");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.DictionaryEntity", b =>
+            modelBuilder.Entity("Infrastructure.Entities.VariableDeviceStateEntity", b =>
                 {
-                    b.HasOne("Infrastructure.Entities.BoardTypeEntity", "BoardType")
-                        .WithMany("Dictionaries")
-                        .HasForeignKey("BoardTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
+                        .WithMany("DeviceStates")
+                        .HasForeignKey("VariableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("BoardType");
+                    b.Navigation("Variable");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
@@ -440,13 +441,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Dictionary");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.BoardTypeEntity", b =>
-                {
-                    b.Navigation("Boards");
-
-                    b.Navigation("Dictionaries");
-                });
-
             modelBuilder.Entity("Infrastructure.Entities.CommandEntity", b =>
                 {
                     b.Navigation("DeviceStates");
@@ -454,6 +448,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.DictionaryEntity", b =>
                 {
+                    b.Navigation("Boards");
+
                     b.Navigation("Variables");
                 });
 
@@ -465,6 +461,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
                 {
                     b.Navigation("BitInterpretations");
+
+                    b.Navigation("DeviceStates");
                 });
 #pragma warning restore 612, 618
         }

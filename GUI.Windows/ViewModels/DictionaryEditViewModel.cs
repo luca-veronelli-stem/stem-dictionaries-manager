@@ -1,7 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Enums;
-using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -9,11 +7,11 @@ namespace GUI.Windows.ViewModels;
 
 /// <summary>
 /// ViewModel per la creazione/modifica di un dizionario.
+/// Domain v2: IsStandard flag, nessun DeviceType/BoardType.
 /// </summary>
 public partial class DictionaryEditViewModel : ObservableObject
 {
     private readonly IDictionaryService _dictionaryService;
-    private readonly IBoardService _boardService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
@@ -38,58 +36,27 @@ public partial class DictionaryEditViewModel : ObservableObject
     private string _description = string.Empty;
 
     [ObservableProperty]
-    private DeviceType? _selectedDeviceType;
+    private bool _isStandard;
 
-    [ObservableProperty]
-    private BoardTypeItem? _selectedBoardType;
-
-    [ObservableProperty]
-    private List<BoardTypeItem> _availableBoardTypes = [];
-
-    /// <summary>
-    /// Valori DeviceType per il dropdown.
-    /// </summary>
-    public IReadOnlyList<DeviceType> DeviceTypes { get; } = Enum.GetValues<DeviceType>();
-
-    /// <summary>
-    /// True se stiamo creando un nuovo dizionario, false se modifica.
-    /// </summary>
     public bool IsNew => _editingId is null;
-
-    /// <summary>
-    /// Titolo del form.
-    /// </summary>
     public string FormTitle => IsNew ? "Nuovo Dizionario" : "Modifica Dizionario";
-
-    /// <summary>
-    /// DeviceType e BoardType modificabili solo per nuovi dizionari.
-    /// </summary>
-    public bool CanChangeDeviceAndBoardType => IsNew;
 
     public DictionaryEditViewModel(
         IDictionaryService dictionaryService,
-        IBoardService boardService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _dictionaryService = dictionaryService;
-        _boardService = boardService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
     }
 
-    // Partial methods generati da [ObservableProperty] per tracciare le modifiche
     partial void OnNameChanged(string value) => HasChanges = true;
     partial void OnDescriptionChanged(string value) => HasChanges = true;
-    partial void OnSelectedDeviceTypeChanged(DeviceType? value) => HasChanges = true;
-    partial void OnSelectedBoardTypeChanged(BoardTypeItem? value) => HasChanges = true;
+    partial void OnIsStandardChanged(bool value) => HasChanges = true;
 
-    /// <summary>
-    /// Inizializza il ViewModel con l'ID del dizionario da modificare.
-    /// </summary>
-    /// <param name="dictionaryId">ID del dizionario, null per nuovo.</param>
     public async Task InitializeAsync(int? dictionaryId)
     {
         if (_isInitialized) return;
@@ -99,17 +66,6 @@ public partial class DictionaryEditViewModel : ObservableObject
             IsBusy = true;
             _editingId = dictionaryId;
 
-            // Carica i BoardType disponibili
-            var boardTypes = await _boardService.GetBoardTypesAsync();
-            AvailableBoardTypes = [.. boardTypes
-                .Select(bt => new BoardTypeItem
-                {
-                    Id = bt.Id,
-                    Name = bt.Name,
-                    FirmwareType = bt.FirmwareType
-                })];
-
-            // Se modifica, carica i dati esistenti
             if (dictionaryId.HasValue)
             {
                 var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId.Value);
@@ -121,14 +77,8 @@ public partial class DictionaryEditViewModel : ObservableObject
                 }
 
                 Name = dictionary.Name;
-                OnPropertyChanged(nameof(Name));
                 Description = dictionary.Description ?? string.Empty;
-                OnPropertyChanged(nameof(Description));
-                SelectedDeviceType = dictionary.DeviceType;
-                OnPropertyChanged(nameof(SelectedDeviceType));
-                SelectedBoardType = AvailableBoardTypes
-                    .FirstOrDefault(bt => bt.Id == dictionary.BoardType?.Id);
-                OnPropertyChanged(nameof(SelectedBoardType));
+                IsStandard = dictionary.IsStandard;
             }
 
             _isInitialized = true;
@@ -136,7 +86,6 @@ public partial class DictionaryEditViewModel : ObservableObject
 
             OnPropertyChanged(nameof(IsNew));
             OnPropertyChanged(nameof(FormTitle));
-            OnPropertyChanged(nameof(CanChangeDeviceAndBoardType));
         }
         catch (Exception ex)
         {
@@ -162,19 +111,10 @@ public partial class DictionaryEditViewModel : ObservableObject
 
             if (IsNew)
             {
-                // Trova il BoardType domain model se selezionato
-                BoardType? boardType = null;
-                if (SelectedBoardType is not null)
-                {
-                    var boardTypes = await _boardService.GetBoardTypesAsync();
-                    boardType = boardTypes.FirstOrDefault(bt => bt.Id == SelectedBoardType.Id);
-                }
-
                 var dictionary = new Core.Models.Dictionary(
                     Name,
-                    SelectedDeviceType,
-                    boardType,
-                    string.IsNullOrWhiteSpace(Description) ? null : Description);
+                    string.IsNullOrWhiteSpace(Description) ? null : Description,
+                    IsStandard);
 
                 await _dictionaryService.AddAsync(dictionary);
                 _messageService.Show($"Dizionario '{Name}' creato", MessageSeverity.Success);
@@ -188,13 +128,11 @@ public partial class DictionaryEditViewModel : ObservableObject
                     return;
                 }
 
-                // Ricrea il Domain model con i nuovi valori
                 var updated = Core.Models.Dictionary.Restore(
                     existing.Id,
                     Name,
-                    existing.DeviceType,
-                    existing.BoardType,  // DeviceType e BoardType non modificabili
                     string.IsNullOrWhiteSpace(Description) ? null : Description,
+                    IsStandard,
                     existing.Variables);
 
                 await _dictionaryService.UpdateAsync(updated);
@@ -251,16 +189,4 @@ public partial class DictionaryEditViewModel : ObservableObject
         ErrorMessage = null;
         return true;
     }
-}
-
-/// <summary>
-/// Item per dropdown BoardType.
-/// </summary>
-public class BoardTypeItem
-{
-    public int Id { get; init; }
-    public required string Name { get; init; }
-    public int FirmwareType { get; init; }
-
-    public override string ToString() => $"{Name} (FW: {FirmwareType})";
 }

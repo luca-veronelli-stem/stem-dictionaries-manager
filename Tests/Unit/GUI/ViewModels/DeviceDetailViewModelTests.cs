@@ -8,7 +8,8 @@ using Tests.Unit.GUI.Mocks;
 namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
-/// Test per DeviceDetailViewModel.
+/// Test per DeviceDetailViewModel (Domain v2).
+/// Semantica: Standard (IsStandard) + Linked (Board→DictionaryId).
 /// </summary>
 public class DeviceDetailViewModelTests
 {
@@ -59,16 +60,14 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task LoadAsync_LoadsDictionaries()
     {
-        // Arrange
-        var boardType = new BoardType("Madre OptimusXP", 17);
-        _boardService.SeedBoardTypes(boardType);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-
-        var board = new Board(DeviceType.OptimusXp, bt, "Madre #1", 1);
-        await _boardService.AddAsync(board);
-
-        var dict = new Dictionary("Optimus XP", DeviceType.OptimusXp, bt, "Variabili Optimus XP");
+        // Arrange — board punta a un dizionario
+        var dict = new Dictionary("Optimus XP", "Variabili Optimus XP");
         _dictionaryService.SeedData(dict);
+        var seededDict = (await _dictionaryService.GetAllAsync())[0];
+
+        var board = new Board(DeviceType.OptimusXp, "Madre #1", 17, 1,
+            dictionaryId: seededDict.Id);
+        await _boardService.AddAsync(board);
 
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
@@ -99,7 +98,7 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void OpenDictionaryCommand_WithSelection_NavigatesToVariableList()
     {
-        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Madre", 10);
+        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Standard", 10);
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
@@ -131,8 +130,8 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task LoadAsync_StandardDictionary_VisibleForAnyDevice()
     {
-        // Arrange — dizionario Standard (null, null)
-        var dictStandard = new Dictionary("Standard", description: "Variabili comuni");
+        // Arrange — dizionario Standard (IsStandard=true)
+        var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
         _dictionaryService.SeedData(dictStandard);
 
         // Act — device senza board
@@ -144,76 +143,33 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
-    public async Task LoadAsync_SharedPeripheral_VisibleWhenDeviceHasMatchingBoard()
+    public async Task LoadAsync_LinkedDictionary_VisibleWhenBoardPointsToIt()
     {
-        // Arrange — Pulsantiera condivisa (null, BT)
-        var btPulsantiera = new BoardType("Pulsantiera 4x4", 4);
-        _boardService.SeedBoardTypes(btPulsantiera);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
+        // Arrange — Board di OptimusXp punta a un dizionario
+        var dict = new Dictionary("Pulsantiere 4x4", "Condiviso");
+        _dictionaryService.SeedData(dict);
+        var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        var board = new Board(DeviceType.OptimusXp, bt, "Tastiera 1", 1);
+        var board = new Board(DeviceType.OptimusXp, "Tastiera 1", 4, 1,
+            dictionaryId: seededDict.Id);
         await _boardService.AddAsync(board);
-
-        var dictPulsantiere = new Dictionary("Pulsantiere 4x4", boardType: bt, description: "Condiviso");
-        _dictionaryService.SeedData(dictPulsantiere);
-
-        // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
-
-        // Assert — condiviso visibile perché il device ha una board con quel BoardType
-        Assert.Single(_viewModel.Dictionaries);
-        Assert.Equal("Pulsantiere 4x4", _viewModel.Dictionaries[0].Name);
-    }
-
-    [Fact]
-    public async Task LoadAsync_SharedPeripheral_NotVisibleWhenDeviceLacksBoard()
-    {
-        // Arrange — Pulsantiera condivisa (null, BT)
-        var btPulsantiera = new BoardType("Pulsantiera 4x4", 4);
-        _boardService.SeedBoardTypes(btPulsantiera);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-
-        var dictPulsantiere = new Dictionary("Pulsantiere 4x4", boardType: bt, description: "Condiviso");
-        _dictionaryService.SeedData(dictPulsantiere);
-
-        // Act — EdenXp NON ha board con btPulsantiera
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
-
-        // Assert — condiviso NON visibile
-        Assert.Empty(_viewModel.Dictionaries);
-    }
-
-    [Fact]
-    public async Task LoadAsync_DedicatedDictionary_VisibleForMatchingDevice()
-    {
-        // Arrange — Dedicato (DT, BT)
-        var btMadre = new BoardType("Madre Optimus", 17);
-        _boardService.SeedBoardTypes(btMadre);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-
-        var dictOptimus = new Dictionary("Optimus XP", DeviceType.OptimusXp, bt, "Dedicato");
-        _dictionaryService.SeedData(dictOptimus);
 
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
         // Assert
         Assert.Single(_viewModel.Dictionaries);
-        Assert.Equal("Optimus XP", _viewModel.Dictionaries[0].Name);
+        Assert.Equal("Pulsantiere 4x4", _viewModel.Dictionaries[0].Name);
     }
 
     [Fact]
-    public async Task LoadAsync_DedicatedDictionary_NotVisibleForOtherDevice()
+    public async Task LoadAsync_UnlinkedDictionary_NotVisibleWhenNoBoardPointsToIt()
     {
-        // Arrange — Dedicato (OptimusXp, BT)
-        var btMadre = new BoardType("Madre Optimus", 17);
-        _boardService.SeedBoardTypes(btMadre);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
+        // Arrange — dizionario non-standard, nessuna board lo referenzia
+        var dict = new Dictionary("Pulsantiere 4x4", "Condiviso");
+        _dictionaryService.SeedData(dict);
 
-        var dictOptimus = new Dictionary("Optimus XP", DeviceType.OptimusXp, bt, "Dedicato");
-        _dictionaryService.SeedData(dictOptimus);
-
-        // Act — EdenXp non deve vedere dizionari di OptimusXp
+        // Act — EdenXp non ha board che puntano a quel dizionario
         await _viewModel.LoadAsync(DeviceType.EdenXp);
 
         // Assert
@@ -223,31 +179,27 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task LoadAsync_MixedSemantics_ShowsCorrectSubset()
     {
-        // Arrange — scenario completo come il seeder
-        var btMadreOpt = new BoardType("Madre Optimus", 17);
-        var btPulsantiera = new BoardType("Pulsantiera 4x4", 4);
-        var btMadreEden = new BoardType("Madre Eden", 18);
-        _boardService.SeedBoardTypes(btMadreOpt, btPulsantiera, btMadreEden);
-        var boardTypes = await _boardService.GetBoardTypesAsync();
-        var btOpt = boardTypes[0];
-        var btPuls = boardTypes[1];
-        var btEden = boardTypes[2];
-
-        // Board di OptimusXp: madre + pulsantiera
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, btOpt, "Madre #1", 1));
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, btPuls, "Tastiera 1", 1));
-
-        // Dizionari di tutte e 3 le semantiche
-        var dictStandard = new Dictionary("Standard", description: "Comune");
-        var dictOptimus = new Dictionary("Optimus XP", DeviceType.OptimusXp, btOpt, "Dedicato");
-        var dictPulsantiere = new Dictionary("Pulsantiere 4x4", boardType: btPuls, description: "Condiviso");
-        var dictEden = new Dictionary("Eden XP", DeviceType.EdenXp, btEden, "Dedicato altro device");
+        // Arrange — Standard + 2 dizionari specifici + 1 di altro device
+        var dictStandard = new Dictionary("Standard", "Comune", true);
+        var dictOptimus = new Dictionary("Optimus XP", "Dedicato");
+        var dictPulsantiere = new Dictionary("Pulsantiere 4x4", "Condiviso");
+        var dictEden = new Dictionary("Eden XP", "Dedicato altro device");
         _dictionaryService.SeedData(dictStandard, dictOptimus, dictPulsantiere, dictEden);
+
+        var allDicts = await _dictionaryService.GetAllAsync();
+        var dictOptimusId = allDicts.First(d => d.Name == "Optimus XP").Id;
+        var dictPulsantiereId = allDicts.First(d => d.Name == "Pulsantiere 4x4").Id;
+
+        // Board di OptimusXp puntano a dictOptimus e dictPulsantiere
+        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Madre #1", 17, 1,
+            dictionaryId: dictOptimusId));
+        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Tastiera 1", 4, 2,
+            dictionaryId: dictPulsantiereId));
 
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — deve vedere Standard + Optimus XP + Pulsantiere 4x4, NON Eden XP
+        // Assert — Standard + Optimus XP + Pulsantiere 4x4, NOT Eden XP
         Assert.Equal(3, _viewModel.Dictionaries.Count);
         var names = _viewModel.Dictionaries.Select(d => d.Name).ToList();
         Assert.Contains("Standard", names);
@@ -259,17 +211,21 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task LoadAsync_DictionariesAreOrderedByName()
     {
-        // Arrange — nomi non alfabetici
-        var btMadre = new BoardType("Madre", 17);
-        _boardService.SeedBoardTypes(btMadre);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, bt, "Board 1", 1));
-
-        var dictC = new Dictionary("Zeta", DeviceType.OptimusXp, bt, "Ultimo");
-        var dictA = new Dictionary("Alfa", DeviceType.OptimusXp, bt, "Primo");
-        var dictB = new Dictionary("Beta", boardType: bt, description: "Medio");
+        // Arrange
+        var dictC = new Dictionary("Zeta", "Ultimo");
+        var dictA = new Dictionary("Alfa", "Primo");
+        var dictB = new Dictionary("Beta", "Medio");
         _dictionaryService.SeedData(dictC, dictA, dictB);
+
+        var allDicts = await _dictionaryService.GetAllAsync();
+
+        // Board di OptimusXp punta a tutti e 3
+        foreach (var d in allDicts)
+        {
+            await _boardService.AddAsync(new Board(DeviceType.OptimusXp,
+                $"Board-{d.Name}", 17, allDicts.ToList().IndexOf(d) + 1,
+                dictionaryId: d.Id));
+        }
 
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
@@ -285,31 +241,29 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_DictionaryItem_MapsProperties()
     {
         // Arrange
-        var btMadre = new BoardType("Madre Optimus", 17);
-        _boardService.SeedBoardTypes(btMadre);
-        var bt = (await _boardService.GetBoardTypesAsync())[0];
-
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, bt, "Board 1", 1));
-
-        var dict = new Dictionary("Optimus XP", DeviceType.OptimusXp, bt, "Test");
+        var dict = new Dictionary("Optimus XP", "Test");
         _dictionaryService.SeedData(dict);
+        var seededDict = (await _dictionaryService.GetAllAsync())[0];
+
+        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Board 1", 17, 1,
+            dictionaryId: seededDict.Id));
 
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — DictionaryItem mappa correttamente
+        // Assert
         var item = Assert.Single(_viewModel.Dictionaries);
         Assert.True(item.Id > 0);
         Assert.Equal("Optimus XP", item.Name);
-        Assert.Equal("Madre Optimus", item.BoardTypeName);
+        Assert.Equal("Specifico", item.Semantic);
         Assert.Equal(0, item.VariableCount);
     }
 
     [Fact]
-    public async Task LoadAsync_StandardDictionary_HasNullBoardTypeName()
+    public async Task LoadAsync_StandardDictionary_HasStandardSemantic()
     {
         // Arrange
-        var dictStandard = new Dictionary("Standard", description: "Variabili comuni");
+        var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
         _dictionaryService.SeedData(dictStandard);
 
         // Act
@@ -317,7 +271,7 @@ public class DeviceDetailViewModelTests
 
         // Assert
         var item = Assert.Single(_viewModel.Dictionaries);
-        Assert.Null(item.BoardTypeName);
+        Assert.Equal("Standard", item.Semantic);
     }
 
     [Fact]
@@ -341,7 +295,7 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — IsLoading torna false sia in caso di successo
+        // Assert
         Assert.False(_viewModel.IsLoading);
     }
 
@@ -354,7 +308,7 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — IsLoading torna false anche in caso di errore
+        // Assert
         Assert.False(_viewModel.IsLoading);
     }
 }

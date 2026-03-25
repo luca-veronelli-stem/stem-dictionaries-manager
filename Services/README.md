@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -23,7 +23,7 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Services** | ✅ | 5 services con interface |
-| **Mappers** | ✅ | 8 mapper bidirezionali |
+| **Mappers** | ✅ | 9 mapper bidirezionali |
 | **DI Extension** | ✅ | AddServices() per registrazione |
 | **Aggregate Pattern** | ✅ | Dictionary gestisce Variables |
 | **Validation** | ✅ | Unicità, esistenza, business rules |
@@ -84,28 +84,28 @@ public class MyController
 Services/
 ├── Interfaces/
 │   ├── IDictionaryService.cs      # Aggregate root (Dictionary + Variables)
-│   ├── IVariableService.cs        # Variabili singole + BitInterpretation
+│   ├── IVariableService.cs        # Variabili singole + BitInterpretation + DeviceState
 │   ├── ICommandService.cs         # Comandi + DeviceState
-│   ├── IBoardService.cs           # Board + BoardType
+│   ├── IBoardService.cs           # Board (FirmwareType diretto, DictionaryId?)
 │   └── IUserService.cs            # Utenti
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
-│   ├── BoardTypeMapper.cs         # BoardType Entity ↔ Domain
-│   ├── BoardMapper.cs             # Board Entity ↔ Domain (richiede Include BoardType)
+│   ├── BoardMapper.cs             # Board Entity ↔ Domain (FirmwareType, DictionaryId?, IsPrimary)
 │   ├── VariableMapper.cs          # Variable Entity ↔ Domain (⚠️ Format non mappato, SVC-009)
-│   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (con DeviceType + Variables)
+│   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (IsStandard flag)
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
-│   ├── CommandDeviceStateMapper.cs# CommandDeviceState Entity ↔ Domain
-│   └── BitInterpretationMapper.cs # BitInterpretation Entity ↔ Domain
-├── DictionaryService.cs           # Aggregate root (3 semantiche dizionario)
-├── VariableService.cs             # Implementazione
+│   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
+│   ├── VariableDeviceStateMapper.cs   # VariableDeviceState Entity ↔ Domain
+│   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain
+├── DictionaryService.cs           # Aggregate root (IsStandard uniqueness)
+├── VariableService.cs             # Implementazione + DeviceState (BR-009/010/011)
 ├── CommandService.cs              # Implementazione
 ├── BoardService.cs                # Implementazione
 ├── UserService.cs                 # Implementazione
 ├── Class1.cs                      # ⚠️ Placeholder non rimosso (SVC-010)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 9 issue aperte, 1 risolta
+└── ISSUES.md                      # 7 issue aperte, 4 risolte
 ```
 
 ---
@@ -117,9 +117,9 @@ Services/
 | Interface | Metodi Principali | Aggregate |
 |-----------|-------------------|:---------:|
 | `IDictionaryService` | GetWithVariablesAsync, GetStandardDictionaryAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
-| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync | - |
+| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, SetDeviceStateAsync, GetDeviceStateAsync, GetDeviceStatesAsync | - |
 | `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync | - |
-| `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync, GetBoardTypesAsync, GetBoardTypeByNameAsync, GetBoardTypeByFirmwareTypeAsync, AddBoardTypeAsync | - |
+| `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
 
 ### IDictionaryService (Aggregate Root)
@@ -133,12 +133,11 @@ public interface IDictionaryService
     Task<Dictionary> AddAsync(Dictionary dictionary, CancellationToken ct = default);
     Task UpdateAsync(Dictionary dictionary, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
-    
+
     // Query
     Task<Dictionary?> GetByNameAsync(string name, CancellationToken ct = default);
-    Task<Dictionary?> GetByBoardTypeIdAsync(int boardTypeId, CancellationToken ct = default);
     Task<Dictionary?> GetStandardDictionaryAsync(CancellationToken ct = default);
-    
+
     // Aggregate Operations
     Task<Dictionary?> GetWithVariablesAsync(int id, CancellationToken ct = default);
     Task<Variable> AddVariableAsync(int dictionaryId, Variable variable, CancellationToken ct = default);
@@ -220,14 +219,14 @@ public static class UserMapper
 
 | Regola | Enforced In | Descrizione |
 |--------|-------------|-------------|
-| **BR-001** | DictionaryService | 3 semantiche: Standard (null,null), Condiviso (null,BT), Dedicato (DT,BT) |
-| **BR-002** | DictionaryService | Unicità combinazione (DeviceType, BoardTypeId) |
+| **BR-001** | Core/Dictionary | Dictionary.IsStandard flag — variabili comuni 0x00xx |
 | **BR-003** | DictionaryService, VariableService | Indirizzo variabile univoco per dizionario |
-| **BR-004** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
-| **BR-005** | UserService | Username univoco |
-| **BR-006** | BoardService | FirmwareType univoco per BoardType |
-| **BR-007** | DictionaryService | Al massimo UN dizionario Standard (senza BoardType e DeviceType) |
-| **BR-008** | Core/Dictionary | Combinazione (DeviceType, null) invalida — se c'è il device, serve il BoardType |
+| **BR-004** | DictionaryService | Al massimo UN dizionario con IsStandard = true |
+| **BR-005** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
+| **BR-006** | UserService | Username univoco |
+| **BR-009** | VariableService | VariableDeviceState: override per-device su variabili |
+| **BR-010** | VariableService | VariableDeviceState: unique (VariableId, DeviceType) |
+| **BR-011** | VariableService | Non si può abilitare una variabile deprecated per un device |
 
 ---
 
@@ -236,14 +235,18 @@ public static class UserMapper
 Ogni service valida:
 
 ```csharp
-// Esistenza entità correlate
-var boardType = await _boardTypeRepository.GetByIdAsync(dictionary.BoardType.Id, ct)
-    ?? throw new InvalidOperationException($"BoardType with Id {id} not found.");
-
 // Unicità
 var existing = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
 if (existing is not null)
     throw new InvalidOperationException($"Dictionary with name '{dictionary.Name}' already exists.");
+
+// IsStandard uniqueness (BR-004)
+if (dictionary.IsStandard)
+{
+    var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+    if (existingStandard is not null)
+        throw new InvalidOperationException("A Standard dictionary already exists.");
+}
 
 // Appartenenza
 if (variable.DictionaryId != dictionaryId)
@@ -287,20 +290,20 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Categoria | File | Metodi Test |
 |-----------|------|:-----------:|
 | Unit/Mapping | `UserMapperTests.cs` | 10 |
-| Unit/Mapping | `BoardTypeMapperTests.cs` | 10 |
-| Unit/Mapping | `BoardMapperTests.cs` | 6 |
+| Unit/Mapping | `BoardMapperTests.cs` | 10 |
 | Unit/Mapping | `VariableMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandMapperTests.cs` | 13 |
 | Unit/Mapping | `DictionaryMapperTests.cs` | 14 |
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
+| Unit/Mapping | `VariableDeviceStateMapperTests.cs` | 9 |
 | Unit/DI | `DependencyInjectionTests.cs` | 10 |
 | Integration | `UserServiceTests.cs` | 15 |
 | Integration | `DictionaryServiceTests.cs` | 21 |
 | Integration | `BoardServiceTests.cs` | 23 |
 | Integration | `CommandServiceTests.cs` | 18 |
-| Integration | `VariableServiceTests.cs` | 29 |
-| **Totale** | | **200** |
+| Integration | `VariableServiceTests.cs` | 37 |
+| **Totale** | | **~211** |
 
 ```bash
 # Eseguire test Services
@@ -311,14 +314,13 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 9 issue aperte, 1 risolta (0 critiche, 1 alta, 3 medie, 5 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 7 issue aperte, 4 risolte (0 critiche, 0 alte, 3 medie, 4 basse)
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
-| **SVC-008** | **Alta** | DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste |
-| SVC-009 | Media | VariableMapper.ToDomain non mappa Format (data loss) |
+| **SVC-009** | **Media** | VariableMapper.ToDomain non mappa Format (data loss) |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 | SVC-003 | Media | GetAllAsync senza paginazione |
 

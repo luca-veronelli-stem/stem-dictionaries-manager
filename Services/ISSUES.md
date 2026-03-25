@@ -1,4 +1,4 @@
-# Services - ISSUES
+﻿# Services - ISSUES
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
@@ -11,22 +11,20 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 0 | 2 |
 | **Media** | 3 | 1 |
-| **Bassa** | 5 | 0 |
+| **Bassa** | 4 | 1 |
 
-**Totale aperte:** 9  
-**Totale risolte:** 1
+**Totale aperte:** 7  
+**Totale risolte:** 4
 
 ---
 
 ## Indice Issue Aperte
 
-- [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
 - [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
-- [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
 - [SVC-007 - DependencyInjection non valida prerequisiti](#svc-007--dependencyinjection-non-valida-prerequisiti)
@@ -34,96 +32,10 @@
 
 ## Indice Issue Risolte
 
+- [SVC-011 - Refactoring Services per Domain v2](#svc-011--refactoring-services-per-domain-v2)
+- [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
+- [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
 - [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext-risolto)
-
----
-
-## Priorità Alta
-
-### SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste
-
-**Categoria:** Bug  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`DictionaryService.AddAsync` ha una condizione errata che impedisce la creazione di dizionari **Periferica condivisa** (`null, BoardType`) se un dizionario **Standard** (`null, null`) esiste già. Le 3 semantiche definite in SESSION_022 non sono gestite correttamente.
-
-#### File Coinvolti
-
-- `Services/DictionaryService.cs` (righe 73-93)
-
-#### Codice Problematico
-
-```csharp
-// Riga 74: la condizione cattura solo Dedicato (DT, BT)
-if (dictionary.BoardType is not null && dictionary.DeviceType.HasValue)
-{
-    // SOLO Dedicato (DT, BT) → entra qui
-}
-else
-{
-    // Cattura ENTRAMBI:
-    // - Standard (null, null) ✅ corretto → controlla unicità
-    // - Shared Peripheral (null, BT) ❌ BUG → blocca se Standard esiste
-    var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
-    if (existingStandard is not null)
-        throw new InvalidOperationException(
-            "A Standard dictionary (without BoardType) already exists.");
-}
-```
-
-#### Tabella di verità
-
-| Semantica | BoardType | DeviceType | Condizione riga 74 | Branch | Risultato |
-|-----------|-----------|------------|-------------------|--------|----------|
-| Standard | null | null | `false && false` | else | ✅ Corretto |
-| Shared Peripheral | **not null** | null | `true && false` | **else** | ❌ **BUG** |
-| Dedicato | not null | has value | `true && true` | if | ✅ Corretto |
-
-#### Impatto
-
-- **Seeder funziona** perché scrive entity direttamente, bypassando il service
-- **Da UI è impossibile** creare una periferica condivisa se il dizionario Standard esiste
-- Dato che il dizionario Standard viene creato per primo, **nessuna periferica condivisa può essere creata via service**
-
-#### Soluzione Proposta
-
-Riscrivere la validazione con 3 branch espliciti:
-
-```csharp
-if (dictionary.DeviceType is null && dictionary.BoardType is null)
-{
-    // Standard (null, null) → al massimo uno
-    var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
-    if (existingStandard is not null)
-        throw new InvalidOperationException(
-            "A Standard dictionary already exists. Only one is allowed.");
-}
-else if (dictionary.DeviceType is null && dictionary.BoardType is not null)
-{
-    // Shared Peripheral (null, BT) → verifica unicità BoardType
-    var existingByBt = await _dictionaryRepository.GetByBoardTypeAsync(
-        dictionary.BoardType.Id, ct);
-    if (existingByBt is not null)
-        throw new InvalidOperationException(
-            $"A shared peripheral dictionary for BoardType {dictionary.BoardType.Id} already exists.");
-}
-else if (dictionary.DeviceType.HasValue && dictionary.BoardType is not null)
-{
-    // Dedicato (DT, BT) → verifica unicità combo
-    // ... codice esistente
-}
-```
-
-#### Benefici Attesi
-
-- Creazione periferiche condivise funzionante
-- Coerenza con le 3 semantiche definite in Lean 4 spec
-- Validazione corretta per ogni tipo di dizionario
 
 ---
 
@@ -224,70 +136,6 @@ public class PagedResult<T>
 ---
 
 ## Priorità Bassa
-
-### SVC-004 - Mancano mapper per BoardMapper con overload
-
-**Categoria:** Code Smell  
-**Priorità:** Bassa  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-`BoardMapper` richiede che `BoardType` sia caricato via Include, ma se non lo è lancia eccezione. Manca un overload che gestisca gracefully il caso senza BoardType.
-
-#### File Coinvolti
-
-- `Services/Mapping/BoardMapper.cs` (righe 36-40)
-
-#### Codice Problematico
-
-```csharp
-public static Board ToDomain(BoardEntity entity)
-{
-    if (entity.BoardType == null)
-        throw new InvalidOperationException(
-            $"BoardType not loaded for Board {entity.Id}. Use Include() or provide BoardType.");
-    // ...
-}
-```
-
-#### Problema Specifico
-
-- Eccezione runtime se BoardType non caricato
-- Non chiaro all'utilizzatore che deve usare Include
-- Inconsistenza con altri mapper che non lanciano eccezioni
-
-#### Soluzione Proposta
-
-```csharp
-// Opzione A: Metodo TryToDomain
-public static bool TryToDomain(BoardEntity entity, out Board? board)
-{
-    if (entity.BoardType == null)
-    {
-        board = null;
-        return false;
-    }
-    board = ToDomain(entity);
-    return true;
-}
-
-// Opzione B: Documentazione più chiara + attributo Required
-/// <summary>
-/// Requires BoardType to be loaded via Include().
-/// </summary>
-[RequiresBoardTypeLoaded]
-public static Board ToDomain(BoardEntity entity) { ... }
-```
-
-#### Benefici Attesi
-
-- API più chiara e predicibile
-- Meno eccezioni runtime inattese
-
----
 
 ### SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates
 
@@ -566,6 +414,63 @@ Eliminare il file.
 ---
 
 ## Issue Risolte
+
+### SVC-011 - Refactoring Services per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Soluzione Implementata
+
+1. **DELETE:** `Mapping/BoardTypeMapper.cs`
+2. **MODIFY:** `BoardMapper.cs` — FirmwareType da Board, DictionaryId?, IsPrimary
+3. **MODIFY:** `DictionaryMapper.cs` — IsStandard flag, no DeviceType/BoardType
+4. **MODIFY:** `BoardService.cs`, `DictionaryService.cs` — Standard check via IsStandard
+
+#### Benefici Ottenuti
+
+- Services allineati al Domain v2 ✅
+- Risolve anche SVC-008 e SVC-004 ✅
+
+---
+
+### SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste
+
+**Categoria:** Bug  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2
+
+#### Soluzione Implementata
+
+Il bug non esiste più: la semantica 3-tuple `(DeviceType?, BoardType?)` è stata sostituita con `IsStandard` flag. La logica di validazione ora controlla solo `if (dictionary.IsStandard)` → verifica unicità.
+
+---
+
+### SVC-004 - Mancano mapper per BoardMapper con overload
+
+**Categoria:** Code Smell  
+**Priorità:** Bassa  
+**Impatto:** Basso  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2
+
+#### Soluzione Implementata
+
+BoardMapper riscritto: `BoardType` rimosso, `FirmwareType`/`DictionaryId?`/`IsPrimary` mappati direttamente. Nessun Include richiesto per BoardType.
+
+---
 
 
 ### SVC-001 - Services dipendono direttamente da AppDbContext

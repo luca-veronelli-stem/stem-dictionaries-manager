@@ -20,44 +20,34 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AddDictionary_WithBoardType_Works()
+    public async Task AddDictionary_NonStandard_Works()
     {
-        // Arrange
-        var boardType = new BoardTypeEntity { Name = "Madre", FirmwareType = 17 };
-        Context.BoardTypes.Add(boardType);
-        await Context.SaveChangesAsync();
-
         var dictionary = new DictionaryEntity
         {
             Name = "optimus-xp",
-            BoardTypeId = boardType.Id
+            IsStandard = false
         };
 
-        // Act
         var result = await _dictionaryRepo.AddAsync(dictionary);
 
-        // Assert
         Assert.True(result.Id > 0);
-        Assert.Equal(boardType.Id, result.BoardTypeId);
+        Assert.False(result.IsStandard);
     }
 
     [Fact]
-    public async Task GetStandardDictionary_ReturnsNullBoardType()
+    public async Task GetStandardDictionary_ReturnsStandardDictionary()
     {
-        // Arrange - dizionario Standard non ha BoardType
         var dictionary = new DictionaryEntity
         {
             Name = "standard",
-            BoardTypeId = null
+            IsStandard = true
         };
         await _dictionaryRepo.AddAsync(dictionary);
 
-        // Act
         var result = await _dictionaryRepo.GetStandardDictionaryAsync();
 
-        // Assert
         Assert.NotNull(result);
-        Assert.Null(result.BoardTypeId);
+        Assert.True(result.IsStandard);
     }
 
     [Fact]
@@ -157,38 +147,20 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     // === Test per metodi aggiunti con SVC-001 ===
 
     [Fact]
-    public async Task GetAllWithBoardTypeAsync_ReturnsAllWithBoardType()
+    public async Task GetAllWithVariablesAsync_ReturnsAll()
     {
-        // Arrange
-        var boardType = new BoardTypeEntity { Name = "TestBoard", FirmwareType = 99 };
-        Context.BoardTypes.Add(boardType);
-        await Context.SaveChangesAsync();
+        await _dictionaryRepo.AddAsync(new DictionaryEntity { Name = "dict1", IsStandard = true });
+        await _dictionaryRepo.AddAsync(new DictionaryEntity { Name = "dict2" });
 
-        await _dictionaryRepo.AddAsync(new DictionaryEntity
-        {
-            Name = "dict-with-board",
-            BoardTypeId = boardType.Id
-        });
-        await _dictionaryRepo.AddAsync(new DictionaryEntity
-        {
-            Name = "dict-standard",
-            BoardTypeId = null
-        });
+        var result = await _dictionaryRepo.GetAllWithVariablesAsync();
 
-        // Act
-        var result = await _dictionaryRepo.GetAllWithBoardTypeAsync();
-
-        // Assert
         Assert.Equal(2, result.Count);
-        var withBoard = result.First(d => d.Name == "dict-with-board");
-        Assert.NotNull(withBoard.BoardType);
-        Assert.Equal("TestBoard", withBoard.BoardType!.Name);
     }
 
     [Fact]
-    public async Task GetAllWithBoardTypeAsync_EmptyDb_ReturnsEmptyList()
+    public async Task GetAllWithVariablesAsync_EmptyDb_ReturnsEmptyList()
     {
-        var result = await _dictionaryRepo.GetAllWithBoardTypeAsync();
+        var result = await _dictionaryRepo.GetAllWithVariablesAsync();
 
         Assert.Empty(result);
     }

@@ -29,4 +29,5 @@ public class VariableEntity : IAuditable
     // Navigation
     public DictionaryEntity Dictionary { get; set; } = null!;
     public ICollection<BitInterpretationEntity> BitInterpretations { get; set; } = [];
+    public ICollection<VariableDeviceStateEntity> DeviceStates { get; set; } = [];
 }

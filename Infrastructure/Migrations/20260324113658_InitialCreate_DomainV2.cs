@@ -1,31 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreate_DomainV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "BoardTypes",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    FirmwareType = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BoardTypes", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Commands",
                 columns: table => new
@@ -46,6 +31,23 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Dictionaries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsStandard = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Dictionaries", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -59,55 +61,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Boards",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DeviceType = table.Column<int>(type: "INTEGER", nullable: false),
-                    BoardTypeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    BoardNumber = table.Column<int>(type: "INTEGER", nullable: false),
-                    PartNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
-                    ProtocolAddress = table.Column<uint>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Boards", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Boards_BoardTypes_BoardTypeId",
-                        column: x => x.BoardTypeId,
-                        principalTable: "BoardTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Dictionaries",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    BoardTypeId = table.Column<int>(type: "INTEGER", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Dictionaries", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Dictionaries_BoardTypes_BoardTypeId",
-                        column: x => x.BoardTypeId,
-                        principalTable: "BoardTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -134,29 +87,31 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AuditEntries",
+                name: "Boards",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    EntityType = table.Column<int>(type: "INTEGER", nullable: false),
-                    EntityId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Operation = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChangedById = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    PreviousValue = table.Column<string>(type: "TEXT", nullable: true),
-                    NewValue = table.Column<string>(type: "TEXT", nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    DeviceType = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    FirmwareType = table.Column<int>(type: "INTEGER", nullable: false),
+                    BoardNumber = table.Column<int>(type: "INTEGER", nullable: false),
+                    PartNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    ProtocolAddress = table.Column<uint>(type: "INTEGER", nullable: false),
+                    IsPrimary = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AuditEntries", x => x.Id);
+                    table.PrimaryKey("PK_Boards", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AuditEntries_Users_ChangedById",
-                        column: x => x.ChangedById,
-                        principalTable: "Users",
+                        name: "FK_Boards_Dictionaries_DictionaryId",
+                        column: x => x.DictionaryId,
+                        principalTable: "Dictionaries",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -195,16 +150,41 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AuditEntries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    EntityType = table.Column<int>(type: "INTEGER", nullable: false),
+                    EntityId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Operation = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChangedById = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    PreviousValue = table.Column<string>(type: "TEXT", nullable: true),
+                    NewValue = table.Column<string>(type: "TEXT", nullable: true),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AuditEntries_Users_ChangedById",
+                        column: x => x.ChangedById,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BitInterpretations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VariableId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeviceType = table.Column<int>(type: "INTEGER", nullable: false),
                     WordIndex = table.Column<int>(type: "INTEGER", nullable: false),
                     BitIndex = table.Column<int>(type: "INTEGER", nullable: false),
-                    Meaning = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Meaning = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
@@ -235,26 +215,20 @@ namespace Infrastructure.Migrations
                 columns: new[] { "EntityType", "EntityId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BitInterpretations_VariableId_DeviceType_WordIndex_BitIndex",
+                name: "IX_BitInterpretations_VariableId_WordIndex_BitIndex",
                 table: "BitInterpretations",
-                columns: new[] { "VariableId", "DeviceType", "WordIndex", "BitIndex" },
+                columns: new[] { "VariableId", "WordIndex", "BitIndex" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Boards_BoardTypeId",
+                name: "IX_Boards_DictionaryId",
                 table: "Boards",
-                column: "BoardTypeId");
+                column: "DictionaryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Boards_ProtocolAddress",
                 table: "Boards",
                 column: "ProtocolAddress",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BoardTypes_Name",
-                table: "BoardTypes",
-                column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -268,11 +242,6 @@ namespace Infrastructure.Migrations
                 table: "Commands",
                 columns: new[] { "CodeHigh", "CodeLow", "IsResponse" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Dictionaries_BoardTypeId",
-                table: "Dictionaries",
-                column: "BoardTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Dictionaries_Name",
@@ -319,9 +288,6 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Dictionaries");
-
-            migrationBuilder.DropTable(
-                name: "BoardTypes");
         }
     }
 }

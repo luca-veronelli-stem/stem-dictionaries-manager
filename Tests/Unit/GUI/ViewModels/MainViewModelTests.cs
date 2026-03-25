@@ -41,7 +41,6 @@ public class MainViewModelTests
 
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
-            sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));

@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -15,18 +16,22 @@ public class VariableService : IVariableService
     private readonly IVariableRepository _repository;
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IBitInterpretationRepository _bitInterpretationRepository;
+    private readonly IVariableDeviceStateRepository _deviceStateRepository;
 
     public VariableService(
         IVariableRepository repository,
         IDictionaryRepository dictionaryRepository,
-        IBitInterpretationRepository bitInterpretationRepository)
+        IBitInterpretationRepository bitInterpretationRepository,
+        IVariableDeviceStateRepository deviceStateRepository)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(bitInterpretationRepository);
+        ArgumentNullException.ThrowIfNull(deviceStateRepository);
         _repository = repository;
         _dictionaryRepository = dictionaryRepository;
         _bitInterpretationRepository = bitInterpretationRepository;
+        _deviceStateRepository = deviceStateRepository;
     }
 
     // === CRUD Base ===
@@ -176,5 +181,57 @@ public class VariableService : IVariableService
 
         var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
         await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, entities, ct);
+    }
+
+    // === DeviceState Management ===
+
+    public async Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled,
+        CancellationToken ct = default)
+    {
+        // Verifica che la variabile esista
+        var variable = await _repository.GetByIdAsync(variableId, ct)
+            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+
+        // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
+        if (!variable.IsEnabled && isEnabled)
+            throw new InvalidOperationException(
+                $"Cannot enable variable {variableId} for device {deviceType}: " +
+                "variable is deprecated globally (IsEnabled=false).");
+
+        // Cerca stato esistente
+        var existingState = await _deviceStateRepository
+            .GetByVariableAndDeviceAsync(variableId, deviceType, ct);
+
+        if (existingState is not null)
+        {
+            existingState.IsEnabled = isEnabled;
+            await _deviceStateRepository.UpdateAsync(existingState, ct);
+        }
+        else
+        {
+            var newState = new VariableDeviceStateEntity
+            {
+                VariableId = variableId,
+                DeviceType = deviceType,
+                IsEnabled = isEnabled
+            };
+            await _deviceStateRepository.AddAsync(newState, ct);
+        }
+    }
+
+    public async Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType,
+        CancellationToken ct = default)
+    {
+        var entity = await _deviceStateRepository
+            .GetByVariableAndDeviceAsync(variableId, deviceType, ct);
+
+        return entity is null ? null : VariableDeviceStateMapper.ToDomain(entity);
+    }
+
+    public async Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId,
+        CancellationToken ct = default)
+    {
+        var entities = await _deviceStateRepository.GetByVariableIdAsync(variableId, ct);
+        return VariableDeviceStateMapper.ToDomainList(entities);
     }
 }

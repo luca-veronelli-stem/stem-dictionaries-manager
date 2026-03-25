@@ -16,7 +16,6 @@ public class DatabaseCreationTests : IntegrationTestBase
     public void AllDbSets_AreAccessible()
     {
         Assert.NotNull(Context.Users);
-        Assert.NotNull(Context.BoardTypes);
         Assert.NotNull(Context.Boards);
         Assert.NotNull(Context.Variables);
         Assert.NotNull(Context.Dictionaries);

@@ -1,4 +1,4 @@
-# Tests - ISSUES
+﻿# Tests - ISSUES
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
@@ -11,23 +11,24 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 0 | 2 |
 | **Media** | 1 | 3 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 5
+**Totale aperte:** 2  
+**Totale risolte:** 7
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-007 - Manca test integration per Shared Peripheral in DictionaryService](#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice)
 - [TEST-008 - VariableMapperTests non testa Format round-trip](#test-008--variablemappertests-non-testa-format-round-trip)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
 
+- [TEST-009 - Aggiornamento test per Domain v2](#test-009--aggiornamento-test-per-domain-v2)
+- [TEST-007 - Manca test integration per Shared Peripheral in DictionaryService](#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice)
 - [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
 - [TEST-002 - Mancano test per BoardTypeRepository](#test-002--mancano-test-per-boardtyperepository)
 - [TEST-003 - Uso di .Wait() bloccante nei costruttori test](#test-003--uso-di-wait-bloccante-nei-costruttori-test)
@@ -53,98 +54,6 @@
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
 > **Nota:** I conteggi sono metodi test `[Fact]`/`[Theory]`. I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit.
-
----
-
-## Priorità Alta
-
-### TEST-007 - Manca test integration per Shared Peripheral in DictionaryService
-
-**Categoria:** Copertura (legate a bug SVC-008)  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`DictionaryServiceTests` non ha alcun test per la creazione di un dizionario **Shared Peripheral** (`null, BoardType`) quando un dizionario **Standard** (`null, null`) esiste già. Questo è il caso esatto del bug SVC-008, che il test avrebbe potuto intercettare.
-
-#### File Coinvolti
-
-- `Tests/Integration/Services/DictionaryServiceTests.cs`
-
-#### Test Esistenti (copertura parziale)
-
-| Scenario | Test esistente | Risultato |
-|----------|---------------|-----------|
-| Standard + Standard duplicato | `AddAsync_SecondStandardDictionary_ThrowsInvalidOperationException` | ✅ Coperto |
-| Dedicato + Dedicato duplicato | `AddAsync_BoardTypeAlreadyHasDictionary_ThrowsInvalidOperationException` | ✅ Coperto |
-| Dedicato + diverso DT, stesso BT | `AddAsync_SameBoardType_DifferentDeviceType_Succeeds` | ✅ Coperto |
-| **Standard + Shared Peripheral** | **MANCANTE** | ❌ Avrebbe catturato SVC-008 |
-| **Shared Peripheral + duplicato** | **MANCANTE** | ❌ |
-| **Shared Peripheral + Dedicato (stesso BT)** | **MANCANTE** | ❌ |
-
-#### Soluzione Proposta
-
-Aggiungere almeno 3 test:
-
-```csharp
-[Fact]
-public async Task AddAsync_SharedPeripheral_WhenStandardExists_Succeeds()
-{
-    // Arrange - Standard esiste
-    await _service.AddAsync(new Dictionary("standard"));
-
-    // Act - Shared Peripheral (null, BT) deve funzionare
-    var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-    var sharedPeriph = await _service.AddAsync(
-        new Dictionary("shared-periph", null, boardType));
-
-    // Assert
-    Assert.NotNull(sharedPeriph);
-    Assert.Null(sharedPeriph.DeviceType);
-    Assert.NotNull(sharedPeriph.BoardType);
-}
-
-[Fact]
-public async Task AddAsync_DuplicateSharedPeripheral_SameBoardType_Throws()
-{
-    // Arrange
-    var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-    await _service.AddAsync(new Dictionary("shared-1", null, boardType));
-
-    // Act & Assert
-    await Assert.ThrowsAsync<InvalidOperationException>(
-        () => _service.AddAsync(new Dictionary("shared-2", null, boardType)));
-}
-
-[Fact]
-public async Task AddAsync_SharedPeripheralAndDedicated_SameBoardType_BothSucceed()
-{
-    // Arrange
-    var boardType = BoardType.Restore(_testBoardType.Id, _testBoardType.Name, _testBoardType.FirmwareType);
-
-    // Act
-    var shared = await _service.AddAsync(new Dictionary("shared", null, boardType));
-    var dedicated = await _service.AddAsync(
-        new Dictionary("dedicated", DeviceType.OptimusXp, boardType));
-
-    // Assert
-    Assert.NotNull(shared);
-    Assert.NotNull(dedicated);
-}
-```
-
-#### Relazione con SVC-008
-
-Questi test **falliranno** finché SVC-008 non è risolto. Devono essere implementati **insieme** al fix.
-
-#### Benefici Attesi
-
-- Copertura completa delle 3 semantiche dizionario
-- Regressione catturata se la validazione viene rotta di nuovo
-- Documentazione eseguibile delle business rules
 
 ---
 
@@ -302,6 +211,48 @@ public static class TestData
 ---
 
 ## Issue Risolte
+
+### TEST-009 - Aggiornamento test per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Soluzione Implementata
+
+1. **DELETE:** `BoardTypeTests.cs`, `BoardTypeMapperTests.cs`, `BoardTypeRepositoryTests.cs`
+2. **REWRITE:** `BoardTests.cs`, `DictionaryTests.cs`, `BoardMapperTests.cs`, `DictionaryMapperTests.cs` — nuovi campi FirmwareType, DictionaryId, IsStandard
+3. **UPDATE:** ~20 file test (integration + GUI mocks) allineati a Domain v2
+4. **NEW:** `VariableDeviceStateTests.cs`, `VariableDeviceStateMapperTests.cs`, `VariableDeviceStateRepositoryTests.cs` (SESSION_025)
+
+#### Benefici Ottenuti
+
+- Test allineati al Domain v2 ✅
+- 1252/1252 test verdi ✅
+- Risolve anche TEST-007 ✅
+
+---
+
+### TEST-007 - Manca test integration per Shared Peripheral in DictionaryService
+
+**Categoria:** Copertura  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2
+
+#### Soluzione Implementata
+
+Il concetto di "Shared Peripheral" non esiste più: la semantica 3-tuple `(DeviceType?, BoardType?)` è stata sostituita con `IsStandard` flag e semantica derivata dai Board. I test di `DictionaryService` verificano `IsStandard` uniqueness (BR-004). La semantica Dedicated/Shared/Orphan è derivata a runtime.
+
+---
 
 ### TEST-001 - Mancano test per BoardRepository e CommandRepository
 

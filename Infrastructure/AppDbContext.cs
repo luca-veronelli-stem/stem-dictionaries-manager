@@ -11,13 +11,13 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<UserEntity> Users => Set<UserEntity>();
-    public DbSet<BoardTypeEntity> BoardTypes => Set<BoardTypeEntity>();
     public DbSet<BoardEntity> Boards => Set<BoardEntity>();
     public DbSet<VariableEntity> Variables => Set<VariableEntity>();
     public DbSet<DictionaryEntity> Dictionaries => Set<DictionaryEntity>();
     public DbSet<BitInterpretationEntity> BitInterpretations => Set<BitInterpretationEntity>();
     public DbSet<CommandEntity> Commands => Set<CommandEntity>();
     public DbSet<CommandDeviceStateEntity> CommandDeviceStates => Set<CommandDeviceStateEntity>();
+    public DbSet<VariableDeviceStateEntity> VariableDeviceStates => Set<VariableDeviceStateEntity>();
     public DbSet<AuditEntryEntity> AuditEntries => Set<AuditEntryEntity>();
 
     public override int SaveChanges()
@@ -76,14 +76,6 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DisplayName).HasMaxLength(100).IsRequired();
         });
 
-        // BoardType
-        modelBuilder.Entity<BoardTypeEntity>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Name).IsUnique();
-            entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
-        });
-
         // Board
         modelBuilder.Entity<BoardEntity>(entity =>
         {
@@ -91,10 +83,10 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.ProtocolAddress).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
             entity.Property(e => e.PartNumber).HasMaxLength(20);
-            entity.HasOne(e => e.BoardType)
-                  .WithMany(bt => bt.Boards)
-                  .HasForeignKey(e => e.BoardTypeId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Dictionary)
+                  .WithMany(d => d.Boards)
+                  .HasForeignKey(e => e.DictionaryId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Dictionary
@@ -102,13 +94,8 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name).IsUnique();
-            entity.HasIndex(e => new { e.DeviceType, e.BoardTypeId }).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
-            entity.HasOne(e => e.BoardType)
-                  .WithMany(bt => bt.Dictionaries)
-                  .HasForeignKey(e => e.BoardTypeId)
-                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Variable
@@ -157,6 +144,17 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Command)
                   .WithMany(c => c.DeviceStates)
                   .HasForeignKey(e => e.CommandId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // VariableDeviceState
+        modelBuilder.Entity<VariableDeviceStateEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.VariableId, e.DeviceType }).IsUnique();
+            entity.HasOne(e => e.Variable)
+                  .WithMany(v => v.DeviceStates)
+                  .HasForeignKey(e => e.VariableId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

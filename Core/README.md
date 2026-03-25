@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -21,7 +21,7 @@ Questo progetto è **puro dominio**: nessuna dipendenza da framework esterni, da
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 9 classi (User, Board, Variable, Dictionary, etc.) |
+| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, VariableDeviceState, etc.) |
 | **Enumerazioni** | ✅ | 6 enum (DeviceType, AccessMode, DataTypeKind, etc.) |
 | **Validazione** | ✅ | Logica di validazione nei costruttori |
 | **Immutabilità** | ✅ | Private setters, costruttori con parametri |
@@ -44,9 +44,6 @@ Nessuna dipendenza esterna. Progetto autocontenuto.
 using Core.Enums;
 using Core.Models;
 
-// Creare un tipo di scheda
-var boardType = new BoardType("Madre", firmwareType: 17);
-
 // Creare una variabile
 var variable = new Variable(
     name: "Temperatura",
@@ -57,16 +54,19 @@ var variable = new Variable(
     dataTypeRaw: "INT16"
 );
 
-// 3 semantiche di dizionario:
-// ① Standard (null, null) — variabili comuni a tutti i device
-var standard = new Dictionary("standard", description: "Variabili comuni");
+// Dizionario Standard (variabili comuni 0x00xx)
+var standard = new Dictionary("Standard", description: "Variabili comuni", isStandard: true);
 
-// ② Periferica condivisa (null, BoardType) — periferica usata da più device
-var shared = new Dictionary("pulsantiere", boardType: boardType);
+// Dizionario specifico (la semantica Dedicated/Shared/Orphan è derivata dai Board)
+var optimusXp = new Dictionary("Optimus XP", description: "Variabili scheda madre");
+optimusXp.AddVariable(variable);
 
-// ③ Dedicato (DeviceType, BoardType) — specifico per un device
-var dedicated = new Dictionary("optimus-xp", DeviceType.OptimusXp, boardType);
-dedicated.AddVariable(variable);
+// Board con FirmwareType diretto e link a Dictionary
+var board = new Board(DeviceType.OptimusXp, "Madre Master", firmwareType: 17,
+    boardNumber: 1, isPrimary: true, dictionaryId: optimusXp.Id);
+
+// Override per-device su variabili (BR-009)
+var state = new VariableDeviceState(variable.Id, DeviceType.SherpaSlim, isEnabled: false);
 ```
 
 ---
@@ -83,15 +83,15 @@ Core/
 │   ├── DeviceType.cs           # SherpaSlim, Optimus, Eden, etc. (11 tipi)
 │   └── VariableCategory.cs     # Standard (0x00xx), DeviceSpecific (0x80xx)
 └── Models/
-    ├── AuditEntry.cs           # Traccia modifiche con JSON completo
-    ├── BitInterpretation.cs    # Significato bit per variabili bitmapped
-    ├── Board.cs                # Scheda con calcolo indirizzo protocol
-    ├── BoardType.cs            # Tipo scheda (Madre, Pulsantiera, etc.)
-    ├── Command.cs              # Comando protocollo
-    ├── CommandDeviceState.cs   # Stato comando per device specifico
-    ├── Dictionary.cs           # Set di variabili con 3 semantiche (Standard, Condiviso, Dedicato)
-    ├── User.cs                 # Utente sistema (audit)
-    └── Variable.cs             # Variabile dizionario con tipo e permessi
+    ├── AuditEntry.cs              # Traccia modifiche con JSON completo
+    ├── BitInterpretation.cs       # Significato bit per variabili bitmapped
+    ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, calcolo indirizzo
+    ├── Command.cs                 # Comando protocollo
+    ├── CommandDeviceState.cs      # Stato comando per device specifico
+    ├── Dictionary.cs              # Set di variabili, IsStandard flag
+    ├── User.cs                    # Utente sistema (audit)
+    ├── Variable.cs                # Variabile dizionario con tipo e permessi
+    └── VariableDeviceState.cs     # Override per-device su variabili (BR-009)
 ```
 
 ---
@@ -107,31 +107,34 @@ Core/
 | `DataTypeKind` | 12 valori | Tipo dato (UInt8, Int16, String, Bitmapped, Array, Other, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
-| `AuditEntityType` | 7 valori | Tipo entità per audit trail |
+| `AuditEntityType` | 6 valori | Tipo entità per audit trail |
 
 ### Modelli Principali
 
 | Modello | Descrizione | Relazioni |
 |---------|-------------|-----------|
-| `Dictionary` | Set di variabili — 3 semantiche: Standard, Condiviso, Dedicato | → DeviceType?, BoardType?, Variable[] |
-| `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[] |
-| `BoardType` | Tipo scheda con firmwareType | → Dictionary[], Board[] |
-| `Board` | Istanza scheda in un device | → BoardType, DeviceType |
+| `Dictionary` | Set di variabili, IsStandard flag | → Variable[] |
+| `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[], VariableDeviceState[] |
+| `Board` | Scheda fisica con FirmwareType, DictionaryId?, IsPrimary | → DeviceType, Dictionary? |
 | `Command` | Comando protocollo universale | → CommandDeviceState[] |
 | `CommandDeviceState` | Stato comando per device specifico | → Command, DeviceType |
+| `VariableDeviceState` | Override per-device su variabili (BR-009/010/011) | → Variable, DeviceType |
 | `BitInterpretation` | Significato bit per variabili bitmapped | → Variable |
 | `User` | Utente sistema (audit) | — |
 | `AuditEntry` | Traccia modifiche | previousValue/newValue JSON |
 
-### Semantiche Dizionario
+### Semantiche Dizionario (Domain v2)
 
-| Semantica | DeviceType | BoardType | Esempio |
-|-----------|------------|-----------|----------|
-| **Standard** | `null` | `null` | Variabili comuni a tutti i device |
-| **Periferica condivisa** | `null` | ✅ | Pulsantiera 4x4 usata da più device |
-| **Dedicato** | ✅ | ✅ | Madre Optimus-XP |
+I dizionari non hanno più DeviceType/BoardType. La semantica è derivata a runtime dai Board che li referenziano:
 
-> Combinazione invalida: `(DeviceType, null)` — se c'è il device, serve il BoardType.
+| Semantica | IsStandard | Board che lo referenziano | Esempio |
+|-----------|:----------:|---------------------------|----------|
+| **Standard** | `true` | (tutti, implicitamente) | Variabili comuni 0x00xx |
+| **Dedicated** | `false` | 1 solo DeviceType | Madre Optimus-XP |
+| **Shared** | `false` | 2+ DeviceType diversi | Pulsantiera 4x4 |
+| **Orphan** | `false` | nessun Board | Dizionario non ancora assegnato |
+
+> Il flag `IsStandard` è persistito. Le altre 3 semantiche sono **calcolate** dalla relazione Board→Dictionary.
 
 ### Calcolo Indirizzo Protocol
 
@@ -149,7 +152,7 @@ uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNu
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte, 2 risolte (0 critiche, 0 alte, 1 media, 3 basse)
+→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte, 3 risolte (0 critiche, 0 alte, 1 media, 3 basse)
 
 ---
 

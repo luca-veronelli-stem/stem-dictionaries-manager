@@ -74,7 +74,7 @@ public partial class DictionaryListViewModel : ObservableObject
                     Id = d.Id,
                     Name = d.Name,
                     Description = d.Description,
-                    BoardTypeName = d.BoardType?.Name,
+                    IsStandard = d.IsStandard,
                     VariableCount = d.Variables.Count
                 })];
 
@@ -152,7 +152,7 @@ public partial class DictionaryListViewModel : ObservableObject
         Dictionaries = [.. _allDictionaries.Where(d =>
             d.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             (d.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            d.BoardTypeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase))];
+            d.SemanticDisplay.Contains(term, StringComparison.OrdinalIgnoreCase))];
     }
 }
 
@@ -164,11 +164,11 @@ public class DictionaryListItem
     public int Id { get; init; }
     public required string Name { get; init; }
     public string? Description { get; init; }
-    public string? BoardTypeName { get; init; }
+    public bool IsStandard { get; init; }
     public int VariableCount { get; init; }
 
     /// <summary>
-    /// Nome del BoardType o "Standard" se non specificato.
+    /// Tipo semantico per la colonna.
     /// </summary>
-    public string BoardTypeDisplay => BoardTypeName ?? "Standard";
+    public string SemanticDisplay => IsStandard ? "Standard" : "Specifico";
 }

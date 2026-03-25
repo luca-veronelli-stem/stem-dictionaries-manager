@@ -4,7 +4,8 @@ using Core.Models;
 namespace Tests.Unit.Models;
 
 /// <summary>
-/// Test per Dictionary model.
+/// Test per Dictionary model (Domain v2).
+/// IsStandard flag, nessun DeviceType/BoardType.
 /// </summary>
 public class DictionaryTests
 {
@@ -14,20 +15,25 @@ public class DictionaryTests
         var dictionary = new Dictionary("optimus-xp");
 
         Assert.Equal("optimus-xp", dictionary.Name);
-        Assert.Null(dictionary.BoardType);
         Assert.Null(dictionary.Description);
+        Assert.False(dictionary.IsStandard);
         Assert.Empty(dictionary.Variables);
     }
 
     [Fact]
-    public void Constructor_WithBoardType()
+    public void Constructor_WithDescription_SetsProperty()
     {
-        var boardType = new BoardType("Madre", 17);
-        var dictionary = new Dictionary("optimus-xp", DeviceType.OptimusXp, boardType, "Dizionario OPTIMUS XP");
+        var dictionary = new Dictionary("optimus-xp", "Dizionario OPTIMUS XP");
 
-        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
-        Assert.Equal(boardType, dictionary.BoardType);
         Assert.Equal("Dizionario OPTIMUS XP", dictionary.Description);
+    }
+
+    [Fact]
+    public void Constructor_IsStandard_SetsProperty()
+    {
+        var dictionary = new Dictionary("Standard", isStandard: true);
+
+        Assert.True(dictionary.IsStandard);
     }
 
     [Theory]
@@ -61,7 +67,6 @@ public class DictionaryTests
     public void AddVariable_NullVariable_ThrowsArgumentNullException()
     {
         var dictionary = new Dictionary("test");
-
         Assert.Throws<ArgumentNullException>(() => dictionary.AddVariable(null!));
     }
 
@@ -111,84 +116,32 @@ public class DictionaryTests
     public void HasUniqueAddresses_EmptyDictionary_ReturnsTrue()
     {
         var dictionary = new Dictionary("test");
-
         Assert.True(dictionary.HasUniqueAddresses());
     }
 
     [Fact]
     public void Restore_SetsIdAndVariables()
     {
-        var boardType = new BoardType("Madre", 17);
         var variables = new List<Variable>
         {
             new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
             new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t")
         };
 
-        var dictionary = Dictionary.Restore(10, "test", DeviceType.OptimusXp, boardType, "Description", variables);
+        var dictionary = Dictionary.Restore(10, "test", "Description", false, variables);
 
         Assert.Equal(10, dictionary.Id);
         Assert.Equal("test", dictionary.Name);
-        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
-        Assert.Equal(boardType, dictionary.BoardType);
+        Assert.Equal("Description", dictionary.Description);
+        Assert.False(dictionary.IsStandard);
         Assert.Equal(2, dictionary.Variables.Count);
     }
 
     [Fact]
-    public void Constructor_Standard_BothNull_IsAccepted()
+    public void Restore_Standard_SetsIsStandard()
     {
-        var dictionary = new Dictionary("standard");
+        var dictionary = Dictionary.Restore(1, "Standard", "desc", true, []);
 
-        Assert.Null(dictionary.DeviceType);
-        Assert.Null(dictionary.BoardType);
-    }
-
-    [Fact]
-    public void Constructor_DeviceTypeWithoutBoardType_ThrowsArgumentException()
-    {
-        Assert.Throws<ArgumentException>(() =>
-            new Dictionary("bad", DeviceType.OptimusXp, null));
-    }
-
-    [Fact]
-    public void Constructor_BoardTypeWithoutDeviceType_IsAccepted_SharedPeripheral()
-    {
-        var boardType = new BoardType("Pulsantiera 4x4", 4);
-
-        var dictionary = new Dictionary("Pulsantiere", null, boardType);
-
-        Assert.Null(dictionary.DeviceType);
-        Assert.Equal(boardType, dictionary.BoardType);
-    }
-
-    [Fact]
-    public void Restore_Standard_BothNull_IsAccepted()
-    {
-        var dictionary = Dictionary.Restore(1, "standard", null, null, "desc", []);
-
-        Assert.Null(dictionary.DeviceType);
-        Assert.Null(dictionary.BoardType);
-    }
-
-    [Fact]
-    public void Restore_SharedPeripheral_NullDeviceTypeWithBoardType_IsAccepted()
-    {
-        var boardType = new BoardType("Pulsantiera 4x4", 4);
-
-        var dictionary = Dictionary.Restore(2, "Pulsantiere", null, boardType, "condiviso", []);
-
-        Assert.Null(dictionary.DeviceType);
-        Assert.Equal(boardType, dictionary.BoardType);
-    }
-
-    [Fact]
-    public void Constructor_Dedicated_DeviceTypeAndBoardType_IsAccepted()
-    {
-        var boardType = new BoardType("Madre Optimus", 17);
-
-        var dictionary = new Dictionary("Optimus XP", DeviceType.OptimusXp, boardType);
-
-        Assert.Equal(DeviceType.OptimusXp, dictionary.DeviceType);
-        Assert.Equal(boardType, dictionary.BoardType);
+        Assert.True(dictionary.IsStandard);
     }
 }

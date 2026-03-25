@@ -15,7 +15,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Include(b => b.BoardType)
+            .Include(b => b.Dictionary)
             .ToListAsync(cancellationToken);
     }
 
@@ -23,7 +23,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Include(b => b.BoardType)
+            .Include(b => b.Dictionary)
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -31,7 +31,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Include(b => b.BoardType)
+            .Include(b => b.Dictionary)
             .Where(b => b.DeviceType == deviceType)
             .ToListAsync(cancellationToken);
     }
@@ -40,7 +40,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Include(b => b.BoardType)
+            .Include(b => b.Dictionary)
             .FirstOrDefaultAsync(b => b.ProtocolAddress == protocolAddress, cancellationToken);
     }
 }

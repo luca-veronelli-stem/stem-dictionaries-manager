@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-736%20methods-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-796%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -35,14 +35,14 @@
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 9 models + 6 enums (Variable, Dictionary, Command, etc.) |
-| **3 Semantiche Dizionario** | ✅ | Standard, Periferica condivisa, Dedicato (DeviceType + BoardType) |
-| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), 3 migrations |
+| **Modelli dominio** | ✅ | 10 models + 6 enums (Variable, Dictionary, Board, VariableDeviceState, etc.) |
+| **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
+| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), 1 migration Domain v2 |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
-| **Services Layer** | ✅ | 5 services + 8 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 13 Views, dark theme |
-| **Test Suite** | ✅ | 736 metodi test (unit + integration, 2 target framework) |
+| **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
+| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 14 Views, dark theme |
+| **Test Suite** | ✅ | ~750 metodi test / 1252 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -78,22 +78,22 @@ dotnet ef database update -p Infrastructure -s GUI.Windows
 
 ```
 Stem.Dictionaries.Manager/
-├── Core/                  # Modelli dominio, enums (9 classi, 6 enum)
+├── Core/                  # Modelli dominio, enums (10 classi, 6 enum)
 │   ├── Enums/             # DeviceType, AccessMode, DataTypeKind, etc.
-│   └── Models/            # Variable, Dictionary, Command, User, etc.
+│   └── Models/            # Variable, Dictionary, Board, VariableDeviceState, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
 │   ├── Interfaces/        # Service interfaces (5)
-│   └── Mapping/           # Mapper bidirezionali (8)
+│   └── Mapping/           # Mapper bidirezionali (9)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (9)
-│   └── Migrations/        # 3 migrations EF Core
-├── GUI.Windows/           # Applicazione WPF (MVVM, 14 ViewModels, 13 Views)
+│   └── Migrations/        # 1 migration Domain v2
+├── GUI.Windows/           # Applicazione WPF (MVVM, 15 ViewModels, 14 Views)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi
-│   ├── ViewModels/        # 14 ViewModels + helper classes
-│   ├── Views/             # 13 Views XAML (incl. LoginView)
+│   ├── ViewModels/        # 15 ViewModels + helper classes
+│   ├── Views/             # 14 Views XAML (incl. LoginView)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (736 metodi)
+├── Tests/                 # Unit & integration tests (~750 metodi / 1252 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -101,7 +101,7 @@ Stem.Dictionaries.Manager/
 │   ├── Standards/         # Template documentazione
 │   └── ER-schema.puml     # Schema database
 ├── .copilot/              # Copilot instructions e agents
-└── ISSUES_TRACKER.md      # Riepilogo globale issue (26 aperte, 13 risolte)
+└── ISSUES_TRACKER.md      # Riepilogo globale issue (21 aperte, 24 risolte)
 ```
 
 ---
@@ -123,18 +123,18 @@ Stem.Dictionaries.Manager/
 
 ## Issue Tracking
 
-→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale: **26 aperte**, 13 risolte
+→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale: **21 aperte**, 24 risolte
 
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
-| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 4 | 2 | Media |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 5 | 2 | **Alta** |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 9 | 1 | **Alta** |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 5 | 2 | **Alta** |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 3 | 5 | **Alta** |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 0 | 1 | — |
+| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 4 | 3 | Media |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 | 4 | Media |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 7 | 4 | Media |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 4 | 4 | **Alta** |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 7 | Media |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 0 | 2 | — |
 
-⚠️ **4 issue alta priorità aperte:** SVC-008 (bug Shared Peripheral), INFRA-007 (bug Seeder), GUI-005 (crash async void), TEST-007 (gap copertura)
+⚠️ **1 issue alta priorità aperta:** GUI-005 (crash async void su navigazione)
 
 ---
 
@@ -168,25 +168,25 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│            MVVM, 14 ViewModels, Dark Theme                  │
+│            MVVM, 15 ViewModels, Dark Theme                  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         Services                            │
-│        Business Logic, Mapping, 8 Business Rules            │
+│        Business Logic, Mapping, Business Rules              │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      Infrastructure                         │
-│         EF Core, 9 Repositories, 3 Migrations               │
+│         EF Core, 9 Repositories, 1 Migration                │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                           Core                              │
-│             Domain Models (9), Enums (6)                    │
+│            Domain Models (10), Enums (6)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 

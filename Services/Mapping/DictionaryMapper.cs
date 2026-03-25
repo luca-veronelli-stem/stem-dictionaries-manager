@@ -5,51 +5,38 @@ namespace Services.Mapping;
 
 /// <summary>
 /// Mapper bidirezionale per Dictionary Entity ↔ Domain.
-/// Dictionary è l'aggregate root: include mapping delle Variables.
+/// Domain v2: nessun DeviceType/BoardType. IsStandard flag.
 /// </summary>
 public static class DictionaryMapper
 {
     /// <summary>
-    /// Converte DictionaryEntity in Dictionary (Domain).
-    /// Senza variabili (lazy loading).
+    /// Converte DictionaryEntity in Dictionary (Domain) senza variabili.
     /// </summary>
-    public static Dictionary ToDomain(DictionaryEntity entity, BoardType? boardType = null)
+    public static Dictionary ToDomain(DictionaryEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-
-        // Se boardType non fornito, prova a usare navigation property
-        if (boardType == null && entity.BoardType != null)
-        {
-            boardType = BoardTypeMapper.ToDomain(entity.BoardType);
-        }
-
-        return Dictionary.Restore(entity.Id, entity.Name, entity.DeviceType, boardType, entity.Description, []);
+        return Dictionary.Restore(entity.Id, entity.Name, entity.Description,
+            entity.IsStandard, []);
     }
 
     /// <summary>
     /// Converte DictionaryEntity in Dictionary (Domain) con variabili.
     /// Richiede Variables caricate via Include.
     /// </summary>
-    public static Dictionary ToDomainWithVariables(DictionaryEntity entity, BoardType? boardType = null)
+    public static Dictionary ToDomainWithVariables(DictionaryEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-
-        // Se boardType non fornito, prova a usare navigation property
-        if (boardType == null && entity.BoardType != null)
-        {
-            boardType = BoardTypeMapper.ToDomain(entity.BoardType);
-        }
 
         var variables = entity.Variables != null
             ? entity.Variables.Select(VariableMapper.ToDomain)
             : [];
 
-        return Dictionary.Restore(entity.Id, entity.Name, entity.DeviceType, boardType, entity.Description, variables);
+        return Dictionary.Restore(entity.Id, entity.Name, entity.Description,
+            entity.IsStandard, variables);
     }
 
     /// <summary>
     /// Converte Dictionary (Domain) in DictionaryEntity per creazione.
-    /// Non include variabili (gestite separatamente).
     /// </summary>
     public static DictionaryEntity ToEntity(Dictionary domain)
     {
@@ -60,14 +47,12 @@ public static class DictionaryMapper
             Id = domain.Id,
             Name = domain.Name,
             Description = domain.Description,
-            DeviceType = domain.DeviceType,
-            BoardTypeId = domain.BoardType?.Id
+            IsStandard = domain.IsStandard
         };
     }
 
     /// <summary>
     /// Aggiorna DictionaryEntity esistente con dati da Dictionary (Domain).
-    /// Non aggiorna variabili (gestite separatamente).
     /// </summary>
     public static void UpdateEntity(DictionaryEntity entity, Dictionary domain)
     {
@@ -76,8 +61,7 @@ public static class DictionaryMapper
 
         entity.Name = domain.Name;
         entity.Description = domain.Description;
-        entity.DeviceType = domain.DeviceType;
-        entity.BoardTypeId = domain.BoardType?.Id;
+        entity.IsStandard = domain.IsStandard;
     }
 
     /// <summary>
@@ -85,6 +69,6 @@ public static class DictionaryMapper
     /// </summary>
     public static IReadOnlyList<Dictionary> ToDomainList(IEnumerable<DictionaryEntity> entities)
     {
-        return [.. entities.Select(e => ToDomain(e))];
+        return [.. entities.Select(ToDomain)];
     }
 }
