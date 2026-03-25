@@ -91,7 +91,7 @@ Services/
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
 │   ├── BoardMapper.cs             # Board Entity ↔ Domain (FirmwareType, DictionaryId?, IsPrimary)
-│   ├── VariableMapper.cs          # Variable Entity ↔ Domain (⚠️ Format non mappato, SVC-009)
+│   ├── VariableMapper.cs          # Variable Entity ↔ Domain (Format, DataTypeKind/Param/Raw)
 │   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (IsStandard flag)
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
 │   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
@@ -105,7 +105,7 @@ Services/
 ├── Class1.cs                      # ⚠️ Placeholder non rimosso (SVC-010)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 7 issue aperte, 4 risolte
+└── ISSUES.md                      # 6 issue aperte, 5 risolte
 ```
 
 ---
@@ -314,13 +314,12 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 7 issue aperte, 4 risolte (0 critiche, 0 alte, 3 medie, 4 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 6 issue aperte, 5 risolte (0 critiche, 0 alte, 2 medie, 4 basse)
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
-| **SVC-009** | **Media** | VariableMapper.ToDomain non mappa Format (data loss) |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 | SVC-003 | Media | GetAllAsync senza paginazione |
 

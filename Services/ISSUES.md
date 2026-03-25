@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -12,11 +12,11 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 2 |
-| **Media** | 3 | 1 |
+| **Media** | 2 | 2 |
 | **Bassa** | 4 | 1 |
 
-**Totale aperte:** 7  
-**Totale risolte:** 4
+**Totale aperte:** 6  
+**Totale risolte:** 5
 
 ---
 
@@ -24,7 +24,6 @@
 
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
-- [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
 - [SVC-007 - DependencyInjection non valida prerequisiti](#svc-007--dependencyinjection-non-valida-prerequisiti)
@@ -32,6 +31,7 @@
 
 ## Indice Issue Risolte
 
+- [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
 - [SVC-011 - Refactoring Services per Domain v2](#svc-011--refactoring-services-per-domain-v2)
 - [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
@@ -313,69 +313,7 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 
 ---
 
-### SVC-009 - VariableMapper.ToDomain non mappa Format
-
-**Categoria:** Bug (Data Loss)  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`VariableMapper.ToDomain` passa `format: null` con commento errato "Format non è presente in Entity". In realtà `VariableEntity.Format` esiste (riga 16) ed è configurato in `AppDbContext` (riga 121: `HasMaxLength(50)`). Il campo Format viene **perso in round-trip** perché non è mappato né in lettura, né in scrittura, né in update.
-
-#### File Coinvolti
-
-- `Services/Mapping/VariableMapper.cs` (righe 29, 44-61, 68-86)
-- `Infrastructure/Entities/VariableEntity.cs` (riga 16)
-
-#### Codice Problematico
-
-```csharp
-// ToDomain - riga 29: commento ERRATO
-format: null, // Format non è presente in Entity  ← FALSO
-
-// ToEntity - righe 44-61: Format non mappato
-return new VariableEntity
-{
-    // ... tutte le proprietà TRANNE Format
-};
-
-// UpdateEntity - righe 68-86: Format non aggiornato
-// entity.Format = domain.Format;  ← MANCANTE
-```
-
-#### Problema Specifico
-
-- `VariableEntity.Format` esiste e ha `HasMaxLength(50)` in AppDbContext
-- `Variable.Format` esiste nel domain model
-- Il mapper non copia il valore in **nessuna** direzione
-- Qualsiasi dato Format nel DB viene ignorato in lettura
-- Qualsiasi dato Format dal domain non viene persistito
-
-#### Soluzione Proposta
-
-```csharp
-// ToDomain:
-format: entity.Format,
-
-// ToEntity:
-Format = domain.Format,
-
-// UpdateEntity:
-entity.Format = domain.Format;
-```
-
-#### Benefici Attesi
-
-- Round-trip corretto per il campo Format
-- Nessuna perdita di dati
-- Commento corretto
-
----
-
-### SVC-010 - Class1.cs placeholder non rimosso
+### SVC-010
 
 **Categoria:** Code Smell  
 **Priorità:** Bassa  
@@ -414,6 +352,39 @@ Eliminare il file.
 ---
 
 ## Issue Risolte
+
+### SVC-009 - VariableMapper.ToDomain non mappa Format
+
+**Categoria:** Bug (Data Loss)  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/svc-009
+
+#### Soluzione Implementata
+
+Mappato `Format` in tutte e 3 le direzioni del `VariableMapper`:
+
+1. **ToDomain:** `format: entity.Format` (era `null` con commento errato)
+2. **ToEntity:** `Format = domain.Format` (era mancante)
+3. **UpdateEntity:** `entity.Format = domain.Format` (era mancante)
+
+#### Test Aggiunti
+
+- Assert `Format` in `ToDomain_ValidEntity_ReturnsVariable`
+- Assert `Format` in `ToEntity_ValidDomain_ReturnsEntity`
+- Assert `Format` in `UpdateEntity_ValidInputs_UpdatesAllFields`
+- Assert `Format` in `RoundTrip_EntityToDomainToEntity_PreservesData`
+
+#### Benefici Ottenuti
+
+- Round-trip corretto per il campo Format ✅
+- Nessuna perdita di dati ✅
+- Commento errato rimosso ✅
+
+---
 
 ### SVC-011 - Refactoring Services per Domain v2
 

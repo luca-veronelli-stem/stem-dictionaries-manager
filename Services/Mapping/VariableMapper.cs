@@ -26,7 +26,7 @@ public static class VariableMapper
             dataTypeParam: entity.DataTypeParam,
             accessMode: entity.AccessMode,
             isEnabled: entity.IsEnabled,
-            format: null, // Format non è presente in Entity
+            format: entity.Format,
             minValue: entity.MinValue,
             maxValue: entity.MaxValue,
             unit: entity.Unit,
@@ -53,6 +53,7 @@ public static class VariableMapper
             DataTypeRaw = domain.DataTypeRaw,
             AccessMode = domain.AccessMode,
             IsEnabled = domain.IsEnabled,
+            Format = domain.Format,
             MinValue = domain.MinValue,
             MaxValue = domain.MaxValue,
             Unit = domain.Unit,
@@ -78,6 +79,7 @@ public static class VariableMapper
         entity.DataTypeRaw = domain.DataTypeRaw;
         entity.AccessMode = domain.AccessMode;
         entity.IsEnabled = domain.IsEnabled;
+        entity.Format = domain.Format;
         entity.MinValue = domain.MinValue;
         entity.MaxValue = domain.MaxValue;
         entity.Unit = domain.Unit;
