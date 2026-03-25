@@ -27,6 +27,7 @@ public class MainViewModelTests
         // Create a minimal service provider for testing
         var services = new ServiceCollection();
         services.AddSingleton<MockDictionaryService>();
+        services.AddSingleton<MockVariableService>();
         services.AddSingleton<MockBoardService>();
         services.AddSingleton<INavigationService>(_navigationService);
         services.AddSingleton<IDialogService>(_dialogService);
@@ -41,6 +42,7 @@ public class MainViewModelTests
 
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
+            sp.GetRequiredService<MockVariableService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));

@@ -121,6 +121,31 @@ public class BoardTests
     }
 
     [Fact]
+    public void Restore_WithDictionaryName_SetsProperty()
+    {
+        var board = Board.Restore(1, DeviceType.OptimusXp, "Madre", 17, 1, null, false, 5, "Standard");
+
+        Assert.Equal("Standard", board.DictionaryName);
+        Assert.Equal(5, board.DictionaryId);
+    }
+
+    [Fact]
+    public void Restore_WithoutDictionaryName_DefaultsToNull()
+    {
+        var board = Board.Restore(1, DeviceType.OptimusXp, "Madre", 17, 1, null, false, null);
+
+        Assert.Null(board.DictionaryName);
+    }
+
+    [Fact]
+    public void Constructor_DictionaryName_IsNull()
+    {
+        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
+
+        Assert.Null(board.DictionaryName);
+    }
+
+    [Fact]
     public void Constructor_DefaultIsPrimary_IsFalse()
     {
         var board = new Board(DeviceType.OptimusXp, "Periferica", 4, 2);

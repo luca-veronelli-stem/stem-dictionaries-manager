@@ -13,6 +13,7 @@ namespace Tests.Unit.GUI.ViewModels;
 public class DictionaryEditViewModelTests
 {
     private readonly MockDictionaryService _dictionaryService;
+    private readonly MockVariableService _variableService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +22,14 @@ public class DictionaryEditViewModelTests
     public DictionaryEditViewModelTests()
     {
         _dictionaryService = new MockDictionaryService();
+        _variableService = new MockVariableService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
         _viewModel = new DictionaryEditViewModel(
             _dictionaryService,
+            _variableService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -205,6 +208,192 @@ public class DictionaryEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         Assert.Contains("AddAsync:Standard", _dictionaryService.MethodCalls);
+    }
+
+    // === Test nuove funzionalità refactoring ===
+
+    [Fact]
+    public async Task SaveCommand_WhenNew_StaysOnPage()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "NewDict";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // P1: Save non fa GoBack, resta sulla pagina
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task SaveCommand_WhenEditing_StaysOnPage()
+    {
+        var dict = new Dictionary("Existing");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+        _viewModel.Name = "Updated";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task SaveCommand_WhenNew_SetsEditingId_AndUpdatesIsNew()
+    {
+        await _viewModel.InitializeAsync(null);
+        Assert.True(_viewModel.IsNew);
+
+        _viewModel.Name = "NewDict";
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Dopo il primo salvataggio, IsNew diventa false
+        Assert.False(_viewModel.IsNew);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithId_LoadsVariables()
+    {
+        var dict = new Dictionary("WithVars");
+        _dictionaryService.SeedData(dict);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Contains($"GetByDictionaryIdAsync:1", _variableService.MethodCalls);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithNull_DoesNotLoadVariables()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("GetByDictionaryIdAsync"));
+    }
+
+    [Fact]
+    public async Task ReloadVariablesAsync_ReloadsOnlyVariables()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+        _variableService.MethodCalls.Clear();
+        _dictionaryService.MethodCalls.Clear();
+
+        await _viewModel.ReloadVariablesAsync();
+
+        Assert.Contains($"GetByDictionaryIdAsync:1", _variableService.MethodCalls);
+        // Non ricarica il dizionario
+        Assert.DoesNotContain(_dictionaryService.MethodCalls, m => m.StartsWith("GetByIdAsync"));
+    }
+
+    [Fact]
+    public async Task ReloadVariablesAsync_WhenNew_DoesNothing()
+    {
+        await _viewModel.InitializeAsync(null);
+        _variableService.MethodCalls.Clear();
+
+        await _viewModel.ReloadVariablesAsync();
+
+        Assert.Empty(_variableService.MethodCalls);
+    }
+
+    [Fact]
+    public async Task DeleteDictionaryCommand_ShowsAdminMessage()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        await _viewModel.DeleteDictionaryCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Error" && c.Message.Contains("riservata"));
+    }
+
+    [Fact]
+    public async Task AddVariableCommand_NavigatesToVariableEdit()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        _viewModel.AddVariableCommand.Execute(null);
+
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+        Assert.Null(_navigationService.LastParameter?.EntityId);
+        Assert.Equal(1, _navigationService.LastParameter?.ParentId);
+    }
+
+    [Fact]
+    public async Task AddVariableCommand_WhenNew_DoesNotNavigate()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        _viewModel.AddVariableCommand.Execute(null);
+
+        Assert.Null(_navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public async Task EditVariableCommand_NavigatesToVariableEdit_WithId()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        var item = new VariableListItem { Id = 42, Name = "TestVar" };
+        _viewModel.EditVariableCommand.Execute(item);
+
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(42, _navigationService.LastParameter?.EntityId);
+        Assert.Equal(1, _navigationService.LastParameter?.ParentId);
+    }
+
+    [Fact]
+    public async Task EditVariableCommand_WithNull_DoesNotNavigate()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        _viewModel.EditVariableCommand.Execute(null);
+
+        Assert.Null(_navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public async Task VariableSearchText_FiltersVariableList()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+
+        var v1 = new Variable("Temperature", 0x80, 0x01, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v2 = new Variable("Voltage", 0x80, 0x02, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        _variableService.SeedData(v1, v2);
+
+        await _viewModel.InitializeAsync(1);
+        Assert.Equal(2, _viewModel.Variables.Count);
+
+        _viewModel.VariableSearchText = "Temp";
+
+        Assert.Single(_viewModel.Variables);
+        Assert.Equal("Temperature", _viewModel.Variables[0].Name);
+    }
+
+    [Fact]
+    public async Task VariableSearchText_EmptyString_ShowsAll()
+    {
+        var dict = new Dictionary("Test");
+        _dictionaryService.SeedData(dict);
+
+        var v1 = new Variable("Temperature", 0x80, 0x01, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v2 = new Variable("Voltage", 0x80, 0x02, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        _variableService.SeedData(v1, v2);
+
+        await _viewModel.InitializeAsync(1);
+        _viewModel.VariableSearchText = "Temp";
+        Assert.Single(_viewModel.Variables);
+
+        _viewModel.VariableSearchText = "";
+
+        Assert.Equal(2, _viewModel.Variables.Count);
     }
 }
 #endif

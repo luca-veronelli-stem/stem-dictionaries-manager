@@ -96,14 +96,14 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
-    public void OpenDictionaryCommand_WithSelection_NavigatesToVariableList()
+    public void OpenDictionaryCommand_WithSelection_NavigatesToDictionaryEdit()
     {
         _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Standard", 10);
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
-        Assert.Equal(ViewType.VariableList, _navigationService.LastNavigatedView);
-        Assert.Equal(42, _navigationService.LastParameter?.ParentId);
+        Assert.Equal(ViewType.DictionaryEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(42, _navigationService.LastParameter?.EntityId);
     }
 
     [Theory]

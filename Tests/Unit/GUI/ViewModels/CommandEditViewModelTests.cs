@@ -325,5 +325,74 @@ public class CommandEditViewModelTests
         Assert.Equal("00", _viewModel.CodeHighHex);
         Assert.Equal("10", _viewModel.CodeLowHex);
     }
+
+    // === Test DeleteCommand (nuovo dal refactoring) ===
+
+    [Fact]
+    public async Task DeleteCommand_WithConfirmation_DeletesAndGoesBack()
+    {
+        // Arrange
+        var command = new Command("ToDelete", 0x10, 0x01, false);
+        _commandService.SeedData(command);
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains("DeleteAsync:1", _commandService.MethodCalls);
+        Assert.True(_navigationService.GoBackCalled);
+        Assert.Contains(_messageService.Messages, m => m.Message.Contains("eliminato"));
+    }
+
+    [Fact]
+    public async Task DeleteCommand_WithCancel_DoesNotDelete()
+    {
+        // Arrange
+        var command = new Command("ToKeep", 0x10, 0x01, false);
+        _commandService.SeedData(command);
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("DeleteAsync"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteCommand_WhenNew_DoesNothing()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null);
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("DeleteAsync"));
+        Assert.DoesNotContain(_dialogService.Calls, c => c.Type == "Confirm");
+    }
+
+    [Fact]
+    public async Task DeleteCommand_WhenServiceThrows_ShowsErrorDialog()
+    {
+        // Arrange
+        var command = new Command("ToDelete", 0x10, 0x01, false);
+        _commandService.SeedData(command);
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.Yes;
+        _commandService.ExceptionToThrow = new Exception("Delete failed");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.True(_dialogService.ShowErrorCalled);
+        Assert.False(_navigationService.GoBackCalled);
+    }
 }
 #endif

@@ -92,6 +92,28 @@ public class BoardMapperTests
         Assert.Equal(7, entity.DictionaryId);
     }
 
+    [Fact]
+    public void ToDomain_WithDictionaryNavigation_MapsDictionaryName()
+    {
+        var entity = CreateEntity(isPrimary: false, dictionaryId: 5);
+        entity.Dictionary = new DictionaryEntity { Id = 5, Name = "Standard" };
+
+        var result = BoardMapper.ToDomain(entity);
+
+        Assert.Equal("Standard", result.DictionaryName);
+    }
+
+    [Fact]
+    public void ToDomain_WithoutDictionaryNavigation_DictionaryNameIsNull()
+    {
+        var entity = CreateEntity(isPrimary: false, dictionaryId: 5);
+        // Dictionary navigation is null (not loaded)
+
+        var result = BoardMapper.ToDomain(entity);
+
+        Assert.Null(result.DictionaryName);
+    }
+
     private static BoardEntity CreateEntity(bool isPrimary, int? dictionaryId = null) => new()
     {
         Id = 10,

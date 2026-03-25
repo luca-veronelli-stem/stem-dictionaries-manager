@@ -165,48 +165,6 @@ public class CommandListViewModelTests
     }
 
     [Fact]
-    public async Task DeleteCommand_WithConfirmation_DeletesAndRefreshes()
-    {
-        // Arrange
-        var command = new Command("ToDelete", 0x10, 0x01, false);
-        _commandService.SeedData(command);
-        await _viewModel.InitializeAsync();
-        _dialogService.ConfirmResult = DialogResult.Yes;
-
-        var item = new CommandListItem { Id = 1, Name = "ToDelete" };
-
-        // Act
-        await _viewModel.DeleteCommand.ExecuteAsync(item);
-
-        // Assert
-        Assert.Contains("DeleteAsync:1", _commandService.MethodCalls);
-    }
-
-    [Fact]
-    public async Task DeleteCommand_WithCancel_DoesNotDelete()
-    {
-        // Arrange
-        _dialogService.ConfirmResult = DialogResult.No;
-        var item = new CommandListItem { Id = 1, Name = "ToDelete" };
-
-        // Act
-        await _viewModel.DeleteCommand.ExecuteAsync(item);
-
-        // Assert
-        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("DeleteAsync"));
-    }
-
-    [Fact]
-    public void GoBackCommand_CallsNavigationGoBack()
-    {
-        // Act
-        _viewModel.GoBackCommand.Execute(null);
-
-        // Assert
-        Assert.True(_navigationService.GoBackCalled);
-    }
-
-    [Fact]
     public async Task SearchText_FiltersListByName()
     {
         // Arrange
