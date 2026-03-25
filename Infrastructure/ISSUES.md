@@ -12,22 +12,22 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
-| **Media** | 1 | 1 |
+| **Media** | 0 | 2 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 5
+**Totale aperte:** 2  
+**Totale risolte:** 6
 
 ---
 
 ## Indice Issue Aperte
 
-- [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
 - [INFRA-006 - DictionaryRepository.GetByNameAsync non normalizza input](#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input)
 
 ## Indice Issue Risolte
 
+- [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-008 - Refactoring Infrastructure per Domain v2](#infra-008--refactoring-infrastructure-per-domain-v2)
 - [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
@@ -38,76 +38,7 @@
 
 ## Priorità Media
 
-### INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile
-
-**Categoria:** Manutenibilità  
-**Priorità:** Media  
-**Impatto:** Basso  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-La `DesignTimeDbContextFactory` usa path relativi hardcoded che dipendono dalla struttura di output del build. Questo può fallire in contesti diversi (CI, Rider, VS Code).
-
-#### File Coinvolti
-
-- `Infrastructure/DesignTimeDbContextFactory.cs` (righe 13-16)
-
-#### Codice Problematico
-
-```csharp
-public AppDbContext CreateDbContext(string[] args)
-{
-    var assemblyPath = Path.GetDirectoryName(
-        typeof(DesignTimeDbContextFactory).Assembly.Location);
-    var solutionPath = Path.GetFullPath(
-        Path.Combine(assemblyPath!, "..", "..", "..", ".."));  // <-- Fragile
-    var dbPath = Path.Combine(solutionPath, "Infrastructure", "Data", "development.db");
-    // ...
-}
-```
-
-#### Problema Specifico
-
-- Dipende dal livello di nesting dell'output (`bin/Debug/net10.0/`)
-- Cambiando TFM o configurazione, il path potrebbe rompersi
-- CI pipelines potrebbero avere strutture diverse
-- Non c'è validazione che il path sia corretto
-
-#### Soluzione Proposta
-
-**Opzione A: Cercare verso l'alto fino a .sln**
-
-```csharp
-public AppDbContext CreateDbContext(string[] args)
-{
-    var directory = new DirectoryInfo(AppContext.BaseDirectory);
-    while (directory != null && !directory.GetFiles("*.sln").Any())
-    {
-        directory = directory.Parent;
-    }
-    
-    if (directory == null)
-        throw new InvalidOperationException("Solution directory not found.");
-    
-    var dbPath = Path.Combine(directory.FullName, "Infrastructure", "Data", "development.db");
-    // ...
-}
-```
-
-**Opzione B: Environment variable**
-
-```csharp
-var solutionPath = Environment.GetEnvironmentVariable("DICTIONARIES_SOLUTION_PATH")
-    ?? FindSolutionPath();
-```
-
-#### Benefici Attesi
-
-- Robustezza in diversi ambienti
-- Meno errori in CI/CD
-- Più facile debug
+*(Nessuna issue media priorità aperta)*
 
 ---
 
@@ -248,6 +179,59 @@ CREATE TABLE Dictionaries (..., Name TEXT COLLATE NOCASE);
 ---
 
 ## Issue Risolte
+
+### INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile
+
+**Categoria:** Manutenibilità  
+**Priorità:** Media  
+**Impatto:** Basso  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/infra-003
+
+#### Soluzione Implementata
+
+Applicata **Opzione A: Cercare verso l'alto fino a .slnx/.sln**:
+
+```csharp
+private static string? FindSolutionDirectory()
+{
+    // Prova prima con la directory corrente (dove viene eseguito dotnet ef)
+    var directory = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+    while (directory != null)
+    {
+        // Cerca .slnx (nuovo formato) o .sln (legacy)
+        if (directory.GetFiles("*.slnx").Length > 0 || directory.GetFiles("*.sln").Length > 0)
+            return directory.FullName;
+
+        directory = directory.Parent;
+    }
+
+    // Fallback: prova dalla location dell'assembly
+    // ...
+}
+```
+
+#### Miglioramenti rispetto al codice originale
+
+| Aspetto | Prima | Dopo |
+|---------|-------|------|
+| Path resolution | Hardcoded 4 livelli up | Cerca `.slnx`/`.sln` risalendo |
+| Single-file publish | ❌ Crash (Location vuota) | ✅ Fallback su CurrentDirectory |
+| CI/CD | ❌ Fragile | ✅ Robusto |
+| Validazione | ❌ Nessuna | ✅ Exception con messaggio chiaro |
+| Directory Data | ❌ Non creata | ✅ Creata automaticamente |
+
+#### Benefici Ottenuti
+
+- Robustezza in diversi ambienti ✅
+- Supporto `.slnx` (nuovo formato .NET 10) ✅
+- Fail-fast con messaggio chiaro se solution non trovata ✅
+- Creazione automatica directory Data ✅
+
+---
 
 ### INFRA-002 - GetAllAsync senza paginazione rischia performance issues
 

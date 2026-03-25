@@ -9,12 +9,12 @@
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 4 | 7 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 3 | 5 | 8 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 6 | 8 |
 | [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
 | **Trasversali** | **1** | **2** | **3** |
-| **Totale** | **16** | **30** | **46** |
+| **Totale** | **15** | **31** | **46** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 3 | 19% |
-| **Bassa** | 13 | 81% |
-| **Totale** | **16** | 100% |
+| **Media** | 2 | 13% |
+| **Bassa** | 13 | 87% |
+| **Totale** | **15** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ███░░░░░░░░░░░░░░░░░  3
+Media:       ██░░░░░░░░░░░░░░░░░░  2
 Bassa:       █████████████░░░░░░░ 13
 ```
 
@@ -214,8 +214,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~INFRA-008~~ | ~~Refactoring Infrastructure per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-007~~ | ~~DatabaseSeeder.CreateBoard usa boardTypeId~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
 | ~~INFRA-002~~ | ~~GetAllAsync senza paginazione~~ | ~~Media~~ | ✅ **Risolto** |
-| [INFRA-003]
-| ~~INFRA-004~~ | ~~Mancano repository BitInterpretation/CommandDeviceState~~ | ~~Bassa~~ | ✅ **Risolto** (SVC-001) |
+| ~~INFRA-003~~ | ~~DesignTimeDbContextFactory path fragile~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~INFRA-004~~
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
@@ -283,7 +283,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-002** | Services | Manca IAuditService | M |
-| 2 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
+| 2 | **SVC-003** | Services | GetAllAsync senza paginazione nei Services | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -334,7 +334,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Performance** | 1 | SVC-003 |
 | **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
-| **Manutenibilità** | 2 | INFRA-003, TEST-006 |
+| **Manutenibilità** | 1 | TEST-006 |
 | **Code Smell** | 1 | SVC-010 |
 | **Feature** | 1 | SVC-002 |
 | **Robustezza** | 1 | SVC-007 |
@@ -364,7 +364,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ⚠️ **T-003 aperta** — Aggiungere logging infrastructure (ILogger<T>) a tutti i componenti. Priorità bassa. |
+| 2026-03-25 | ✅ **INFRA-003 risolta** — DesignTimeDbContextFactory ora cerca .slnx/.sln risalendo la gerarchia directory. Supporta single-file publish, CI/CD, nuovo formato .slnx. 15 aperte, 31 risolte. Branch: `fix/infra-003` |
+| 2026-03-25 | ⚠️ **T-003 aperta**
 | 2026-03-25 | ✅ **INFRA-002 risolta**
 | 2026-03-25 | ✅ **GUI-006 risolta**
 | 2026-03-25 | ✅ **CORE-006 risolta**
