@@ -30,6 +30,7 @@ public class Dictionary
 
     /// <summary>
     /// Factory method per ricostruire da DB.
+    /// Valida unicità indirizzi (fail-fast su dati corrotti).
     /// </summary>
     public static Dictionary Restore(int id, string name, string? description,
         bool isStandard, IEnumerable<Variable> variables)
@@ -38,7 +39,15 @@ public class Dictionary
         {
             Id = id
         };
-        dictionary._variables.AddRange(variables);
+
+        var varList = variables.ToList();
+        var duplicates = varList.GroupBy(v => v.FullAddress).Where(g => g.Count() > 1).ToList();
+        if (duplicates.Count > 0)
+            throw new InvalidOperationException(
+                $"Duplicate FullAddress found in dictionary '{name}': " +
+                string.Join(", ", duplicates.Select(g => $"0x{g.Key:X4}")));
+
+        dictionary._variables.AddRange(varList);
         return dictionary;
     }
 
