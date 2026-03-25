@@ -111,10 +111,10 @@ Tests/
 │   │   │   ├── DictionaryListViewModelTests.cs   # 18 test
 │   │   │   ├── DictionaryEditViewModelTests.cs   # 22 test (IsStandard)
 │   │   │   ├── VariableListViewModelTests.cs     # 16 test
-│   │   │   ├── VariableEditViewModelTests.cs     # 50 test (Bitmapped + DeviceStates)
+│   │   │   ├── VariableEditViewModelTests.cs     # 55 test (Bitmapped + AddressHigh computed)
 │   │   │   ├── WordBitGroupTests.cs              # 9 test
 │   │   │   ├── CommandListViewModelTests.cs      # 16 test
-│   │   │   ├── CommandEditViewModelTests.cs      # 14 test
+│   │   │   ├── CommandEditViewModelTests.cs      # 20 test (CodeHigh computed da IsResponse)
 │   │   │   ├── BoardListViewModelTests.cs        # 14 test
 │   │   │   ├── BoardEditViewModelTests.cs        # 17 test (FirmwareType, DictionaryId?)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
@@ -156,7 +156,7 @@ Tests/
     │   ├── CommandServiceTests.cs         # 18 test
     │   └── VariableServiceTests.cs        # 37 test (DeviceStates BR-009/010/011)
     └── GUI/                               # Solo Windows
-        └── VariableEditFlowTests.cs       # 11 test (flow completo + bitmapped)
+        └── VariableEditFlowTests.cs       # 12 test (flow completo + bitmapped + AddressHigh)
 ```
 
 ---
@@ -220,16 +220,16 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Services/Mapping | 87 | Mapper Entity ↔ Domain (9 mapper incl. VariableDeviceState) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI/ViewModels | 252 | 15 ViewModels (incl. WordBitGroup, Device*, Login) |
+| Unit/GUI/ViewModels | 263 | 15 ViewModels (incl. WordBitGroup, Device*, Login) |
 | Unit/GUI/Converters | 20 | NullableInt/Double converters |
 | Unit/GUI/Services | 15 | NavigationService |
 | Unit/GUI/DI | 22 | Registrazione ViewModels + UI services |
 | Integration/Infrastructure | 107 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
 | Integration/Services | 114 | Business logic, IsStandard, DeviceStates, smart update |
-| Integration/GUI | 11 | VariableEdit flow completo + bitmapped |
-| **Totale metodi test** | **~750** | Tutti i target combinati |
+| Integration/GUI | 12 | VariableEdit flow completo + bitmapped + AddressHigh |
+| **Totale metodi test** | **~762** | Tutti i target combinati |
 
-> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai 736 metodi elencati.
+> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai metodi elencati.
 
 ---
 
