@@ -14,6 +14,7 @@
         <converters:NullableIntConverter x:Key="NullableIntConverter"/>
         <converters:NullableDoubleConverter x:Key="NullableDoubleConverter"/>
         <converters:SeverityToColorConverter x:Key="SeverityToColorConverter"/>
+        <converters:BoolToErrorBrushConverter x:Key="BoolToErrorBrushConverter"/>
 
         <!-- ================================================ -->
         <!-- COLORI DARK THEME                                -->
