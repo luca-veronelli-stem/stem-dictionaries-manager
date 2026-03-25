@@ -395,5 +395,55 @@ public class DictionaryEditViewModelTests
 
         Assert.Equal(2, _viewModel.Variables.Count);
     }
+
+    // === Test CanSetStandard ===
+
+    [Fact]
+    public async Task CanSetStandard_TrueWhenNoStandardExists()
+    {
+        // Nessun dizionario standard nel mock
+        await _viewModel.InitializeAsync(null);
+
+        Assert.True(_viewModel.CanSetStandard);
+    }
+
+    [Fact]
+    public async Task CanSetStandard_TrueWhenEditingTheStandardDictionary()
+    {
+        var dict = Dictionary.Restore(1, "Standard", "Desc", true, []);
+        _dictionaryService.SeedData(dict);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.True(_viewModel.IsStandard);
+        Assert.True(_viewModel.CanSetStandard);
+    }
+
+    [Fact]
+    public async Task CanSetStandard_FalseWhenAnotherStandardExists()
+    {
+        // Esiste già un dizionario standard (Id=1)
+        var standard = Dictionary.Restore(1, "Standard", null, true, []);
+        _dictionaryService.SeedData(standard);
+
+        // Creo un nuovo dizionario (non standard)
+        await _viewModel.InitializeAsync(null);
+
+        Assert.False(_viewModel.CanSetStandard);
+    }
+
+    [Fact]
+    public async Task CanSetStandard_FalseWhenEditingNonStandardAndStandardExists()
+    {
+        // Esiste il dizionario standard (Id=1) e un altro (Id=2)
+        var standard = Dictionary.Restore(1, "Standard", null, true, []);
+        var other = Dictionary.Restore(2, "Other", null, false, []);
+        _dictionaryService.SeedData(standard, other);
+
+        await _viewModel.InitializeAsync(2);
+
+        Assert.False(_viewModel.IsStandard);
+        Assert.False(_viewModel.CanSetStandard);
+    }
 }
 #endif
