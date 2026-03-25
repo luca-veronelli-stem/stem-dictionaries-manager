@@ -255,91 +255,92 @@ public static class DatabaseSeeder
         context.BitInterpretations.AddRange(bitInterpretations);
 
         // === Commands ===
+        // Regola: IsResponse=false → CodeHigh=0x00, IsResponse=true → CodeHigh=0x80
         var cmdReadVar = new CommandEntity
         {
             Name = "Read Variable",
-            CodeHigh = 0x01,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x01,
             IsResponse = false,
             ParametersJson = "[\"address:UInt16\"]"
         };
         var cmdReadVarResp = new CommandEntity
         {
             Name = "Read Variable Response",
-            CodeHigh = 0x01,
-            CodeLow = 0x00,
+            CodeHigh = 0x80,
+            CodeLow = 0x01,
             IsResponse = true,
             ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
         };
         var cmdWriteVar = new CommandEntity
         {
             Name = "Write Variable",
-            CodeHigh = 0x02,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x02,
             IsResponse = false,
             ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
         };
         var cmdWriteVarResp = new CommandEntity
         {
             Name = "Write Variable Response",
-            CodeHigh = 0x02,
-            CodeLow = 0x00,
+            CodeHigh = 0x80,
+            CodeLow = 0x02,
             IsResponse = true,
             ParametersJson = "[\"address:UInt16\",\"result:UInt8\"]"
         };
         var cmdGetInfo = new CommandEntity
         {
             Name = "Get Device Info",
-            CodeHigh = 0x10,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x10,
             IsResponse = false,
             ParametersJson = "[]"
         };
         var cmdGetInfoResp = new CommandEntity
         {
             Name = "Get Device Info Response",
-            CodeHigh = 0x10,
-            CodeLow = 0x00,
+            CodeHigh = 0x80,
+            CodeLow = 0x10,
             IsResponse = true,
             ParametersJson = "[\"fwVersion:UInt16\",\"fwBuild:UInt16\",\"serial:String[16]\"]"
         };
         var cmdReset = new CommandEntity
         {
             Name = "Reset Device",
-            CodeHigh = 0x20,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x20,
             IsResponse = false,
             ParametersJson = "[\"mode:UInt8\"]"
         };
         var cmdResetResp = new CommandEntity
         {
             Name = "Reset Device Response",
-            CodeHigh = 0x20,
-            CodeLow = 0x00,
+            CodeHigh = 0x80,
+            CodeLow = 0x20,
             IsResponse = true,
             ParametersJson = "[\"result:UInt8\"]"
         };
         var cmdSetConfig = new CommandEntity
         {
             Name = "Set Configuration",
-            CodeHigh = 0x30,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x30,
             IsResponse = false,
             ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
         };
         var cmdGetConfig = new CommandEntity
         {
             Name = "Get Configuration",
-            CodeHigh = 0x31,
-            CodeLow = 0x00,
+            CodeHigh = 0x00,
+            CodeLow = 0x31,
             IsResponse = false,
             ParametersJson = "[\"configId:UInt8\"]"
         };
         var cmdGetConfigResp = new CommandEntity
         {
             Name = "Get Configuration Response",
-            CodeHigh = 0x31,
-            CodeLow = 0x00,
+            CodeHigh = 0x80,
+            CodeLow = 0x31,
             IsResponse = true,
             ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
         };

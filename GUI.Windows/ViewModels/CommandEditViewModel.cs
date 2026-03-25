@@ -33,19 +33,22 @@ public partial class CommandEditViewModel : ObservableObject
     [ObservableProperty]
     private string _name = string.Empty;
 
-    [ObservableProperty]
-    private string _codeHighHex = "00";
+    /// <summary>
+    /// CodeHigh calcolato automaticamente da IsResponse.
+    /// 0x80 = risposta, 0x00 = comando.
+    /// </summary>
+    public string CodeHighHex => IsResponse ? "80" : "00";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
     private string _codeLowHex = "00";
 
     private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
     private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
 
-    partial void OnCodeHighHexChanged(string value) => OnPropertyChanged(nameof(FullCodeDisplay));
-    partial void OnCodeLowHexChanged(string value) => OnPropertyChanged(nameof(FullCodeDisplay));
-
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CodeHighHex))]
+    [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
     private bool _isResponse;
 
     [ObservableProperty]
@@ -114,7 +117,7 @@ public partial class CommandEditViewModel : ObservableObject
     private void LoadFromCommand(Command c)
     {
         Name = c.Name;
-        CodeHighHex = c.CodeHigh.ToString("X2");
+        // CodeHighHex è computed automaticamente da IsResponse
         CodeLowHex = c.CodeLow.ToString("X2");
         IsResponse = c.IsResponse;
         ParametersText = string.Join(Environment.NewLine, c.Parameters);

@@ -101,9 +101,9 @@ GUI.Windows/
 │   ├── DictionaryListViewModel.cs # Lista dizionari CRUD (SemanticDisplay)
 │   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario (IsStandard)
 │   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
-│   ├── VariableEditViewModel.cs   # Crea/modifica variabile + DeviceStates
+│   ├── VariableEditViewModel.cs   # Crea/modifica variabile (AddressHigh computed da Dictionary.IsStandard)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo
-│   ├── CommandEditViewModel.cs    # Crea/modifica comando
+│   ├── CommandEditViewModel.cs    # Crea/modifica comando (CodeHigh computed da IsResponse)
 │   ├── BoardListViewModel.cs      # Lista schede
 │   ├── BoardEditViewModel.cs      # Crea/modifica scheda (FirmwareType, DictionaryId?)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline

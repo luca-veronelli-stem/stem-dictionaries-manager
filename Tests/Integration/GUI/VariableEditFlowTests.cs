@@ -3,7 +3,7 @@ using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
-using Services.Interfaces;
+using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
 
@@ -13,6 +13,7 @@ namespace Tests.Integration.GUI;
 public class VariableEditFlowTests
 {
     private readonly MockVariableService _variableService;
+    private readonly MockDictionaryService _dictionaryService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +22,17 @@ public class VariableEditFlowTests
     public VariableEditFlowTests()
     {
         _variableService = new MockVariableService();
+        _dictionaryService = new MockDictionaryService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
+        // Seed dizionario non-standard (AddressHigh = 0x80)
+        _dictionaryService.SeedData(new Dictionary("TestDict", null, isStandard: false));
+
         _viewModel = new VariableEditViewModel(
             _variableService,
+            _dictionaryService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -35,11 +41,11 @@ public class VariableEditFlowTests
     [Fact]
     public async Task CreateVariable_WithValidData_SavesAndNavigatesBack()
     {
-        // Arrange
+        // Arrange - dizionario non-standard (AddressHigh = 0x80)
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "Temperature";
-        _viewModel.AddressHighHex = "80";
+        // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "10";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Int16;
         _viewModel.SelectedAccessMode = AccessMode.ReadOnly;
@@ -64,7 +70,7 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "StatusFlags";
-        _viewModel.AddressHighHex = "00";
+        // AddressHighHex è computed automaticamente
         _viewModel.AddressLowHex = "20";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = null; // Non impostato
@@ -86,7 +92,7 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "DeviceName";
-        _viewModel.AddressHighHex = "00";
+        // AddressHighHex è computed automaticamente
         _viewModel.AddressLowHex = "30";
         _viewModel.SelectedDataTypeKind = DataTypeKind.String;
 
@@ -141,9 +147,9 @@ public class VariableEditFlowTests
     {
         // Arrange
         var customVar = Variable.Restore(
-            id: 2,
+            id: 1,
             name: "CustomData",
-            addressHigh: 0x00,
+            addressHigh: 0x80,
             addressLow: 0x50,
             dataTypeKind: DataTypeKind.Other,
             dataTypeRaw: "MyCustomStruct",
@@ -158,8 +164,8 @@ public class VariableEditFlowTests
             description: null);
         _variableService.SeedData(customVar);
 
-        // Act
-        await _viewModel.InitializeAsync(variableId: 2, dictionaryId: 1);
+        // Act - SeedData assegna _nextId=1
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1);
 
         // Assert
         Assert.Equal(DataTypeKind.Other, _viewModel.SelectedDataTypeKind);
@@ -193,22 +199,40 @@ public class VariableEditFlowTests
     [Fact]
     public async Task AddressDisplay_UpdatesCorrectly()
     {
-        // Arrange
+        // Arrange - dizionario non-standard (AddressHigh = 0x80)
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
-        // Assert initial
-        Assert.Equal("0x0000", _viewModel.FullAddressDisplay);
-
-        // Act
-        _viewModel.AddressHighHex = "80";
+        // Assert initial - AddressHigh è 0x80 (non-standard), AddressLow è vuoto (0x00)
         Assert.Equal("0x8000", _viewModel.FullAddressDisplay);
 
+        // Act - cambia solo AddressLow (AddressHigh è computed)
         _viewModel.AddressLowHex = "10";
         Assert.Equal("0x8010", _viewModel.FullAddressDisplay);
 
-        _viewModel.AddressHighHex = "FF";
         _viewModel.AddressLowHex = "FF";
-        Assert.Equal("0xFFFF", _viewModel.FullAddressDisplay);
+        Assert.Equal("0x80FF", _viewModel.FullAddressDisplay);
+    }
+
+    [Fact]
+    public async Task AddressHigh_DependsOnDictionaryType()
+    {
+        // Test con dizionario Standard (AddressHigh = 0x00)
+        _dictionaryService.Reset();
+        _dictionaryService.SeedData(new Dictionary("StandardDict", null, isStandard: true));
+
+        var viewModelStandard = new VariableEditViewModel(
+            _variableService,
+            _dictionaryService,
+            _navigationService,
+            _dialogService,
+            _messageService);
+
+        await viewModelStandard.InitializeAsync(null, dictionaryId: 1);
+        viewModelStandard.AddressLowHex = "10";
+
+        // Assert - dizionario Standard → AddressHigh = 0x00
+        Assert.Equal("00", viewModelStandard.AddressHighHex);
+        Assert.Equal("0x0010", viewModelStandard.FullAddressDisplay);
     }
 
     [Fact]
@@ -251,7 +275,7 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "StatusFlags";
-        _viewModel.AddressHighHex = "00";
+        // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "40";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = 1;
@@ -274,11 +298,11 @@ public class VariableEditFlowTests
     [Fact]
     public async Task LoadBitmappedVariable_PopulatesWordGroups()
     {
-        // Arrange
+        // Arrange - SeedData assegna _nextId=1
         var bitmappedVar = Variable.Restore(
-            id: 5,
+            id: 1,
             name: "BitsVar",
-            addressHigh: 0x00,
+            addressHigh: 0x80,
             addressLow: 0x50,
             dataTypeKind: DataTypeKind.Bitmapped,
             dataTypeRaw: "Bitmapped",
@@ -293,16 +317,16 @@ public class VariableEditFlowTests
             description: null);
         _variableService.SeedData(bitmappedVar);
 
-        // Seed bit interpretations nel mock
-        _variableService.SeedBitInterpretations(5,
+        // Seed bit interpretations nel mock (ID 1, coerente con SeedData)
+        _variableService.SeedBitInterpretations(1,
         [
-            new BitInterpretation(5, 0, 0, "Motor"),
-            new BitInterpretation(5, 0, 3, "Pump"),
-            new BitInterpretation(5, 1, 0, "Alarm")
+            new BitInterpretation(1, 0, 0, "Motor"),
+            new BitInterpretation(1, 0, 3, "Pump"),
+            new BitInterpretation(1, 1, 0, "Alarm")
         ]);
 
         // Act
-        await _viewModel.InitializeAsync(variableId: 5, dictionaryId: 1);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1);
 
         // Assert
         Assert.Equal(2, _viewModel.WordGroups.Count);
@@ -314,147 +338,5 @@ public class VariableEditFlowTests
         Assert.Single(_viewModel.WordGroups[1].Items);
         Assert.Equal("Alarm", _viewModel.WordGroups[1].Items[0].Meaning);
     }
-
-    #region Mock Services
-
-    private class MockVariableService : IVariableService
-    {
-        private readonly Dictionary<int, Variable> _variables = [];
-        private readonly Dictionary<int, List<BitInterpretation>> _bitInterpretations = [];
-        private int _nextId = 1;
-        public List<string> MethodCalls { get; } = [];
-        public Exception? ExceptionToThrow { get; set; }
-
-        public void SeedData(Variable variable)
-        {
-            _variables[variable.Id] = variable;
-            if (variable.Id >= _nextId) _nextId = variable.Id + 1;
-        }
-
-        public void SeedBitInterpretations(int variableId, List<BitInterpretation> bits)
-        {
-            _bitInterpretations[variableId] = bits;
-        }
-
-        public Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default)
-        {
-            MethodCalls.Add($"GetByIdAsync:{id}");
-            if (ExceptionToThrow != null) throw ExceptionToThrow;
-            return Task.FromResult(_variables.GetValueOrDefault(id));
-        }
-
-        public Task<IReadOnlyList<Variable>> GetAllAsync(CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<Variable>>([.. _variables.Values]);
-
-        public Task<Variable> AddAsync(int dictionaryId, Variable variable, CancellationToken ct = default)
-        {
-            MethodCalls.Add($"AddAsync:{dictionaryId}:{variable.Name}");
-            if (ExceptionToThrow != null) throw ExceptionToThrow;
-            var restored = Variable.Restore(_nextId++, variable.Name, variable.AddressHigh, variable.AddressLow,
-                variable.DataTypeKind, variable.DataTypeRaw, variable.DataTypeParam, variable.AccessMode,
-                variable.IsEnabled, variable.Format, variable.MinValue, variable.MaxValue, variable.Unit,
-                variable.Usage, variable.Description);
-            _variables[restored.Id] = restored;
-            return Task.FromResult(restored);
-        }
-
-        public Task UpdateAsync(Variable variable, CancellationToken ct = default)
-        {
-            MethodCalls.Add($"UpdateAsync:{variable.Id}");
-            if (ExceptionToThrow != null) throw ExceptionToThrow;
-            _variables[variable.Id] = variable;
-            return Task.CompletedTask;
-        }
-
-        public Task DeleteAsync(int id, CancellationToken ct = default)
-        {
-            MethodCalls.Add($"DeleteAsync:{id}");
-            _variables.Remove(id);
-            return Task.CompletedTask;
-        }
-
-        public Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<Variable>>([.. _variables.Values]);
-
-        public Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow, CancellationToken ct = default)
-            => Task.FromResult<Variable?>(null);
-
-        public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId, CancellationToken ct = default)
-        {
-            if (_bitInterpretations.TryGetValue(variableId, out var bits))
-                return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
-            return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
-        }
-
-        public Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation, CancellationToken ct = default)
-            => Task.FromResult(interpretation);
-
-        public Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
-        {
-            MethodCalls.Add($"UpdateBitInterpretationsAsync:{variableId}");
-            if (ExceptionToThrow != null) throw ExceptionToThrow;
-            return Task.CompletedTask;
-        }
-
-        public Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
-            => Task.CompletedTask;
-
-        public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType, CancellationToken ct = default)
-            => Task.FromResult<VariableDeviceState?>(null);
-
-        public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
-            => Task.FromResult<IReadOnlyList<VariableDeviceState>>([]);
-    }
-
-    private class MockNavigationService : INavigationService
-    {
-        public bool GoBackCalled { get; private set; }
-        public ViewType CurrentView => ViewType.VariableEdit;
-        public NavigationParameter? CurrentParameter => null;
-        public bool CanGoBack => true;
-        public event EventHandler<ViewType>? CurrentViewChanged;
-
-        public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null) { }
-        public bool GoBack() { GoBackCalled = true; return true; }
-    }
-
-    private class MockDialogService : IDialogService
-    {
-        public bool ShowErrorCalled { get; private set; }
-        public bool ShowConfirmCalled { get; private set; }
-        public DialogResult ConfirmResult { get; set; } = DialogResult.Yes;
-
-        public Task ShowErrorAsync(string title, string message)
-        {
-            ShowErrorCalled = true;
-            return Task.CompletedTask;
-        }
-
-        public Task<DialogResult> ShowConfirmAsync(string title, string message)
-        {
-            ShowConfirmCalled = true;
-            return Task.FromResult(ConfirmResult);
-        }
-
-        public Task ShowInfoAsync(string title, string message) => Task.CompletedTask;
-        public Task ShowWarningAsync(string title, string message) => Task.CompletedTask;
-        public Task<DialogResult> ShowOkCancelAsync(string title, string message) => Task.FromResult(DialogResult.Ok);
-    }
-
-    private class MockMessageService : IMessageService
-    {
-        public List<(string Message, MessageSeverity Severity)> Messages { get; } = [];
-        public string? CurrentMessage => Messages.LastOrDefault().Message;
-        public MessageSeverity CurrentSeverity => Messages.LastOrDefault().Severity;
-        public event EventHandler? MessageChanged;
-
-        public void Show(string message, MessageSeverity severity = MessageSeverity.Info)
-            => Messages.Add((message, severity));
-        public void Show(string message, MessageSeverity severity, int durationMs)
-            => Messages.Add((message, severity));
-        public void Clear() => Messages.Clear();
-    }
-
-    #endregion
 }
 #endif

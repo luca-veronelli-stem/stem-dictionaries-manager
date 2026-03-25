@@ -69,7 +69,7 @@ public class CommandEditViewModelTests
 
         // Assert
         Assert.Equal("ReadStatus", _viewModel.Name);
-        Assert.Equal("12", _viewModel.CodeHighHex);
+        Assert.Equal("80", _viewModel.CodeHighHex); // IsResponse=true → 0x80
         Assert.Equal("34", _viewModel.CodeLowHex);
         Assert.True(_viewModel.IsResponse);
         Assert.Contains("param1", _viewModel.ParametersText);
@@ -127,7 +127,7 @@ public class CommandEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewCommand";
-        _viewModel.CodeHighHex = "20";
+        // CodeHighHex è computed automaticamente da IsResponse (0x00 per comando)
         _viewModel.CodeLowHex = "01";
 
         // Act
@@ -215,12 +215,115 @@ public class CommandEditViewModelTests
     [Fact]
     public void FullCodeDisplay_FormatsCorrectly()
     {
-        // Arrange
-        _viewModel.CodeHighHex = "AB";
+        // Arrange - IsResponse = true → CodeHighHex = 0x80
+        _viewModel.IsResponse = true;
         _viewModel.CodeLowHex = "CD";
 
         // Assert
-        Assert.Equal("0xABCD", _viewModel.FullCodeDisplay);
+        Assert.Equal("0x80CD", _viewModel.FullCodeDisplay);
+    }
+
+    [Fact]
+    public void CodeHighHex_DependsOnIsResponse()
+    {
+        // Default: IsResponse = false → CodeHighHex = 0x00
+        Assert.Equal("00", _viewModel.CodeHighHex);
+
+        // IsResponse = true → CodeHighHex = 0x80
+        _viewModel.IsResponse = true;
+        Assert.Equal("80", _viewModel.CodeHighHex);
+
+        // Torna a false → CodeHighHex = 0x00
+        _viewModel.IsResponse = false;
+        Assert.Equal("00", _viewModel.CodeHighHex);
+    }
+
+    [Fact]
+    public void FullCodeDisplay_Command_FormatsWithHigh00()
+    {
+        // Arrange - IsResponse = false → CodeHighHex = 0x00
+        _viewModel.IsResponse = false;
+        _viewModel.CodeLowHex = "1A";
+
+        // Assert
+        Assert.Equal("0x001A", _viewModel.FullCodeDisplay);
+    }
+
+    [Fact]
+    public void FullCodeDisplay_Response_FormatsWithHigh80()
+    {
+        // Arrange - IsResponse = true → CodeHighHex = 0x80
+        _viewModel.IsResponse = true;
+        _viewModel.CodeLowHex = "1A";
+
+        // Assert
+        Assert.Equal("0x801A", _viewModel.FullCodeDisplay);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Command_UsesCodeHigh00()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestCmd";
+        _viewModel.IsResponse = false;
+        _viewModel.CodeLowHex = "05";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Equal("00", _viewModel.CodeHighHex);
+        Assert.Contains(_commandService.MethodCalls, m => m.StartsWith("AddAsync:TestCmd"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_Response_UsesCodeHigh80()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestResp";
+        _viewModel.IsResponse = true;
+        _viewModel.CodeLowHex = "05";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Equal("80", _viewModel.CodeHighHex);
+        Assert.Contains(_commandService.MethodCalls, m => m.StartsWith("AddAsync:TestResp"));
+    }
+
+    [Fact]
+    public async Task LoadFromCommand_IsResponseTrue_SetsCodeHighTo80()
+    {
+        // Arrange - comando con IsResponse=true
+        var command = new Command("ResponseCmd", 0x80, 0x10, true);
+        _commandService.SeedData(command);
+
+        // Act
+        await _viewModel.InitializeAsync(1);
+
+        // Assert
+        Assert.True(_viewModel.IsResponse);
+        Assert.Equal("80", _viewModel.CodeHighHex);
+        Assert.Equal("10", _viewModel.CodeLowHex);
+    }
+
+    [Fact]
+    public async Task LoadFromCommand_IsResponseFalse_SetsCodeHighTo00()
+    {
+        // Arrange - comando con IsResponse=false
+        var command = new Command("NormalCmd", 0x00, 0x10, false);
+        _commandService.SeedData(command);
+
+        // Act
+        await _viewModel.InitializeAsync(1);
+
+        // Assert
+        Assert.False(_viewModel.IsResponse);
+        Assert.Equal("00", _viewModel.CodeHighHex);
+        Assert.Equal("10", _viewModel.CodeLowHex);
     }
 }
 #endif

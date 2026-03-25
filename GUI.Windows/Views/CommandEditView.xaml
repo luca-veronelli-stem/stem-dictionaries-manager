@@ -42,11 +42,11 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Codice" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <TextBlock Text="High: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding CodeHighHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding CodeHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding CodeLowHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"/>
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"
+                             PreviewTextInput="HexTextBox_PreviewTextInput"/>
                     <TextBlock Text="{Binding FullCodeDisplay}" Foreground="#007ACC" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 

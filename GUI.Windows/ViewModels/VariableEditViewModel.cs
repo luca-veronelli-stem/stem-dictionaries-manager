@@ -14,12 +14,14 @@ namespace GUI.Windows.ViewModels;
 public partial class VariableEditViewModel : ObservableObject
 {
     private readonly IVariableService _variableService;
+    private readonly IDictionaryService _dictionaryService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
     private int? _editingId;
     private int _dictionaryId;
+    private bool _isStandardDictionary;
     private bool _isInitialized;
 
     [ObservableProperty]
@@ -38,10 +40,11 @@ public partial class VariableEditViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private string _name = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
-    [NotifyPropertyChangedFor(nameof(IsAddressHighValid))]
-    private string _addressHighHex = string.Empty;
+    /// <summary>
+    /// AddressHigh calcolato automaticamente dal tipo di dizionario.
+    /// 0x00 = Dizionario Standard, 0x80 = altri dizionari.
+    /// </summary>
+    public string AddressHighHex => _isStandardDictionary ? "00" : "80";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
@@ -164,11 +167,6 @@ public partial class VariableEditViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Validazione: AddressHigh deve essere hex valido.
-    /// </summary>
-    public bool IsAddressHighValid => IsValidHex(AddressHighHex);
-
-    /// <summary>
     /// Validazione: AddressLow deve essere hex valido.
     /// </summary>
     public bool IsAddressLowValid => IsValidHex(AddressLowHex);
@@ -223,11 +221,13 @@ public partial class VariableEditViewModel : ObservableObject
 
     public VariableEditViewModel(
         IVariableService variableService,
+        IDictionaryService dictionaryService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _variableService = variableService;
+        _dictionaryService = dictionaryService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
@@ -245,6 +245,12 @@ public partial class VariableEditViewModel : ObservableObject
             IsBusy = true;
             _editingId = variableId;
             _dictionaryId = dictionaryId;
+
+            // Carica il dizionario per determinare AddressHigh
+            var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
+            _isStandardDictionary = dictionary?.IsStandard ?? false;
+            OnPropertyChanged(nameof(AddressHighHex));
+            OnPropertyChanged(nameof(FullAddressDisplay));
 
             if (variableId.HasValue)
             {
@@ -292,7 +298,7 @@ public partial class VariableEditViewModel : ObservableObject
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        AddressHighHex = v.AddressHigh.ToString("X2");
+        // AddressHighHex è computed automaticamente da _isStandardDictionary
         AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
         DataTypeParam = v.DataTypeParam;
@@ -314,7 +320,6 @@ public partial class VariableEditViewModel : ObservableObject
     private bool CanSave() =>
         !string.IsNullOrWhiteSpace(Name) &&
         !string.IsNullOrWhiteSpace(DataTypeForSave) &&
-        IsAddressHighValid &&
         IsAddressLowValid &&
         IsMinMaxValid &&
         (!RequiresDataTypeParam || DataTypeParam.HasValue) &&

@@ -237,6 +237,7 @@ public class MockBoardService : IBoardService
 public class MockVariableService : IVariableService
 {
     private readonly List<Variable> _variables = [];
+    private readonly Dictionary<int, List<BitInterpretation>> _bitInterpretations = [];
     private int _nextId = 1;
 
     public Exception? ExceptionToThrow { get; set; }
@@ -309,6 +310,8 @@ public class MockVariableService : IVariableService
     {
         MethodCalls.Add($"GetBitInterpretationsAsync:{variableId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        if (_bitInterpretations.TryGetValue(variableId, out var bits))
+            return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
         return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
     }
 
@@ -381,9 +384,15 @@ public class MockVariableService : IVariableService
         }
     }
 
+    public void SeedBitInterpretations(int variableId, List<BitInterpretation> bits)
+    {
+        _bitInterpretations[variableId] = bits;
+    }
+
     public void Reset()
     {
         _variables.Clear();
+        _bitInterpretations.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();
