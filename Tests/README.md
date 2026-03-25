@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-28
 
 ---
 
@@ -20,7 +20,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~500 test per Core + Services/Mapping + GUI (15 ViewModels) |
+| **Unit Tests** | ✅ | ~540 test per Core + Services/Mapping + GUI (14 ViewModels) |
 | **Integration Tests** | ✅ | ~230 test per Infrastructure + Services + GUI |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
@@ -90,7 +90,7 @@ Tests/
 │   ├── Models/
 │   │   ├── AuditEntryTests.cs        # 6 test
 │   │   ├── BitInterpretationTests.cs # 6 test
-│   │   ├── BoardTests.cs             # 13 test (FirmwareType, DictionaryId?, IsPrimary)
+│   │   ├── BoardTests.cs             # 16 test (FirmwareType, DictionaryId?, IsPrimary, DictionaryName)
 │   │   ├── CommandDeviceStateTests.cs# 5 test
 │   │   ├── CommandTests.cs           # 7 test
 │   │   ├── DictionaryTests.cs        # 17 test (IsStandard, Restore validation)
@@ -104,31 +104,31 @@ Tests/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
 │   │   │   └── MockDataServices.cs        # Mock per data services
 │   │   ├── ViewModels/
-│   │   ├── MainViewModelTests.cs             # 17 test (login/logout, nav, error handling)
+│   │   ├── MainViewModelTests.cs             # 27 test (login/logout, nav, status bar, unsaved changes guard)
 │   │   │   ├── LoginViewModelTests.cs            # 8 test
 │   │   │   ├── DeviceListViewModelTests.cs       # 12 test
 │   │   │   ├── DeviceDetailViewModelTests.cs     # 20 test
-│   │   │   ├── DictionaryListViewModelTests.cs   # 18 test
-│   │   │   ├── DictionaryEditViewModelTests.cs   # 22 test (IsStandard)
-│   │   │   ├── VariableListViewModelTests.cs     # 16 test
+│   │   │   ├── DictionaryListViewModelTests.cs   # 15 test
+│   │   │   ├── DictionaryEditViewModelTests.cs   # 37 test (form + variabili integrate + CanSetStandard + Cancel)
 │   │   │   ├── VariableEditViewModelTests.cs     # 55 test (Bitmapped + AddressHigh computed)
 │   │   │   ├── WordBitGroupTests.cs              # 9 test
-│   │   │   ├── CommandListViewModelTests.cs      # 16 test
-│   │   │   ├── CommandEditViewModelTests.cs      # 20 test (CodeHigh computed da IsResponse)
-│   │   │   ├── BoardListViewModelTests.cs        # 14 test
-│   │   │   ├── BoardEditViewModelTests.cs        # 17 test (FirmwareType, DictionaryId?)
+│   │   │   ├── CommandListViewModelTests.cs      # 12 test
+│   │   │   ├── CommandEditViewModelTests.cs      # 26 test (CodeHigh + Delete + Cancel)
+│   │   │   ├── BoardListViewModelTests.cs        # 11 test
+│   │   │   ├── BoardEditViewModelTests.cs        # 19 test (FirmwareType, DictionaryId?, Cancel)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Converters/
-│   │   │   └── NullableNumericConverterTests.cs  # 20 test
+│   │   │   ├── NullableNumericConverterTests.cs  # 20 test
+│   │   │   └── SeverityToColorConverterTests.cs  # 5 test
 │   │   ├── Services/
-│   │   │   └── NavigationServiceTests.cs         # 15 test
+│   │   │   └── NavigationServiceTests.cs         # 21 test (history + ViewModel caching)
 │   │   └── DependencyInjectionTests.cs           # 22 test
 │   └── Services/
 │       ├── DependencyInjectionTests.cs        # 10 test
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
-│           ├── BoardMapperTests.cs            # 10 test
+│           ├── BoardMapperTests.cs            # 12 test (incl. DictionaryName)
 │           ├── VariableMapperTests.cs         # 10 test
 │           ├── CommandMapperTests.cs          # 13 test
 │           ├── DictionaryMapperTests.cs       # 14 test
@@ -216,18 +216,18 @@ public class MyRepositoryTests : IntegrationTestBase
 | Area | Metodi Test | Descrizione |
 |------|-------------|-------------|
 | Unit/Enums | 14 | Valori, count, casting |
-| Unit/Models | 84 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DeviceStates) |
-| Unit/Services/Mapping | 87 | Mapper Entity ↔ Domain (9 mapper incl. VariableDeviceState) |
+| Unit/Models | 87 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DictionaryName, DeviceStates) |
+| Unit/Services/Mapping | 89 | Mapper Entity ↔ Domain (9 mapper incl. Board.DictionaryName) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 10 | Registrazione DI services |
-| Unit/GUI/ViewModels | 263 | 15 ViewModels (incl. WordBitGroup, Device*, Login) |
-| Unit/GUI/Converters | 20 | NullableInt/Double converters |
-| Unit/GUI/Services | 15 | NavigationService |
+| Unit/GUI/ViewModels | 272 | 14 ViewModels (incl. status bar, unsaved changes, CanSetStandard) |
+| Unit/GUI/Converters | 25 | NullableInt/Double + SeverityToColor converters |
+| Unit/GUI/Services | 21 | NavigationService (incl. ViewModel caching) |
 | Unit/GUI/DI | 22 | Registrazione ViewModels + UI services |
 | Integration/Infrastructure | 107 | Repository, audit, DB, CRUD scenarios, SyncByVariableId |
 | Integration/Services | 114 | Business logic, IsStandard, DeviceStates, smart update |
 | Integration/GUI | 12 | VariableEdit flow completo + bitmapped + AddressHigh |
-| **Totale metodi test** | **~762** | Tutti i target combinati |
+| **Totale metodi test** | **~800** | Tutti i target combinati |
 
 > **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai metodi elencati.
 
@@ -240,7 +240,7 @@ Il progetto supporta due target framework:
 | Target | Piattaforma | Include | Uso |
 |--------|-------------|---------|-----|
 | `net10.0` | Cross-platform | Core, Infrastructure, Services | CI/CD (Linux) |
-| `net10.0-windows` | Windows | + GUI.Windows (~320 metodi test) | Test locali + GUI |
+| `net10.0-windows` | Windows | + GUI.Windows (~360 metodi test) | Test locali + GUI |
 
 ```xml
 <!-- Tests.csproj -->

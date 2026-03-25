@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-28
 
 ---
 
@@ -11,11 +11,13 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 
 - **WPF + MVVM** - Pattern Model-View-ViewModel con CommunityToolkit.Mvvm
 - **Dependency Injection** - Microsoft.Extensions.Hosting per DI/configurazione
-- **Navigation Service** - Navigazione tra view con history e parametri
+- **Navigation Service** - Navigazione tra view con history, parametri e ViewModel caching
 - **Clean Architecture** - UI disaccoppiata da business logic e persistence
 - **Stili Riutilizzabili** - Dark theme VS Code-style con stili globali
 - **Input Validation** - Filtri hex/numerico con converter nullable
 - **Ricerca Client-Side** - Filtro istantaneo in tutte le liste (case-insensitive)
+- **Status Bar Globale** - Feedback visivo colorato per ogni operazione (salvataggio, errori, etc.)
+- **Unsaved Changes Guard** - Warning su navigazione indietro con modifiche non salvate
 
 L'applicazione si avvia con login integrato nella MainWindow, poi applica migrations e popola dati demo se DB vuoto.
 
@@ -27,13 +29,14 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 |---------|-------|-------------|
 | **Login Integrato** | ✅ | LoginView nella MainWindow, eventi LoginConfirmed/LoggedOut |
 | **Dark Theme** | ✅ | VS Code-style con sidebar, header, DataGrid dark |
-| **MVVM Pattern** | ✅ | 15 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 14 Views XAML complete (13 + LoginView) |
-| **Converters** | ✅ | 5 converter (Bool, Inverse, Null, NullableInt, NullableDouble) |
+| **MVVM Pattern** | ✅ | 14 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 13 Views XAML complete (12 + LoginView) |
+| **Converters** | ✅ | 6 converter (Bool, Inverse, Null, NullableInt, NullableDouble, SeverityToColor) |
 | **Stili Globali** | ✅ | Sidebar, Toolbar, Watermark, DataGrid, Accent, HexAddress |
-| **Navigation Service** | ✅ | History, parametri, eventi |
+| **Navigation Service** | ✅ | History, parametri, ViewModel caching, eventi |
 | **Dialog Service** | ✅ | Conferme, messaggi, errori |
-| **Message Service** | ✅ | StatusBar e notifiche |
+| **Message Service** | ✅ | Status bar globale con colori per severity e auto-hide |
+| **IEditableViewModel** | ✅ | Guard per unsaved changes su Indietro e Annulla |
 | **DI Container** | ✅ | Generic Host pattern |
 | **Auto-Migration** | ✅ | EF Core migrations all'avvio |
 | **Database Seeder** | ✅ | Dati demo per sviluppo |
@@ -86,25 +89,25 @@ dotnet run --project GUI.Windows
 ```
 GUI.Windows/
 ├── Abstractions/
-│   ├── INavigationService.cs      # Interfaccia navigazione + ViewType enum
+│   ├── INavigationService.cs      # Interfaccia navigazione + ViewType enum + ViewModel caching
 │   ├── IDialogService.cs          # Interfaccia dialoghi (conferme, errori)
-│   └── IMessageService.cs         # Interfaccia messaggi (status bar)
+│   ├── IMessageService.cs         # Interfaccia messaggi (status bar)
+│   └── IEditableViewModel.cs      # Interfaccia per guard modifiche non salvate
 ├── Services/
-│   ├── NavigationService.cs       # Implementazione con history stack
+│   ├── NavigationService.cs       # History stack + ViewModel caching per GoBack
 │   ├── DialogService.cs           # MessageBox wrapper
-│   └── MessageService.cs          # Status notifications
+│   └── MessageService.cs          # Status bar con auto-hide timer
 ├── ViewModels/
-│   ├── MainViewModel.cs           # Shell, navigazione, CurrentUser, login/logout
+│   ├── MainViewModel.cs           # Shell, navigazione, status bar, unsaved changes guard
 │   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
 │   ├── DeviceListViewModel.cs     # Lista dispositivi (enum DeviceType)
-│   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari e schede
-│   ├── DictionaryListViewModel.cs # Lista dizionari CRUD (SemanticDisplay)
-│   ├── DictionaryEditViewModel.cs # Dettaglio/modifica dizionario (IsStandard)
-│   ├── VariableListViewModel.cs   # Lista variabili di un dizionario
+│   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari associati
+│   ├── DictionaryListViewModel.cs # Lista dizionari (double-click per edit)
+│   ├── DictionaryEditViewModel.cs # Form dizionario + lista variabili integrata
 │   ├── VariableEditViewModel.cs   # Crea/modifica variabile (AddressHigh computed da Dictionary.IsStandard)
-│   ├── CommandListViewModel.cs    # Lista comandi protocollo
-│   ├── CommandEditViewModel.cs    # Crea/modifica comando (CodeHigh computed da IsResponse)
-│   ├── BoardListViewModel.cs      # Lista schede
+│   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
+│   ├── CommandEditViewModel.cs    # Crea/modifica comando + delete (CodeHigh computed)
+│   ├── BoardListViewModel.cs      # Lista schede con DictionaryName
 │   ├── BoardEditViewModel.cs      # Crea/modifica scheda (FirmwareType, DictionaryId?)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   ├── SettingsViewModel.cs       # Impostazioni app (stub)
@@ -114,22 +117,22 @@ GUI.Windows/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
 │   ├── DeviceListView.xaml        # UI lista dispositivi
 │   ├── DeviceDetailView.xaml      # UI dettaglio device
-│   ├── DictionaryListView.xaml    # UI lista dizionari
-│   ├── DictionaryEditView.xaml    # UI edit dizionario (IsStandard checkbox)
-│   ├── VariableListView.xaml      # UI lista variabili
+│   ├── DictionaryListView.xaml    # UI lista dizionari (double-click → edit)
+│   ├── DictionaryEditView.xaml    # UI form dizionario + lista variabili integrata
 │   ├── VariableEditView.xaml      # UI edit variabile + DeviceStates
-│   ├── CommandListView.xaml       # UI lista comandi
-│   ├── CommandEditView.xaml       # UI edit comando
+│   ├── CommandListView.xaml       # UI lista comandi (double-click → edit)
+│   ├── CommandEditView.xaml       # UI edit comando + delete
 │   ├── BoardListView.xaml         # UI lista schede
-│   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, DictionaryId?)
+│   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, Dizionario, IsPrimary)
 │   ├── UserListView.xaml          # UI lista utenti
 │   └── SettingsView.xaml          # UI impostazioni
 ├── Converters/
 │   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
-│   └── NullableNumericConverter.cs # NullableInt, NullableDouble converters
+│   ├── NullableNumericConverter.cs # NullableInt, NullableDouble converters
+│   └── SeverityToColorConverter.cs # MessageSeverity → colore status bar
 ├── App.xaml                       # Application resources + dark theme styles
 ├── App.xaml.cs                    # Startup, DI, ShowLoginView
-├── MainWindow.xaml                # Shell: sidebar + header + content
+├── MainWindow.xaml                # Shell: sidebar + header + content + status bar
 ├── MainWindow.xaml.cs             # Window code-behind + shutdown
 └── DependencyInjection.cs         # AddGUI() extension method
 ```
@@ -170,13 +173,12 @@ _navigationService.GoBack();
 | ViewType | ViewModel | Descrizione |
 |----------|-----------|-------------|
 | `DeviceList` | DeviceListViewModel | Lista dispositivi STEM |
-| `DeviceDetail` | DeviceDetailViewModel | Dettaglio device: dizionari e schede |
+| `DeviceDetail` | DeviceDetailViewModel | Dettaglio device: dizionari associati |
 | `DictionaryList` | DictionaryListViewModel | Lista dizionari |
-| `DictionaryEdit` | DictionaryEditViewModel | Crea/modifica dizionario |
-| `VariableList` | VariableListViewModel | Lista variabili |
+| `DictionaryEdit` | DictionaryEditViewModel | Form dizionario + lista variabili integrata |
 | `VariableEdit` | VariableEditViewModel | Crea/modifica variabile |
 | `CommandList` | CommandListViewModel | Lista comandi |
-| `CommandEdit` | CommandEditViewModel | Crea/modifica comando |
+| `CommandEdit` | CommandEditViewModel | Crea/modifica comando + delete |
 | `BoardList` | BoardListViewModel | Lista schede |
 | `BoardEdit` | BoardEditViewModel | Crea/modifica scheda |
 | `UserList` | UserListViewModel | Lista utenti |
@@ -194,7 +196,9 @@ public interface INavigationService
     ViewType CurrentView { get; }
     NavigationParameter? CurrentParameter { get; }
     bool CanGoBack { get; }
+    object? CachedViewModel { get; }  // ViewModel restored on GoBack
 
+    void SetCurrentViewModel(object? viewModel);  // Register VM for caching
     void NavigateTo(ViewType viewType, NavigationParameter? parameter = null);
     bool GoBack();
 

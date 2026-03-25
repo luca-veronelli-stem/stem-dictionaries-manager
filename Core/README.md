@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-28
 
 ---
 
@@ -85,7 +85,7 @@ Core/
 └── Models/
     ├── AuditEntry.cs              # Traccia modifiche con JSON completo
     ├── BitInterpretation.cs       # Significato bit per variabili bitmapped
-    ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, calcolo indirizzo
+    ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, DictionaryName, calcolo indirizzo
     ├── Command.cs                 # Comando protocollo
     ├── CommandDeviceState.cs      # Stato comando per device specifico
     ├── Dictionary.cs              # Set di variabili, IsStandard flag
@@ -115,7 +115,7 @@ Core/
 |---------|-------------|-----------|
 | `Dictionary` | Set di variabili, IsStandard flag | → Variable[] |
 | `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[], VariableDeviceState[] |
-| `Board` | Scheda fisica con FirmwareType, DictionaryId?, IsPrimary | → DeviceType, Dictionary? |
+| `Board` | Scheda fisica con FirmwareType, DictionaryId?, IsPrimary, DictionaryName | → DeviceType, Dictionary? |
 | `Command` | Comando protocollo universale | → CommandDeviceState[] |
 | `CommandDeviceState` | Stato comando per device specifico | → Command, DeviceType |
 | `VariableDeviceState` | Override per-device su variabili (BR-009/010/011) | → Variable, DeviceType |
