@@ -116,6 +116,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Header (visibile solo se loggato) -->
@@ -139,6 +140,14 @@
             <ContentControl Grid.Row="1"
                             Content="{Binding CurrentViewModel}"
                             Margin="20"/>
+
+            <!-- Status bar (visibile solo quando c'è un messaggio) -->
+            <Border Grid.Row="2" Height="30" Padding="12,0"
+                    Background="{Binding StatusSeverity, Converter={StaticResource SeverityToColorConverter}}"
+                    Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibilityConverter}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="White" FontSize="12"
+                           VerticalAlignment="Center"/>
+            </Border>
         </Grid>
     </Grid>
 </Window>
