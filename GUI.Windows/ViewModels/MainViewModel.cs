@@ -47,6 +47,18 @@ public partial class MainViewModel : ObservableObject
     public string CurrentUserDisplayName => CurrentUser?.DisplayName ?? "—";
 
     /// <summary>
+    /// Messaggio corrente della status bar.
+    /// </summary>
+    [ObservableProperty]
+    private string? _statusMessage;
+
+    /// <summary>
+    /// Severità del messaggio corrente.
+    /// </summary>
+    [ObservableProperty]
+    private MessageSeverity _statusSeverity;
+
+    /// <summary>
     /// Evento fired quando l'utente effettua il logout.
     /// App.xaml.cs lo usa per mostrare di nuovo la LoginView.
     /// </summary>
@@ -65,6 +77,15 @@ public partial class MainViewModel : ObservableObject
 
         // Sottoscrivi ai cambiamenti di navigazione
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
+
+        // Sottoscrivi ai messaggi della status bar
+        _messageService.MessageChanged += OnMessageChanged;
+    }
+
+    private void OnMessageChanged(object? sender, EventArgs e)
+    {
+        StatusMessage = _messageService.CurrentMessage;
+        StatusSeverity = _messageService.CurrentSeverity;
     }
 
     /// <summary>
