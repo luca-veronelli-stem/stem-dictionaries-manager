@@ -8,13 +8,13 @@
 
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
-| [Core](./Core/ISSUES.md) | 4 | 3 | 7 |
+| [Core](./Core/ISSUES.md) | 3 | 4 | 7 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 4 | 8 |
 | [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 5 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
 | **Trasversali** | **0** | **2** | **2** |
-| **Totale** | **18** | **27** | **45** |
+| **Totale** | **17** | **28** | **45** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 6 | 33% |
-| **Bassa** | 12 | 67% |
-| **Totale** | **18** | 100% |
+| **Media** | 5 | 29% |
+| **Bassa** | 12 | 71% |
+| **Totale** | **17** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ██████░░░░░░░░░░░░░░  6
+Media:       █████░░░░░░░░░░░░░░░  5
 Bassa:       ████████████░░░░░░░░ 12
 ```
 
@@ -124,8 +124,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~CORE-001~~ | ~~AuditEntityType contiene "Device" non esistente~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-007~~ | ~~Refactoring Core models per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
-| [CORE-006](./Core/ISSUES.md#core-006--dictionaryrestore-bypassa-validazione-unicità-indirizzi) | Dictionary.Restore bypassa validazione unicità indirizzi | Media | Bug |
-| [CORE-003](./Core/ISSUES.md#core-003--dictionaryremovevariable-non-verifica-esistenza) | Dictionary.RemoveVariable non verifica esistenza | Bassa | API |
+| ~~CORE-006~~ | ~~Dictionary.Restore bypassa validazione unicità indirizzi~~ | ~~Media~~ | ✅ **Risolto** |
+| [CORE-003]
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
@@ -206,7 +206,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-002** | Services | Manca IAuditService | M |
-| 2 | **CORE-006** | Core | Dictionary.Restore bypassa validazione | S |
+| 2 | **GUI-006** | GUI.Windows | LoginViewModel registrato due volte | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -251,7 +251,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **Bug** | 2 | CORE-006, INFRA-006 |
+| **Bug** | 1 | INFRA-006 |
 | **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
 | **UX** | 1 | GUI-003 |
 | **Performance** | 2 | INFRA-002, SVC-003 |
@@ -287,7 +287,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ✅ **SVC-009 + TEST-008 risolte** — VariableMapper ora mappa Format in tutte le direzioni (ToDomain/ToEntity/UpdateEntity). +4 assert Format nei test esistenti. 18 aperte, 27 risolte. Branch: `fix/svc-009` |
+| 2026-03-25 | ✅ **CORE-006 risolta** — Dictionary.Restore ora valida unicità indirizzi (fail-fast su dati corrotti). +1 test. 17 aperte, 28 risolte. Branch: `fix/core-006` |
+| 2026-03-25 | ✅ **SVC-009 + TEST-008 risolte**
 | 2026-03-25 | ✅ **GUI-005 risolta**
 | 2026-03-25 | ✅ **T-002 completata** — Domain v2 implementato: BoardType rimosso, Board→Dictionary diretto, IsStandard flag, semantica derivata. 11 issue risolte (T-002, CORE-007, INFRA-008, SVC-011, GUI-008, TEST-009, SVC-008, INFRA-007, TEST-007, SVC-004, GUI-007). +VariableDeviceState (BR-009/010/011). 1252 test verdi. Branch: `domain/ridefinizione-dominio-v2` |
 | 2026-03-24 | 🔍 **Audit completo tutti i componenti**
