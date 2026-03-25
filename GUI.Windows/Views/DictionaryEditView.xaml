@@ -29,7 +29,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"/>
@@ -46,14 +45,6 @@
             <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding IsStandard}" 
                       Content="Dizionario delle variabili comuni (0x00xx)" Foreground="White" Margin="0,0,0,10"
                       Visibility="{Binding CanSetStandard, Converter={StaticResource BoolToVisibilityConverter}}"/>
-
-            <!-- Bottoni dizionario -->
-            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,4,0,0">
-                <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
-                        Background="#007ACC" FontWeight="SemiBold"/>
-                <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"/>
-                <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            </StackPanel>
         </Grid>
 
         <!-- Errore -->
@@ -90,6 +81,15 @@
                 <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Bottoni -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
+                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                    Background="#007ACC" FontWeight="SemiBold"/>
+        </StackPanel>
 
         <!-- Loading -->
         <Border Grid.Row="0" Grid.RowSpan="5" Background="#80000000"
