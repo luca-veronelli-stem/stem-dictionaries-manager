@@ -268,7 +268,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 2 issue aperte, 7 risolte (0 critiche, 0 alte, 1 media, 1 bassa)
+→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 8 risolte (0 critiche, 0 alte, 0 medie, 1 bassa)
 
 ---
 
