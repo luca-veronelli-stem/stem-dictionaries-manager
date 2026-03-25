@@ -104,7 +104,7 @@ Tests/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
 │   │   │   └── MockDataServices.cs        # Mock per data services
 │   │   ├── ViewModels/
-│   │   │   ├── MainViewModelTests.cs             # 15 test (login/logout, nav)
+│   │   ├── MainViewModelTests.cs             # 17 test (login/logout, nav, error handling)
 │   │   │   ├── LoginViewModelTests.cs            # 8 test
 │   │   │   ├── DeviceListViewModelTests.cs       # 12 test
 │   │   │   ├── DeviceDetailViewModelTests.cs     # 20 test

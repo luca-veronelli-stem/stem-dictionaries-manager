@@ -194,5 +194,49 @@ public class MainViewModelTests
         // Assert
         Assert.Equal("Dettaglio Dispositivo", _viewModel.PageTitle);
     }
+
+    [Fact]
+    public void NavigateToView_WhenCreateViewModelThrows_DoesNotCrash()
+    {
+        // Arrange - service provider con factory che lancia eccezione
+        var navService = new MockNavigationService();
+        var services = new ServiceCollection();
+        services.AddTransient<DictionaryListViewModel>(_ =>
+            throw new InvalidOperationException("Errore risoluzione DI"));
+        var throwingProvider = services.BuildServiceProvider();
+
+        var vm = new MainViewModel(
+            navService, _dialogService, _messageService, throwingProvider);
+
+        // Act - CreateViewModel → GetService → factory lancia
+        navService.NavigateTo(ViewType.DictionaryList);
+
+        // Assert - nessun crash, stato coerente
+        Assert.Null(vm.CurrentViewModel);
+        Assert.Equal("Dizionari", vm.PageTitle);
+    }
+
+    [Fact]
+    public void NavigateToView_WhenCreateViewModelThrows_ShowsErrorInStatusBar()
+    {
+        // Arrange
+        var navService = new MockNavigationService();
+        var msgService = new MockMessageService();
+        var services = new ServiceCollection();
+        services.AddTransient<DictionaryListViewModel>(_ =>
+            throw new InvalidOperationException("Errore risoluzione DI"));
+        var throwingProvider = services.BuildServiceProvider();
+
+        var vm = new MainViewModel(
+            navService, _dialogService, msgService, throwingProvider);
+
+        // Act
+        navService.NavigateTo(ViewType.DictionaryList);
+
+        // Assert - messaggio di errore nella status bar
+        Assert.Contains(msgService.Messages, m =>
+            m.Severity == MessageSeverity.Error &&
+            m.Message.Contains("Errore risoluzione DI"));
+    }
 }
 #endif

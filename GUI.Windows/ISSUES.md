@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -11,24 +11,24 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 1 |
+| **Alta** | 0 | 2 |
 | **Media** | 1 | 3 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 4
+**Totale aperte:** 3  
+**Totale risolte:** 5
 
 ---
 
 ## Indice Issue Aperte
 
-- [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
 ## Indice Issue Risolte
 
+- [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
 - [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
 - [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
@@ -38,81 +38,7 @@
 
 ## Priorità Alta
 
-
-### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
-
-**Categoria:** Bug (Anti-Pattern)  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`MainViewModel.NavigateToView` è `async void` e non ha try/catch. Se `InitializeViewModelAsync` lancia un'eccezione (es. DB non raggiungibile, service failure), l'eccezione non viene gestita e **crasha l'applicazione** con `UnhandledTaskException`.
-
-#### File Coinvolti
-
-- `GUI.Windows/ViewModels/MainViewModel.cs` (righe 89-101)
-
-#### Codice Problematico
-
-```csharp
-private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
-{
-    var viewModel = CreateViewModel(viewType);
-
-    if (viewModel is not null)
-    {
-        // Se questo lancia, l'app crasha (async void non cattura)
-        await InitializeViewModelAsync(viewModel, parameter);
-    }
-
-    CurrentViewModel = viewModel;
-    UpdateTitle(viewType);
-}
-```
-
-#### Problema Specifico
-
-- `async void` non consente al chiamante di osservare l'eccezione
-- È invocato da `OnCurrentViewChanged` (event handler → `async void` è accettabile) ma il `try/catch` è comunque mancante
-- Se un qualsiasi ViewModel.LoadAsync/InitializeAsync fallisce, l'app crasha
-- Il pattern è particolarmente pericoloso perché **ogni navigazione** passa da qui
-- `DeviceDetailViewModel.LoadAsync`, `DictionaryListViewModel.LoadAsync` ecc. hanno già `try/catch` interni, ma non tutti i path sono protetti
-
-#### Soluzione Proposta
-
-```csharp
-private async void NavigateToView(ViewType viewType, NavigationParameter? parameter)
-{
-    try
-    {
-        var viewModel = CreateViewModel(viewType);
-
-        if (viewModel is not null)
-        {
-            await InitializeViewModelAsync(viewModel, parameter);
-        }
-
-        CurrentViewModel = viewModel;
-        UpdateTitle(viewType);
-    }
-    catch (Exception ex)
-    {
-        // Fallback: mostra errore senza crashare l'app
-        CurrentViewModel = null;
-        UpdateTitle(viewType);
-        // Opzionale: mostra messaggio nella status bar
-    }
-}
-```
-
-#### Benefici Attesi
-
-- Nessun crash dell'app su errori di navigazione
-- UX resiliente: l'utente vede un messaggio di errore invece di un crash
-- Coerenza: error handling a tutti i livelli della pipeline navigazione
+*(Nessuna issue alta priorità aperta)*
 
 ---
 
@@ -321,6 +247,35 @@ public async Task<bool> ConfirmAsync(string message, string title)
 ---
 
 ## Issue Risolte
+
+### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
+
+**Categoria:** Bug (Anti-Pattern)  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/gui-005
+
+#### Soluzione Implementata
+
+1. Aggiunto `try/catch(Exception)` in `NavigateToView` (async void)
+2. Nel catch: `CurrentViewModel = null`, `UpdateTitle(viewType)`, messaggio errore permanente in status bar via `_messageService.Show(..., MessageSeverity.Error, autoHideSeconds: 0)`
+3. Protegge da: errori DI resolution, eccezioni non gestite in `InitializeViewModelAsync`, futuri ViewModel senza try/catch interno
+
+#### Test Aggiunti
+
+- `NavigateToView_WhenCreateViewModelThrows_DoesNotCrash` — DI factory lancia → nessun crash, stato coerente
+- `NavigateToView_WhenCreateViewModelThrows_ShowsErrorInStatusBar` — verifica messaggio `MessageSeverity.Error` nella status bar
+
+#### Benefici Ottenuti
+
+- Nessun crash dell'app su errori di navigazione ✅
+- UX resiliente: messaggio errore in status bar invece di crash ✅
+- Difesa in profondità: try/catch esterno + try/catch interni nei ViewModel ✅
+
+---
 
 ### GUI-008 - Refactoring GUI per Domain v2
 
