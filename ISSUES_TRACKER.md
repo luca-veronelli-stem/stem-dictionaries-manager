@@ -9,12 +9,12 @@
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 4 | 7 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 4 | 8 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 3 | 5 | 8 |
 | [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
-| **Trasversali** | **0** | **2** | **2** |
-| **Totale** | **16** | **29** | **45** |
+| **Trasversali** | **1** | **2** | **3** |
+| **Totale** | **16** | **30** | **46** |
 
 ---
 
@@ -24,15 +24,15 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 4 | 25% |
-| **Bassa** | 12 | 75% |
+| **Media** | 3 | 19% |
+| **Bassa** | 13 | 81% |
 | **Totale** | **16** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ████░░░░░░░░░░░░░░░░  4
-Bassa:       ████████████░░░░░░░░ 12
+Media:       ███░░░░░░░░░░░░░░░░░  3
+Bassa:       █████████████░░░░░░░ 13
 ```
 
 ---
@@ -62,8 +62,85 @@ Bassa:       ████████████░░░░░░░░ 12
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
+| [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
+
+### T-003 — Aggiungere logging infrastructure
+
+**Descrizione:**  
+L'applicazione non ha una struttura di logging. Attualmente viene usato solo `Debug.WriteLineIf` per warning in sviluppo. Serve aggiungere `ILogger<T>` (già disponibile via `Host.CreateDefaultBuilder()`) per:
+- Troubleshooting in produzione
+- Monitoraggio performance
+- Tracciamento errori
+
+**Status:** Aperto  
+**Priorità:** Bassa  
+**Data Apertura:** 2026-03-25
+
+**Componenti Coinvolti:**
+- Infrastructure (RepositoryBase, AppDbContext)
+- Services (tutti i Service)
+- GUI.Windows (ViewModels critici, App.xaml.cs)
+
+**Soluzione Proposta:**
+
+1. **Configurare logging in App.xaml.cs:**
+```csharp
+Host.CreateDefaultBuilder()
+    .ConfigureLogging(logging =>
+    {
+        logging.ClearProviders();
+        logging.AddDebug();  // Output Window in VS
+        logging.AddFile("logs/app-{Date}.log");  // File in AppData (opzionale)
+    })
+```
+
+2. **Iniettare `ILogger<T>` dove serve:**
+```csharp
+public class DictionaryService : IDictionaryService
+{
+    private readonly ILogger<DictionaryService> _logger;
+
+    public DictionaryService(..., ILogger<DictionaryService> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<Dictionary> AddAsync(...)
+    {
+        _logger.LogInformation("Adding dictionary {Name}", dictionary.Name);
+        // ...
+    }
+}
+```
+
+3. **Sostituire `Debug.WriteLineIf` con `ILogger`:**
+```csharp
+// Prima (INFRA-002)
+Debug.WriteLineIf(result.Count > 500, "[PERFORMANCE WARNING]...");
+
+// Dopo
+_logger.LogWarning("GetAllAsync returned {Count} records for {Entity}", result.Count, typeof(TEntity).Name);
+```
+
+**Sub-issue potenziali:**
+| # | Componente | Titolo | Effort |
+|---|------------|--------|--------|
+| 1 | Infrastructure | Aggiungere ILogger a RepositoryBase | S |
+| 2 | Services | Aggiungere ILogger a tutti i Service | S |
+| 3 | GUI.Windows | Configurare logging in App.xaml.cs | S |
+| 4 | GUI.Windows | Aggiungere ILogger a MainViewModel | S |
+
+**Effort totale stimato:** M (4-8h)
+
+**Benefici Attesi:**
+- Troubleshooting più semplice in produzione
+- Monitoraggio centralizzato
+- Sostituzione Debug.WriteLineIf con logging strutturato
+- Preparazione per futuro Azure Application Insights
+
+---
 
 ### T-002 — Rimozione BoardType e link diretto Board→Dictionary
 
@@ -136,8 +213,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-008~~ | ~~Refactoring Infrastructure per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-007~~ | ~~DatabaseSeeder.CreateBoard usa boardTypeId~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
-| [INFRA-002](./Infrastructure/ISSUES.md#infra-002--getallasync-senza-paginazione-rischia-performance-issues) | GetAllAsync senza paginazione | Media | Performance |
-| [INFRA-003](./Infrastructure/ISSUES.md#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile) | DesignTimeDbContextFactory path fragile | Media | Manutenibilità |
+| ~~INFRA-002~~ | ~~GetAllAsync senza paginazione~~ | ~~Media~~ | ✅ **Risolto** |
+| [INFRA-003]
 | ~~INFRA-004~~ | ~~Mancano repository BitInterpretation/CommandDeviceState~~ | ~~Bassa~~ | ✅ **Risolto** (SVC-001) |
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
@@ -206,7 +283,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-002** | Services | Manca IAuditService | M |
-| 2 | **INFRA-002** | Infrastructure | GetAllAsync senza paginazione | M |
+| 2 | **INFRA-003** | Infrastructure | DesignTimeDbContextFactory path fragile | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -240,7 +317,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ✅ 85% | BR-011 (VariableDeviceState), CORE-006, CORE-005 residui |
 | **Data Integrity** | ✅ 95% | SVC-009 risolta |
-| **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
+| **Performance** | ✅ 75% | INFRA-002 risolta (Debug warning), SVC-003 residuo |
 | **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
 | **Code Consistency** | ✅ 90% | INFRA-006, GUI-006, SVC-010 residui |
 | **Test Coverage** | ✅ 95% | 1254 test, TEST-008 risolta |
@@ -254,7 +331,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Bug** | 1 | INFRA-006 |
 | **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
 | **UX** | 1 | GUI-003 |
-| **Performance** | 2 | INFRA-002, SVC-003 |
+| **Performance** | 1 | SVC-003 |
 | **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
@@ -287,7 +364,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ✅ **GUI-006 risolta** — Rimossa registrazione duplicata LoginViewModel in App.xaml.cs. DI centralizzato in AddGUI(). 16 aperte, 29 risolte. Branch: `fix/gui-006` |
+| 2026-03-25 | ⚠️ **T-003 aperta** — Aggiungere logging infrastructure (ILogger<T>) a tutti i componenti. Priorità bassa. |
+| 2026-03-25 | ✅ **INFRA-002 risolta**
+| 2026-03-25 | ✅ **GUI-006 risolta**
 | 2026-03-25 | ✅ **CORE-006 risolta**
 | 2026-03-25 | ✅ **SVC-009 + TEST-008 risolte**
 | 2026-03-25 | ✅ **GUI-005 risolta**
