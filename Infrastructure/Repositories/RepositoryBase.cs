@@ -1,5 +1,6 @@
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Infrastructure.Repositories;
 
@@ -8,6 +9,12 @@ namespace Infrastructure.Repositories;
 /// </summary>
 public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class
 {
+    /// <summary>
+    /// Soglia oltre la quale viene emesso un warning in Debug.
+    /// Se una tabella supera questo limite, considerare paginazione.
+    /// </summary>
+    protected const int LargeResultSetWarningThreshold = 500;
+
     protected readonly AppDbContext Context;
     protected readonly DbSet<TEntity> DbSet;
 
@@ -24,7 +31,14 @@ public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEnti
 
     public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await DbSet.ToListAsync(cancellationToken);
+        var result = await DbSet.ToListAsync(cancellationToken);
+
+        // Warning in Debug se il dataset è grande — considera paginazione
+        Debug.WriteLineIf(result.Count > LargeResultSetWarningThreshold,
+            $"[PERFORMANCE WARNING] {typeof(TEntity).Name}: GetAllAsync returned {result.Count} records. " +
+            $"Consider adding pagination if this table continues to grow.");
+
+        return result;
     }
 
     public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
