@@ -26,9 +26,6 @@
         <DataTemplate DataType="{x:Type vm:DictionaryEditViewModel}">
             <views:DictionaryEditView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:VariableListViewModel}">
-            <views:VariableListView />
-        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:VariableEditViewModel}">
             <views:VariableEditView />
         </DataTemplate>

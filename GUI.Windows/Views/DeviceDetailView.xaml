@@ -55,7 +55,7 @@
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
-                    <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeName}" Width="200" MinWidth="150"/>
+                    <DataGridTextColumn Header="Tipo" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
                     <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="100" MinWidth="80"/>
                 </DataGrid.Columns>
             </DataGrid>

@@ -180,6 +180,34 @@ public partial class CommandEditViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task DeleteAsync()
+    {
+        if (IsNew) return;
+
+        var result = await _dialogService.ShowConfirmAsync(
+            "Conferma eliminazione",
+            $"Eliminare il comando '{Name}'?\nQuesta operazione non può essere annullata.");
+
+        if (result != DialogResult.Yes) return;
+
+        try
+        {
+            IsBusy = true;
+            await _commandService.DeleteAsync(_editingId!.Value);
+            _messageService.Show($"Comando '{Name}' eliminato", MessageSeverity.Success);
+            _navigationService.GoBack();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task CancelAsync()
     {
         if (HasChanges)

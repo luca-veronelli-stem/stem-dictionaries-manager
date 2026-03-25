@@ -90,11 +90,25 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
+            // GoBack: riusa il ViewModel cached (preserva stato utente)
+            var cached = _navigationService.CachedViewModel;
+            if (cached is not null)
+            {
+                if (cached is DictionaryEditViewModel dictEditVm)
+                    await dictEditVm.ReloadVariablesAsync();
+
+                CurrentViewModel = cached;
+                UpdateTitle(viewType);
+                return;
+            }
+
+            // Forward: crea nuovo ViewModel
             var viewModel = CreateViewModel(viewType);
 
             if (viewModel is not null)
             {
                 await InitializeViewModelAsync(viewModel, parameter);
+                _navigationService.SetCurrentViewModel(viewModel);
             }
 
             CurrentViewModel = viewModel;
@@ -119,7 +133,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => _serviceProvider.GetService(typeof(DeviceDetailViewModel)),
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
             ViewType.DictionaryEdit => _serviceProvider.GetService(typeof(DictionaryEditViewModel)),
-            ViewType.VariableList => _serviceProvider.GetService(typeof(VariableListViewModel)),
             ViewType.VariableEdit => _serviceProvider.GetService(typeof(VariableEditViewModel)),
             ViewType.CommandList => _serviceProvider.GetService(typeof(CommandListViewModel)),
             ViewType.CommandEdit => _serviceProvider.GetService(typeof(CommandEditViewModel)),
@@ -138,10 +151,6 @@ public partial class MainViewModel : ObservableObject
             // List ViewModels - caricano i dati iniziali
             case DictionaryListViewModel vm:
                 await vm.LoadAsync();
-                break;
-
-            case VariableListViewModel vm when parameter?.ParentId is int dictionaryId:
-                await vm.InitializeAsync(dictionaryId);
                 break;
 
             case CommandListViewModel vm:
@@ -192,7 +201,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => "Dettaglio Dispositivo",
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
-            ViewType.VariableList => "Variabili",
             ViewType.VariableEdit => "Modifica Variabile",
             ViewType.CommandList => "Comandi",
             ViewType.CommandEdit => "Modifica Comando",

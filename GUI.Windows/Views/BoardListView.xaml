@@ -36,10 +36,20 @@
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
                 <DataGridTextColumn Header="Dispositivo" Binding="{Binding DeviceType}" Width="110" MinWidth="80"/>
-                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardType}" Width="120" MinWidth="80"/>
+                <DataGridTextColumn Header="FW Type" Binding="{Binding FirmwareType}" Width="70" MinWidth="50">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="N°" Binding="{Binding BoardNumber}" Width="50" MinWidth="40">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -48,20 +58,10 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
+                <DataGridCheckBoxColumn Header="Primaria" Binding="{Binding IsPrimary}" Width="70" MinWidth="50"/>
+                <DataGridTextColumn Header="Dizionario" Binding="{Binding DictionaryName}" Width="150" MinWidth="80"/>
                 <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120" MinWidth="80"/>
                 <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>
-                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="✏️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

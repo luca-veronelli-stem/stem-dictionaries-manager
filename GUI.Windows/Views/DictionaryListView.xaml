@@ -36,10 +36,13 @@
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200" MinWidth="120"/>
                 <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="100"/>
-                <DataGridTextColumn Header="Tipo Scheda" Binding="{Binding BoardTypeDisplay}" Width="150" MinWidth="100"/>
+                <DataGridTextColumn Header="Tipo" Binding="{Binding SemanticDisplay}" Width="120" MinWidth="80"/>
                 <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -48,20 +51,6 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Azioni" Width="220" MinWidth="220">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="✏️ Modifica" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="📋 Variabili" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
-                                        Command="{Binding DataContext.OpenVariablesCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

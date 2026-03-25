@@ -140,9 +140,9 @@ public partial class DeviceDetailViewModel : ObservableObject
     {
         if (SelectedDictionary == null) return;
 
-        _navigationService.NavigateTo(ViewType.VariableList, new NavigationParameter
+        _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {
-            ParentId = SelectedDictionary.Id
+            EntityId = SelectedDictionary.Id
         });
     }
 

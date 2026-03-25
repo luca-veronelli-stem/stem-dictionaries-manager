@@ -119,40 +119,6 @@ public partial class CommandListViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.CommandEdit, new NavigationParameter { EntityId = item.Id });
     }
 
-    [RelayCommand]
-    private async Task DeleteAsync(CommandListItem? item)
-    {
-        if (item is null) return;
-
-        var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare il comando '{item.Name}'?");
-
-        if (result != DialogResult.Yes) return;
-
-        try
-        {
-            IsBusy = true;
-            await _commandService.DeleteAsync(item.Id);
-            _messageService.Show($"Comando '{item.Name}' eliminato", MessageSeverity.Success);
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    [RelayCommand]
-    private void GoBack()
-    {
-        _navigationService.GoBack();
-    }
-
     private void ApplyFilter()
     {
         if (string.IsNullOrWhiteSpace(SearchText))

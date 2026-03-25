@@ -105,41 +105,6 @@ public partial class DictionaryListViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter { EntityId = item.Id });
     }
 
-    [RelayCommand]
-    private async Task DeleteAsync(DictionaryListItem? item)
-    {
-        if (item is null) return;
-
-        var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Vuoi eliminare il dizionario '{item.Name}'?\nQuesta operazione non può essere annullata.");
-
-        if (result != Abstractions.DialogResult.Yes) return;
-
-        try
-        {
-            IsBusy = true;
-            await _dictionaryService.DeleteAsync(item.Id);
-            _messageService.Show($"Dizionario '{item.Name}' eliminato", MessageSeverity.Success);
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    [RelayCommand]
-    private void OpenVariables(DictionaryListItem? item)
-    {
-        if (item is null) return;
-        _navigationService.NavigateTo(ViewType.VariableList, new NavigationParameter { ParentId = item.Id });
-    }
-
     private void ApplyFilter()
     {
         if (string.IsNullOrWhiteSpace(SearchText))

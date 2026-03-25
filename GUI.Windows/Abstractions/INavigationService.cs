@@ -9,7 +9,6 @@ public enum ViewType
     DeviceDetail,
     DictionaryList,
     DictionaryEdit,
-    VariableList,
     VariableEdit,
     CommandList,
     CommandEdit,
@@ -65,6 +64,16 @@ public interface INavigationService
     /// Indica se è possibile tornare indietro.
     /// </summary>
     bool CanGoBack { get; }
+
+    /// <summary>
+    /// ViewModel ripristinato dal GoBack (null se navigazione forward).
+    /// </summary>
+    object? CachedViewModel { get; }
+
+    /// <summary>
+    /// Registra il ViewModel corrente per il caching nella history.
+    /// </summary>
+    void SetCurrentViewModel(object? viewModel);
 
     /// <summary>
     /// Naviga verso una view specifica.

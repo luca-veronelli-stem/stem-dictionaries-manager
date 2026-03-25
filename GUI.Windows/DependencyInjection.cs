@@ -28,7 +28,6 @@ public static class DependencyInjection
         services.AddTransient<DeviceDetailViewModel>();
         services.AddTransient<DictionaryListViewModel>();
         services.AddTransient<DictionaryEditViewModel>();
-        services.AddTransient<VariableListViewModel>();
         services.AddTransient<VariableEditViewModel>();
         services.AddTransient<CommandListViewModel>();
         services.AddTransient<CommandEditViewModel>();
