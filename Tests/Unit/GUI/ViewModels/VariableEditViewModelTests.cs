@@ -13,6 +13,7 @@ namespace Tests.Unit.GUI.ViewModels;
 public class VariableEditViewModelTests
 {
     private readonly MockVariableService _variableService;
+    private readonly MockDictionaryService _dictionaryService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +22,17 @@ public class VariableEditViewModelTests
     public VariableEditViewModelTests()
     {
         _variableService = new MockVariableService();
+        _dictionaryService = new MockDictionaryService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
+        // Seed dizionario non-standard di default (AddressHigh = 0x80)
+        _dictionaryService.SeedData(new Dictionary("TestDict", null, isStandard: false));
+
         _viewModel = new VariableEditViewModel(
             _variableService,
+            _dictionaryService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -241,10 +247,10 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void FullAddressDisplay_FormatsCorrectly()
+    public async Task FullAddressDisplay_FormatsCorrectly()
     {
-        // Arrange
-        _viewModel.AddressHighHex = "80";
+        // Arrange - dizionario non-standard già seedato (AddressHigh = 0x80)
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.AddressLowHex = "01";
 
         // Assert
@@ -252,10 +258,11 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void FullAddressDisplay_HandlesEmptyValues()
+    public async Task FullAddressDisplay_HandlesEmptyValues()
     {
-        // Empty values should show 0x0000
-        Assert.Equal("0x0000", _viewModel.FullAddressDisplay);
+        // Dopo InitializeAsync con dizionario non-standard, AddressHigh = 0x80
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+        Assert.Equal("0x8000", _viewModel.FullAddressDisplay);
     }
 
     [Fact]
@@ -494,20 +501,6 @@ public class VariableEditViewModelTests
     [Theory]
     [InlineData("00", true)]
     [InlineData("FF", true)]
-    [InlineData("AB", true)]
-    [InlineData("1a", true)]
-    [InlineData("", true)]  // Empty is valid
-    [InlineData("GG", false)]
-    [InlineData("ZZ", false)]
-    public void IsAddressHighValid_ValidatesHexInput(string input, bool expected)
-    {
-        _viewModel.AddressHighHex = input;
-        Assert.Equal(expected, _viewModel.IsAddressHighValid);
-    }
-
-    [Theory]
-    [InlineData("00", true)]
-    [InlineData("FF", true)]
     [InlineData("", true)]
     [InlineData("XY", false)]
     public void IsAddressLowValid_ValidatesHexInput(string input, bool expected)
@@ -610,10 +603,10 @@ public class VariableEditViewModelTests
     [Fact]
     public async Task SaveCommand_Bitmapped_CallsUpdateBitInterpretationsAsync()
     {
-        // Arrange
+        // Arrange - dizionario non-standard già seedato (AddressHigh = 0x80)
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.Name = "BitmappedVar";
-        _viewModel.AddressHighHex = "00";
+        // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "50";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = 1;
@@ -625,6 +618,82 @@ public class VariableEditViewModelTests
         // Assert
         Assert.Contains(_variableService.MethodCalls,
             m => m.StartsWith("UpdateBitInterpretationsAsync:"));
+    }
+
+    #endregion
+
+    #region AddressHigh Computed Tests
+
+    [Fact]
+    public void AddressHighHex_BeforeInitialize_DefaultsToNonStandard()
+    {
+        // Prima di InitializeAsync, _isStandardDictionary è false (default)
+        Assert.Equal("80", _viewModel.AddressHighHex);
+    }
+
+    [Fact]
+    public async Task AddressHighHex_StandardDictionary_Returns00()
+    {
+        // Arrange
+        _dictionaryService.Reset();
+        _dictionaryService.SeedData(new Dictionary("Standard", null, isStandard: true));
+
+        var vm = new VariableEditViewModel(
+            _variableService, _dictionaryService,
+            _navigationService, _dialogService, _messageService);
+
+        // Act
+        await vm.InitializeAsync(null, dictionaryId: 1);
+
+        // Assert
+        Assert.Equal("00", vm.AddressHighHex);
+        Assert.Equal("0x0000", vm.FullAddressDisplay);
+    }
+
+    [Fact]
+    public async Task AddressHighHex_NonStandardDictionary_Returns80()
+    {
+        // Act - dizionario non-standard seedato nel ctor
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+
+        // Assert
+        Assert.Equal("80", _viewModel.AddressHighHex);
+    }
+
+    [Fact]
+    public async Task AddressHighHex_DictionaryNotFound_DefaultsTo80()
+    {
+        // Arrange - nessun dizionario con ID 999
+        // Act
+        await _viewModel.InitializeAsync(null, dictionaryId: 999);
+
+        // Assert - fallback: _isStandardDictionary = false → "80"
+        Assert.Equal("80", _viewModel.AddressHighHex);
+    }
+
+    [Fact]
+    public async Task SaveAsync_StandardDictionary_SavesWithAddressHigh00()
+    {
+        // Arrange
+        _dictionaryService.Reset();
+        _dictionaryService.SeedData(new Dictionary("Standard", null, isStandard: true));
+
+        var vm = new VariableEditViewModel(
+            _variableService, _dictionaryService,
+            _navigationService, _dialogService, _messageService);
+
+        await vm.InitializeAsync(null, dictionaryId: 1);
+        vm.Name = "StdVar";
+        vm.AddressLowHex = "05";
+        vm.SelectedDataTypeKind = DataTypeKind.UInt16;
+
+        // Act
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        // Assert - verifica che la variabile sia stata creata con AddressHigh=0x00
+        Assert.Contains(_variableService.MethodCalls,
+            m => m.StartsWith("AddAsync:1:StdVar"));
+        Assert.Equal("00", vm.AddressHighHex);
     }
 
     #endregion
