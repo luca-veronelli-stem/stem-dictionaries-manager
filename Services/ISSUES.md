@@ -12,25 +12,25 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 2 |
-| **Media** | 2 | 2 |
-| **Bassa** | 4 | 1 |
+| **Media** | 1 | 3 |
+| **Bassa** | 3 | 2 |
 
-**Totale aperte:** 6  
-**Totale risolte:** 5
+**Totale aperte:** 4  
+**Totale risolte:** 7
 
 ---
 
 ## Indice Issue Aperte
 
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
-- [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
 - [SVC-007 - DependencyInjection non valida prerequisiti](#svc-007--dependencyinjection-non-valida-prerequisiti)
-- [SVC-010 - Class1.cs placeholder non rimosso](#svc-010--class1cs-placeholder-non-rimosso)
 
 ## Indice Issue Risolte
 
+- [SVC-010 - Class1.cs placeholder non rimosso](#svc-010--class1cs-placeholder-non-rimosso)
+- [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services) (Wontfix)
 - [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
 - [SVC-011 - Refactoring Services per Domain v2](#svc-011--refactoring-services-per-domain-v2)
 - [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
@@ -83,55 +83,6 @@ public interface IAuditService
 - Gestione centralizzata dell'audit
 - Possibilità di query su audit trail
 - Integrazione con autenticazione (userId)
-
----
-
-### SVC-003 - GetAllAsync senza paginazione nei services
-
-**Categoria:** Performance  
-**Priorità:** Media  
-**Impatto:** Alto (futuro)  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Tutti i metodi `GetAllAsync` nei services caricano l'intera collezione in memoria. Con migliaia di dizionari/variabili/comandi, questo causerà problemi di performance.
-
-#### File Coinvolti
-
-- `Services/DictionaryService.cs` (GetAllAsync)
-- `Services/VariableService.cs` (GetAllAsync, GetByDictionaryIdAsync)
-- `Services/CommandService.cs` (GetAllAsync)
-- `Services/BoardService.cs` (GetAllAsync, GetBoardTypesAsync)
-- `Services/UserService.cs` (GetAllAsync)
-
-#### Soluzione Proposta
-
-Aggiungere overload con paginazione:
-
-```csharp
-// Interfaces
-Task<PagedResult<Dictionary>> GetAllAsync(int page, int pageSize, CancellationToken ct = default);
-
-// PagedResult<T> class
-public class PagedResult<T>
-{
-    public IReadOnlyList<T> Items { get; init; }
-    public int TotalCount { get; init; }
-    public int Page { get; init; }
-    public int PageSize { get; init; }
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public bool HasNextPage => Page < TotalPages;
-    public bool HasPreviousPage => Page > 1;
-}
-```
-
-#### Benefici Attesi
-
-- Performance scalabile
-- Riduzione memory footprint
-- UX migliore con lazy loading
 
 ---
 
@@ -313,45 +264,55 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 
 ---
 
-### SVC-010
+## Issue Risolte
+
+### SVC-010 - Class1.cs placeholder non rimosso
 
 **Categoria:** Code Smell  
 **Priorità:** Bassa  
 **Impatto:** Nullo  
-**Status:** Aperto  
+**Status:** ✅Risolto  
 **Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/svc-003
 
-#### Descrizione
+#### Soluzione Implementata
 
-`Services/Class1.cs` è il placeholder generato da `dotnet new classlib` rimasto nel progetto. I placeholder di `Core` e `Tests` sono stati rimossi in SESSION_002, ma quello di Services no.
+File `Services/Class1.cs` eliminato.
 
-#### File Coinvolti
+#### Benefici Ottenuti
 
-- `Services/Class1.cs`
-
-#### Codice Problematico
-
-```csharp
-namespace Services
-{
-    public class Class1
-    {
-    }
-}
-```
-
-#### Soluzione Proposta
-
-Eliminare il file.
-
-#### Benefici Attesi
-
-- Codebase più pulita
-- Nessuna classe vuota nel namespace
+- Codebase più pulita ✅
+- Nessuna classe vuota nel namespace ✅
 
 ---
 
-## Issue Risolte
+### SVC-003 - GetAllAsync senza paginazione nei services
+
+**Categoria:** Performance  
+**Priorità:** Media  
+**Impatto:** Basso (per questo progetto)  
+**Status:** ⚪ Wontfix  
+**Data Apertura:** 2026-03-18  
+**Data Chiusura:** 2026-03-25  
+**Motivazione:** Duplicato di INFRA-002
+
+#### Descrizione Originale
+
+I metodi `GetAllAsync` nei services caricano l'intera collezione in memoria senza paginazione.
+
+#### Razionale Wontfix
+
+1. **INFRA-002 già copre questo caso**: Il warning `Debug.WriteLineIf` aggiunto in `RepositoryBase.GetAllAsync` notifica lo sviluppatore se una tabella supera 500 record
+2. **I Services chiamano i Repository**: Quindi il warning viene già emesso quando un Service chiama `GetAllAsync`
+3. **Desktop app con tabelle piccole**: Paginazione = 2 query (Count + Skip/Take) = più lento per dataset piccoli
+4. **YAGNI**: Se in futuro serve paginazione, si aggiungerà quando necessario
+
+#### Riferimento
+
+Vedi [INFRA-002](../Infrastructure/ISSUES.md#infra-002--getallasync-senza-paginazione-rischia-performance-issues) per la soluzione implementata.
+
+---
 
 ### SVC-009 - VariableMapper.ToDomain non mappa Format
 

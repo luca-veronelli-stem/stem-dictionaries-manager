@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 4 | 7 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 6 | 8 |
-| [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
+| [Services](./Services/ISSUES.md) | 4 | 7 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
 | **Trasversali** | **1** | **2** | **3** |
-| **Totale** | **15** | **31** | **46** |
+| **Totale** | **13** | **33** | **46** |
 
 ---
 
@@ -24,15 +24,15 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 2 | 13% |
-| **Bassa** | 13 | 87% |
-| **Totale** | **15** | 100% |
+| **Media** | 1 | 8% |
+| **Bassa** | 12 | 92% |
+| **Totale** | **13** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ██░░░░░░░░░░░░░░░░░░  2
-Bassa:       █████████████░░░░░░░ 13
+Media:       █░░░░░░░░░░░░░░░░░░░  1
+Bassa:       ████████████░░░░░░░░ 12
 ```
 
 ---
@@ -228,12 +228,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~SVC-008~~ | ~~DictionaryService.AddAsync blocca Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
 | ~~SVC-004~~ | ~~BoardMapper overload mancanti~~ | ~~Bassa~~ | ✅ **Risolto (T-002)** |
 | ~~SVC-009~~ | ~~VariableMapper.ToDomain non mappa Format~~ | ~~Media~~ | ✅ **Risolto** |
+| ~~SVC-003~~ | ~~GetAllAsync senza paginazione~~ | ~~Media~~ | ⚪ **Wontfix** |
 | [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService per gestione audit trail | Alta | Feature |
-| [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
 | [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | CommandService.GetWithDeviceStatesAsync non espone DeviceStates | Bassa | UX |
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
-| [SVC-010](./Services/ISSUES.md#svc-010--class1cs-placeholder-non-rimosso) | Class1.cs placeholder non rimosso | Bassa | Code Smell |
+| ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
 ### GUI.Windows (3 issue aperte, 5 risolte)
 
@@ -283,7 +283,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | **SVC-002** | Services | Manca IAuditService | M |
-| 2 | **SVC-003** | Services | GetAllAsync senza paginazione nei Services | S |
+| 2 | **T-003** | Trasversale | Logging infrastructure | M |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -317,7 +317,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ✅ 85% | BR-011 (VariableDeviceState), CORE-006, CORE-005 residui |
 | **Data Integrity** | ✅ 95% | SVC-009 risolta |
-| **Performance** | ✅ 75% | INFRA-002 risolta (Debug warning), SVC-003 residuo |
+| **Performance** | ✅ 100% | INFRA-002 + SVC-003 (Wontfix, coperto da INFRA-002) |
 | **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
 | **Code Consistency** | ✅ 90% | INFRA-006, GUI-006, SVC-010 residui |
 | **Test Coverage** | ✅ 95% | 1254 test, TEST-008 risolta |
@@ -331,11 +331,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Bug** | 1 | INFRA-006 |
 | **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
 | **UX** | 1 | GUI-003 |
-| **Performance** | 1 | SVC-003 |
+| **Performance** | 0 | - |
 | **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 1 | TEST-006 |
-| **Code Smell** | 1 | SVC-010 |
+| **Code Smell** | 0 | - |
 | **Feature** | 1 | SVC-002 |
 | **Robustezza** | 1 | SVC-007 |
 
@@ -364,7 +364,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ✅ **INFRA-003 risolta** — DesignTimeDbContextFactory ora cerca .slnx/.sln risalendo la gerarchia directory. Supporta single-file publish, CI/CD, nuovo formato .slnx. 15 aperte, 31 risolte. Branch: `fix/infra-003` |
+| 2026-03-25 | ✅ **SVC-010 risolta** — Eliminato Class1.cs placeholder. 13 aperte, 33 risolte. |
+| 2026-03-25 | ⚪ **SVC-003 Wontfix**
+| 2026-03-25 | ✅ **INFRA-003 risolta**
 | 2026-03-25 | ⚠️ **T-003 aperta**
 | 2026-03-25 | ✅ **INFRA-002 risolta**
 | 2026-03-25 | ✅ **GUI-006 risolta**
