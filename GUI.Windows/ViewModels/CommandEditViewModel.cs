@@ -9,7 +9,7 @@ namespace GUI.Windows.ViewModels;
 /// <summary>
 /// ViewModel per la creazione/modifica di un comando.
 /// </summary>
-public partial class CommandEditViewModel : ObservableObject
+public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly ICommandService _commandService;
     private readonly INavigationService _navigationService;
@@ -213,8 +213,8 @@ public partial class CommandEditViewModel : ObservableObject
         if (HasChanges)
         {
             var result = await _dialogService.ShowConfirmAsync(
-                "Conferma",
-                "Ci sono modifiche non salvate. Uscire comunque?");
+                "Annulla modifiche",
+                "Sei sicuro di voler annullare le modifiche?");
             if (result != DialogResult.Yes) return;
         }
 

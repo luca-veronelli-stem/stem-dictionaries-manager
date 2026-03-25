@@ -23,7 +23,7 @@ public record VariableListItem
 /// ViewModel per la creazione/modifica di un dizionario.
 /// Vista unificata: form dizionario in alto + lista variabili in basso.
 /// </summary>
-public partial class DictionaryEditViewModel : ObservableObject
+public partial class DictionaryEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IDictionaryService _dictionaryService;
     private readonly IVariableService _variableService;
@@ -277,8 +277,8 @@ public partial class DictionaryEditViewModel : ObservableObject
         if (HasChanges)
         {
             var result = await _dialogService.ShowConfirmAsync(
-                "Modifiche non salvate",
-                "Ci sono modifiche non salvate. Vuoi uscire senza salvare?");
+                "Annulla modifiche",
+                "Sei sicuro di voler annullare le modifiche?");
 
             if (result != Abstractions.DialogResult.Yes)
                 return;

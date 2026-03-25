@@ -260,8 +260,19 @@ public partial class MainViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.Settings);
 
     [RelayCommand]
-    private void GoBack()
+    private async Task GoBackAsync()
     {
+        // Se il ViewModel corrente ha modifiche non salvate, avvisa
+        if (CurrentViewModel is IEditableViewModel { HasChanges: true })
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Modifiche non salvate",
+                "Ci sono modifiche non salvate. Vuoi tornare indietro senza salvare?");
+
+            if (result != DialogResult.Yes)
+                return;
+        }
+
         _navigationService.GoBack();
     }
 
