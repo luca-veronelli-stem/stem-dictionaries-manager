@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Infrastructure**.
 
-> **Ultimo aggiornamento:** 2026-03-24
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
@@ -12,23 +12,23 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
-| **Media** | 2 | 0 |
+| **Media** | 1 | 1 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 4
+**Totale aperte:** 3  
+**Totale risolte:** 5
 
 ---
 
 ## Indice Issue Aperte
 
-- [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
 - [INFRA-006 - DictionaryRepository.GetByNameAsync non normalizza input](#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input)
 
 ## Indice Issue Risolte
 
+- [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-008 - Refactoring Infrastructure per Domain v2](#infra-008--refactoring-infrastructure-per-domain-v2)
 - [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
@@ -37,76 +37,6 @@
 ---
 
 ## Priorità Media
-
-### INFRA-002 - GetAllAsync senza paginazione rischia performance issues
-
-**Categoria:** Performance  
-**Priorità:** Media  
-**Impatto:** Alto (futuro)  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-18  
-
-#### Descrizione
-
-Tutti i metodi `GetAllAsync` in `RepositoryBase` e nei repository specifici caricano l'intera tabella in memoria senza paginazione. Con migliaia di variabili/comandi, questo causerà problemi di performance.
-
-#### File Coinvolti
-
-- `Infrastructure/Repositories/RepositoryBase.cs` (righe 25-28)
-- `Infrastructure/Interfaces/IRepository.cs` (riga 8)
-
-#### Codice Problematico
-
-```csharp
-public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(
-    CancellationToken cancellationToken = default)
-{
-    return await DbSet.ToListAsync(cancellationToken);  // <-- Carica TUTTO
-}
-```
-
-#### Problema Specifico
-
-- Un dizionario con 500+ variabili verrebbe caricato tutto
-- La tabella AuditEntries crescerà indefinitamente
-- GC pressure e memory spikes su dataset grandi
-- Non scala per uso produzione
-
-#### Soluzione Proposta
-
-**Opzione A: Aggiungere overload con paginazione**
-
-```csharp
-public interface IRepository<TEntity> where TEntity : class
-{
-    // Esistente (per retrocompatibilità)
-    Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken ct = default);
-    
-    // Nuovo metodo paginato
-    Task<PagedResult<TEntity>> GetPagedAsync(int page, int pageSize, 
-        CancellationToken ct = default);
-}
-
-public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
-```
-
-**Opzione B: Limite implicito (pragmatico)**
-
-```csharp
-public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(
-    CancellationToken cancellationToken = default)
-{
-    return await DbSet.Take(1000).ToListAsync(cancellationToken);
-}
-```
-
-#### Benefici Attesi
-
-- Scalabilità su dataset grandi
-- Minore GC pressure
-- API più robusta per produzione
-
----
 
 ### INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile
 
@@ -318,6 +248,52 @@ CREATE TABLE Dictionaries (..., Name TEXT COLLATE NOCASE);
 ---
 
 ## Issue Risolte
+
+### INFRA-002 - GetAllAsync senza paginazione rischia performance issues
+
+**Categoria:** Performance  
+**Priorità:** Media  
+**Impatto:** Basso (per questo progetto)  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/infra-002
+
+#### Soluzione Implementata
+
+Approccio **pragmatico**: warning in Debug invece di paginazione.
+
+Per un'app desktop con tabelle piccole (Users, Boards, Dictionaries, Commands < 500 record), la paginazione sarebbe overengineering. Aggiunto invece un **warning automatico** quando il dataset supera 500 record:
+
+```csharp
+protected const int LargeResultSetWarningThreshold = 500;
+
+public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(...)
+{
+    var result = await DbSet.ToListAsync(cancellationToken);
+
+    // Warning in Debug se il dataset è grande
+    Debug.WriteLineIf(result.Count > LargeResultSetWarningThreshold,
+        $"[PERFORMANCE WARNING] {typeof(TEntity).Name}: GetAllAsync returned {result.Count} records. " +
+        $"Consider adding pagination if this table continues to grow.");
+
+    return result;
+}
+```
+
+#### Razionale
+
+- Desktop app con single user → nessun beneficio da paginazione
+- Paginazione = 2 query (Count + Skip/Take) → **più lento** per dataset piccoli
+- Warning in Debug notifica lo sviluppatore se serve azione
+- Zero breaking changes, zero overhead in Release
+
+#### Benefici Ottenuti
+
+- Monitoraggio automatico crescita tabelle ✅
+- Nessun overhead in produzione ✅
+- API invariata (retrocompatibile) ✅
+- YAGNI rispettato ✅
 
 ### INFRA-008 - Refactoring Infrastructure per Domain v2
 
