@@ -105,7 +105,7 @@ Services/
 ├── Class1.cs                      # ⚠️ Placeholder non rimosso (SVC-010)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 6 issue aperte, 5 risolte
+└── ISSUES.md                      # 4 issue aperte, 7 risolte
 ```
 
 ---
@@ -314,7 +314,7 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 6 issue aperte, 5 risolte (0 critiche, 0 alte, 2 medie, 4 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 7 risolte (0 critiche, 0 alte, 1 media, 3 basse)
 
 ### Top Issue
 
