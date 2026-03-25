@@ -11,10 +11,10 @@
 | [Core](./Core/ISSUES.md) | 4 | 3 | 7 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 4 | 8 |
 | [Services](./Services/ISSUES.md) | 7 | 4 | 11 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 4 | 4 | 8 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 5 | 8 |
 | [Tests](./Tests/ISSUES.md) | 2 | 7 | 9 |
 | **Trasversali** | **0** | **2** | **2** |
-| **Totale** | **21** | **24** | **45** |
+| **Totale** | **20** | **25** | **45** |
 
 ---
 
@@ -23,14 +23,14 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 1 | 5% |
-| **Media** | 8 | 38% |
-| **Bassa** | 12 | 57% |
-| **Totale** | **21** | 100% |
+| **Alta** | 0 | 0% |
+| **Media** | 8 | 40% |
+| **Bassa** | 12 | 60% |
+| **Totale** | **20** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        █░░░░░░░░░░░░░░░░░░░  1  (GUI-005 crash)
+Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       ████████░░░░░░░░░░░░  8
 Bassa:       ████████████░░░░░░░░ 12
 ```
@@ -49,12 +49,12 @@ Bassa:       ████████████░░░░░░░░ 12
 | ~~TEST-009~~ | Tests | Aggiornamento test per Domain v2 | ✅ **Risolto** |
 | ~~SVC-008~~ | Services | DictionaryService.AddAsync blocca Shared Peripheral | ✅ **Risolto (T-002)** |
 | ~~INFRA-007~~ | Infrastructure | DatabaseSeeder.CreateBoard usa boardTypeId | ✅ **Risolto (T-002)** |
-| **GUI-005** | GUI.Windows | **NavigateToView async void senza error handling** | 🔴 **Aperto** |
+| ~~GUI-005~~ | GUI.Windows | ~~NavigateToView async void senza error handling~~ | ✅ **Risolto** |
 | ~~TEST-007~~ | Tests | Manca test Shared Peripheral | ✅ **Risolto (T-002)** |
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
 | ~~T-001~~ | Trasversale | Dizionario Standard deve essere unico | ✅ **Risolto** |
 
-✅ **T-002 completata.** 11 issue risolte. Rimane **1 issue alta priorità: GUI-005** (crash su navigazione).
+✅ **0 issue alta priorità aperte.**
 
 ---
 
@@ -158,7 +158,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | [SVC-010](./Services/ISSUES.md#svc-010--class1cs-placeholder-non-rimosso) | Class1.cs placeholder non rimosso | Bassa | Code Smell |
 
-### GUI.Windows (4 issue aperte, 4 risolte)
+### GUI.Windows (3 issue aperte, 5 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -166,7 +166,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~GUI-008~~ | ~~Refactoring GUI per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-007~~ | ~~DictionaryListItem non mostra DeviceType~~ | ~~Media~~ | ✅ **Risolto (T-002)** |
-| [GUI-005](./GUI.Windows/ISSUES.md#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling) | **NavigateToView async void senza error handling** | **Alta** | **Bug** |
+| ~~GUI-005~~ | ~~NavigateToView async void senza error handling~~ | ~~Alta~~ | ✅ **Risolto** |
 | [GUI-006](./GUI.Windows/ISSUES.md#gui-006--loginviewmodel-registrato-due-volte-nel-di-container) | LoginViewModel registrato due volte nel DI | Media | Code Smell |
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | App.Services static impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
@@ -205,9 +205,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **GUI-005** | GUI.Windows | NavigateToView async void senza try/catch (crash) | S |
-| 2 | **SVC-009** | Services | VariableMapper.ToDomain non mappa Format (data loss) | S |
-| 3 | **TEST-008** | Tests | VariableMapperTests non testa Format round-trip | S |
+| 1 | **SVC-009** | Services | VariableMapper.ToDomain non mappa Format (data loss) | S |
+| 2 | **TEST-008** | Tests | VariableMapperTests non testa Format round-trip | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -224,12 +223,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | Services/Mapping (9) | ✅ 89 | - | ~100% |
 | Services (5) | - | ✅ 98 | ~95% |
 | Services/DI | ✅ 10 | - | 100% |
-| GUI.Windows/ViewModels (15) | ✅ 252 | ✅ 11 | ~90% |
+| GUI.Windows/ViewModels (15) | ✅ 254 | ✅ 11 | ~90% |
 | GUI.Windows/Services (3) | ✅ 15 | - | ~70% |
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
-**Totale test:** ~490 CI (net10.0) / 1252 Windows (net10.0-windows)
+**Totale test:** ~490 CI (net10.0) / 1254 Windows (net10.0-windows)
 
 ---
 
@@ -242,9 +241,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Input Validation** | ✅ 85% | BR-011 (VariableDeviceState), CORE-006, CORE-005 residui |
 | **Data Integrity** | ⚠️ 80% | SVC-009 (Format data loss) residuo |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
-| **Resilience** | ⚠️ 80% | GUI-005 (crash su navigazione) residuo |
+| **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
 | **Code Consistency** | ✅ 90% | INFRA-006, GUI-006, SVC-010 residui |
-| **Test Coverage** | ✅ 92% | 1252 test, TEST-008 gap residuo |
+| **Test Coverage** | ✅ 92% | 1254 test, TEST-008 gap residuo |
 
 ---
 
@@ -252,7 +251,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **Bug** | 3 | **SVC-009**, CORE-006, INFRA-006 |
+| **Bug** | 3 | **SVC-009** (data loss), CORE-006, INFRA-006 |
 | **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
 | **UX** | 1 | GUI-003 |
 | **Performance** | 2 | INFRA-002, SVC-003 |
@@ -261,7 +260,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
 | **Code Smell** | 2 | SVC-010, GUI-006 |
 | **Feature** | 1 | SVC-002 |
-| **Robustezza** | 2 | SVC-007, **GUI-005** |
+| **Robustezza** | 1 | SVC-007 |
 
 ---
 
@@ -288,6 +287,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
+| 2026-03-25 | ✅ **GUI-005 risolta** — `NavigateToView` try/catch aggiunto, messaggio errore in status bar, +2 test (1254 totali Windows). 0 issue alta priorità aperte. Branch: `fix/gui-005` |
 | 2026-03-25 | ✅ **T-002 completata** — Domain v2 implementato: BoardType rimosso, Board→Dictionary diretto, IsStandard flag, semantica derivata. 11 issue risolte (T-002, CORE-007, INFRA-008, SVC-011, GUI-008, TEST-009, SVC-008, INFRA-007, TEST-007, SVC-004, GUI-007). +VariableDeviceState (BR-009/010/011). 1252 test verdi. Branch: `domain/ridefinizione-dominio-v2` |
 | 2026-03-24 | 🔍 **Audit completo tutti i componenti**
 | 2026-03-20 | :sparkles: **Dictionary Uniqueness** - Aggiunto `DeviceType` a Dictionary, migrazione su `DictionaryEntity` con unique constraint `(DeviceType, BoardType)`, rimosso `DeviceType` da `BitInterpretation` (branch `fix/unicita-dizionario`) |
