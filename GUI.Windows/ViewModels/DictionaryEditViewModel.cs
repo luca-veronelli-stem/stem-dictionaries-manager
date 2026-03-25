@@ -55,6 +55,13 @@ public partial class DictionaryEditViewModel : ObservableObject
     [ObservableProperty]
     private bool _isStandard;
 
+    /// <summary>
+    /// True se la checkbox "Standard" deve essere visibile.
+    /// Visibile solo se questo dizionario È già standard, oppure non esiste ancora uno standard.
+    /// </summary>
+    [ObservableProperty]
+    private bool _canSetStandard;
+
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuovo Dizionario" : "Modifica Dizionario";
 
@@ -116,6 +123,11 @@ public partial class DictionaryEditViewModel : ObservableObject
 
                 await LoadVariablesAsync();
             }
+
+            // Determina se la checkbox Standard è visibile:
+            // visibile se questo dizionario è già standard, oppure non ne esiste ancora uno
+            var existingStandard = await _dictionaryService.GetStandardDictionaryAsync();
+            CanSetStandard = IsStandard || existingStandard is null;
 
             _isInitialized = true;
             HasChanges = false;

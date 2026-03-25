@@ -41,9 +41,11 @@
                      Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
                      MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,0,0,10"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Standard" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Standard" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"
+                       Visibility="{Binding CanSetStandard, Converter={StaticResource BoolToVisibilityConverter}}"/>
             <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding IsStandard}" 
-                      Content="Dizionario delle variabili comuni (0x00xx)" Foreground="White" Margin="0,0,0,10"/>
+                      Content="Dizionario delle variabili comuni (0x00xx)" Foreground="White" Margin="0,0,0,10"
+                      Visibility="{Binding CanSetStandard, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
             <!-- Bottoni dizionario -->
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,4,0,0">
