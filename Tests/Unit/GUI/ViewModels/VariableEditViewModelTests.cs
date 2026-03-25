@@ -120,37 +120,58 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenNameEmpty()
+    public async Task SaveCommand_Validates_WhenNameEmpty()
     {
         // Arrange
+        await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "";
-        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Desc";
 
-        // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert - validation fails, shows warning, does not save
+        Assert.True(_viewModel.IsNameInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenDataTypeOtherAndCustomEmpty()
+    public async Task SaveCommand_Validates_WhenDataTypeOtherAndCustomEmpty()
     {
         // Arrange
+        await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Desc";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Other;
         _viewModel.CustomDataType = "";
 
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
         // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        Assert.True(_viewModel.IsCustomDataTypeInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenNameAndDataTypeSet()
+    public async Task SaveCommand_CanSave_WhenAllRequiredFieldsSet()
     {
         // Arrange
+        await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Test description";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
         // Assert
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
@@ -159,6 +180,8 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 42);
         _viewModel.Name = "NewVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Test description";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
 
         // Act
@@ -172,7 +195,8 @@ public class VariableEditViewModelTests
     public async Task SaveCommand_WhenEditing_CallsUpdateAsync()
     {
         // Arrange
-        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t");
+        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t",
+            description: "Existing desc");
         _variableService.SeedData(variable);
         await _viewModel.InitializeAsync(1, 1);
         _viewModel.Name = "UpdatedName";
@@ -190,6 +214,8 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Test description";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
 
         // Act
@@ -206,6 +232,8 @@ public class VariableEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Test description";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt8;
         _variableService.ExceptionToThrow = new Exception("Save failed");
 
@@ -321,39 +349,43 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenDataTypeParamRequired_AndNotSet()
+    public async Task SaveCommand_Validates_WhenDataTypeParamRequired_AndNotSet()
     {
         // Arrange
+        await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Desc";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = null;
 
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
         // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        Assert.True(_viewModel.IsDataTypeParamInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenDataTypeParamRequired_AndSet()
+    public void IsDataTypeParamInvalid_FalseWhenParamSet()
     {
-        // Arrange
         _viewModel.Name = "TestVar";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = 2;
 
-        // Assert
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        Assert.False(_viewModel.IsDataTypeParamInvalid);
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenDataTypeParamNotRequired()
+    public void IsDataTypeParamInvalid_FalseWhenNotRequired()
     {
-        // Arrange
         _viewModel.Name = "TestVar";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         _viewModel.DataTypeParam = null;
 
-        // Assert
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        Assert.False(_viewModel.IsDataTypeParamInvalid);
     }
 
     #endregion
@@ -409,16 +441,23 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenMinMaxInvalid()
+    public async Task SaveCommand_Validates_WhenMinMaxInvalid()
     {
         // Arrange
+        await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Desc";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         _viewModel.MinValue = 100;
         _viewModel.MaxValue = 10;
 
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
         // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     #endregion
@@ -608,6 +647,7 @@ public class VariableEditViewModelTests
         _viewModel.Name = "BitmappedVar";
         // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "50";
+        _viewModel.Description = "Bitmapped variable";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = 1;
         _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
@@ -685,6 +725,7 @@ public class VariableEditViewModelTests
         await vm.InitializeAsync(null, dictionaryId: 1);
         vm.Name = "StdVar";
         vm.AddressLowHex = "05";
+        vm.Description = "Standard variable";
         vm.SelectedDataTypeKind = DataTypeKind.UInt16;
 
         // Act
@@ -694,6 +735,121 @@ public class VariableEditViewModelTests
         Assert.Contains(_variableService.MethodCalls,
             m => m.StartsWith("AddAsync:1:StdVar"));
         Assert.Equal("00", vm.AddressHighHex);
+    }
+
+    #endregion
+
+    #region Validation Feedback Tests
+
+    [Fact]
+    public void ValidationProperties_FalseBeforeSaveAttempt()
+    {
+        // Prima di qualsiasi tentativo di salvataggio, nessun campo evidenziato
+        _viewModel.Name = "";
+        _viewModel.AddressLowHex = "";
+        _viewModel.Description = null;
+
+        Assert.False(_viewModel.IsNameInvalid);
+        Assert.False(_viewModel.IsAddressLowInvalid);
+        Assert.False(_viewModel.IsDescriptionInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_Validates_WhenAddressLowEmpty()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "";
+        _viewModel.Description = "Desc";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsAddressLowInvalid);
+        Assert.Contains(_messageService.Messages, m =>
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Indirizzo"));
+    }
+
+    [Fact]
+    public async Task SaveCommand_Validates_WhenDescriptionEmpty()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsDescriptionInvalid);
+        Assert.Contains(_messageService.Messages, m =>
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Descrizione"));
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationClearsAfterFixingFields()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "";
+        _viewModel.AddressLowHex = "";
+        _viewModel.Description = "";
+
+        // First save attempt → validation fails
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+        Assert.True(_viewModel.IsNameInvalid);
+        Assert.True(_viewModel.IsAddressLowInvalid);
+        Assert.True(_viewModel.IsDescriptionInvalid);
+
+        // Fix all fields → properties update reactively
+        _viewModel.Name = "Fixed";
+        Assert.False(_viewModel.IsNameInvalid);
+        _viewModel.AddressLowHex = "01";
+        Assert.False(_viewModel.IsAddressLowInvalid);
+        _viewModel.Description = "Fixed desc";
+        Assert.False(_viewModel.IsDescriptionInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationMessage_ListsMissingFields()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "";
+        _viewModel.AddressLowHex = "";
+        _viewModel.Description = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var warningMsg = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
+        Assert.Contains("Nome", warningMsg.Message);
+        Assert.Contains("Indirizzo", warningMsg.Message);
+        Assert.Contains("Descrizione", warningMsg.Message);
+    }
+
+    [Fact]
+    public async Task ValidationProperties_FalseAfterSave_WhenFieldsValid()
+    {
+        // Arrange - tutti i campi compilati correttamente
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "ValidVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Valid desc";
+
+        // Act - salva (attiva _showValidation ma tutti i campi sono ok)
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert - nessun campo evidenziato in rosso
+        Assert.False(_viewModel.IsNameInvalid);
+        Assert.False(_viewModel.IsAddressLowInvalid);
+        Assert.False(_viewModel.IsDescriptionInvalid);
+        Assert.False(_viewModel.IsDataTypeParamInvalid);
+        Assert.False(_viewModel.IsCustomDataTypeInvalid);
+    }
+
+    [Fact]
+    public void IsCustomDataTypeInvalid_FalseWhenNotOther()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+        _viewModel.CustomDataType = "";
+
+        Assert.False(_viewModel.IsCustomDataTypeInvalid);
     }
 
     #endregion
