@@ -23,6 +23,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private int _dictionaryId;
     private bool _isStandardDictionary;
     private bool _isInitialized;
+    private bool _showValidation;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -37,7 +38,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     /// <summary>
@@ -49,6 +50,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
     [NotifyPropertyChangedFor(nameof(IsAddressLowValid))]
+    [NotifyPropertyChangedFor(nameof(IsAddressLowInvalid))]
     private string _addressLowHex = string.Empty;
 
     [ObservableProperty]
@@ -57,16 +59,16 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [NotifyPropertyChangedFor(nameof(IsBitmapped))]
     [NotifyPropertyChangedFor(nameof(DataTypeParamLabel))]
     [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyPropertyChangedFor(nameof(IsDataTypeParamInvalid))]
+    [NotifyPropertyChangedFor(nameof(IsCustomDataTypeInvalid))]
     private DataTypeKind _selectedDataTypeKind = DataTypeKind.UInt8;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyPropertyChangedFor(nameof(IsCustomDataTypeInvalid))]
     private string _customDataType = string.Empty;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private int? _dataTypeParam;
 
     /// <summary>
@@ -74,6 +76,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     partial void OnDataTypeParamChanged(int? value)
     {
+        OnPropertyChanged(nameof(IsDataTypeParamInvalid));
         if (IsBitmapped && value.HasValue && value.Value > 0)
             RegenerateWordGroups(value.Value);
         else if (IsBitmapped)
@@ -88,18 +91,17 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMinMaxValid))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private double? _minValue;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMinMaxValid))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private double? _maxValue;
 
     [ObservableProperty]
     private string? _unit;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDescriptionInvalid))]
     private string? _description;
 
     [ObservableProperty]
@@ -117,7 +119,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public string FormTitle => IsNew ? "Nuova Variabile" : "Modifica Variabile";
 
     /// <summary>
-    /// True se il DataTypeKind selezionato √® Other (mostra TextBox custom).
+    /// True se il DataTypeKind selezionato Ë Other (mostra TextBox custom).
     /// </summary>
     public bool IsDataTypeOther => SelectedDataTypeKind == DataTypeKind.Other;
 
@@ -127,7 +129,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Bitmapped or DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
-    /// True se √® Bitmapped (mostra Word Count / Word Size).
+    /// True se Ë Bitmapped (mostra Word Count / Word Size).
     /// </summary>
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
 
@@ -150,7 +152,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             if (IsDataTypeOther)
             {
-                // Se √® Other, usa il custom type (o fallback al nome enum se vuoto)
+                // Se Ë Other, usa il custom type (o fallback al nome enum se vuoto)
                 return string.IsNullOrWhiteSpace(CustomDataType)
                     ? SelectedDataTypeKind.ToString()
                     : CustomDataType;
@@ -176,6 +178,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     public bool IsMinMaxValid => !MinValue.HasValue || !MaxValue.HasValue || MinValue.Value <= MaxValue.Value;
 
+    // === Propriet‡ di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+
+    public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
+    public bool IsAddressLowInvalid => _showValidation && string.IsNullOrWhiteSpace(AddressLowHex);
+    public bool IsDescriptionInvalid => _showValidation && string.IsNullOrWhiteSpace(Description);
+    public bool IsDataTypeParamInvalid => _showValidation && RequiresDataTypeParam && !DataTypeParam.HasValue;
+    public bool IsCustomDataTypeInvalid => _showValidation && IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType);
+
     /// <summary>
     /// Indirizzo completo in formato 0xHHLL.
     /// </summary>
@@ -193,7 +203,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private static bool IsValidHex(string hex)
     {
-        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto √® ok
+        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto Ë ok
         return hex.All(c => char.IsAsciiHexDigit(c));
     }
 
@@ -298,7 +308,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        // AddressHighHex √® computed automaticamente da _isStandardDictionary
+        // AddressHighHex Ë computed automaticamente da _isStandardDictionary
         AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
         DataTypeParam = v.DataTypeParam;
@@ -310,24 +320,48 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         Description = v.Description;
         IsEnabled = v.IsEnabled;
 
-        // Imposta custom type se √® Other
+        // Imposta custom type se Ë Other
         if (v.DataTypeKind == DataTypeKind.Other)
         {
             CustomDataType = v.DataTypeRaw;
         }
     }
 
-    private bool CanSave() =>
-        !string.IsNullOrWhiteSpace(Name) &&
-        !string.IsNullOrWhiteSpace(DataTypeForSave) &&
-        IsAddressLowValid &&
-        IsMinMaxValid &&
-        (!RequiresDataTypeParam || DataTypeParam.HasValue) &&
-        (!IsDataTypeOther || !string.IsNullOrWhiteSpace(CustomDataType)); // Se √® Other, CustomDataType deve essere compilto
+    private bool Validate()
+    {
+        _showValidation = true;
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
+        // Notifica tutte le propriet‡ di validazione
+        OnPropertyChanged(nameof(IsNameInvalid));
+        OnPropertyChanged(nameof(IsAddressLowInvalid));
+        OnPropertyChanged(nameof(IsDescriptionInvalid));
+        OnPropertyChanged(nameof(IsDataTypeParamInvalid));
+        OnPropertyChanged(nameof(IsCustomDataTypeInvalid));
+
+        var missing = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
+        if (string.IsNullOrWhiteSpace(AddressLowHex)) missing.Add("Indirizzo");
+        if (string.IsNullOrWhiteSpace(Description)) missing.Add("Descrizione");
+        if (RequiresDataTypeParam && !DataTypeParam.HasValue) missing.Add(DataTypeParamLabel.TrimEnd(' ', '*'));
+        if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType)) missing.Add("Tipo dato custom");
+        if (!IsAddressLowValid) missing.Add("Indirizzo (formato hex non valido)");
+        if (!IsMinMaxValid) missing.Add("Min/Max (Min deve essere ? Max)");
+
+        if (missing.Count > 0)
+        {
+            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
+    [RelayCommand]
     private async Task SaveAsync()
     {
+        if (!Validate()) return;
+
         try
         {
             IsBusy = true;
@@ -443,7 +477,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Rigenera i WordGroups per il wordCount specificato.
-    /// Preserva gli items esistenti per le word che gi√† esistono.
+    /// Preserva gli items esistenti per le word che gi‡ esistono.
     /// </summary>
     private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
     {
