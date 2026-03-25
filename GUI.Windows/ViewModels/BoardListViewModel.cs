@@ -103,6 +103,7 @@ public partial class BoardListViewModel : ObservableObject
                     BoardNumber = b.BoardNumber,
                     ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
                     PartNumber = b.PartNumber,
+                    DictionaryName = b.DictionaryName,
                     IsPrimary = b.IsPrimary
                 })
                 .OrderBy(b => b.DeviceType)
@@ -133,40 +134,6 @@ public partial class BoardListViewModel : ObservableObject
     {
         if (item is null) return;
         _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter { EntityId = item.Id });
-    }
-
-    [RelayCommand]
-    private async Task DeleteAsync(BoardListItem? item)
-    {
-        if (item is null) return;
-
-        var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare la scheda '{item.Name}'?");
-
-        if (result != DialogResult.Yes) return;
-
-        try
-        {
-            IsBusy = true;
-            await _boardService.DeleteAsync(item.Id);
-            _messageService.Show($"Scheda '{item.Name}' eliminata", MessageSeverity.Success);
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    [RelayCommand]
-    private void GoBack()
-    {
-        _navigationService.GoBack();
     }
 
     private void ApplyFilter()

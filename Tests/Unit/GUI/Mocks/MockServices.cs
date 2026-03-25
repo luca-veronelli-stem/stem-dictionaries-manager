@@ -8,11 +8,12 @@ namespace Tests.Unit.GUI.Mocks;
 /// </summary>
 public class MockNavigationService : INavigationService
 {
-    private readonly Stack<(ViewType View, NavigationParameter? Param)> _history = new();
+    private readonly Stack<(ViewType View, NavigationParameter? Param, object? ViewModel)> _history = new();
 
     public ViewType CurrentView { get; private set; } = ViewType.DictionaryList;
     public NavigationParameter? CurrentParameter { get; private set; }
     public bool CanGoBack => _history.Count > 0;
+    public object? CachedViewModel { get; private set; }
 
     public NavigationParameter? LastParameter { get; private set; }
     public List<(ViewType View, NavigationParameter? Param)> NavigationHistory { get; } = [];
@@ -27,14 +28,23 @@ public class MockNavigationService : INavigationService
     /// </summary>
     public bool GoBackCalled { get; private set; }
 
+    private object? _currentViewModel;
+
     public event EventHandler<ViewType>? CurrentViewChanged;
+
+    public void SetCurrentViewModel(object? viewModel)
+    {
+        _currentViewModel = viewModel;
+    }
 
     public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null)
     {
-        _history.Push((CurrentView, CurrentParameter));
+        _history.Push((CurrentView, CurrentParameter, _currentViewModel));
         CurrentView = viewType;
         CurrentParameter = parameter;
         LastParameter = parameter;
+        _currentViewModel = null;
+        CachedViewModel = null;
         NavigationHistory.Add((viewType, parameter));
         CurrentViewChanged?.Invoke(this, viewType);
     }
@@ -43,9 +53,11 @@ public class MockNavigationService : INavigationService
     {
         GoBackCalled = true;
         if (!CanGoBack) return false;
-        var (prevView, prevParam) = _history.Pop();
+        var (prevView, prevParam, cachedVm) = _history.Pop();
         CurrentView = prevView;
         CurrentParameter = prevParam;
+        CachedViewModel = cachedVm;
+        _currentViewModel = cachedVm;
         CurrentViewChanged?.Invoke(this, CurrentView);
         return true;
     }
@@ -59,6 +71,8 @@ public class MockNavigationService : INavigationService
         CurrentView = ViewType.DictionaryList;
         CurrentParameter = null;
         LastParameter = null;
+        _currentViewModel = null;
+        CachedViewModel = null;
         NavigationHistory.Clear();
         GoBackCalled = false;
     }

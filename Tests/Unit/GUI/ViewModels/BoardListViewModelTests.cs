@@ -133,50 +133,6 @@ public class BoardListViewModelTests
     }
 
     [Fact]
-    public async Task DeleteCommand_WithConfirmation_DeletesAndRefreshes()
-    {
-        // Arrange
-        var board = new Board(DeviceType.OptimusXp, "ToDelete", 17, 1);
-        await _boardService.AddAsync(board);
-
-        await _viewModel.InitializeAsync();
-        _dialogService.ConfirmResult = DialogResult.Yes;
-        _boardService.MethodCalls.Clear();
-
-        var item = new BoardListItem { Id = 2, Name = "ToDelete" };
-
-        // Act
-        await _viewModel.DeleteCommand.ExecuteAsync(item);
-
-        // Assert
-        Assert.Contains("DeleteAsync:2", _boardService.MethodCalls);
-    }
-
-    [Fact]
-    public async Task DeleteCommand_WithCancel_DoesNotDelete()
-    {
-        // Arrange
-        _dialogService.ConfirmResult = DialogResult.No;
-        var item = new BoardListItem { Id = 1, Name = "ToDelete" };
-
-        // Act
-        await _viewModel.DeleteCommand.ExecuteAsync(item);
-
-        // Assert
-        Assert.DoesNotContain(_boardService.MethodCalls, m => m.StartsWith("DeleteAsync"));
-    }
-
-    [Fact]
-    public void GoBackCommand_CallsNavigationGoBack()
-    {
-        // Act
-        _viewModel.GoBackCommand.Execute(null);
-
-        // Assert
-        Assert.True(_navigationService.GoBackCalled);
-    }
-
-    [Fact]
     public void DeviceTypes_ContainsAllValues()
     {
         // Assert

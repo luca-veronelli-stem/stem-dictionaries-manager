@@ -24,7 +24,8 @@ public static class BoardMapper
             entity.BoardNumber,
             entity.PartNumber,
             entity.IsPrimary,
-            entity.DictionaryId);
+            entity.DictionaryId,
+            entity.Dictionary?.Name);
     }
 
     /// <summary>

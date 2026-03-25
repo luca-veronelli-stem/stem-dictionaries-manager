@@ -82,7 +82,7 @@ public class NavigationServiceTests
     {
         // Arrange
         _service.NavigateTo(ViewType.DictionaryEdit);
-        _service.NavigateTo(ViewType.VariableList);
+        _service.NavigateTo(ViewType.VariableEdit);
 
         // Act
         var result = _service.GoBack();
@@ -99,7 +99,7 @@ public class NavigationServiceTests
         var param1 = new NavigationParameter { EntityId = 1 };
         var param2 = new NavigationParameter { EntityId = 2 };
         _service.NavigateTo(ViewType.DictionaryEdit, param1);
-        _service.NavigateTo(ViewType.VariableList, param2);
+        _service.NavigateTo(ViewType.VariableEdit, param2);
 
         // Act
         _service.GoBack();
@@ -139,12 +139,12 @@ public class NavigationServiceTests
     {
         // Arrange
         _service.NavigateTo(ViewType.DictionaryEdit);
-        _service.NavigateTo(ViewType.VariableList);
+        _service.NavigateTo(ViewType.VariableEdit);
         _service.NavigateTo(ViewType.CommandList);
 
         // Act & Assert
         _service.GoBack();
-        Assert.Equal(ViewType.VariableList, _service.CurrentView);
+        Assert.Equal(ViewType.VariableEdit, _service.CurrentView);
 
         _service.GoBack();
         Assert.Equal(ViewType.DictionaryEdit, _service.CurrentView);
@@ -220,6 +220,80 @@ public class NavigationServiceTests
         // Assert
         Assert.Equal(ViewType.DeviceList, _service.CurrentView);
         Assert.Null(_service.CurrentParameter);
+    }
+
+    [Fact]
+    public void SetCurrentViewModel_GoBack_RestoresCachedViewModel()
+    {
+        // Arrange
+        var fakeVm = new object();
+        _service.SetCurrentViewModel(fakeVm);
+        _service.NavigateTo(ViewType.VariableEdit);
+
+        // Act
+        _service.GoBack();
+
+        // Assert
+        Assert.Same(fakeVm, _service.CachedViewModel);
+    }
+
+    [Fact]
+    public void NavigateTo_ClearsCachedViewModel()
+    {
+        // Arrange - simulate a GoBack that sets CachedViewModel
+        var fakeVm = new object();
+        _service.SetCurrentViewModel(fakeVm);
+        _service.NavigateTo(ViewType.DictionaryEdit);
+        _service.GoBack(); // CachedViewModel = fakeVm
+
+        // Act - forward navigation should clear it
+        _service.NavigateTo(ViewType.CommandList);
+
+        // Assert
+        Assert.Null(_service.CachedViewModel);
+    }
+
+    [Fact]
+    public void CachedViewModel_IsNull_OnForwardNavigation()
+    {
+        // Act
+        _service.NavigateTo(ViewType.DictionaryEdit);
+
+        // Assert
+        Assert.Null(_service.CachedViewModel);
+    }
+
+    [Fact]
+    public void CachedViewModel_IsNull_WhenNoViewModelSet()
+    {
+        // Arrange - navigate without SetCurrentViewModel
+        _service.NavigateTo(ViewType.DictionaryEdit);
+
+        // Act
+        _service.GoBack();
+
+        // Assert - no ViewModel was registered, so null
+        Assert.Null(_service.CachedViewModel);
+    }
+
+    [Fact]
+    public void SetCurrentViewModel_MultipleNavigations_PreservesEachLevel()
+    {
+        // Arrange
+        var vm1 = new object();
+        var vm2 = new object();
+
+        _service.SetCurrentViewModel(vm1);      // DictionaryList has vm1
+        _service.NavigateTo(ViewType.DictionaryEdit);
+        _service.SetCurrentViewModel(vm2);      // DictionaryEdit has vm2
+        _service.NavigateTo(ViewType.VariableEdit);
+
+        // Act & Assert - going back should restore in order
+        _service.GoBack();
+        Assert.Same(vm2, _service.CachedViewModel);
+
+        _service.GoBack();
+        Assert.Same(vm1, _service.CachedViewModel);
     }
 }
 #endif

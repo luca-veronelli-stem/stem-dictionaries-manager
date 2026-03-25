@@ -13,6 +13,7 @@
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <converters:NullableIntConverter x:Key="NullableIntConverter"/>
         <converters:NullableDoubleConverter x:Key="NullableDoubleConverter"/>
+        <converters:SeverityToColorConverter x:Key="SeverityToColorConverter"/>
 
         <!-- ================================================ -->
         <!-- COLORI DARK THEME                                -->
@@ -169,6 +170,13 @@
             <Setter Property="RowHeaderWidth" Value="0"/>
             <Setter Property="CanUserResizeRows" Value="False"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <!-- Override system highlight brushes per dark theme (focused + unfocused) -->
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#007ACC"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#264F78"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+            </Style.Resources>
         </Style>
 
         <Style x:Key="DarkDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
@@ -186,6 +194,7 @@
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#007ACC"/>
+                    <Setter Property="Foreground" Value="White"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#3E3E42"/>
@@ -207,6 +216,12 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#007ACC"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <!-- ================================================ -->

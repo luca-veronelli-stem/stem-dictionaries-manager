@@ -8,9 +8,10 @@ namespace GUI.Windows.Services;
 /// </summary>
 public sealed class NavigationService : INavigationService
 {
-    private readonly Stack<(ViewType View, NavigationParameter? Parameter)> _history = new();
+    private readonly Stack<(ViewType View, NavigationParameter? Parameter, object? ViewModel)> _history = new();
     private ViewType _currentView = ViewType.DictionaryList;
     private NavigationParameter? _currentParameter;
+    private object? _currentViewModel;
 
     public ViewType CurrentView => _currentView;
 
@@ -21,16 +22,31 @@ public sealed class NavigationService : INavigationService
 
     public bool CanGoBack => _history.Count > 0;
 
+    /// <summary>
+    /// ViewModel ripristinato dal GoBack (null se navigazione forward).
+    /// </summary>
+    public object? CachedViewModel { get; private set; }
+
     public event EventHandler<ViewType>? CurrentViewChanged;
+
+    /// <summary>
+    /// Registra il ViewModel corrente per il caching nella history.
+    /// </summary>
+    public void SetCurrentViewModel(object? viewModel)
+    {
+        _currentViewModel = viewModel;
+    }
 
     public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null)
     {
-        // Salva la view corrente nella history
-        _history.Push((_currentView, _currentParameter));
+        // Salva la view corrente nella history (con il ViewModel cached)
+        _history.Push((_currentView, _currentParameter, _currentViewModel));
 
-        // Naviga alla nuova view
+        // Naviga alla nuova view (forward = no cache)
         _currentView = viewType;
         _currentParameter = parameter;
+        _currentViewModel = null;
+        CachedViewModel = null;
 
         OnCurrentViewChanged();
     }
@@ -40,9 +56,11 @@ public sealed class NavigationService : INavigationService
         if (!CanGoBack)
             return false;
 
-        var (previousView, previousParameter) = _history.Pop();
+        var (previousView, previousParameter, cachedVm) = _history.Pop();
         _currentView = previousView;
         _currentParameter = previousParameter;
+        CachedViewModel = cachedVm;
+        _currentViewModel = cachedVm;
 
         OnCurrentViewChanged();
         return true;

@@ -11,7 +11,7 @@ namespace GUI.Windows.ViewModels;
 /// ViewModel per la creazione/modifica di una scheda.
 /// Domain v2: FirmwareType diretto, DictionaryId?, nessun BoardType.
 /// </summary>
-public partial class BoardEditViewModel : ObservableObject
+public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IBoardService _boardService;
     private readonly IDictionaryService _dictionaryService;
@@ -188,8 +188,8 @@ public partial class BoardEditViewModel : ObservableObject
         if (HasChanges)
         {
             var result = await _dialogService.ShowConfirmAsync(
-                "Conferma",
-                "Ci sono modifiche non salvate. Uscire comunque?");
+                "Annulla modifiche",
+                "Sei sicuro di voler annullare le modifiche?");
             if (result != DialogResult.Yes) return;
         }
 

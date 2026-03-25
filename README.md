@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-798%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1298%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-28
 
 ---
 
@@ -41,8 +41,8 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 14 Views, dark theme |
-| **Test Suite** | ✅ | ~750 metodi test / 1254 test cases (unit + integration, 2 target framework) |
+| **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 13 Views, dark theme, status bar |
+| **Test Suite** | ✅ | ~800 metodi test / 1298 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -88,12 +88,13 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (9)
 │   └── Migrations/        # 1 migration Domain v2
-├── GUI.Windows/           # Applicazione WPF (MVVM, 15 ViewModels, 14 Views)
-│   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi
-│   ├── ViewModels/        # 15 ViewModels + helper classes
-│   ├── Views/             # 14 Views XAML (incl. LoginView)
+├── GUI.Windows/           # Applicazione WPF (MVVM, 14 ViewModels, 13 Views)
+│   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
+│   ├── ViewModels/        # 14 ViewModels + helper classes
+│   ├── Views/             # 13 Views XAML (incl. LoginView)
+│   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~750 metodi / 1252 cases)
+├── Tests/                 # Unit & integration tests (~800 metodi / 1298 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -168,7 +169,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│            MVVM, 15 ViewModels, Dark Theme                  │
+│          MVVM, 14 ViewModels, Dark Theme, Status Bar         │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼

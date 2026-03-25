@@ -28,6 +28,11 @@ public class Board
     public int? DictionaryId { get; private set; }
 
     /// <summary>
+    /// Nome del dizionario associato (denormalizzato, read-only, per display).
+    /// </summary>
+    public string? DictionaryName { get; private set; }
+
+    /// <summary>
     /// Indirizzo protocol calcolato.
     /// Formula: (MACHINE &lt;&lt; 16) | ((FIRMWARE_TYPE &amp; 0x03FF) &lt;&lt; 6) | (BOARD_NUMBER &amp; 0x003F)
     /// </summary>
@@ -61,12 +66,13 @@ public class Board
     /// </summary>
     public static Board Restore(int id, DeviceType deviceType, string name,
         int firmwareType, int boardNumber, string? partNumber, bool isPrimary,
-        int? dictionaryId)
+        int? dictionaryId, string? dictionaryName = null)
     {
         var board = new Board(deviceType, name, firmwareType, boardNumber,
             partNumber, isPrimary, dictionaryId)
         {
-            Id = id
+            Id = id,
+            DictionaryName = dictionaryName
         };
         return board;
     }

@@ -11,7 +11,7 @@ namespace GUI.Windows.ViewModels;
 /// <summary>
 /// ViewModel per la creazione/modifica di una variabile.
 /// </summary>
-public partial class VariableEditViewModel : ObservableObject
+public partial class VariableEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IVariableService _variableService;
     private readonly IDictionaryService _dictionaryService;
@@ -412,8 +412,8 @@ public partial class VariableEditViewModel : ObservableObject
         if (HasChanges)
         {
             var result = await _dialogService.ShowConfirmAsync(
-                "Conferma",
-                "Ci sono modifiche non salvate. Uscire comunque?");
+                "Annulla modifiche",
+                "Sei sicuro di voler annullare le modifiche?");
             if (result != DialogResult.Yes) return;
         }
 

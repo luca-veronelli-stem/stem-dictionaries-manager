@@ -33,6 +33,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -43,22 +44,27 @@
                 <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding DeviceTypes}" SelectedItem="{Binding SelectedDeviceType}"
                           Padding="8,6" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Scheda *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoardTypes}" SelectedItem="{Binding SelectedBoardType}" DisplayMemberPath="Name"
-                          Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FirmwareType}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: 17, 20..."
+                         Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"/>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Numero Scheda" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BoardNumber}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="1, 2, 3..."
                          Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}" 
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Dizionario" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding AvailableDictionaries}" SelectedItem="{Binding SelectedDictionary}" 
+                          DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PartNumber}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: DIS0020477"
                          MaxLength="50" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
                           Content="Scheda principale del dispositivo" Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>

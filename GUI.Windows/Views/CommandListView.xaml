@@ -36,6 +36,9 @@
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="250" MinWidth="120"/>
                 <DataGridTextColumn Header="Codice" Binding="{Binding Code}" Width="100" MinWidth="80"/>
@@ -48,18 +51,6 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Azioni" Width="120" MinWidth="120">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="✏️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4" Margin="0,0,4,0"
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                                <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

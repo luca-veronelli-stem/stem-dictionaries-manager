@@ -173,17 +173,6 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddGUI_RegistersVariableListViewModel()
-    {
-        // Act
-        var provider = _services.BuildServiceProvider();
-        var viewModel = provider.GetService<VariableListViewModel>();
-
-        // Assert
-        Assert.NotNull(viewModel);
-    }
-
-    [Fact]
     public void AddGUI_RegistersVariableEditViewModel()
     {
         // Act

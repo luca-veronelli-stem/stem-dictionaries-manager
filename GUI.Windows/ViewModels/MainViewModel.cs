@@ -47,6 +47,18 @@ public partial class MainViewModel : ObservableObject
     public string CurrentUserDisplayName => CurrentUser?.DisplayName ?? "—";
 
     /// <summary>
+    /// Messaggio corrente della status bar.
+    /// </summary>
+    [ObservableProperty]
+    private string? _statusMessage;
+
+    /// <summary>
+    /// Severità del messaggio corrente.
+    /// </summary>
+    [ObservableProperty]
+    private MessageSeverity _statusSeverity;
+
+    /// <summary>
     /// Evento fired quando l'utente effettua il logout.
     /// App.xaml.cs lo usa per mostrare di nuovo la LoginView.
     /// </summary>
@@ -65,6 +77,15 @@ public partial class MainViewModel : ObservableObject
 
         // Sottoscrivi ai cambiamenti di navigazione
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
+
+        // Sottoscrivi ai messaggi della status bar
+        _messageService.MessageChanged += OnMessageChanged;
+    }
+
+    private void OnMessageChanged(object? sender, EventArgs e)
+    {
+        StatusMessage = _messageService.CurrentMessage;
+        StatusSeverity = _messageService.CurrentSeverity;
     }
 
     /// <summary>
@@ -90,11 +111,25 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
+            // GoBack: riusa il ViewModel cached (preserva stato utente)
+            var cached = _navigationService.CachedViewModel;
+            if (cached is not null)
+            {
+                if (cached is DictionaryEditViewModel dictEditVm)
+                    await dictEditVm.ReloadVariablesAsync();
+
+                CurrentViewModel = cached;
+                UpdateTitle(viewType);
+                return;
+            }
+
+            // Forward: crea nuovo ViewModel
             var viewModel = CreateViewModel(viewType);
 
             if (viewModel is not null)
             {
                 await InitializeViewModelAsync(viewModel, parameter);
+                _navigationService.SetCurrentViewModel(viewModel);
             }
 
             CurrentViewModel = viewModel;
@@ -119,7 +154,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => _serviceProvider.GetService(typeof(DeviceDetailViewModel)),
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
             ViewType.DictionaryEdit => _serviceProvider.GetService(typeof(DictionaryEditViewModel)),
-            ViewType.VariableList => _serviceProvider.GetService(typeof(VariableListViewModel)),
             ViewType.VariableEdit => _serviceProvider.GetService(typeof(VariableEditViewModel)),
             ViewType.CommandList => _serviceProvider.GetService(typeof(CommandListViewModel)),
             ViewType.CommandEdit => _serviceProvider.GetService(typeof(CommandEditViewModel)),
@@ -138,10 +172,6 @@ public partial class MainViewModel : ObservableObject
             // List ViewModels - caricano i dati iniziali
             case DictionaryListViewModel vm:
                 await vm.LoadAsync();
-                break;
-
-            case VariableListViewModel vm when parameter?.ParentId is int dictionaryId:
-                await vm.InitializeAsync(dictionaryId);
                 break;
 
             case CommandListViewModel vm:
@@ -192,7 +222,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => "Dettaglio Dispositivo",
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
-            ViewType.VariableList => "Variabili",
             ViewType.VariableEdit => "Modifica Variabile",
             ViewType.CommandList => "Comandi",
             ViewType.CommandEdit => "Modifica Comando",
@@ -231,8 +260,19 @@ public partial class MainViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.Settings);
 
     [RelayCommand]
-    private void GoBack()
+    private async Task GoBackAsync()
     {
+        // Se il ViewModel corrente ha modifiche non salvate, avvisa
+        if (CurrentViewModel is IEditableViewModel { HasChanges: true })
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Modifiche non salvate",
+                "Ci sono modifiche non salvate. Vuoi tornare indietro senza salvare?");
+
+            if (result != DialogResult.Yes)
+                return;
+        }
+
         _navigationService.GoBack();
     }
 
