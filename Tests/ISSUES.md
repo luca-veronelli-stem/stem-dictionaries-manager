@@ -12,21 +12,21 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 2 |
-| **Media** | 1 | 3 |
+| **Media** | 0 | 4 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 2  
-**Totale risolte:** 7
+**Totale aperte:** 1  
+**Totale risolte:** 8
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-008 - VariableMapperTests non testa Format round-trip](#test-008--variablemappertests-non-testa-format-round-trip)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
 
+- [TEST-008 - VariableMapperTests non testa Format round-trip](#test-008--variablemappertests-non-testa-format-round-trip)
 - [TEST-009 - Aggiornamento test per Domain v2](#test-009--aggiornamento-test-per-domain-v2)
 - [TEST-007 - Manca test integration per Shared Peripheral in DictionaryService](#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice)
 - [TEST-001 - Mancano test per BoardRepository e CommandRepository](#test-001--mancano-test-per-boardrepository-e-commandrepository)
@@ -54,85 +54,6 @@
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
 > **Nota:** I conteggi sono metodi test `[Fact]`/`[Theory]`. I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit.
-
----
-
-## Priorità Media
-
-### TEST-008 - VariableMapperTests non testa Format round-trip
-
-**Categoria:** Copertura (legata a bug SVC-009)  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-`VariableMapperTests` non imposta `Format` su nessun test entity e non verifica mai `result.Format`. Se il mapping di `Format` fosse stato testato, il bug SVC-009 sarebbe stato intercettato.
-
-#### File Coinvolti
-
-- `Tests/Unit/Services/Mapping/VariableMapperTests.cs`
-
-#### Codice Problematico
-
-```csharp
-// Test ToDomain_ValidEntity_ReturnsVariable — riga 18-53
-// entity.Format non è impostato (default null)
-// result.Format non è verificato negli Assert
-```
-
-#### Soluzione Proposta
-
-Aggiungere almeno 2 test:
-
-```csharp
-[Fact]
-public void ToDomain_EntityWithFormat_PreservesFormat()
-{
-    var entity = new VariableEntity
-    {
-        Id = 1, DictionaryId = 10,
-        Name = "Formatted",
-        AddressHigh = 0x00, AddressLow = 0x01,
-        DataTypeKind = DataTypeKind.UInt16,
-        DataTypeRaw = "uint16_t",
-        AccessMode = AccessMode.ReadOnly,
-        IsEnabled = true,
-        Format = "%.1f"  // ← il campo chiave
-    };
-
-    var result = VariableMapper.ToDomain(entity);
-
-    Assert.Equal("%.1f", result.Format);
-}
-
-[Fact]
-public void ToEntity_DomainWithFormat_PreservesFormat()
-{
-    var domain = Variable.Restore(
-        1, "Formatted", 0x00, 0x01,
-        DataTypeKind.UInt16, "uint16_t", null,
-        AccessMode.ReadOnly, true,
-        format: "%.1f",  // ← il campo chiave
-        null, null, null, null, null);
-
-    var entity = VariableMapper.ToEntity(domain, dictionaryId: 10);
-
-    Assert.Equal("%.1f", entity.Format);
-}
-```
-
-#### Relazione con SVC-009
-
-Questi test **falliranno** finché SVC-009 non è risolto. Devono essere implementati **insieme** al fix.
-
-#### Benefici Attesi
-
-- Round-trip Format verificato
-- Regressione protetta
-- Documentazione eseguibile del mapping completo
 
 ---
 
@@ -211,6 +132,33 @@ public static class TestData
 ---
 
 ## Issue Risolte
+
+### TEST-008 - VariableMapperTests non testa Format round-trip
+
+**Categoria:** Copertura (legata a bug SVC-009)  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** fix/svc-009
+
+#### Soluzione Implementata
+
+Aggiunto `Format` con valore non-null nei test esistenti e verificato in tutti gli Assert:
+
+1. `ToDomain_ValidEntity_ReturnsVariable`: entity con `Format = "%04X"`, assert `result.Format`
+2. `ToEntity_ValidDomain_ReturnsEntity`: domain con `format: "%.2f"`, assert `result.Format`
+3. `UpdateEntity_ValidInputs_UpdatesAllFields`: domain con `format: "%d ms"`, assert `entity.Format`
+4. `RoundTrip_EntityToDomainToEntity_PreservesData`: entity con `Format = "0x%04X"`, assert preservato
+
+#### Benefici Ottenuti
+
+- Round-trip Format verificato ✅
+- Regressione protetta ✅
+- Implementato insieme al fix SVC-009 ✅
+
+---
 
 ### TEST-009 - Aggiornamento test per Domain v2
 

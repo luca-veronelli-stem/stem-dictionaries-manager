@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 4 | 3 | 7 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 4 | 4 | 8 |
-| [Services](./Services/ISSUES.md) | 7 | 4 | 11 |
+| [Services](./Services/ISSUES.md) | 6 | 5 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 5 | 8 |
-| [Tests](./Tests/ISSUES.md) | 2 | 7 | 9 |
+| [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
 | **Trasversali** | **0** | **2** | **2** |
-| **Totale** | **20** | **25** | **45** |
+| **Totale** | **18** | **27** | **45** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 8 | 40% |
-| **Bassa** | 12 | 60% |
-| **Totale** | **20** | 100% |
+| **Media** | 6 | 33% |
+| **Bassa** | 12 | 67% |
+| **Totale** | **18** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ████████░░░░░░░░░░░░  8
+Media:       ██████░░░░░░░░░░░░░░  6
 Bassa:       ████████████░░░░░░░░ 12
 ```
 
@@ -49,7 +49,7 @@ Bassa:       ████████████░░░░░░░░ 12
 | ~~TEST-009~~ | Tests | Aggiornamento test per Domain v2 | ✅ **Risolto** |
 | ~~SVC-008~~ | Services | DictionaryService.AddAsync blocca Shared Peripheral | ✅ **Risolto (T-002)** |
 | ~~INFRA-007~~ | Infrastructure | DatabaseSeeder.CreateBoard usa boardTypeId | ✅ **Risolto (T-002)** |
-| ~~GUI-005~~ | GUI.Windows | ~~NavigateToView async void senza error handling~~ | ✅ **Risolto** |
+| ~~GUI-005~~ | GUI.Windows | NavigateToView async void senza error handling | ✅ **Risolto** |
 | ~~TEST-007~~ | Tests | Manca test Shared Peripheral | ✅ **Risolto (T-002)** |
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
 | ~~T-001~~ | Trasversale | Dizionario Standard deve essere unico | ✅ **Risolto** |
@@ -150,10 +150,10 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~SVC-011~~ | ~~Refactoring Services per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~SVC-008~~ | ~~DictionaryService.AddAsync blocca Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
 | ~~SVC-004~~ | ~~BoardMapper overload mancanti~~ | ~~Bassa~~ | ✅ **Risolto (T-002)** |
-| [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService | Media | Feature |
+| ~~SVC-009~~ | ~~VariableMapper.ToDomain non mappa Format~~ | ~~Media~~ | ✅ **Risolto** |
+| [SVC-002]
 | [SVC-003](./Services/ISSUES.md#svc-003--getallasync-senza-paginazione-nei-services) | GetAllAsync senza paginazione | Media | Performance |
-| [SVC-009](./Services/ISSUES.md#svc-009--variablemappertodomain-non-mappa-format) | VariableMapper.ToDomain non mappa Format | Media | Bug (Data Loss) |
-| [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | GetWithDeviceStates non espone stati | Bassa | Design |
+| [SVC-005]
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | [SVC-010](./Services/ISSUES.md#svc-010--class1cs-placeholder-non-rimosso) | Class1.cs placeholder non rimosso | Bassa | Code Smell |
@@ -182,8 +182,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~TEST-005~~ | ~~Mancano test scenari update/delete~~ | ~~Bassa~~ | ✅ **Risolto** |
 | ~~TEST-009~~ | ~~Aggiornamento test per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~TEST-007~~ | ~~Manca test Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
-| [TEST-008](./Tests/ISSUES.md#test-008--variablemappertests-non-testa-format-round-trip) | VariableMapperTests non testa Format round-trip | Media | Copertura |
-| [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute | Bassa | Manutenibilità |
+| ~~TEST-008~~ | ~~VariableMapperTests non testa Format round-trip~~ | ~~Media~~ | ✅ **Risolto** |
+| [TEST-006]
 
 ---
 
@@ -205,8 +205,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **SVC-009** | Services | VariableMapper.ToDomain non mappa Format (data loss) | S |
-| 2 | **TEST-008** | Tests | VariableMapperTests non testa Format round-trip | S |
+| 1 | **SVC-002** | Services | Manca IAuditService | M |
+| 2 | **CORE-006** | Core | Dictionary.Restore bypassa validazione | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -239,11 +239,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Architecture** | ✅ 98% | Domain v2 completo, VariableDeviceState aggiunto |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ✅ 85% | BR-011 (VariableDeviceState), CORE-006, CORE-005 residui |
-| **Data Integrity** | ⚠️ 80% | SVC-009 (Format data loss) residuo |
+| **Data Integrity** | ✅ 95% | SVC-009 risolta |
 | **Performance** | ⚠️ 70% | GetAllAsync senza paginazione (INFRA-002, SVC-003) |
 | **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
 | **Code Consistency** | ✅ 90% | INFRA-006, GUI-006, SVC-010 residui |
-| **Test Coverage** | ✅ 92% | 1254 test, TEST-008 gap residuo |
+| **Test Coverage** | ✅ 95% | 1254 test, TEST-008 risolta |
 
 ---
 
@@ -251,11 +251,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **Bug** | 3 | **SVC-009** (data loss), CORE-006, INFRA-006 |
+| **Bug** | 2 | CORE-006, INFRA-006 |
 | **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
 | **UX** | 1 | GUI-003 |
 | **Performance** | 2 | INFRA-002, SVC-003 |
-| **Copertura** | 1 | TEST-008 |
+| **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 2 | INFRA-003, TEST-006 |
 | **Code Smell** | 2 | SVC-010, GUI-006 |
@@ -287,7 +287,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-25 | ✅ **GUI-005 risolta** — `NavigateToView` try/catch aggiunto, messaggio errore in status bar, +2 test (1254 totali Windows). 0 issue alta priorità aperte. Branch: `fix/gui-005` |
+| 2026-03-25 | ✅ **SVC-009 + TEST-008 risolte** — VariableMapper ora mappa Format in tutte le direzioni (ToDomain/ToEntity/UpdateEntity). +4 assert Format nei test esistenti. 18 aperte, 27 risolte. Branch: `fix/svc-009` |
+| 2026-03-25 | ✅ **GUI-005 risolta**
 | 2026-03-25 | ✅ **T-002 completata** — Domain v2 implementato: BoardType rimosso, Board→Dictionary diretto, IsStandard flag, semantica derivata. 11 issue risolte (T-002, CORE-007, INFRA-008, SVC-011, GUI-008, TEST-009, SVC-008, INFRA-007, TEST-007, SVC-004, GUI-007). +VariableDeviceState (BR-009/010/011). 1252 test verdi. Branch: `domain/ridefinizione-dominio-v2` |
 | 2026-03-24 | 🔍 **Audit completo tutti i componenti**
 | 2026-03-20 | :sparkles: **Dictionary Uniqueness** - Aggiunto `DeviceType` a Dictionary, migrazione su `DictionaryEntity` con unique constraint `(DeviceType, BoardType)`, rimosso `DeviceType` da `BitInterpretation` (branch `fix/unicita-dizionario`) |
