@@ -412,7 +412,9 @@ public class VariableEditFlowTests
         public ViewType CurrentView => ViewType.VariableEdit;
         public NavigationParameter? CurrentParameter => null;
         public bool CanGoBack => true;
+#pragma warning disable CS0067 // Event never used (mock implementation)
         public event EventHandler<ViewType>? CurrentViewChanged;
+#pragma warning restore CS0067
 
         public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null) { }
         public bool GoBack() { GoBackCalled = true; return true; }
@@ -446,7 +448,9 @@ public class VariableEditFlowTests
         public List<(string Message, MessageSeverity Severity)> Messages { get; } = [];
         public string? CurrentMessage => Messages.LastOrDefault().Message;
         public MessageSeverity CurrentSeverity => Messages.LastOrDefault().Severity;
+#pragma warning disable CS0067 // Event never used (mock implementation)
         public event EventHandler? MessageChanged;
+#pragma warning restore CS0067
 
         public void Show(string message, MessageSeverity severity = MessageSeverity.Info)
             => Messages.Add((message, severity));
