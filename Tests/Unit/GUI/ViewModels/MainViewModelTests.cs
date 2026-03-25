@@ -240,5 +240,67 @@ public class MainViewModelTests
             m.Severity == MessageSeverity.Error &&
             m.Message.Contains("Errore risoluzione DI"));
     }
+
+    // === Test StatusMessage / StatusSeverity ===
+
+    [Fact]
+    public void StatusMessage_IsNull_Initially()
+    {
+        Assert.Null(_viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void StatusSeverity_IsInfo_Initially()
+    {
+        Assert.Equal(MessageSeverity.Info, _viewModel.StatusSeverity);
+    }
+
+    [Fact]
+    public void MessageService_Show_UpdatesStatusMessage()
+    {
+        // Act
+        _messageService.Show("Salvataggio completato", MessageSeverity.Success);
+
+        // Assert
+        Assert.Equal("Salvataggio completato", _viewModel.StatusMessage);
+        Assert.Equal(MessageSeverity.Success, _viewModel.StatusSeverity);
+    }
+
+    [Fact]
+    public void MessageService_Show_Error_UpdatesSeverity()
+    {
+        // Act
+        _messageService.Show("Errore di rete", MessageSeverity.Error);
+
+        // Assert
+        Assert.Equal("Errore di rete", _viewModel.StatusMessage);
+        Assert.Equal(MessageSeverity.Error, _viewModel.StatusSeverity);
+    }
+
+    [Fact]
+    public void MessageService_Clear_ClearsStatusMessage()
+    {
+        // Arrange
+        _messageService.Show("Messaggio", MessageSeverity.Warning);
+        Assert.NotNull(_viewModel.StatusMessage);
+
+        // Act
+        _messageService.Clear();
+
+        // Assert
+        Assert.Null(_viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void MessageService_ShowMultiple_LastWins()
+    {
+        // Act
+        _messageService.Show("Primo", MessageSeverity.Info);
+        _messageService.Show("Secondo", MessageSeverity.Success);
+
+        // Assert
+        Assert.Equal("Secondo", _viewModel.StatusMessage);
+        Assert.Equal(MessageSeverity.Success, _viewModel.StatusSeverity);
+    }
 }
 #endif
