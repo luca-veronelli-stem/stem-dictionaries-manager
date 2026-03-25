@@ -11,26 +11,26 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 2 | 0 |
-| **Media** | 2 | 2 |
+| **Alta** | 1 | 1 |
+| **Media** | 1 | 3 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 6  
-**Totale risolte:** 2
+**Totale aperte:** 4  
+**Totale risolte:** 4
 
 ---
 
 ## Indice Issue Aperte
 
-- [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
 - [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
-- [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
 ## Indice Issue Risolte
 
+- [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
+- [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
 - [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
 - [GUI-004 - Refactoring grafico completo e migrazione login](#gui-004--refactoring-grafico-completo-e-migrazione-login)
 
@@ -38,27 +38,6 @@
 
 ## Priorità Alta
 
-
-### GUI-008 - Refactoring GUI per Domain v2
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-25  
-**Master Issue:** T-002
-
-#### Descrizione
-
-Rimuovi ComboBox DeviceType/BoardType da DictionaryEdit, aggiungi CheckBox IsStandard. BoardEdit: rimuovi ComboBox BoardType, aggiungi FirmwareType + ComboBox Dictionary nullable. DictionaryList: colonna `Usato da` derivata. DeviceDetail: 2 sezioni (Dizionari derivati + Schede).
-
-#### File coinvolti
-
-`DictionaryEditViewModel`, `DictionaryListViewModel`, `BoardEditViewModel`, `BoardListViewModel`, `DeviceDetailViewModel` + rispettive Views XAML.
-
-> **Nota:** Risolve anche GUI-007 (DictionaryListItem non mostra DeviceType).
-
----
 
 ### GUI-005 - MainViewModel.NavigateToView è async void senza error handling
 
@@ -184,70 +163,6 @@ services.AddTransient<LoginView>();
 
 - Registrazione DI centralizzata e senza duplicati
 - Meno confusione nella manutenzione
-
----
-
-### GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)
-
-**Categoria:** UX  
-**Priorità:** Media  
-**Impatto:** Medio  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-24  
-
-#### Descrizione
-
-Dopo l'introduzione delle 3 semantiche di dizionario (SESSION_022), `DictionaryListItem` mostra solo `BoardTypeName` ma non il `DeviceType`. L'utente nella lista dizionari non distingue tra un dizionario **Dedicato** (`OptimusXp, Madre`) e una **Periferica condivisa** (`null, Madre`).
-
-#### File Coinvolti
-
-- `GUI.Windows/ViewModels/DictionaryListViewModel.cs` (righe 162-174)
-
-#### Codice Attuale
-
-```csharp
-public class DictionaryListItem
-{
-    public int Id { get; init; }
-    public required string Name { get; init; }
-    public string? Description { get; init; }
-    public string? BoardTypeName { get; init; }
-    public int VariableCount { get; init; }
-
-    // Manca: DeviceType? DeviceTypeName
-    public string BoardTypeDisplay => BoardTypeName ?? "Standard";
-}
-```
-
-#### Problema Specifico
-
-- Due dizionari "Madre Optimus" e "Pulsantiere 4x4" hanno entrambi un BoardTypeName, ma uno è Dedicato e l'altro Condiviso
-- L'utente non può distinguerli nella lista
-- `BoardTypeDisplay` mostra "Standard" per `null`, ma non indica se il dizionario è condiviso o dedicato
-
-#### Soluzione Proposta
-
-Aggiungere `DeviceTypeName` e una proprietà `SemanticDisplay`:
-
-```csharp
-public class DictionaryListItem
-{
-    // ... existing
-    public string? DeviceTypeName { get; init; }
-
-    public string SemanticDisplay => (DeviceTypeName, BoardTypeName) switch
-    {
-        (null, null) => "Standard",
-        (null, _) => $"Condiviso ({BoardTypeName})",
-        (_, _) => $"{DeviceTypeName} — {BoardTypeName}"
-    };
-}
-```
-
-#### Benefici Attesi
-
-- L'utente distingue le 3 semantiche nella lista
-- UX coerente con la nuova architettura dizionari
 
 ---
 
@@ -406,6 +321,47 @@ public async Task<bool> ConfirmAsync(string message, string title)
 ---
 
 ## Issue Risolte
+
+### GUI-008 - Refactoring GUI per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Soluzione Implementata
+
+1. `DictionaryEditViewModel`: CheckBox `IsStandard`, rimosso DeviceType/BoardType
+2. `DictionaryListViewModel`: colonna `SemanticDisplay` derivata (Standard/Specifico)
+3. `BoardEditViewModel`: FirmwareType diretto, DictionaryId nullable
+4. `DeviceDetailViewModel`: dizionari derivati da Board→Dictionary + Standard
+
+#### Benefici Ottenuti
+
+- GUI allineata al Domain v2 ✅
+- Risolve anche GUI-007 ✅
+
+---
+
+### GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)
+
+**Categoria:** UX  
+**Priorità:** Media  
+**Impatto:** Medio  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-24  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2
+
+#### Soluzione Implementata
+
+Il bug non esiste più: la semantica 3-tuple è stata sostituita con `IsStandard` flag. `DictionaryListViewModel` mostra `SemanticDisplay` ("Standard"/"Specifico") derivata. La colonna "Usato da" potrà essere aggiunta come feature separata.
+
+---
 
 ### GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate
 

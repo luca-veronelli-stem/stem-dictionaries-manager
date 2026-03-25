@@ -11,19 +11,17 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 2 | 1 |
+| **Alta** | 0 | 3 |
 | **Media** | 2 | 0 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 6  
-**Totale risolte:** 2
+**Totale aperte:** 4  
+**Totale risolte:** 4
 
 ---
 
 ## Indice Issue Aperte
 
-- [INFRA-008 - Refactoring Infrastructure per Domain v2](#infra-008--refactoring-infrastructure-per-domain-v2)
-- [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-002 - GetAllAsync senza paginazione rischia performance issues](#infra-002--getallasync-senza-paginazione-rischia-performance-issues)
 - [INFRA-003 - DesignTimeDbContextFactory ha path hardcoded fragile](#infra-003--designtimedbcontextfactory-ha-path-hardcoded-fragile)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
@@ -31,127 +29,10 @@
 
 ## Indice Issue Risolte
 
+- [INFRA-008 - Refactoring Infrastructure per Domain v2](#infra-008--refactoring-infrastructure-per-domain-v2)
+- [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
 - [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate-risolto)
-
----
-
-## Priorità Alta
-
-
-### INFRA-008 - Refactoring Infrastructure per Domain v2
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-25  
-**Master Issue:** T-002
-
-#### Descrizione
-
-Eliminazione `BoardTypeEntity`, `IBoardTypeRepository`, `BoardTypeRepository`. Aggiunta `FirmwareType`, `DictionaryId?`, `IsStandard` su entities. Nuova migration. Riscrittura `DatabaseSeeder`.
-
-#### Azioni
-
-| Azione | File |
-|--------|------|
-| DELETE | `BoardTypeEntity.cs`, `IBoardTypeRepository.cs`, `BoardTypeRepository.cs` |
-| MODIFY | `BoardEntity.cs`: +FirmwareType, +DictionaryId?, -BoardTypeId |
-| MODIFY | `DictionaryEntity.cs`: +IsStandard, -DeviceType?, -BoardTypeId? |
-| MODIFY | `AppDbContext.cs`: -BoardTypes DbSet, aggiorna FK |
-| MODIFY | `DatabaseSeeder.cs`: riscrivi senza BoardType |
-| MODIFY | `DependencyInjection.cs`: -IBoardTypeRepository |
-| ADD | Migration `RemoveBoardType_DirectBoardDictionary` |
-
-> **Nota:** Risolve anche INFRA-007 (DatabaseSeeder usa boardTypeId).
-
----
-
-### INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType
-
-**Categoria:** Bug  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-23  
-
-#### Descrizione
-
-`DatabaseSeeder.CreateBoard` calcola il `ProtocolAddress` usando `boardTypeId` (chiave primaria auto-increment del DB) invece di `FirmwareType` (valore reale del firmware). Tutti gli indirizzi protocol nel DB di sviluppo sono **errati**.
-
-#### File Coinvolti
-
-- `Infrastructure/DatabaseSeeder.cs` (righe 359-375)
-
-#### Codice Problematico
-
-```csharp
-private static BoardEntity CreateBoard(DeviceType deviceType, int boardTypeId,
-    string name, int boardNumber, string? partNumber, bool isPrimary = false)
-{
-    // BUG: boardTypeId è l'ID auto-generato (1, 2, 3...)
-    // Dovrebbe usare FirmwareType (17, 18, 4...)
-    var protocolAddress = ((uint)deviceType << 16) 
-        | (((uint)boardTypeId & 0x03FF) << 6)    // ← ERRATO
-        | ((uint)boardNumber & 0x003F);
-    // ...
-}
-```
-
-#### Confronto con Domain Model
-
-```csharp
-// Core/Models/Board.cs — formula CORRETTA
-public static uint CalculateAddress(int machineCode, int firmwareType, int boardNumber)
-{
-    return (uint)(
-        (machineCode << 16) |
-        ((firmwareType & 0x03FF) << 6) |    // ← usa firmwareType
-        (boardNumber & 0x003F));
-}
-```
-
-#### Problema Specifico
-
-- `boardTypeId` = chiave primaria auto-generata (1, 2, 3, 4, 5, 6, 7)
-- `FirmwareType` = valore reale del firmware (17, 18, 4, 8, 20, 10, 25)
-- Esempio: Madre Optimus ha `FirmwareType=17` ma `boardTypeId=1` → indirizzo completamente diverso
-- Il DB di sviluppo contiene indirizzi protocol **tutti sbagliati**
-- L'unique constraint su `ProtocolAddress` funziona per caso (valori diversi ma errati)
-
-#### Soluzione Proposta
-
-**Cambiare la firma del metodo per accettare il BoardTypeEntity intero:**
-
-```csharp
-private static BoardEntity CreateBoard(DeviceType deviceType, BoardTypeEntity boardType,
-    string name, int boardNumber, string? partNumber, bool isPrimary = false)
-{
-    var protocolAddress = ((uint)deviceType << 16) 
-        | (((uint)boardType.FirmwareType & 0x03FF) << 6)
-        | ((uint)boardNumber & 0x003F);
-
-    return new BoardEntity
-    {
-        DeviceType = deviceType,
-        BoardTypeId = boardType.Id,
-        Name = name,
-        BoardNumber = boardNumber,
-        PartNumber = partNumber,
-        ProtocolAddress = protocolAddress,
-        IsPrimary = isPrimary
-    };
-}
-```
-
-Oppure riusare `Board.CalculateAddress` dal domain model per evitare duplicazione formula.
-
-#### Benefici Attesi
-
-- Indirizzi protocol corretti nel DB di sviluppo
-- Coerenza con il domain model `Board.CalculateAddress`
-- Dati di demo affidabili per testing manuale
 
 ---
 
@@ -437,6 +318,60 @@ CREATE TABLE Dictionaries (..., Name TEXT COLLATE NOCASE);
 ---
 
 ## Issue Risolte
+
+### INFRA-008 - Refactoring Infrastructure per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Eliminazione `BoardTypeEntity`, `IBoardTypeRepository`, `BoardTypeRepository`. Aggiunta `FirmwareType`, `DictionaryId?`, `IsStandard` su entities. Nuova migration. Riscrittura `DatabaseSeeder`.
+
+#### Soluzione Implementata
+
+1. **DELETE:** `BoardTypeEntity.cs`, `IBoardTypeRepository.cs`, `BoardTypeRepository.cs`
+2. **MODIFY:** `BoardEntity.cs`: +FirmwareType, +DictionaryId?, +IsPrimary, -BoardTypeId
+3. **MODIFY:** `DictionaryEntity.cs`: +IsStandard, -DeviceType?, -BoardTypeId?
+4. **MODIFY:** `AppDbContext.cs`: -BoardTypes DbSet, +Board→Dictionary FK (SetNull)
+5. **MODIFY:** `DatabaseSeeder.cs`: riscritto con FirmwareType diretto
+6. **MODIFY:** `DependencyInjection.cs`: -IBoardTypeRepository
+7. **ADD:** Migration `InitialCreate_DomainV2`
+
+#### Benefici Ottenuti
+
+- Infrastructure allineata al Domain v2 ✅
+- Seeder con indirizzi protocol corretti ✅
+- Risolve anche INFRA-007 ✅
+
+---
+
+### INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType
+
+**Categoria:** Bug  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-23  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+
+#### Descrizione
+
+`DatabaseSeeder.CreateBoard` calcolava il `ProtocolAddress` usando `boardTypeId` invece di `FirmwareType`. Risolto dal refactoring T-002: `BoardType` rimosso, `CreateBoard` ora accetta `firmwareType` direttamente.
+
+#### Benefici Ottenuti
+
+- Indirizzi protocol corretti ✅
+- Coerenza con `Board.CalculateAddress` ✅
+
+---
 
 ### INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata
 

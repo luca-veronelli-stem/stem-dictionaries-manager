@@ -11,18 +11,17 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 0 |
+| **Alta** | 0 | 1 |
 | **Media** | 1 | 2 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 5  
-**Totale risolte:** 2
+**Totale aperte:** 4  
+**Totale risolte:** 3
 
 ---
 
 ## Indice Issue Aperte
 
-- [CORE-007 - Refactoring Core models per Domain v2](#core-007--refactoring-core-models-per-domain-v2)
 - [CORE-006 - Dictionary.Restore bypassa validazione unicità indirizzi](#core-006--dictionaryrestore-bypassa-validazione-unicità-indirizzi)
 - [CORE-003 - Dictionary.RemoveVariable non verifica esistenza](#core-003--dictionaryremovevariable-non-verifica-esistenza)
 - [CORE-004 - Mancanza di metodi Update sui modelli](#core-004--mancanza-di-metodi-update-sui-modelli)
@@ -30,34 +29,9 @@
 
 ## Indice Issue Risolte
 
+- [CORE-007 - Refactoring Core models per Domain v2](#core-007--refactoring-core-models-per-domain-v2)
 - [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
 - [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
-
----
-
-## Priorità Alta
-
-### CORE-007 - Refactoring Core models per Domain v2
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-25  
-**Master Issue:** T-002
-
-#### Descrizione
-
-Rimozione entità `BoardType`, spostamento `FirmwareType` su `Board`, sostituzione semantica 3-tuple con `IsStandard` flag. Riferimento: Lean 4 Specification v2 (SESSION_024).
-
-#### Azioni
-
-| Azione | File | Dettaglio |
-|--------|------|-----------|
-| DELETE | `Core/Models/BoardType.cs` | Entità rimossa |
-| MODIFY | `Core/Models/Board.cs` | Rimuovi `BoardType`, aggiungi `FirmwareType` (int), `DictionaryId?` (int?) |
-| MODIFY | `Core/Models/Dictionary.cs` | Rimuovi `DeviceType?`, `BoardType?`. Aggiungi `IsStandard` (bool) |
-| MODIFY | `Core/Enums/AuditEntityType.cs` | Rimuovi `BoardType` (7→6 valori) |
 
 ---
 
@@ -314,6 +288,38 @@ public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? me
 ---
 
 ## Issue Risolte
+
+### CORE-007 - Refactoring Core models per Domain v2
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto  
+**Status:** Risolto  
+**Data Apertura:** 2026-03-25  
+**Data Risoluzione:** 2026-03-25  
+**Branch:** domain/ridefinizione-dominio-v2  
+**Master Issue:** T-002
+
+#### Descrizione
+
+Rimozione entità `BoardType`, spostamento `FirmwareType` su `Board`, sostituzione semantica 3-tuple con `IsStandard` flag. Riferimento: Lean 4 Specification v2 (SESSION_024).
+
+#### Soluzione Implementata
+
+**Modifiche Effettuate:**
+
+1. **`Core/Models/BoardType.cs`:** Rimosso (entità eliminata dal dominio)
+2. **`Core/Models/Board.cs`:** Rimosso `BoardType`, aggiunto `FirmwareType` (int), `DictionaryId?` (int?), `IsPrimary` (bool)
+3. **`Core/Models/Dictionary.cs`:** Rimosso `DeviceType?`, `BoardType?`. Aggiunto `IsStandard` (bool)
+4. **`Core/Enums/AuditEntityType.cs`:** Rimosso `BoardType` (7→6 valori)
+
+#### Benefici Ottenuti
+
+- Domain model allineato alla realtà hardware ✅
+- Semantica dizionario derivata (Standard/Dedicated/Shared/Orphan) ✅
+- Meno entità = meno codice = meno bug ✅
+
+---
 
 ### CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio
 
