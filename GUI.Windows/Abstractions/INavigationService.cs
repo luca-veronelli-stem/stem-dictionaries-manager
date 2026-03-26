@@ -87,6 +87,12 @@ public interface INavigationService
     bool GoBack();
 
     /// <summary>
+    /// Resetta lo stato di navigazione alla view iniziale.
+    /// Pulisce history e cached ViewModel.
+    /// </summary>
+    void Reset();
+
+    /// <summary>
     /// Evento sollevato quando cambia la view corrente.
     /// </summary>
     event EventHandler<ViewType>? CurrentViewChanged;
