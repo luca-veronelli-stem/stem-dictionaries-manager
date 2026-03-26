@@ -10,6 +10,7 @@ namespace GUI.Windows.ViewModels;
 /// <summary>
 /// ViewModel per la creazione/modifica di una scheda.
 /// Domain v2: FirmwareType diretto, DictionaryId?, nessun BoardType.
+/// DeviceType bloccato quando si arriva da DeviceDetail.
 /// </summary>
 public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -21,6 +22,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private bool _isInitialized;
+    private bool _showValidation;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -31,16 +33,33 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _hasChanges;
 
+    // === Campi editabili ===
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     [ObservableProperty]
     private DeviceType _selectedDeviceType = DeviceType.OptimusXp;
 
+    /// <summary>
+    /// True se il DeviceType è bloccato (arrivo da DeviceDetail).
+    /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditDeviceType))]
+    private bool _isDeviceTypeLocked;
+
+    /// <summary>
+    /// True se l'utente può modificare il DeviceType.
+    /// </summary>
+    public bool CanEditDeviceType => !IsDeviceTypeLocked;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFirmwareTypeInvalid))]
     private int _firmwareType;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBoardNumberInvalid))]
     private int _boardNumber = 1;
 
     [ObservableProperty]
@@ -58,6 +77,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
     public IReadOnlyList<DeviceType> DeviceTypes { get; } = Enum.GetValues<DeviceType>();
+
+    // === Validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+
+    public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
+    public bool IsFirmwareTypeInvalid => _showValidation && FirmwareType <= 0;
+    public bool IsBoardNumberInvalid => _showValidation
+        && (BoardNumber < 1 || BoardNumber > 63);
 
     public BoardEditViewModel(
         IBoardService boardService,
@@ -82,9 +108,12 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             IsBusy = true;
             _editingId = boardId;
 
-            // Preset DeviceType se arriva da DeviceDetail
+            // Preset e lock DeviceType se arriva da DeviceDetail
             if (presetDeviceType.HasValue)
+            {
                 SelectedDeviceType = presetDeviceType.Value;
+                IsDeviceTypeLocked = true;
+            }
 
             // Carica i dizionari disponibili per il dropdown
             var dictionaries = await _dictionaryService.GetAllAsync();
@@ -134,11 +163,36 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             : null;
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
+    private bool Validate()
+    {
+        _showValidation = true;
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
+        OnPropertyChanged(nameof(IsNameInvalid));
+        OnPropertyChanged(nameof(IsFirmwareTypeInvalid));
+        OnPropertyChanged(nameof(IsBoardNumberInvalid));
+
+        var missing = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
+        if (FirmwareType <= 0) missing.Add("Firmware Type");
+        if (BoardNumber < 1 || BoardNumber > 63) missing.Add("Numero Scheda (1-63)");
+
+        if (missing.Count > 0)
+        {
+            _messageService.Show(
+                $"Campi obbligatori mancanti: {string.Join(", ", missing)}",
+                MessageSeverity.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
+    [RelayCommand]
     private async Task SaveAsync()
     {
+        if (!Validate()) return;
+
         try
         {
             IsBusy = true;
