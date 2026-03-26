@@ -405,6 +405,7 @@ public class MockVariableService : IVariableService
 public class MockCommandService : ICommandService
 {
     private readonly List<Command> _commands = [];
+    private readonly List<CommandDeviceState> _deviceStates = [];
     private int _nextId = 1;
 
     public Exception? ExceptionToThrow { get; set; }
@@ -481,7 +482,17 @@ public class MockCommandService : ICommandService
     {
         MethodCalls.Add($"GetDeviceStateAsync:{commandId}:{deviceType}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<CommandDeviceState?>(null);
+        return Task.FromResult(_deviceStates.FirstOrDefault(
+            s => s.CommandId == commandId && s.DeviceType == deviceType));
+    }
+
+    public Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceType}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<CommandDeviceState>>(
+            [.. _deviceStates.Where(s => s.DeviceType == deviceType)]);
     }
 
     public Task UpdateAsync(Command command, CancellationToken ct = default)
@@ -509,9 +520,15 @@ public class MockCommandService : ICommandService
         }
     }
 
+    public void SeedDeviceStates(params CommandDeviceState[] states)
+    {
+        _deviceStates.AddRange(states);
+    }
+
     public void Reset()
     {
         _commands.Clear();
+        _deviceStates.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();
