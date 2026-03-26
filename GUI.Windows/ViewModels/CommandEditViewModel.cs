@@ -19,6 +19,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private bool _isInitialized;
+    private bool _showValidation;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -32,6 +33,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     // === Campi editabili ===
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     /// <summary>
@@ -42,6 +44,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
+    [NotifyPropertyChangedFor(nameof(IsCodeLowInvalid))]
     private string _codeLowHex = string.Empty;
 
     private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
@@ -54,6 +57,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasParameters))]
+    [NotifyPropertyChangedFor(nameof(IsParameterCountInvalid))]
     private int? _parameterCount;
 
     /// <summary>
@@ -81,6 +85,12 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuovo Comando" : "Modifica Comando";
     public string FullCodeDisplay => $"0x{(CodeHigh << 8 | CodeLow):X4}";
+
+    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+
+    public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
+    public bool IsCodeLowInvalid => _showValidation && string.IsNullOrWhiteSpace(CodeLowHex);
+    public bool IsParameterCountInvalid => _showValidation && !ParameterCount.HasValue;
 
     public CommandEditViewModel(
         ICommandService commandService,
@@ -155,19 +165,47 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
                 item.PropertyChanged += (_, _) => HasChanges = true;
                 ParameterItems.Add(item);
             }
-            _parameterCount = items.Count;
-            OnPropertyChanged(nameof(ParameterCount));
-            OnPropertyChanged(nameof(HasParameters));
+
+            ParameterCount = items.Count;
+        }
+        else
+        {
+            ParameterCount = 0;
         }
 
+        OnPropertyChanged(nameof(ParameterCount));
+        OnPropertyChanged(nameof(HasParameters));
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
+    private bool Validate()
+    {
+        _showValidation = true;
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
+        OnPropertyChanged(nameof(IsNameInvalid));
+        OnPropertyChanged(nameof(IsCodeLowInvalid));
+        OnPropertyChanged(nameof(IsParameterCountInvalid));
+
+        var missing = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
+        if (string.IsNullOrWhiteSpace(CodeLowHex)) missing.Add("Codice");
+        if (!ParameterCount.HasValue) missing.Add("Conteggio parametri");
+
+        if (missing.Count > 0)
+        {
+            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
+    [RelayCommand]
     private async Task SaveAsync()
     {
+        if (!Validate()) return;
+
         try
         {
             IsBusy = true;
