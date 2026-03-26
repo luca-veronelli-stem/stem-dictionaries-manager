@@ -35,6 +35,12 @@ public partial class WordBitGroup : ObservableObject
     /// </summary>
     public bool HasNonEmptyMeanings => Items.Any(i => !string.IsNullOrWhiteSpace(i.Meaning));
 
+    /// <summary>
+    /// Stato espansione della word (per collapse/expand in UI).
+    /// </summary>
+    [ObservableProperty]
+    private bool _isExpanded = true;
+
     public WordBitGroup(int wordIndex)
     {
         WordIndex = wordIndex;

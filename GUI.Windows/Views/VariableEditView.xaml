@@ -88,69 +88,87 @@
                             <DataTemplate>
                                 <Border x:Name="WordGroupBorder" Margin="0,0,0,16"
                                        Padding="4" Background="Transparent">
-                                                    <StackPanel>
-                                                        <!-- Header: Label a sinistra, Remove a destra -->
-                                                        <DockPanel Margin="0,0,0,6">
+                                    <StackPanel>
+                                        <!-- Header: Toggle a sinistra, Remove a destra -->
+                                        <DockPanel Margin="0,0,0,6">
+                                            <ToggleButton IsChecked="{Binding IsExpanded}" DockPanel.Dock="Left" Cursor="Hand">
+                                                <ToggleButton.Template>
+                                                    <ControlTemplate TargetType="ToggleButton">
+                                                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                                                            <TextBlock x:Name="Arrow" Text="▾" Foreground="#888888" FontSize="13"
+                                                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
                                                             <TextBlock Text="{Binding Label}" Foreground="White" FontWeight="SemiBold" FontSize="13"
-                                                                       VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                                            <Button Content="🗑️" ToolTip="Rimuovi Word"
-                                                                    Command="{Binding DataContext.RemoveWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    DockPanel.Dock="Right" HorizontalAlignment="Right">
-                                                                <Button.Style>
-                                                                    <Style TargetType="Button" BasedOn="{StaticResource ToolbarButtonStyle}">
-                                                                        <Setter Property="Visibility" Value="Hidden"/>
-                                                                        <Style.Triggers>
-                                                                            <MultiDataTrigger>
-                                                                                <MultiDataTrigger.Conditions>
-                                                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True"/>
-                                                                                    <Condition Binding="{Binding DataContext.CanRemoveWord, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
-                                                                                </MultiDataTrigger.Conditions>
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                            </MultiDataTrigger>
-                                                                            <MultiDataTrigger>
-                                                                                <MultiDataTrigger.Conditions>
-                                                                                    <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Border}}" Value="True"/>
-                                                                                    <Condition Binding="{Binding DataContext.CanRemoveWord, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
-                                                                                </MultiDataTrigger.Conditions>
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                            </MultiDataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </Button.Style>
-                                                            </Button>
-                                                        </DockPanel>
-                                        <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False"
-                                                  IsReadOnly="False"
-                                                  CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
-                                                  Style="{StaticResource DarkDataGridStyle}"
-                                                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
-                                                  RowStyle="{StaticResource DarkDataGridRowStyle}"
-                                                  CellStyle="{StaticResource DarkDataGridCellStyle}"
-                                                  MinHeight="38" MaxHeight="500"
-                                                  HorizontalScrollBarVisibility="Disabled">
-                                            <DataGrid.Columns>
-                                                <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
-                                                                    IsReadOnly="True" Width="80" MinWidth="60"/>
-                                                <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
-                                                                    Width="*" MinWidth="200"
-                                                                    EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
-                                            </DataGrid.Columns>
-                                        </DataGrid>
-                                        <DockPanel Margin="0,6,0,0">
-                                            <Button Content="+ Aggiungi Bit" 
-                                                    Command="{Binding DataContext.AddBitToWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                       VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsChecked" Value="False">
+                                                                <Setter TargetName="Arrow" Property="Text" Value="▸"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </ToggleButton.Template>
+                                            </ToggleButton>
+                                            <Button Content="🗑️" ToolTip="Rimuovi Word"
+                                                    Command="{Binding DataContext.RemoveWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource ToolbarButtonStyle}"
-                                                    DockPanel.Dock="Left"
-                                                    Visibility="{Binding CanAddBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                            <Button Content="🗑️ Elimina Bit"
-                                                    Command="{Binding DataContext.RemoveLastBitFromWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource ToolbarButtonStyle}"
-                                                    DockPanel.Dock="Right" HorizontalAlignment="Right"
-                                                    Visibility="{Binding CanRemoveBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                    DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource ToolbarButtonStyle}">
+                                                        <Setter Property="Visibility" Value="Hidden"/>
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True"/>
+                                                                    <Condition Binding="{Binding DataContext.CanRemoveWord, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </MultiDataTrigger>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Border}}" Value="True"/>
+                                                                    <Condition Binding="{Binding DataContext.CanRemoveWord, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
                                         </DockPanel>
+                                        <!-- Contenuto collapsabile -->
+                                        <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False"
+                                                      IsReadOnly="False"
+                                                      CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
+                                                      Style="{StaticResource DarkDataGridStyle}"
+                                                      ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                                                      RowStyle="{StaticResource DarkDataGridRowStyle}"
+                                                      CellStyle="{StaticResource DarkDataGridCellStyle}"
+                                                      MinHeight="38" MaxHeight="500"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
+                                                                        IsReadOnly="True" Width="80" MinWidth="60"/>
+                                                    <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
+                                                                        Width="*" MinWidth="200"
+                                                                        EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                            <DockPanel Margin="0,6,0,0">
+                                                <Button Content="+ Aggiungi Bit" 
+                                                        Command="{Binding DataContext.AddBitToWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource ToolbarButtonStyle}"
+                                                        DockPanel.Dock="Left"
+                                                        Visibility="{Binding CanAddBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                <Button Content="🗑️ Elimina Bit"
+                                                        Command="{Binding DataContext.RemoveLastBitFromWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource ToolbarButtonStyle}"
+                                                        DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                        Visibility="{Binding CanRemoveBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                            </DockPanel>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
