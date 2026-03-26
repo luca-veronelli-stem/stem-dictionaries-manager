@@ -19,6 +19,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private bool _isInitialized;
+    private bool _isLoading;
     private bool _showValidation;
 
     [ObservableProperty]
@@ -66,6 +67,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     /// </summary>
     partial void OnParameterCountChanged(int? value)
     {
+        if (_isLoading) return;
         RegenerateParameterItems(value ?? 0);
         HasChanges = true;
     }
@@ -154,6 +156,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         IsResponse = c.IsResponse;
 
         // Carica parametri strutturati
+        _isLoading = true;
         if (c.Parameters.Count > 0)
         {
             var items = c.Parameters
@@ -172,9 +175,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         {
             ParameterCount = 0;
         }
+        _isLoading = false;
 
-        OnPropertyChanged(nameof(ParameterCount));
-        OnPropertyChanged(nameof(HasParameters));
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
 
