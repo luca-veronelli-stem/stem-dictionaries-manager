@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1346%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1358%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-26
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -41,8 +41,8 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 13 ViewModels, 14 Views, dark theme, custom dialogs, status bar |
-| **Test Suite** | ✅ | ~813 metodi test / 1346 test cases (unit + integration, 2 target framework) |
+| **GUI Desktop** | ✅ | WPF + MVVM con 13 ViewModels, 13 Views, dark theme, custom dialogs, status bar |
+| **Test Suite** | ✅ | ~825 metodi test / 1358 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -88,13 +88,13 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (9)
 │   └── Migrations/        # 1 migration Domain v2
-├── GUI.Windows/           # Applicazione WPF (MVVM, 13 ViewModels, 14 Views)
+├── GUI.Windows/           # Applicazione WPF (MVVM, 13 ViewModels, 13 Views)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
 │   ├── ViewModels/        # 13 ViewModels + helper classes
-│   ├── Views/             # 14 Views XAML (incl. LoginView, DarkDialog)
+│   ├── Views/             # 13 Views XAML (incl. LoginView, DarkDialog)
 │   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~813 metodi / 1346 cases)
+├── Tests/                 # Unit & integration tests (~825 metodi / 1358 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -102,7 +102,7 @@ Stem.Dictionaries.Manager/
 │   ├── Standards/         # Template documentazione
 │   └── ER-schema.puml     # Schema database
 ├── .copilot/              # Copilot instructions e agents
-└── ISSUES_TRACKER.md      # Riepilogo globale issue (21 aperte, 24 risolte)
+└── ISSUES_TRACKER.md      # Riepilogo globale issue (13 aperte, 33 risolte)
 ```
 
 ---
@@ -124,18 +124,18 @@ Stem.Dictionaries.Manager/
 
 ## Issue Tracking
 
-→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale: **21 aperte**, 24 risolte
+→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale: **13 aperte**, 33 risolte
 
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
-| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 4 | 3 | Media |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 4 | 4 | Media |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 7 | 4 | Media |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 4 | 4 | **Alta** |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 7 | Media |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 0 | 2 | — |
+| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 4 | Media |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 6 | Media |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 4 | 7 | Media |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 6 | Media |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 8 | Media |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 1 | 2 | Bassa |
 
-⚠️ **1 issue alta priorità aperta:** GUI-005 (crash async void su navigazione)
+✅ **0 issue alta priorità aperte**
 
 ---
 
@@ -169,7 +169,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│          MVVM, 14 ViewModels, Dark Theme, Status Bar         │
+│          MVVM, 13 ViewModels, Dark Theme, Status Bar         │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
