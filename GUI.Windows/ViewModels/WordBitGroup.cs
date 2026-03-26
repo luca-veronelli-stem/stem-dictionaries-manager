@@ -10,7 +10,9 @@ public partial class WordBitGroup : ObservableObject
 {
     private const int MaxBitsPerWord = 16;
 
-    public int WordIndex { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Label))]
+    private int _wordIndex;
 
     public string Label => $"Word {WordIndex}";
 
@@ -21,6 +23,11 @@ public partial class WordBitGroup : ObservableObject
     private int _itemCount;
 
     public bool CanAddBit => ItemCount < MaxBitsPerWord;
+
+    /// <summary>
+    /// True se almeno un item ha un Meaning non vuoto.
+    /// </summary>
+    public bool HasNonEmptyMeanings => Items.Any(i => !string.IsNullOrWhiteSpace(i.Meaning));
 
     public WordBitGroup(int wordIndex)
     {
