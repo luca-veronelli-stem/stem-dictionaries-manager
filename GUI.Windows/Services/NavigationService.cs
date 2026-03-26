@@ -9,7 +9,7 @@ namespace GUI.Windows.Services;
 public sealed class NavigationService : INavigationService
 {
     private readonly Stack<(ViewType View, NavigationParameter? Parameter, object? ViewModel)> _history = new();
-    private ViewType _currentView = ViewType.DictionaryList;
+    private ViewType _currentView = ViewType.DeviceList;
     private NavigationParameter? _currentParameter;
     private object? _currentViewModel;
 
@@ -64,6 +64,19 @@ public sealed class NavigationService : INavigationService
 
         OnCurrentViewChanged();
         return true;
+    }
+
+    /// <summary>
+    /// Resetta lo stato di navigazione alla view iniziale (DeviceList).
+    /// Pulisce history e cached ViewModel.
+    /// </summary>
+    public void Reset()
+    {
+        _history.Clear();
+        _currentView = ViewType.DeviceList;
+        _currentParameter = null;
+        _currentViewModel = null;
+        CachedViewModel = null;
     }
 
     private void OnCurrentViewChanged()
