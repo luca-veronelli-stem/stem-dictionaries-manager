@@ -241,6 +241,36 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     }
 
     [RelayCommand]
+    private async Task DeleteBoardAsync()
+    {
+        if (_editingId is null) return;
+
+        var result = await _dialogService.ShowConfirmAsync(
+            "Conferma eliminazione",
+            $"Eliminare la scheda '{Name}'?");
+
+        if (result != DialogResult.Yes) return;
+
+        try
+        {
+            IsBusy = true;
+            await _boardService.DeleteAsync(_editingId.Value);
+            _messageService.Show($"Scheda '{Name}' eliminata", MessageSeverity.Success);
+            HasChanges = false;
+            _navigationService.GoBack();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Errore",
+                $"Impossibile eliminare: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task CancelAsync()
     {
         if (HasChanges)

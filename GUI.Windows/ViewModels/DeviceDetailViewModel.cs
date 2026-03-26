@@ -246,31 +246,6 @@ public partial class DeviceDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task DeleteBoardAsync(BoardListItem? item)
-    {
-        if (item is null || DeviceType is null) return;
-
-        var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare la scheda '{item.Name}'?");
-
-        if (result != DialogResult.Yes) return;
-
-        try
-        {
-            await _boardService.DeleteAsync(item.Id);
-            _messageService.Show($"Scheda '{item.Name}' eliminata",
-                MessageSeverity.Success);
-            await LoadBoardsAsync(DeviceType.Value);
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Errore",
-                $"Impossibile eliminare: {ex.Message}");
-        }
-    }
-
-    [RelayCommand]
     private void GoBack()
     {
         _navigationService.GoBack();
