@@ -99,7 +99,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     public async Task LoadAsync(DeviceType deviceType)
     {
         DeviceType = deviceType;
-        DeviceName = GetDeviceName(deviceType);
+        DeviceName = GetDeviceDisplayName(deviceType);
         await LoadDataAsync();
     }
 
@@ -112,7 +112,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         await LoadBoardsAsync(DeviceType.Value);
     }
 
-    private static string GetDeviceName(DeviceType deviceType) => deviceType switch
+    internal static string GetDeviceDisplayName(DeviceType deviceType) => deviceType switch
     {
         Core.Enums.DeviceType.SherpaSlim => "Sherpa Slim",
         Core.Enums.DeviceType.TopLiftM => "TopLift-M",
