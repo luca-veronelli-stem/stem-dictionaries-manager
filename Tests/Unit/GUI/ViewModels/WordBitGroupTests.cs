@@ -117,5 +117,123 @@ public class WordBitGroupTests
         Assert.Equal(1, group.ItemCount);
         Assert.Equal("Pump Active", group.Items[0].Meaning);
     }
+
+    [Fact]
+    public void WordIndex_IsSettable_AndUpdatesLabel()
+    {
+        var group = new WordBitGroup(0);
+        Assert.Equal("Word 0", group.Label);
+
+        group.WordIndex = 3;
+
+        Assert.Equal(3, group.WordIndex);
+        Assert.Equal("Word 3", group.Label);
+    }
+
+    [Fact]
+    public void HasNonEmptyMeanings_FalseWhenAllEmpty()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.TryAddBit();
+
+        Assert.False(group.HasNonEmptyMeanings);
+    }
+
+    [Fact]
+    public void HasNonEmptyMeanings_TrueWhenAnyNonEmpty()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.Items[0].Meaning = "Motor Active";
+
+        Assert.True(group.HasNonEmptyMeanings);
+    }
+
+    [Fact]
+    public void HasNonEmptyMeanings_FalseWhenWhitespaceOnly()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.Items[0].Meaning = "   ";
+
+        Assert.False(group.HasNonEmptyMeanings);
+    }
+
+    [Fact]
+    public void IsExpanded_DefaultsToTrue()
+    {
+        var group = new WordBitGroup(0);
+        Assert.True(group.IsExpanded);
+    }
+
+    [Fact]
+    public void IsExpanded_CanBeToggled()
+    {
+        var group = new WordBitGroup(0);
+
+        group.IsExpanded = false;
+        Assert.False(group.IsExpanded);
+
+        group.IsExpanded = true;
+        Assert.True(group.IsExpanded);
+    }
+
+    [Fact]
+    public void CanRemoveBit_FalseWhenSingleBit()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+
+        Assert.False(group.CanRemoveBit);
+    }
+
+    [Fact]
+    public void CanRemoveBit_TrueWhenMultipleBits()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.TryAddBit();
+
+        Assert.True(group.CanRemoveBit);
+    }
+
+    [Fact]
+    public void TryRemoveLastBit_RemovesLastItem()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit(); // BitIndex 0
+        group.TryAddBit(); // BitIndex 1
+        group.TryAddBit(); // BitIndex 2
+
+        var result = group.TryRemoveLastBit();
+
+        Assert.True(result);
+        Assert.Equal(2, group.Items.Count);
+        Assert.Equal(1, group.Items[^1].BitIndex);
+    }
+
+    [Fact]
+    public void TryRemoveLastBit_ReturnsFalse_WhenSingleBit()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+
+        Assert.False(group.TryRemoveLastBit());
+        Assert.Single(group.Items);
+    }
+
+    [Fact]
+    public void TryRemoveLastBit_UpdatesCanRemoveBit()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.TryAddBit();
+        Assert.True(group.CanRemoveBit);
+
+        group.TryRemoveLastBit();
+
+        Assert.False(group.CanRemoveBit);
+    }
 }
 #endif

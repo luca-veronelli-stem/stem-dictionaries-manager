@@ -23,6 +23,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private int _dictionaryId;
     private bool _isStandardDictionary;
     private bool _isInitialized;
+    private bool _isLoading;
     private bool _showValidation;
 
     [ObservableProperty]
@@ -61,6 +62,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
     [NotifyPropertyChangedFor(nameof(IsDataTypeParamInvalid))]
     [NotifyPropertyChangedFor(nameof(IsCustomDataTypeInvalid))]
+    [NotifyPropertyChangedFor(nameof(CanRemoveWord))]
     private DataTypeKind _selectedDataTypeKind = DataTypeKind.UInt8;
 
     [ObservableProperty]
@@ -72,15 +74,30 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private int? _dataTypeParam;
 
     /// <summary>
-    /// Rigenera i WordGroups quando cambia il DataTypeParam (WordCount per Bitmapped).
+    /// Notifica validazione quando cambia il DataTypeParam (Size per Array/String).
     /// </summary>
     partial void OnDataTypeParamChanged(int? value)
     {
         OnPropertyChanged(nameof(IsDataTypeParamInvalid));
-        if (IsBitmapped && value.HasValue && value.Value > 0)
-            RegenerateWordGroups(value.Value);
-        else if (IsBitmapped)
+    }
+
+    /// <summary>
+    /// Quando cambia il tipo dato: se Bitmapped, crea Word 0 automaticamente.
+    /// </summary>
+    partial void OnSelectedDataTypeKindChanged(DataTypeKind value)
+    {
+        if (_isLoading) return;
+
+        if (value == DataTypeKind.Bitmapped)
+        {
+            if (WordGroups.Count == 0)
+                CreateInitialWordGroup();
+        }
+        else
+        {
             WordGroups.Clear();
+            OnPropertyChanged(nameof(CanRemoveWord));
+        }
     }
 
     [ObservableProperty]
@@ -124,9 +141,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsDataTypeOther => SelectedDataTypeKind == DataTypeKind.Other;
 
     /// <summary>
-    /// True se il tipo richiede un parametro (Bitmapped, Array, String).
+    /// True se il tipo richiede un parametro numerico (solo Array, String).
+    /// Bitmapped usa WordGroups.Count al posto del TextBox.
     /// </summary>
-    public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Bitmapped or DataTypeKind.Array or DataTypeKind.String;
+    public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
     /// True se è Bitmapped (mostra Word Count / Word Size).
@@ -138,13 +156,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     public string DataTypeParamLabel => SelectedDataTypeKind switch
     {
-        DataTypeKind.Bitmapped => "Word Count (16 bit) *",
         DataTypeKind.Array or DataTypeKind.String => "Size (bytes) *",
         _ => "Parametro"
     };
 
     /// <summary>
     /// Tipo dato per il salvataggio (dal dropdown o custom).
+    /// Bitmapped usa WordGroups.Count come parametro.
     /// </summary>
     public string DataTypeForSave
     {
@@ -152,18 +170,21 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             if (IsDataTypeOther)
             {
-                // Se è Other, usa il custom type (o fallback al nome enum se vuoto)
                 return string.IsNullOrWhiteSpace(CustomDataType)
                     ? SelectedDataTypeKind.ToString()
                     : CustomDataType;
             }
 
-            // Per i tipi standard, costruisci la stringa col parametro se necessario
             var baseName = SelectedDataTypeKind.ToString();
+
+            // Bitmapped: parametro derivato da WordGroups.Count
+            if (IsBitmapped && WordGroups.Count > 0)
+                return $"{baseName}[{WordGroups.Count}]";
+
+            // Array/String: parametro dal TextBox
             if (RequiresDataTypeParam && DataTypeParam.HasValue)
-            {
                 return $"{baseName}[{DataTypeParam.Value}]";
-            }
+
             return baseName;
         }
     }
@@ -184,6 +205,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsAddressLowInvalid => _showValidation && string.IsNullOrWhiteSpace(AddressLowHex);
     public bool IsDescriptionInvalid => _showValidation && string.IsNullOrWhiteSpace(Description);
     public bool IsDataTypeParamInvalid => _showValidation && RequiresDataTypeParam && !DataTypeParam.HasValue;
+
+    /// <summary>
+    /// True se ci sono almeno 2 word (la rimozione è possibile).
+    /// </summary>
+    public bool CanRemoveWord => IsBitmapped && WordGroups.Count > 1;
     public bool IsCustomDataTypeInvalid => _showValidation && IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType);
 
     /// <summary>
@@ -253,6 +279,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         try
         {
             IsBusy = true;
+            _isLoading = true;
             _editingId = variableId;
             _dictionaryId = dictionaryId;
 
@@ -288,14 +315,21 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 }
             }
 
+            _isLoading = false;
             _isInitialized = true;
             HasChanges = false;
 
+            // Se nuovo e tipo è Bitmapped (improbabile ma safe), crea Word 0
+            if (IsBitmapped && WordGroups.Count == 0)
+                CreateInitialWordGroup();
+
             OnPropertyChanged(nameof(IsNew));
             OnPropertyChanged(nameof(FormTitle));
+            OnPropertyChanged(nameof(CanRemoveWord));
         }
         catch (Exception ex)
         {
+            _isLoading = false;
             ErrorMessage = ex.Message;
             await _dialogService.ShowErrorAsync("Errore", $"Impossibile caricare: {ex.Message}");
         }
@@ -369,6 +403,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             var addressHigh = ParseHexByte(AddressHighHex);
             var addressLow = ParseHexByte(AddressLowHex);
 
+            // Per Bitmapped, DataTypeParam = numero di word
+            var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
+
             if (IsNew)
             {
                 var variable = new Variable(
@@ -378,7 +415,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                     dataTypeKind: SelectedDataTypeKind,
                     accessMode: SelectedAccessMode,
                     dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: DataTypeParam,
+                    dataTypeParam: dataTypeParam,
                     isEnabled: IsEnabled,
                     format: Format,
                     minValue: MinValue,
@@ -400,7 +437,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                     addressLow: addressLow,
                     dataTypeKind: SelectedDataTypeKind,
                     dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: DataTypeParam,
+                    dataTypeParam: dataTypeParam,
                     accessMode: SelectedAccessMode,
                     isEnabled: IsEnabled,
                     format: Format,
@@ -475,13 +512,84 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             HasChanges = true;
     }
 
+    [RelayCommand]
+    private void RemoveLastBitFromWord(WordBitGroup? group)
+    {
+        if (group is null) return;
+        if (group.TryRemoveLastBit())
+            HasChanges = true;
+    }
+
+    /// <summary>
+    /// Aggiunge una nuova Word (WordBitGroup) con 1 bit iniziale.
+    /// </summary>
+    [RelayCommand]
+    private void AddWord()
+    {
+        var newGroup = new WordBitGroup(WordGroups.Count);
+        newGroup.TryAddBit();
+        newGroup.Items[0].PropertyChanged += (_, _) => HasChanges = true;
+        WordGroups.Add(newGroup);
+        OnPropertyChanged(nameof(CanRemoveWord));
+        OnPropertyChanged(nameof(DataTypeForSave));
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Rimuove una Word con conferma se contiene meanings non vuoti.
+    /// </summary>
+    [RelayCommand]
+    private async Task RemoveWordAsync(WordBitGroup? group)
+    {
+        if (group is null || !CanRemoveWord) return;
+
+        if (group.HasNonEmptyMeanings)
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Rimuovi Word",
+                $"La {group.Label} contiene definizioni. Sei sicuro di volerla rimuovere?");
+            if (result != DialogResult.Yes) return;
+        }
+
+        WordGroups.Remove(group);
+        ReindexWordGroups();
+        OnPropertyChanged(nameof(CanRemoveWord));
+        OnPropertyChanged(nameof(DataTypeForSave));
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Crea la Word 0 iniziale con 1 bit.
+    /// </summary>
+    private void CreateInitialWordGroup()
+    {
+        var group = new WordBitGroup(0);
+        group.TryAddBit();
+        group.Items[0].PropertyChanged += (_, _) => HasChanges = true;
+        WordGroups.Add(group);
+        OnPropertyChanged(nameof(CanRemoveWord));
+        OnPropertyChanged(nameof(DataTypeForSave));
+    }
+
+    /// <summary>
+    /// Re-indicizza i WordGroups e i loro items dopo una rimozione.
+    /// </summary>
+    private void ReindexWordGroups()
+    {
+        for (var i = 0; i < WordGroups.Count; i++)
+        {
+            WordGroups[i].WordIndex = i;
+            foreach (var item in WordGroups[i].Items)
+                item.WordIndex = i;
+        }
+    }
+
     /// <summary>
     /// Rigenera i WordGroups per il wordCount specificato.
     /// Preserva gli items esistenti per le word che già esistono.
     /// </summary>
     private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
     {
-        // Raccogli items correnti da UI (se non forniti dal DB)
         existingItems ??= [.. WordGroups.SelectMany(g => g.Items)];
 
         WordGroups.Clear();
@@ -504,12 +612,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             }
             else
             {
-                // Word nuova: una riga iniziale con BitIndex = 0
                 group.TryAddBit();
                 group.Items[0].PropertyChanged += (_, _) => HasChanges = true;
             }
 
             WordGroups.Add(group);
         }
+
+        OnPropertyChanged(nameof(CanRemoveWord));
+        OnPropertyChanged(nameof(DataTypeForSave));
     }
 }

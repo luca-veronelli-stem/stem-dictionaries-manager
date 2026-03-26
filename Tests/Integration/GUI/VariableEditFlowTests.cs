@@ -64,7 +64,7 @@ public class VariableEditFlowTests
     }
 
     [Fact]
-    public async Task CreateBitmappedVariable_RequiresWordCount()
+    public async Task CreateBitmappedVariable_AutoCreatesWord0_AndCanAddWords()
     {
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
@@ -73,23 +73,20 @@ public class VariableEditFlowTests
         _viewModel.AddressLowHex = "20";
         _viewModel.Description = "Status flags";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = null; // Non impostato
 
-        // Act - prova a salvare senza WordCount
+        // Assert - Word 0 creata automaticamente
+        Assert.Single(_viewModel.WordGroups);
+        Assert.Equal("Bitmapped[1]", _viewModel.DataTypeForSave);
+
+        // Act - Aggiungi una word
+        _viewModel.AddWordCommand.Execute(null);
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+        Assert.Equal("Bitmapped[2]", _viewModel.DataTypeForSave);
+
+        // Act - Salva
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert - validazione fallisce
-        Assert.True(_viewModel.IsDataTypeParamInvalid);
-        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
-
-        // Act - Imposta WordCount e risalva
-        _viewModel.DataTypeParam = 2;
-        _messageService.Reset();
-        _variableService.MethodCalls.Clear();
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        // Assert - ora salva
-        Assert.False(_viewModel.IsDataTypeParamInvalid);
+        // Assert - salva con 2 word
         Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 

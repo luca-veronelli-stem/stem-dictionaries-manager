@@ -10,7 +10,9 @@ public partial class WordBitGroup : ObservableObject
 {
     private const int MaxBitsPerWord = 16;
 
-    public int WordIndex { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Label))]
+    private int _wordIndex;
 
     public string Label => $"Word {WordIndex}";
 
@@ -18,9 +20,26 @@ public partial class WordBitGroup : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanAddBit))]
+    [NotifyPropertyChangedFor(nameof(CanRemoveBit))]
     private int _itemCount;
 
     public bool CanAddBit => ItemCount < MaxBitsPerWord;
+
+    /// <summary>
+    /// True se ci sono almeno 2 bit (rimozione possibile).
+    /// </summary>
+    public bool CanRemoveBit => ItemCount > 1;
+
+    /// <summary>
+    /// True se almeno un item ha un Meaning non vuoto.
+    /// </summary>
+    public bool HasNonEmptyMeanings => Items.Any(i => !string.IsNullOrWhiteSpace(i.Meaning));
+
+    /// <summary>
+    /// Stato espansione della word (per collapse/expand in UI).
+    /// </summary>
+    [ObservableProperty]
+    private bool _isExpanded = true;
 
     public WordBitGroup(int wordIndex)
     {
@@ -58,6 +77,18 @@ public partial class WordBitGroup : ObservableObject
         var removed = Items.Remove(item);
         if (removed) ItemCount = Items.Count;
         return removed;
+    }
+
+    /// <summary>
+    /// Rimuove l'ultimo bit della word.
+    /// </summary>
+    public bool TryRemoveLastBit()
+    {
+        if (!CanRemoveBit) return false;
+        var last = Items[^1];
+        Items.Remove(last);
+        ItemCount = Items.Count;
+        return true;
     }
 
     /// <summary>
