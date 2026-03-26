@@ -21,12 +21,13 @@
                    Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid HorizontalAlignment="Left" Width="550">
+            <Grid HorizontalAlignment="Left" Width="700">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -56,13 +57,33 @@
                           Content="È una risposta (response)" Foreground="White" Margin="0,0,0,12"/>
 
                 <!-- Parametri -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Parametri" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,12">
-                    <TextBox Text="{Binding ParametersText, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Un parametro per riga"
-                             AcceptsReturn="True" TextWrapping="Wrap" Height="120"/>
-                    <TextBlock Text="Un parametro per riga" Foreground="#888888" FontSize="11" Margin="0,4,0,0"/>
-                </StackPanel>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Parameter Count" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="3" Grid.Column="1" 
+                         Text="{Binding ParameterCount, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Numero parametri"
+                         Width="100" HorizontalAlignment="Left" Margin="0,0,0,12"
+                         PreviewTextInput="IntTextBox_PreviewTextInput"/>
+
+                <!-- DataGrid parametri -->
+                <DataGrid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                          ItemsSource="{Binding ParameterItems}" AutoGenerateColumns="False"
+                          IsReadOnly="False"
+                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False"
+                          Style="{StaticResource DarkDataGridStyle}"
+                          ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                          RowStyle="{StaticResource DarkDataGridRowStyle}"
+                          CellStyle="{StaticResource DarkDataGridCellStyle}"
+                          MinHeight="38" MaxHeight="400" Margin="0,0,0,12"
+                          Visibility="{Binding HasParameters, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Parametro" Binding="{Binding IndexDisplay}" 
+                                            IsReadOnly="True" Width="120" MinWidth="100"/>
+                        <DataGridTextColumn Header="Size (bytes)" Binding="{Binding SizeBytes, UpdateSourceTrigger=PropertyChanged}" 
+                                            Width="100" MinWidth="80"/>
+                        <DataGridTextColumn Header="Descrizione" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                                            Width="*" MinWidth="200"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </Grid>
         </ScrollViewer>
 
