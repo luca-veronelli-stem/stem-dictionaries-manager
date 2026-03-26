@@ -137,13 +137,20 @@
                                                                     EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
                                             </DataGrid.Columns>
                                         </DataGrid>
-                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <DockPanel Margin="0,6,0,0">
                                             <Button Content="+ Aggiungi Bit" 
                                                     Command="{Binding DataContext.AddBitToWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource ToolbarButtonStyle}"
+                                                    DockPanel.Dock="Left"
                                                     Visibility="{Binding CanAddBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                        </StackPanel>
+                                            <Button Content="🗑️ Elimina Bit"
+                                                    Command="{Binding DataContext.RemoveLastBitFromWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource ToolbarButtonStyle}"
+                                                    DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                    Visibility="{Binding CanRemoveBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        </DockPanel>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
