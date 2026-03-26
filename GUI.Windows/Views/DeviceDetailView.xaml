@@ -32,8 +32,8 @@
 
         <!-- ── DIZIONARI ── -->
         <DockPanel Grid.Row="3">
-            <TextBlock DockPanel.Dock="Top" Text="DIZIONARI" FontSize="13" FontWeight="SemiBold"
-                       Foreground="#007ACC" Margin="0,0,0,8"/>
+            <TextBlock DockPanel.Dock="Top" Text="Dizionari" FontSize="13" FontWeight="SemiBold"
+                       Foreground="White" Margin="0,0,0,8"/>
             <DataGrid ItemsSource="{Binding Dictionaries}" 
                       SelectedItem="{Binding SelectedDictionary}"
                       Style="{StaticResource DarkDataGridStyle}"
@@ -54,8 +54,8 @@
         <!-- ── SCHEDE ── -->
         <DockPanel Grid.Row="4" Margin="0,15,0,0">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
-                <TextBlock Text="SCHEDE" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#007ACC" VerticalAlignment="Center"/>
+                <TextBlock Text="Schede" FontSize="13" FontWeight="SemiBold"
+                           Foreground="White" VerticalAlignment="Center"/>
                 <Button Content="➕ Nuova" Command="{Binding AddBoardCommand}" 
                         Style="{StaticResource ToolbarButtonStyle}" Margin="15,0,0,0"/>
                 <Button Content="🗑️ Elimina" Command="{Binding DeleteBoardCommand}" 
