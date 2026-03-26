@@ -148,7 +148,7 @@ public class DeviceDetailViewModelTests
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
         Assert.Single(realDicts);
         Assert.Equal("Standard", realDicts[0].Name);
-        Assert.Single(_viewModel.Dictionaries.Where(d => d.IsCommandsEntry));
+        Assert.Single(_viewModel.Dictionaries, d => d.IsCommandsEntry);
     }
 
     [Fact]
