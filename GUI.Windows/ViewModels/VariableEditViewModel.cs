@@ -512,6 +512,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             HasChanges = true;
     }
 
+    [RelayCommand]
+    private void RemoveLastBitFromWord(WordBitGroup? group)
+    {
+        if (group is null) return;
+        if (group.TryRemoveLastBit())
+            HasChanges = true;
+    }
+
     /// <summary>
     /// Aggiunge una nuova Word (WordBitGroup) con 1 bit iniziale.
     /// </summary>
