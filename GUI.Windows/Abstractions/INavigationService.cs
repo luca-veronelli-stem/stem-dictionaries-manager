@@ -12,7 +12,6 @@ public enum ViewType
     VariableEdit,
     CommandList,
     CommandEdit,
-    BoardList,
     BoardEdit,
     UserList,
     Settings
@@ -85,6 +84,12 @@ public interface INavigationService
     /// </summary>
     /// <returns>True se la navigazione è avvenuta, false se non c'è history.</returns>
     bool GoBack();
+
+    /// <summary>
+    /// Resetta lo stato di navigazione alla view iniziale.
+    /// Pulisce history e cached ViewModel.
+    /// </summary>
+    void Reset();
 
     /// <summary>
     /// Evento sollevato quando cambia la view corrente.

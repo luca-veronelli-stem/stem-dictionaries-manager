@@ -95,7 +95,8 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentUser = user;
 
-        // Naviga alla view iniziale
+        // Reset navigazione: ogni sessione utente parte pulita
+        _navigationService.Reset();
         NavigateToView(_navigationService.CurrentView, null);
     }
 
@@ -117,6 +118,8 @@ public partial class MainViewModel : ObservableObject
             {
                 if (cached is DictionaryEditViewModel dictEditVm)
                     await dictEditVm.ReloadVariablesAsync();
+                if (cached is DeviceDetailViewModel deviceDetailVm)
+                    await deviceDetailVm.ReloadBoardsAsync();
 
                 CurrentViewModel = cached;
                 UpdateTitle(viewType);
@@ -157,7 +160,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.VariableEdit => _serviceProvider.GetService(typeof(VariableEditViewModel)),
             ViewType.CommandList => _serviceProvider.GetService(typeof(CommandListViewModel)),
             ViewType.CommandEdit => _serviceProvider.GetService(typeof(CommandEditViewModel)),
-            ViewType.BoardList => _serviceProvider.GetService(typeof(BoardListViewModel)),
             ViewType.BoardEdit => _serviceProvider.GetService(typeof(BoardEditViewModel)),
             ViewType.UserList => _serviceProvider.GetService(typeof(UserListViewModel)),
             ViewType.Settings => _serviceProvider.GetService(typeof(SettingsViewModel)),
@@ -175,10 +177,6 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             case CommandListViewModel vm:
-                await vm.InitializeAsync();
-                break;
-
-            case BoardListViewModel vm:
                 await vm.InitializeAsync();
                 break;
 
@@ -209,7 +207,7 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             case BoardEditViewModel vm:
-                await vm.InitializeAsync(parameter?.EntityId);
+                await vm.InitializeAsync(parameter?.EntityId, parameter?.DeviceType);
                 break;
         }
     }
@@ -225,7 +223,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.VariableEdit => "Modifica Variabile",
             ViewType.CommandList => "Comandi",
             ViewType.CommandEdit => "Modifica Comando",
-            ViewType.BoardList => "Schede",
             ViewType.BoardEdit => "Modifica Scheda",
             ViewType.UserList => "Utenti",
             ViewType.Settings => "Impostazioni",
@@ -246,10 +243,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void NavigateToCommands() =>
         _navigationService.NavigateTo(ViewType.CommandList);
-
-    [RelayCommand]
-    private void NavigateToBoards() =>
-        _navigationService.NavigateTo(ViewType.BoardList);
 
     [RelayCommand]
     private void NavigateToUsers() =>

@@ -16,6 +16,8 @@ public class DeviceDetailViewModelTests
     private readonly MockNavigationService _navigationService;
     private readonly MockDictionaryService _dictionaryService;
     private readonly MockBoardService _boardService;
+    private readonly MockDialogService _dialogService;
+    private readonly MockMessageService _messageService;
     private readonly DeviceDetailViewModel _viewModel;
 
     public DeviceDetailViewModelTests()
@@ -23,11 +25,15 @@ public class DeviceDetailViewModelTests
         _navigationService = new MockNavigationService();
         _dictionaryService = new MockDictionaryService();
         _boardService = new MockBoardService();
+        _dialogService = new MockDialogService();
+        _messageService = new MockMessageService();
 
         _viewModel = new DeviceDetailViewModel(
             _navigationService,
             _dictionaryService,
-            _boardService);
+            _boardService,
+            _dialogService,
+            _messageService);
     }
 
     [Fact]
@@ -36,6 +42,7 @@ public class DeviceDetailViewModelTests
         Assert.Null(_viewModel.DeviceType);
         Assert.Empty(_viewModel.DeviceName);
         Assert.Empty(_viewModel.Dictionaries);
+        Assert.Empty(_viewModel.Boards);
         Assert.False(_viewModel.IsLoading);
         Assert.Null(_viewModel.ErrorMessage);
     }
@@ -310,6 +317,158 @@ public class DeviceDetailViewModelTests
 
         // Assert
         Assert.False(_viewModel.IsLoading);
+    }
+
+    // === Test sezione Schede (F5.2) ===
+
+    [Fact]
+    public async Task LoadAsync_PopulatesBoards()
+    {
+        // Arrange
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1));
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Pulsantiera", 4, 2));
+
+        // Act
+        await _viewModel.LoadAsync(DeviceType.EdenXp);
+
+        // Assert
+        Assert.Equal(2, _viewModel.Boards.Count);
+    }
+
+    [Fact]
+    public async Task LoadAsync_BoardsAreOrderedByBoardNumber()
+    {
+        // Arrange — inseriti in ordine inverso
+        await _boardService.AddAsync(new Board(DeviceType.Spark, "Rostro", 22, 4));
+        await _boardService.AddAsync(new Board(DeviceType.Spark, "HMI", 20, 1));
+        await _boardService.AddAsync(new Board(DeviceType.Spark, "Motore DX", 21, 2));
+
+        // Act
+        await _viewModel.LoadAsync(DeviceType.Spark);
+
+        // Assert
+        Assert.Equal(3, _viewModel.Boards.Count);
+        Assert.Equal(1, _viewModel.Boards[0].BoardNumber);
+        Assert.Equal(2, _viewModel.Boards[1].BoardNumber);
+        Assert.Equal(4, _viewModel.Boards[2].BoardNumber);
+    }
+
+    [Fact]
+    public async Task LoadAsync_BoardListItem_MapsProperties()
+    {
+        // Arrange
+        var dict = new Dictionary("Eden-XP", "Dedicato");
+        _dictionaryService.SeedData(dict);
+        var seededDict = (await _dictionaryService.GetAllAsync())[0];
+
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1,
+            partNumber: "DIS0020477", isPrimary: true, dictionaryId: seededDict.Id));
+
+        // Act
+        await _viewModel.LoadAsync(DeviceType.EdenXp);
+
+        // Assert
+        var item = Assert.Single(_viewModel.Boards);
+        Assert.Equal("Madre", item.Name);
+        Assert.Equal(17, item.FirmwareType);
+        Assert.Equal(1, item.BoardNumber);
+        Assert.Equal("DIS0020477", item.PartNumber);
+        Assert.True(item.IsPrimary);
+        Assert.StartsWith("0x", item.ProtocolAddress);
+    }
+
+    [Fact]
+    public async Task LoadAsync_OnlyShowsBoardsForSelectedDevice()
+    {
+        // Arrange — board di due device diversi
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre Eden", 17, 1));
+        await _boardService.AddAsync(new Board(DeviceType.Spark, "HMI Spark", 20, 1));
+
+        // Act
+        await _viewModel.LoadAsync(DeviceType.EdenXp);
+
+        // Assert — solo Eden
+        Assert.Single(_viewModel.Boards);
+        Assert.Equal("Madre Eden", _viewModel.Boards[0].Name);
+    }
+
+    [Fact]
+    public async Task AddBoardCommand_NavigatesToBoardEdit_WithDeviceType()
+    {
+        // Arrange
+        await _viewModel.LoadAsync(DeviceType.EdenXp);
+
+        // Act
+        _viewModel.AddBoardCommand.Execute(null);
+
+        // Assert
+        Assert.Equal(ViewType.BoardEdit, _navigationService.LastNavigatedView);
+        Assert.Null(_navigationService.LastParameter?.EntityId);
+        Assert.Equal(DeviceType.EdenXp, _navigationService.LastParameter?.DeviceType);
+    }
+
+    [Fact]
+    public void AddBoardCommand_WithoutDeviceType_DoesNotNavigate()
+    {
+        // Act — DeviceType è null (non ancora caricato)
+        _viewModel.AddBoardCommand.Execute(null);
+
+        // Assert
+        Assert.Null(_navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public void EditBoardCommand_NavigatesToBoardEdit_WithEntityId()
+    {
+        // Arrange
+        var item = new BoardListItem { Id = 42, Name = "Madre" };
+
+        // Act
+        _viewModel.EditBoardCommand.Execute(item);
+
+        // Assert
+        Assert.Equal(ViewType.BoardEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(42, _navigationService.LastParameter?.EntityId);
+    }
+
+    [Fact]
+    public void EditBoardCommand_WithNull_DoesNotNavigate()
+    {
+        // Act
+        _viewModel.EditBoardCommand.Execute(null);
+
+        // Assert
+        Assert.Null(_navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public async Task ReloadBoardsAsync_RefreshesOnlyBoards()
+    {
+        // Arrange — carica iniziale
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1));
+        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        Assert.Single(_viewModel.Boards);
+
+        // Aggiungi una board dopo il load iniziale
+        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Pulsantiera", 4, 2));
+
+        // Act
+        await _viewModel.ReloadBoardsAsync();
+
+        // Assert — boards aggiornate, dizionari non toccati
+        Assert.Equal(2, _viewModel.Boards.Count);
+    }
+
+    [Fact]
+    public async Task ReloadBoardsAsync_WithoutDeviceType_DoesNothing()
+    {
+        // Act — DeviceType è null (non caricato)
+        await _viewModel.ReloadBoardsAsync();
+
+        // Assert
+        Assert.Empty(_viewModel.Boards);
+        Assert.DoesNotContain(_boardService.MethodCalls,
+            c => c.StartsWith("GetByDeviceTypeAsync"));
     }
 }
 #endif

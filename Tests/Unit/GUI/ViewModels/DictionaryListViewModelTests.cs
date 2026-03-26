@@ -136,7 +136,7 @@ public class DictionaryListViewModelTests
         _viewModel.EditCommand.Execute(null);
 
         // Assert
-        Assert.Equal(ViewType.DictionaryList, _navigationService.CurrentView);
+        Assert.Equal(ViewType.DeviceList, _navigationService.CurrentView);
         Assert.Empty(_navigationService.NavigationHistory);
     }
 

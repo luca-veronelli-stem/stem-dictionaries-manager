@@ -35,9 +35,6 @@
         <DataTemplate DataType="{x:Type vm:CommandEditViewModel}">
             <views:CommandEditView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:BoardListViewModel}">
-            <views:BoardListView />
-        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:BoardEditViewModel}">
             <views:BoardEditView />
         </DataTemplate>
@@ -88,9 +85,6 @@
                             Style="{StaticResource SidebarButtonStyle}"/>
                     <Button Content="⚡  Comandi"
                             Command="{Binding NavigateToCommandsCommand}"
-                            Style="{StaticResource SidebarButtonStyle}"/>
-                    <Button Content="📋  Schede"
-                            Command="{Binding NavigateToBoardsCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
                 </StackPanel>
 

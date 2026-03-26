@@ -123,21 +123,97 @@ public class BoardEditViewModelTests
     }
 
     [Fact]
-    public async Task SaveCommand_CannotExecute_WhenNameEmpty()
+    public async Task SaveCommand_WithEmptyName_ShowsWarning()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+        _viewModel.FirmwareType = 17;
+        _viewModel.BoardNumber = 1;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.Contains(_messageService.Messages, m =>
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Nome"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task SaveCommand_WithInvalidFirmwareType_ShowsWarning()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestBoard";
+        _viewModel.FirmwareType = 0;
+        _viewModel.BoardNumber = 1;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.Contains(_messageService.Messages, m =>
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Firmware"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task SaveCommand_WithInvalidBoardNumber_ShowsWarning()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestBoard";
+        _viewModel.FirmwareType = 17;
+        _viewModel.BoardNumber = 0;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.Contains(_messageService.Messages, m =>
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Numero Scheda"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task SaveCommand_AlwaysCanExecute()
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "";
 
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        Assert.True(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
-    public async Task SaveCommand_CanExecute_WhenNameSet()
+    public void IsNameInvalid_FalseBeforeFirstSave()
+    {
+        _viewModel.Name = "";
+
+        Assert.False(_viewModel.IsNameInvalid);
+    }
+
+    [Fact]
+    public async Task IsNameInvalid_TrueAfterSaveAttempt()
     {
         await _viewModel.InitializeAsync(null);
-        _viewModel.Name = "TestBoard";
+        _viewModel.Name = "";
+        _viewModel.FirmwareType = 17;
+        _viewModel.BoardNumber = 1;
 
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsNameInvalid);
+    }
+
+    [Fact]
+    public async Task IsDeviceTypeLocked_WhenPresetDeviceType()
+    {
+        await _viewModel.InitializeAsync(null, DeviceType.EdenXp);
+
+        Assert.True(_viewModel.IsDeviceTypeLocked);
+        Assert.False(_viewModel.CanEditDeviceType);
+        Assert.Equal(DeviceType.EdenXp, _viewModel.SelectedDeviceType);
+    }
+
+    [Fact]
+    public async Task IsDeviceTypeLocked_FalseWithoutPreset()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        Assert.False(_viewModel.IsDeviceTypeLocked);
+        Assert.True(_viewModel.CanEditDeviceType);
     }
 
     [Fact]
@@ -253,6 +329,66 @@ public class BoardEditViewModelTests
 
         Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
         Assert.False(_navigationService.GoBackCalled);
+    }
+
+    // === Test DeleteBoardCommand ===
+
+    [Fact]
+    public async Task DeleteBoardCommand_ConfirmedYes_DeletesAndGoesBack()
+    {
+        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        await _boardService.AddAsync(board);
+
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        await _viewModel.DeleteBoardCommand.ExecuteAsync(null);
+
+        Assert.Contains(_boardService.MethodCalls, c => c == "DeleteAsync:1");
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Success);
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteBoardCommand_ConfirmedNo_DoesNotDelete()
+    {
+        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        await _boardService.AddAsync(board);
+
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        await _viewModel.DeleteBoardCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain(_boardService.MethodCalls, c => c.StartsWith("DeleteAsync"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteBoardCommand_ServiceThrows_ShowsErrorDialog()
+    {
+        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        await _boardService.AddAsync(board);
+
+        await _viewModel.InitializeAsync(1);
+        _dialogService.ConfirmResult = DialogResult.Yes;
+        _boardService.ExceptionToThrow = new Exception("FK constraint");
+
+        await _viewModel.DeleteBoardCommand.ExecuteAsync(null);
+
+        Assert.True(_dialogService.ShowErrorCalled);
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteBoardCommand_WhenNew_DoesNothing()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        await _viewModel.DeleteBoardCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain(_boardService.MethodCalls, c => c.StartsWith("DeleteAsync"));
+        Assert.Empty(_dialogService.Calls);
     }
 }
 #endif

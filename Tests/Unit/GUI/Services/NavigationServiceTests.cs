@@ -17,10 +17,10 @@ public class NavigationServiceTests
     }
 
     [Fact]
-    public void CurrentView_DefaultsToDictionaryList()
+    public void CurrentView_DefaultsToDeviceList()
     {
         // Assert
-        Assert.Equal(ViewType.DictionaryList, _service.CurrentView);
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class NavigationServiceTests
 
         // Assert
         Assert.False(result);
-        Assert.Equal(ViewType.DictionaryList, _service.CurrentView);
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class NavigationServiceTests
         _service.GoBack();
 
         // Assert
-        Assert.Equal(ViewType.DictionaryList, eventView);
+        Assert.Equal(ViewType.DeviceList, eventView);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class NavigationServiceTests
         Assert.Equal(ViewType.DictionaryEdit, _service.CurrentView);
 
         _service.GoBack();
-        Assert.Equal(ViewType.DictionaryList, _service.CurrentView);
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
 
         Assert.False(_service.CanGoBack);
     }
@@ -294,6 +294,50 @@ public class NavigationServiceTests
 
         _service.GoBack();
         Assert.Same(vm1, _service.CachedViewModel);
+    }
+
+    [Fact]
+    public void Reset_ResetsToDeviceList()
+    {
+        // Arrange
+        _service.NavigateTo(ViewType.CommandList);
+
+        // Act
+        _service.Reset();
+
+        // Assert
+        Assert.Equal(ViewType.DeviceList, _service.CurrentView);
+    }
+
+    [Fact]
+    public void Reset_ClearsHistory()
+    {
+        // Arrange
+        _service.NavigateTo(ViewType.DictionaryEdit);
+        _service.NavigateTo(ViewType.VariableEdit);
+
+        // Act
+        _service.Reset();
+
+        // Assert
+        Assert.False(_service.CanGoBack);
+    }
+
+    [Fact]
+    public void Reset_ClearsParameterAndCachedViewModel()
+    {
+        // Arrange
+        var fakeVm = new object();
+        _service.SetCurrentViewModel(fakeVm);
+        _service.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter { EntityId = 5 });
+        _service.GoBack(); // CachedViewModel = fakeVm
+
+        // Act
+        _service.Reset();
+
+        // Assert
+        Assert.Null(_service.CurrentParameter);
+        Assert.Null(_service.CachedViewModel);
     }
 }
 #endif
