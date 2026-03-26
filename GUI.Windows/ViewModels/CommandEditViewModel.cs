@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -41,7 +42,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
-    private string _codeLowHex = "00";
+    private string _codeLowHex = string.Empty;
 
     private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
     private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
@@ -52,7 +53,28 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     private bool _isResponse;
 
     [ObservableProperty]
-    private string _parametersText = string.Empty;
+    [NotifyPropertyChangedFor(nameof(HasParameters))]
+    private int? _parameterCount;
+
+    /// <summary>
+    /// Rigenera i ParameterItems quando cambia il count.
+    /// Preserva i dati esistenti per gli indici che restano nel range.
+    /// </summary>
+    partial void OnParameterCountChanged(int? value)
+    {
+        RegenerateParameterItems(value ?? 0);
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Parametri strutturati per la DataGrid.
+    /// </summary>
+    public ObservableCollection<CommandParameterItem> ParameterItems { get; } = [];
+
+    /// <summary>
+    /// True se ci sono parametri da visualizzare.
+    /// </summary>
+    public bool HasParameters => ParameterCount.HasValue && ParameterCount.Value > 0;
 
     // === Computed Properties ===
 
@@ -120,7 +142,23 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         // CodeHighHex è computed automaticamente da IsResponse
         CodeLowHex = c.CodeLow.ToString("X2");
         IsResponse = c.IsResponse;
-        ParametersText = string.Join(Environment.NewLine, c.Parameters);
+
+        // Carica parametri strutturati
+        if (c.Parameters.Count > 0)
+        {
+            var items = c.Parameters
+                .Select((p, i) => CommandParameterItem.Deserialize(i, p))
+                .ToList();
+            ParameterItems.Clear();
+            foreach (var item in items)
+            {
+                item.PropertyChanged += (_, _) => HasChanges = true;
+                ParameterItems.Add(item);
+            }
+            _parameterCount = items.Count;
+            OnPropertyChanged(nameof(ParameterCount));
+            OnPropertyChanged(nameof(HasParameters));
+        }
 
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
@@ -134,10 +172,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         {
             IsBusy = true;
 
-            var parameters = ParametersText
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => p.Trim())
-                .Where(p => !string.IsNullOrEmpty(p))
+            var parameters = ParameterItems
+                .Select(p => p.Serialize())
                 .ToList();
 
             if (IsNew)
@@ -219,5 +255,23 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         }
 
         _navigationService.GoBack();
+    }
+
+    /// <summary>
+    /// Rigenera la lista parametri per il count specificato.
+    /// Preserva i dati esistenti per gli indici che restano nel range.
+    /// </summary>
+    private void RegenerateParameterItems(int count)
+    {
+        var existing = ParameterItems.ToList();
+        ParameterItems.Clear();
+
+        for (var i = 0; i < count; i++)
+        {
+            var item = existing.FirstOrDefault(p => p.Index == i)
+                ?? new CommandParameterItem { Index = i };
+            item.PropertyChanged += (_, _) => HasChanges = true;
+            ParameterItems.Add(item);
+        }
     }
 }
