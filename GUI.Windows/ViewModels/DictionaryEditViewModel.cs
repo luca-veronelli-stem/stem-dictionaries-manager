@@ -33,6 +33,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     private int? _editingId;
     private bool _isInitialized;
+    private bool _showValidation;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -46,7 +47,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     // === Campi dizionario ===
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     [ObservableProperty]
@@ -64,6 +65,10 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuovo Dizionario" : "Modifica Dizionario";
+
+    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+
+    public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
 
     // === Lista variabili ===
 
@@ -184,9 +189,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
-
-    [RelayCommand(CanExecute = nameof(CanSave))]
+    [RelayCommand]
     private async Task SaveAsync()
     {
         if (!Validate()) return;
@@ -305,23 +308,20 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     private bool Validate()
     {
-        var errors = new List<string>();
+        _showValidation = true;
 
-        if (string.IsNullOrWhiteSpace(Name))
-            errors.Add("Il nome è obbligatorio.");
-        else if (Name.Length > 100)
-            errors.Add("Il nome non può superare 100 caratteri.");
+        OnPropertyChanged(nameof(IsNameInvalid));
 
-        if (Description.Length > 500)
-            errors.Add("La descrizione non può superare 500 caratteri.");
+        var missing = new List<string>();
 
-        if (errors.Count > 0)
+        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
+
+        if (missing.Count > 0)
         {
-            ErrorMessage = string.Join("\n", errors);
+            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
             return false;
         }
 
-        ErrorMessage = null;
         return true;
     }
 }
