@@ -8,6 +8,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Intestazione dispositivo -->
@@ -28,20 +30,74 @@
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Lista dizionari -->
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Dictionaries}" 
-                  SelectedItem="{Binding SelectedDictionary}"
+        <!-- ── DIZIONARI ── -->
+        <DockPanel Grid.Row="3">
+            <TextBlock DockPanel.Dock="Top" Text="DIZIONARI" FontSize="13" FontWeight="SemiBold"
+                       Foreground="#007ACC" Margin="0,0,0,8"/>
+            <DataGrid ItemsSource="{Binding Dictionaries}" 
+                      SelectedItem="{Binding SelectedDictionary}"
+                      Style="{StaticResource DarkDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                      RowStyle="{StaticResource DarkDataGridRowStyle}"
+                      CellStyle="{StaticResource DarkDataGridCellStyle}">
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDictionaryCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                    <DataGridTextColumn Header="Tipo" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
+                    <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="100" MinWidth="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- ── SCHEDE ── -->
+        <DockPanel Grid.Row="4" Margin="0,15,0,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="SCHEDE" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#007ACC" VerticalAlignment="Center"/>
+                <Button Content="➕ Nuova" Command="{Binding AddBoardCommand}" 
+                        Style="{StaticResource ToolbarButtonStyle}" Margin="15,0,0,0"/>
+                <Button Content="🗑️ Elimina" Command="{Binding DeleteBoardCommand}" 
+                        CommandParameter="{Binding SelectedBoard}"
+                        Style="{StaticResource ToolbarButtonStyle}" Margin="4,0,0,0"/>
+            </StackPanel>
+        </DockPanel>
+
+        <DataGrid Grid.Row="5" ItemsSource="{Binding Boards}" 
+                  SelectedItem="{Binding SelectedBoard}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.InputBindings>
-                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDictionaryCommand}"/>
+                <MouseBinding MouseAction="LeftDoubleClick" 
+                              Command="{Binding EditBoardCommand}" 
+                              CommandParameter="{Binding SelectedBoard}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
-                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="100" MinWidth="80"/>
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                <DataGridTextColumn Header="FW Type" Binding="{Binding FirmwareType}" Width="70" MinWidth="50">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="N°" Binding="{Binding BoardNumber}" Width="50" MinWidth="40">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridCheckBoxColumn Header="Primaria" Binding="{Binding IsPrimary}" Width="70" MinWidth="50" 
+                                        IsReadOnly="True" ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
+                <DataGridTextColumn Header="Dizionario" Binding="{Binding DictionaryName}" Width="150" MinWidth="80"/>
+                <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120" MinWidth="80"/>
+                <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -28,14 +28,31 @@ public partial class DictionaryItem : ObservableObject
 }
 
 /// <summary>
+/// Item per la lista schede di un device.
+/// </summary>
+public record BoardListItem
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public int FirmwareType { get; init; }
+    public int BoardNumber { get; init; }
+    public string ProtocolAddress { get; init; } = string.Empty;
+    public string? PartNumber { get; init; }
+    public string? DictionaryName { get; init; }
+    public bool IsPrimary { get; init; }
+}
+
+/// <summary>
 /// ViewModel per il dettaglio di un tipo dispositivo.
-/// Mostra i dizionari associati alle schede di quel device.
+/// Mostra dizionari (derivati) e schede del device (F5.2).
 /// </summary>
 public partial class DeviceDetailViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
     private readonly IDictionaryService _dictionaryService;
     private readonly IBoardService _boardService;
+    private readonly IDialogService _dialogService;
+    private readonly IMessageService _messageService;
 
     [ObservableProperty]
     private DeviceType? _deviceType;
@@ -50,6 +67,12 @@ public partial class DeviceDetailViewModel : ObservableObject
     private DictionaryItem? _selectedDictionary;
 
     [ObservableProperty]
+    private ObservableCollection<BoardListItem> _boards = [];
+
+    [ObservableProperty]
+    private BoardListItem? _selectedBoard;
+
+    [ObservableProperty]
     private bool _isLoading;
 
     [ObservableProperty]
@@ -58,22 +81,35 @@ public partial class DeviceDetailViewModel : ObservableObject
     public DeviceDetailViewModel(
         INavigationService navigationService,
         IDictionaryService dictionaryService,
-        IBoardService boardService)
+        IBoardService boardService,
+        IDialogService dialogService,
+        IMessageService messageService)
     {
         _navigationService = navigationService;
         _dictionaryService = dictionaryService;
         _boardService = boardService;
+        _dialogService = dialogService;
+        _messageService = messageService;
     }
 
     /// <summary>
-    /// Carica i dizionari per il device specificato.
+    /// Carica dizionari e schede per il device specificato.
     /// Chiamato da MainViewModel.InitializeViewModelAsync.
     /// </summary>
     public async Task LoadAsync(DeviceType deviceType)
     {
         DeviceType = deviceType;
         DeviceName = GetDeviceName(deviceType);
-        await LoadDictionariesAsync();
+        await LoadDataAsync();
+    }
+
+    /// <summary>
+    /// Ricarica solo le schede (usato dopo GoBack da BoardEdit).
+    /// </summary>
+    public async Task ReloadBoardsAsync()
+    {
+        if (DeviceType is null) return;
+        await LoadBoardsAsync(DeviceType.Value);
     }
 
     private static string GetDeviceName(DeviceType deviceType) => deviceType switch
@@ -92,9 +128,9 @@ public partial class DeviceDetailViewModel : ObservableObject
         _ => deviceType.ToString()
     };
 
-    private async Task LoadDictionariesAsync()
+    private async Task LoadDataAsync()
     {
-        if (DeviceType == null) return;
+        if (DeviceType is null) return;
 
         IsLoading = true;
         ErrorMessage = null;
@@ -103,16 +139,29 @@ public partial class DeviceDetailViewModel : ObservableObject
         {
             var dt = DeviceType.Value;
 
-            // Board di questo device (link diretto Board→Dictionary)
+            // Carica board di questo device
             var boards = await _boardService.GetByDeviceTypeAsync(dt);
+
+            // Popola sezione schede
+            Boards = new ObservableCollection<BoardListItem>(
+                boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    FirmwareType = b.FirmwareType,
+                    BoardNumber = b.BoardNumber,
+                    ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
+                    PartNumber = b.PartNumber,
+                    DictionaryName = b.DictionaryName,
+                    IsPrimary = b.IsPrimary
+                }));
+
+            // Popola sezione dizionari (derivati da board)
             var linkedDictIds = new HashSet<int>(
-                boards.Where(b => b.DictionaryId.HasValue).Select(b => b.DictionaryId!.Value));
+                boards.Where(b => b.DictionaryId.HasValue)
+                      .Select(b => b.DictionaryId!.Value));
 
-            // Tutti i dizionari
             var allDicts = await _dictionaryService.GetAllAsync();
-
-            // ① Standard (IsStandard=true) → sempre visibile
-            // ② Linked (Board di questo device punta a quel dizionario)
             var relevantDicts = allDicts
                 .Where(d => d.IsStandard || linkedDictIds.Contains(d.Id))
                 .ToList();
@@ -123,7 +172,8 @@ public partial class DeviceDetailViewModel : ObservableObject
                 return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count);
             });
 
-            Dictionaries = new ObservableCollection<DictionaryItem>(items.OrderBy(d => d.Name));
+            Dictionaries = new ObservableCollection<DictionaryItem>(
+                items.OrderBy(d => d.Name));
         }
         catch (Exception ex)
         {
@@ -135,15 +185,89 @@ public partial class DeviceDetailViewModel : ObservableObject
         }
     }
 
+    private async Task LoadBoardsAsync(DeviceType dt)
+    {
+        try
+        {
+            var boards = await _boardService.GetByDeviceTypeAsync(dt);
+            Boards = new ObservableCollection<BoardListItem>(
+                boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    FirmwareType = b.FirmwareType,
+                    BoardNumber = b.BoardNumber,
+                    ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
+                    PartNumber = b.PartNumber,
+                    DictionaryName = b.DictionaryName,
+                    IsPrimary = b.IsPrimary
+                }));
+        }
+        catch (Exception ex)
+        {
+            _messageService.Show($"Errore caricamento schede: {ex.Message}",
+                MessageSeverity.Error);
+        }
+    }
+
     [RelayCommand]
     private void OpenDictionary()
     {
-        if (SelectedDictionary == null) return;
+        if (SelectedDictionary is null) return;
 
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {
             EntityId = SelectedDictionary.Id
         });
+    }
+
+    [RelayCommand]
+    private void AddBoard()
+    {
+        if (DeviceType is null) return;
+
+        _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
+        {
+            EntityId = null,
+            DeviceType = DeviceType.Value
+        });
+    }
+
+    [RelayCommand]
+    private void EditBoard(BoardListItem? item)
+    {
+        if (item is null) return;
+
+        _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
+        {
+            EntityId = item.Id,
+            DeviceType = DeviceType
+        });
+    }
+
+    [RelayCommand]
+    private async Task DeleteBoardAsync(BoardListItem? item)
+    {
+        if (item is null || DeviceType is null) return;
+
+        var result = await _dialogService.ShowConfirmAsync(
+            "Conferma eliminazione",
+            $"Eliminare la scheda '{item.Name}'?");
+
+        if (result != DialogResult.Yes) return;
+
+        try
+        {
+            await _boardService.DeleteAsync(item.Id);
+            _messageService.Show($"Scheda '{item.Name}' eliminata",
+                MessageSeverity.Success);
+            await LoadBoardsAsync(DeviceType.Value);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Errore",
+                $"Impossibile eliminare: {ex.Message}");
+        }
     }
 
     [RelayCommand]

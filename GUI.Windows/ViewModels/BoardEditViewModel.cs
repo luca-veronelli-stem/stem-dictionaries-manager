@@ -73,7 +73,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         _messageService = messageService;
     }
 
-    public async Task InitializeAsync(int? boardId)
+    public async Task InitializeAsync(int? boardId, DeviceType? presetDeviceType = null)
     {
         if (_isInitialized) return;
 
@@ -81,6 +81,10 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         {
             IsBusy = true;
             _editingId = boardId;
+
+            // Preset DeviceType se arriva da DeviceDetail
+            if (presetDeviceType.HasValue)
+                SelectedDeviceType = presetDeviceType.Value;
 
             // Carica i dizionari disponibili per il dropdown
             var dictionaries = await _dictionaryService.GetAllAsync();

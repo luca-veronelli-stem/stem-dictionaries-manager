@@ -12,7 +12,6 @@ public enum ViewType
     VariableEdit,
     CommandList,
     CommandEdit,
-    BoardList,
     BoardEdit,
     UserList,
     Settings
