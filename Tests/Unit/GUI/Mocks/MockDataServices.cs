@@ -426,6 +426,11 @@ public class MockCommandService : ICommandService
         return Task.FromResult(restored);
     }
 
+    /// <summary>
+    /// Restituisce l'ultimo comando salvato (per verifiche test).
+    /// </summary>
+    public Command? GetSavedCommand() => _commands.LastOrDefault();
+
     public Task DeleteAsync(int id, CancellationToken ct = default)
     {
         MethodCalls.Add($"DeleteAsync:{id}");
