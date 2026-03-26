@@ -172,8 +172,13 @@ public partial class DeviceDetailViewModel : ObservableObject
                 return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count);
             });
 
-            Dictionaries = new ObservableCollection<DictionaryItem>(
-                items.OrderBy(d => d.Name));
+            var sortedItems = items.OrderBy(d => d.Name).ToList();
+
+            // Aggiungi entry "Comandi" per gestione stato comandi per device
+            sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", 0)
+                { IsCommandsEntry = true });
+
+            Dictionaries = new ObservableCollection<DictionaryItem>(sortedItems);
         }
         catch (Exception ex)
         {
