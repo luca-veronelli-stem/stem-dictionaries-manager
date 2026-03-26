@@ -39,7 +39,6 @@ public class CommandEditFlowTests
         _viewModel.Name = "ReadStatus";
         _viewModel.CodeLowHex = "10";
         _viewModel.IsResponse = false;
-        _viewModel.ParameterCount = 0;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -54,7 +53,8 @@ public class CommandEditFlowTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "WriteRegister";
         _viewModel.CodeLowHex = "20";
-        _viewModel.ParameterCount = 2;
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[0].SizeBytes = "2";
         _viewModel.ParameterItems[0].Description = "Indirizzo memoria";
         _viewModel.ParameterItems[1].SizeBytes = "4";
@@ -79,7 +79,7 @@ public class CommandEditFlowTests
         await _viewModel.InitializeAsync(1);
         Assert.Equal("OldName", _viewModel.Name);
         Assert.Equal("15", _viewModel.CodeLowHex);
-        Assert.Equal(1, _viewModel.ParameterCount);
+        Assert.Single(_viewModel.ParameterItems);
 
         _viewModel.Name = "NewName";
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -96,7 +96,7 @@ public class CommandEditFlowTests
 
         await _viewModel.InitializeAsync(1);
 
-        Assert.Equal(3, _viewModel.ParameterCount);
+        Assert.Equal(3, _viewModel.ParameterItems.Count);
         Assert.All(_viewModel.ParameterItems, item => Assert.Equal("", item.SizeBytes));
         Assert.Equal("param1", _viewModel.ParameterItems[0].Description);
         Assert.Equal("param2", _viewModel.ParameterItems[1].Description);
@@ -112,16 +112,13 @@ public class CommandEditFlowTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
         Assert.True(_viewModel.IsNameInvalid);
         Assert.True(_viewModel.IsCodeLowInvalid);
-        Assert.True(_viewModel.IsParameterCountInvalid);
         Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("AddAsync"));
 
         // Fix campi
         _viewModel.Name = "FixedCommand";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
         Assert.False(_viewModel.IsNameInvalid);
         Assert.False(_viewModel.IsCodeLowInvalid);
-        Assert.False(_viewModel.IsParameterCountInvalid);
 
         // Secondo tentativo: successo
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -167,7 +164,7 @@ public class CommandEditFlowTests
         _viewModel.Name = "StatusResponse";
         _viewModel.CodeLowHex = "10";
         _viewModel.IsResponse = true;
-        _viewModel.ParameterCount = 1;
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[0].SizeBytes = "2";
         _viewModel.ParameterItems[0].Description = "Status code";
 

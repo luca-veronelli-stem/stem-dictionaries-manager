@@ -35,7 +35,7 @@ public class UserListViewModelTests
     public async Task InitializeAsync_CallsGetAllAsync()
     {
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Contains("GetAllAsync", _userService.MethodCalls);
@@ -50,7 +50,7 @@ public class UserListViewModelTests
         _userService.SeedData(user1, user2);
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Equal(2, _viewModel.Users.Count);
@@ -65,7 +65,7 @@ public class UserListViewModelTests
         _userService.SeedData(new User("test", "Test User"));
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Contains(_messageService.Messages, m =>
@@ -79,24 +79,24 @@ public class UserListViewModelTests
         _userService.ExceptionToThrow = new Exception("Database error");
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Equal("Database error", _viewModel.ErrorMessage);
     }
 
     [Fact]
-    public async Task InitializeAsync_CanOnlyBeCalledOnce()
+    public async Task LoadAsync_CanBeCalledMultipleTimes()
     {
         // Arrange
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
         _userService.MethodCalls.Clear();
 
-        // Act
-        await _viewModel.InitializeAsync();
+        // Act — ricarica per aggiornare i dati
+        await _viewModel.LoadAsync();
 
-        // Assert
-        Assert.Empty(_userService.MethodCalls);
+        // Assert — deve ricaricare ogni volta
+        Assert.Contains(_userService.MethodCalls, m => m == "GetAllAsync");
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class UserListViewModelTests
         // Arrange
         var user = new User("todelete", "To Delete");
         _userService.SeedData(user);
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
         _dialogService.ConfirmResult = DialogResult.Yes;
 
         var item = new UserListItem { Id = 1, Username = "todelete" };
@@ -240,7 +240,7 @@ public class UserListViewModelTests
         _userService.SeedData(
             new User("luca.veronelli", "Luca Veronelli"),
             new User("michele.pignedoli", "Michele Pignedoli"));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Act
         _viewModel.SearchText = "luca";
@@ -257,7 +257,7 @@ public class UserListViewModelTests
         _userService.SeedData(
             new User("user1", "Luca Veronelli"),
             new User("user2", "Michele Pignedoli"));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Act
         _viewModel.SearchText = "Pignedoli";
@@ -274,7 +274,7 @@ public class UserListViewModelTests
         _userService.SeedData(
             new User("user1", "User One"),
             new User("user2", "User Two"));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
         _viewModel.SearchText = "user1";
         Assert.Single(_viewModel.Users);
 

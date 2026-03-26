@@ -19,7 +19,6 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private bool _isInitialized;
-    private bool _isLoading;
     private bool _showValidation;
 
     [ObservableProperty]
@@ -56,22 +55,6 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
     private bool _isResponse;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasParameters))]
-    [NotifyPropertyChangedFor(nameof(IsParameterCountInvalid))]
-    private int? _parameterCount;
-
-    /// <summary>
-    /// Rigenera i ParameterItems quando cambia il count.
-    /// Preserva i dati esistenti per gli indici che restano nel range.
-    /// </summary>
-    partial void OnParameterCountChanged(int? value)
-    {
-        if (_isLoading) return;
-        RegenerateParameterItems(value ?? 0);
-        HasChanges = true;
-    }
-
     /// <summary>
     /// Parametri strutturati per la DataGrid.
     /// </summary>
@@ -80,7 +63,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     /// <summary>
     /// True se ci sono parametri da visualizzare.
     /// </summary>
-    public bool HasParameters => ParameterCount.HasValue && ParameterCount.Value > 0;
+    public bool HasParameters => ParameterItems.Count > 0;
 
     // === Computed Properties ===
 
@@ -92,7 +75,6 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsCodeLowInvalid => _showValidation && string.IsNullOrWhiteSpace(CodeLowHex);
-    public bool IsParameterCountInvalid => _showValidation && !ParameterCount.HasValue;
 
     public CommandEditViewModel(
         ICommandService commandService,
@@ -156,27 +138,15 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         IsResponse = c.IsResponse;
 
         // Carica parametri strutturati
-        _isLoading = true;
-        if (c.Parameters.Count > 0)
+        ParameterItems.Clear();
+        foreach (var (p, i) in c.Parameters.Select((p, i) => (p, i)))
         {
-            var items = c.Parameters
-                .Select((p, i) => CommandParameterItem.Deserialize(i, p))
-                .ToList();
-            ParameterItems.Clear();
-            foreach (var item in items)
-            {
-                item.PropertyChanged += (_, _) => HasChanges = true;
-                ParameterItems.Add(item);
-            }
-
-            ParameterCount = items.Count;
+            var item = CommandParameterItem.Deserialize(i, p);
+            item.PropertyChanged += (_, _) => HasChanges = true;
+            ParameterItems.Add(item);
         }
-        else
-        {
-            ParameterCount = 0;
-        }
-        _isLoading = false;
 
+        OnPropertyChanged(nameof(HasParameters));
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
 
@@ -186,13 +156,11 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
         OnPropertyChanged(nameof(IsNameInvalid));
         OnPropertyChanged(nameof(IsCodeLowInvalid));
-        OnPropertyChanged(nameof(IsParameterCountInvalid));
 
         var missing = new List<string>();
 
         if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
         if (string.IsNullOrWhiteSpace(CodeLowHex)) missing.Add("Codice");
-        if (!ParameterCount.HasValue) missing.Add("Conteggio parametri");
 
         if (missing.Count > 0)
         {
@@ -298,20 +266,27 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     }
 
     /// <summary>
-    /// Rigenera la lista parametri per il count specificato.
-    /// Preserva i dati esistenti per gli indici che restano nel range.
+    /// Aggiunge un nuovo parametro alla lista.
     /// </summary>
-    private void RegenerateParameterItems(int count)
+    [RelayCommand]
+    private void AddParameter()
     {
-        var existing = ParameterItems.ToList();
-        ParameterItems.Clear();
+        var item = new CommandParameterItem { Index = ParameterItems.Count };
+        item.PropertyChanged += (_, _) => HasChanges = true;
+        ParameterItems.Add(item);
+        OnPropertyChanged(nameof(HasParameters));
+        HasChanges = true;
+    }
 
-        for (var i = 0; i < count; i++)
-        {
-            var item = existing.FirstOrDefault(p => p.Index == i)
-                ?? new CommandParameterItem { Index = i };
-            item.PropertyChanged += (_, _) => HasChanges = true;
-            ParameterItems.Add(item);
-        }
+    /// <summary>
+    /// Rimuove l'ultimo parametro dalla lista.
+    /// </summary>
+    [RelayCommand]
+    private void RemoveLastParameter()
+    {
+        if (ParameterItems.Count == 0) return;
+        ParameterItems.RemoveAt(ParameterItems.Count - 1);
+        OnPropertyChanged(nameof(HasParameters));
+        HasChanges = true;
     }
 }

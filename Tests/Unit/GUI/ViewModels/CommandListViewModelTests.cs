@@ -35,7 +35,7 @@ public class CommandListViewModelTests
     public async Task InitializeAsync_CallsGetAllAsync()
     {
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Contains("GetAllAsync", _commandService.MethodCalls);
@@ -50,7 +50,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(cmd1, cmd2);
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Equal(2, _viewModel.Commands.Count);
@@ -66,7 +66,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(command);
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Equal("0x1234", _viewModel.Commands[0].Code);
@@ -81,7 +81,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(request, response);
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Contains(_viewModel.Commands, c => c.Name == "Request" && !c.IsResponse);
@@ -95,7 +95,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(new Command("Test", 0x10, 0x01, false));
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Contains(_messageService.Messages, m =>
@@ -109,24 +109,24 @@ public class CommandListViewModelTests
         _commandService.ExceptionToThrow = new Exception("Database error");
 
         // Act
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Assert
         Assert.Equal("Database error", _viewModel.ErrorMessage);
     }
 
     [Fact]
-    public async Task InitializeAsync_CanOnlyBeCalledOnce()
+    public async Task LoadAsync_CanBeCalledMultipleTimes()
     {
         // Arrange
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
         _commandService.MethodCalls.Clear();
 
-        // Act
-        await _viewModel.InitializeAsync();
+        // Act — ricarica per aggiornare i dati
+        await _viewModel.LoadAsync();
 
-        // Assert
-        Assert.Empty(_commandService.MethodCalls);
+        // Assert — deve ricaricare ogni volta
+        Assert.Contains(_commandService.MethodCalls, m => m == "GetAllAsync");
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class CommandListViewModelTests
             new Command("Reset", 0x01, 0x00, false),
             new Command("ReadFW", 0x02, 0x00, false),
             new Command("WriteParam", 0x03, 0x00, false));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Act
         _viewModel.SearchText = "Read";
@@ -189,7 +189,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(
             new Command("Cmd1", 0x01, 0x00, false),
             new Command("Cmd2", 0x02, 0x00, false));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
 
         // Act
         _viewModel.SearchText = "0200";
@@ -206,7 +206,7 @@ public class CommandListViewModelTests
         _commandService.SeedData(
             new Command("Cmd1", 0x01, 0x00, false),
             new Command("Cmd2", 0x02, 0x00, false));
-        await _viewModel.InitializeAsync();
+        await _viewModel.LoadAsync();
         _viewModel.SearchText = "Cmd1";
         Assert.Single(_viewModel.Commands);
 

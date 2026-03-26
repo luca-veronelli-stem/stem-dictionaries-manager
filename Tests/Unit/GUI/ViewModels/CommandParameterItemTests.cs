@@ -52,10 +52,10 @@ public class CommandParameterItemTests
     public void IndexDisplay_FormatsCorrectly()
     {
         var item = new CommandParameterItem { Index = 0 };
-        Assert.Equal("Parametro 1", item.IndexDisplay);
+        Assert.Equal("1", item.IndexDisplay);
 
         var item2 = new CommandParameterItem { Index = 4 };
-        Assert.Equal("Parametro 5", item2.IndexDisplay);
+        Assert.Equal("5", item2.IndexDisplay);
     }
 
     [Fact]

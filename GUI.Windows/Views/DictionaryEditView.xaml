@@ -33,7 +33,8 @@
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"/>
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome dizionario" MaxLength="100" Margin="0,0,0,10"/>
+                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome dizionario" MaxLength="100" Margin="0,0,0,10"
+                     BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Descrizione" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,10"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
