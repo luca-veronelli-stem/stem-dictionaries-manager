@@ -95,7 +95,8 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentUser = user;
 
-        // Naviga alla view iniziale
+        // Reset navigazione: ogni sessione utente parte pulita
+        _navigationService.Reset();
         NavigateToView(_navigationService.CurrentView, null);
     }
 
