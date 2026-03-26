@@ -238,6 +238,7 @@ public class MockVariableService : IVariableService
 {
     private readonly List<Variable> _variables = [];
     private readonly Dictionary<int, List<BitInterpretation>> _bitInterpretations = [];
+    private readonly List<VariableDeviceState> _deviceStates = [];
     private int _nextId = 1;
 
     public Exception? ExceptionToThrow { get; set; }
@@ -340,14 +341,25 @@ public class MockVariableService : IVariableService
     {
         MethodCalls.Add($"GetDeviceStateAsync:{variableId}:{deviceType}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<VariableDeviceState?>(null);
+        return Task.FromResult(_deviceStates.FirstOrDefault(
+            s => s.VariableId == variableId && s.DeviceType == deviceType));
     }
 
     public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
     {
         MethodCalls.Add($"GetDeviceStatesAsync:{variableId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<VariableDeviceState>>([]);
+        return Task.FromResult<IReadOnlyList<VariableDeviceState>>(
+            [.. _deviceStates.Where(s => s.VariableId == variableId)]);
+    }
+
+    public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceType}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<VariableDeviceState>>(
+            [.. _deviceStates.Where(s => s.DeviceType == deviceType)]);
     }
 
     public Task UpdateAsync(Variable variable, CancellationToken ct = default)
@@ -389,10 +401,16 @@ public class MockVariableService : IVariableService
         _bitInterpretations[variableId] = bits;
     }
 
+    public void SeedDeviceStates(params VariableDeviceState[] states)
+    {
+        _deviceStates.AddRange(states);
+    }
+
     public void Reset()
     {
         _variables.Clear();
         _bitInterpretations.Clear();
+        _deviceStates.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();
