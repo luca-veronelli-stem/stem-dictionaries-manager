@@ -65,7 +65,7 @@
                               Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
-                             Width="150" IsEnabled="{Binding IsDataTypeOther}"
+                             Width="150" Visibility="{Binding IsDataTypeOther, Converter={StaticResource BoolToVisibilityConverter}}"
                              BorderBrush="{Binding IsCustomDataTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                 </StackPanel>
 
