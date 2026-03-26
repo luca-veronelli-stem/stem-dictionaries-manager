@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1388%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1422%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -41,8 +41,9 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 13 ViewModels, 12 Views attive, dark theme, custom dialogs, status bar |
-| **Test Suite** | ✅ | ~856 metodi test / 1388 test cases (unit + integration, 2 target framework) |
+| **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 13 Views attive, dark theme, custom dialogs, status bar |
+| **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
+| **Test Suite** | ✅ | ~883 metodi test / 1422 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -88,13 +89,13 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (9)
 │   ├── Repositories/      # Repository implementations (9)
 │   └── Migrations/        # 1 migration Domain v2
-├── GUI.Windows/           # Applicazione WPF (MVVM, 13 ViewModels, 12 Views attive)
+├── GUI.Windows/           # Applicazione WPF (MVVM, 14 ViewModels, 13 Views attive)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
-│   ├── ViewModels/        # 13 ViewModels + helper classes
-│   ├── Views/             # 13 Views XAML (incl. LoginView, DarkDialog)
+│   ├── ViewModels/        # 14 ViewModels + helper classes
+│   ├── Views/             # 14 Views XAML (incl. LoginView, DarkDialog, DeviceCommandsView)
 │   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~856 metodi / 1388 cases)
+├── Tests/                 # Unit & integration tests (~883 metodi / 1422 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -169,7 +170,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│        MVVM, 13 ViewModels, 12 Views, Dark Theme, Status Bar  │
+│      MVVM, 14 ViewModels, 13 Views, Dark Theme, Status Bar    │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
