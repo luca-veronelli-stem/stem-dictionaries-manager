@@ -127,4 +127,11 @@ public class CommandService : ICommandService
 
         return entity is null ? null : CommandDeviceStateMapper.ToDomain(entity);
     }
+
+    public async Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default)
+    {
+        var entities = await _deviceStateRepository.GetByDeviceTypeAsync(deviceType, ct);
+        return entities.Select(CommandDeviceStateMapper.ToDomain).ToList();
+    }
 }

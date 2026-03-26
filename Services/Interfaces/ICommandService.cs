@@ -42,4 +42,10 @@ public interface ICommandService
     /// </summary>
     Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene tutti gli stati comando per un tipo di device.
+    /// </summary>
+    Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default);
 }
