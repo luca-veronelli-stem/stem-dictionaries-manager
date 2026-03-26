@@ -52,7 +52,7 @@
                     <TextBlock Text="{Binding AddressHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
                              PreviewTextInput="HexTextBox_PreviewTextInput"
                              BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                     <TextBlock Text="{Binding FullAddressDisplay}" Foreground="#007ACC" VerticalAlignment="Center" FontWeight="SemiBold"/>
@@ -101,7 +101,8 @@
                                         <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
                                                             IsReadOnly="True" Width="80" MinWidth="60"/>
                                         <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
-                                                            Width="*" MinWidth="200"/>
+                                                            Width="*" MinWidth="200"
+                                                            EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">

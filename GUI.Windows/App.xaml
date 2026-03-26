@@ -222,7 +222,20 @@
                     <Setter Property="Background" Value="#007ACC"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Trigger>
+                <Trigger Property="IsEditing" Value="True">
+                    <Setter Property="Background" Value="#2D2D30"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
             </Style.Triggers>
+        </Style>
+
+        <!-- Stile TextBox per editing inline nelle DataGrid -->
+        <Style x:Key="DarkDataGridTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
         </Style>
 
         <!-- ================================================ -->
@@ -264,5 +277,77 @@
             </Style.Triggers>
         </Style>
 
-    </Application.Resources>
-</Application>
+            <!-- ================================================ -->
+            <!-- CHECKBOX (dark theme, toggle moderno)             -->
+            <!-- ================================================ -->
+            <Style TargetType="CheckBox">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border x:Name="CheckBorder" Width="18" Height="18" CornerRadius="3"
+                                        BorderBrush="#555555" BorderThickness="1.5" Background="#2D2D30"
+                                        VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <Path x:Name="CheckMark" Data="M 3,8 L 7,12 L 14,4" Stretch="Uniform"
+                                          Stroke="White" StrokeThickness="2" Width="10" Height="10"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Visibility="Collapsed"/>
+                                </Border>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="CheckBorder" Property="Background" Value="#007ACC"/>
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#007ACC"/>
+                                    <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#007ACC"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="CheckBorder" Property="Background" Value="#1E1E1E"/>
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#3E3E42"/>
+                                    <Setter Property="Foreground" Value="#555555"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Stile CheckBox per DataGrid (centrato, solo visualizzazione) -->
+            <Style x:Key="DarkDataGridCheckBoxStyle" TargetType="CheckBox">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="IsHitTestVisible" Value="False"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <Border x:Name="CheckBorder" Width="18" Height="18" CornerRadius="3"
+                                    BorderBrush="#555555" BorderThickness="1.5" Background="#2D2D30">
+                                <Path x:Name="CheckMark" Data="M 3,8 L 7,12 L 14,4" Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2" Width="10" Height="10"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="CheckBorder" Property="Background" Value="#007ACC"/>
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#007ACC"/>
+                                    <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#007ACC"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </Application.Resources>
+    </Application>
