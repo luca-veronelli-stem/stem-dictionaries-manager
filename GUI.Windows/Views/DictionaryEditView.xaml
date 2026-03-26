@@ -77,7 +77,8 @@
                 <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
                 <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
                 <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
-                <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50"/>
+                <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50" IsReadOnly="True"
+                                                                            ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
                 <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
             </DataGrid.Columns>
         </DataGrid>

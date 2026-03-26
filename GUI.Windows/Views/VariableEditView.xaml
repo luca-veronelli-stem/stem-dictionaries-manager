@@ -42,7 +42,8 @@
                 <!-- Nome -->
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome variabile" MaxLength="100" Margin="0,0,0,12"/>
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome variabile" MaxLength="100" Margin="0,0,0,12"
+                         BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
                 <!-- Indirizzo -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -51,8 +52,9 @@
                     <TextBlock Text="{Binding AddressHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="0,0,16,0"
-                             PreviewTextInput="HexTextBox_PreviewTextInput"/>
+                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
+                             PreviewTextInput="HexTextBox_PreviewTextInput"
+                             BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                     <TextBlock Text="{Binding FullAddressDisplay}" Foreground="#007ACC" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 
@@ -60,10 +62,11 @@
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
-                              Width="130" Padding="8,6" Margin="0,0,8,0"/>
+                              Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
-                             Width="150" IsEnabled="{Binding IsDataTypeOther}"/>
+                             Width="150" Visibility="{Binding IsDataTypeOther, Converter={StaticResource BoolToVisibilityConverter}}"
+                             BorderBrush="{Binding IsCustomDataTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                 </StackPanel>
 
                 <!-- Parametro Tipo -->
@@ -73,7 +76,8 @@
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Dimensione"
                          Width="100" HorizontalAlignment="Left" Margin="0,0,0,12"
                          Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
-                         PreviewTextInput="IntTextBox_PreviewTextInput"/>
+                         PreviewTextInput="IntTextBox_PreviewTextInput"
+                         BorderBrush="{Binding IsDataTypeParamInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
                 <!-- Sezione BitInterpretations (solo per Bitmapped) -->
                 <ItemsControl Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
@@ -97,7 +101,8 @@
                                         <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
                                                             IsReadOnly="True" Width="80" MinWidth="60"/>
                                         <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
-                                                            Width="*" MinWidth="200"/>
+                                                            Width="*" MinWidth="200"
+                                                            EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
@@ -139,10 +144,11 @@
                          Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
 
                 <!-- Descrizione -->
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Descrizione" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Description}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
-                         AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
+                         BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
                 <!-- Abilitata -->
                 <TextBlock Grid.Row="9" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>

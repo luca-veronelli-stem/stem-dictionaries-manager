@@ -58,7 +58,8 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridCheckBoxColumn Header="Primaria" Binding="{Binding IsPrimary}" Width="70" MinWidth="50"/>
+                <DataGridCheckBoxColumn Header="Primaria" Binding="{Binding IsPrimary}" Width="70" MinWidth="50" IsReadOnly="True"
+                                                                            ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
                 <DataGridTextColumn Header="Dizionario" Binding="{Binding DictionaryName}" Width="150" MinWidth="80"/>
                 <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120" MinWidth="80"/>
                 <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>

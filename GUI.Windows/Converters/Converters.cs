@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace GUI.Windows.Converters;
 
@@ -72,4 +73,20 @@ public class NullToVisibilityConverter : IValueConverter
     {
         throw new NotImplementedException();
     }
+}
+
+/// <summary>
+/// Converte un booleano in un Brush per il bordo dei campi con errore.
+/// true (invalid) → rosso, false (valid) → colore bordo di default.
+/// </summary>
+public class BoolToErrorBrushConverter : IValueConverter
+{
+    private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(0xF4, 0x43, 0x36));
+    private static readonly SolidColorBrush NormalBrush = new(Color.FromRgb(0x55, 0x55, 0x55));
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is true ? ErrorBrush : NormalBrush;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
 }

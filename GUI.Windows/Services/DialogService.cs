@@ -1,55 +1,41 @@
 using GUI.Windows.Abstractions;
-using System.Windows;
+using GUI.Windows.Views;
 
 namespace GUI.Windows.Services;
 
 /// <summary>
 /// Implementazione WPF di IDialogService.
-/// Usa MessageBox standard di Windows.
+/// Usa DarkDialog custom (dark theme).
 /// </summary>
 public sealed class DialogService : IDialogService
 {
     public Task<DialogResult> ShowConfirmAsync(string title, string message)
     {
-        var result = MessageBox.Show(
-            message,
-            title,
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        return Task.FromResult(result == MessageBoxResult.Yes
-            ? DialogResult.Yes
-            : DialogResult.No);
+        var result = DarkDialog.ShowConfirm(title, message);
+        return Task.FromResult(result ? DialogResult.Yes : DialogResult.No);
     }
 
     public Task<DialogResult> ShowOkCancelAsync(string title, string message)
     {
-        var result = MessageBox.Show(
-            message,
-            title,
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Question);
-
-        return Task.FromResult(result == MessageBoxResult.OK
-            ? DialogResult.Ok
-            : DialogResult.Cancel);
+        var result = DarkDialog.ShowOkCancel(title, message);
+        return Task.FromResult(result ? DialogResult.Ok : DialogResult.Cancel);
     }
 
     public Task ShowErrorAsync(string title, string message)
     {
-        MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        DarkDialog.ShowError(title, message);
         return Task.CompletedTask;
     }
 
     public Task ShowInfoAsync(string title, string message)
     {
-        MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        DarkDialog.ShowInfo(title, message);
         return Task.CompletedTask;
     }
 
     public Task ShowWarningAsync(string title, string message)
     {
-        MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+        DarkDialog.ShowWarning(title, message);
         return Task.CompletedTask;
     }
 }

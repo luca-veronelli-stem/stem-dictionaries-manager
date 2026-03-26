@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-28
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 

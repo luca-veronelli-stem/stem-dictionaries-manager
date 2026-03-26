@@ -70,19 +70,27 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "StatusFlags";
-        // AddressHighHex è computed automaticamente
         _viewModel.AddressLowHex = "20";
+        _viewModel.Description = "Status flags";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = null; // Non impostato
 
-        // Assert - Non può salvare senza WordCount
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        // Act - prova a salvare senza WordCount
+        await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Act - Imposta WordCount
+        // Assert - validazione fallisce
+        Assert.True(_viewModel.IsDataTypeParamInvalid);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
+
+        // Act - Imposta WordCount e risalva
         _viewModel.DataTypeParam = 2;
+        _messageService.Reset();
+        _variableService.MethodCalls.Clear();
+        await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert - Ora può salvare
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        // Assert - ora salva
+        Assert.False(_viewModel.IsDataTypeParamInvalid);
+        Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
@@ -92,18 +100,26 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "DeviceName";
-        // AddressHighHex è computed automaticamente
         _viewModel.AddressLowHex = "30";
+        _viewModel.Description = "Device name";
         _viewModel.SelectedDataTypeKind = DataTypeKind.String;
 
-        // Assert - Non può salvare senza Size
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        // Act - prova a salvare senza Size
+        await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Act - Imposta Size
+        // Assert - validazione fallisce
+        Assert.True(_viewModel.IsDataTypeParamInvalid);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
+
+        // Act - Imposta Size e risalva
         _viewModel.DataTypeParam = 20;
+        _messageService.Reset();
+        _variableService.MethodCalls.Clear();
+        await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert - Ora può salvare
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        // Assert - ora salva
+        Assert.False(_viewModel.IsDataTypeParamInvalid);
+        Assert.Contains(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
@@ -180,20 +196,27 @@ public class VariableEditFlowTests
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
 
         _viewModel.Name = "TestVar";
+        _viewModel.AddressLowHex = "01";
+        _viewModel.Description = "Test desc";
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         _viewModel.MinValue = 100;
         _viewModel.MaxValue = 50; // Invalid: min > max
 
         // Assert
         Assert.False(_viewModel.IsMinMaxValid);
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+
+        // Act - prova a salvare
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert - validazione fallisce
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_variableService.MethodCalls, m => m.StartsWith("AddAsync"));
 
         // Act - Fix validation
         _viewModel.MaxValue = 200;
 
         // Assert
         Assert.True(_viewModel.IsMinMaxValid);
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
     }
 
     [Fact]
@@ -277,6 +300,7 @@ public class VariableEditFlowTests
         _viewModel.Name = "StatusFlags";
         // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "40";
+        _viewModel.Description = "Status flags bitmapped";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
         _viewModel.DataTypeParam = 1;
 

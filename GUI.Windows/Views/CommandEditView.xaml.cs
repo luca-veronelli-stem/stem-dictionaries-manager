@@ -26,4 +26,12 @@ public partial class CommandEditView : UserControl
     {
         e.Handled = !e.Text.All(char.IsAsciiHexDigit);
     }
+
+    /// <summary>
+    /// Filtra l'input per accettare solo cifre.
+    /// </summary>
+    private void IntTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !e.Text.All(char.IsAsciiDigit);
+    }
 }

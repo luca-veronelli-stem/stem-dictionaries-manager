@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-28
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -18,6 +19,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private bool _isInitialized;
+    private bool _isLoading;
+    private bool _showValidation;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -31,6 +34,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     // === Campi editabili ===
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     /// <summary>
@@ -41,7 +45,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullCodeDisplay))]
-    private string _codeLowHex = "00";
+    [NotifyPropertyChangedFor(nameof(IsCodeLowInvalid))]
+    private string _codeLowHex = string.Empty;
 
     private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
     private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
@@ -52,13 +57,42 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     private bool _isResponse;
 
     [ObservableProperty]
-    private string _parametersText = string.Empty;
+    [NotifyPropertyChangedFor(nameof(HasParameters))]
+    [NotifyPropertyChangedFor(nameof(IsParameterCountInvalid))]
+    private int? _parameterCount;
+
+    /// <summary>
+    /// Rigenera i ParameterItems quando cambia il count.
+    /// Preserva i dati esistenti per gli indici che restano nel range.
+    /// </summary>
+    partial void OnParameterCountChanged(int? value)
+    {
+        if (_isLoading) return;
+        RegenerateParameterItems(value ?? 0);
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Parametri strutturati per la DataGrid.
+    /// </summary>
+    public ObservableCollection<CommandParameterItem> ParameterItems { get; } = [];
+
+    /// <summary>
+    /// True se ci sono parametri da visualizzare.
+    /// </summary>
+    public bool HasParameters => ParameterCount.HasValue && ParameterCount.Value > 0;
 
     // === Computed Properties ===
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuovo Comando" : "Modifica Comando";
     public string FullCodeDisplay => $"0x{(CodeHigh << 8 | CodeLow):X4}";
+
+    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+
+    public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
+    public bool IsCodeLowInvalid => _showValidation && string.IsNullOrWhiteSpace(CodeLowHex);
+    public bool IsParameterCountInvalid => _showValidation && !ParameterCount.HasValue;
 
     public CommandEditViewModel(
         ICommandService commandService,
@@ -120,24 +154,66 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         // CodeHighHex è computed automaticamente da IsResponse
         CodeLowHex = c.CodeLow.ToString("X2");
         IsResponse = c.IsResponse;
-        ParametersText = string.Join(Environment.NewLine, c.Parameters);
+
+        // Carica parametri strutturati
+        _isLoading = true;
+        if (c.Parameters.Count > 0)
+        {
+            var items = c.Parameters
+                .Select((p, i) => CommandParameterItem.Deserialize(i, p))
+                .ToList();
+            ParameterItems.Clear();
+            foreach (var item in items)
+            {
+                item.PropertyChanged += (_, _) => HasChanges = true;
+                ParameterItems.Add(item);
+            }
+
+            ParameterCount = items.Count;
+        }
+        else
+        {
+            ParameterCount = 0;
+        }
+        _isLoading = false;
 
         OnPropertyChanged(nameof(FullCodeDisplay));
     }
 
-    private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
+    private bool Validate()
+    {
+        _showValidation = true;
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
+        OnPropertyChanged(nameof(IsNameInvalid));
+        OnPropertyChanged(nameof(IsCodeLowInvalid));
+        OnPropertyChanged(nameof(IsParameterCountInvalid));
+
+        var missing = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
+        if (string.IsNullOrWhiteSpace(CodeLowHex)) missing.Add("Codice");
+        if (!ParameterCount.HasValue) missing.Add("Conteggio parametri");
+
+        if (missing.Count > 0)
+        {
+            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
+    [RelayCommand]
     private async Task SaveAsync()
     {
+        if (!Validate()) return;
+
         try
         {
             IsBusy = true;
 
-            var parameters = ParametersText
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => p.Trim())
-                .Where(p => !string.IsNullOrEmpty(p))
+            var parameters = ParameterItems
+                .Select(p => p.Serialize())
                 .ToList();
 
             if (IsNew)
@@ -219,5 +295,23 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         }
 
         _navigationService.GoBack();
+    }
+
+    /// <summary>
+    /// Rigenera la lista parametri per il count specificato.
+    /// Preserva i dati esistenti per gli indici che restano nel range.
+    /// </summary>
+    private void RegenerateParameterItems(int count)
+    {
+        var existing = ParameterItems.ToList();
+        ParameterItems.Clear();
+
+        for (var i = 0; i < count; i++)
+        {
+            var item = existing.FirstOrDefault(p => p.Index == i)
+                ?? new CommandParameterItem { Index = i };
+            item.PropertyChanged += (_, _) => HasChanges = true;
+            ParameterItems.Add(item);
+        }
     }
 }

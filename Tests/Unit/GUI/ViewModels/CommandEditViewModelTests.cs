@@ -72,8 +72,10 @@ public class CommandEditViewModelTests
         Assert.Equal("80", _viewModel.CodeHighHex); // IsResponse=true → 0x80
         Assert.Equal("34", _viewModel.CodeLowHex);
         Assert.True(_viewModel.IsResponse);
-        Assert.Contains("param1", _viewModel.ParametersText);
-        Assert.Contains("param2", _viewModel.ParametersText);
+        Assert.Equal(2, _viewModel.ParameterCount);
+        Assert.Equal(2, _viewModel.ParameterItems.Count);
+        Assert.Equal("param1", _viewModel.ParameterItems[0].Description);
+        Assert.Equal("param2", _viewModel.ParameterItems[1].Description);
     }
 
     [Fact]
@@ -102,23 +104,48 @@ public class CommandEditViewModelTests
     }
 
     [Fact]
-    public void SaveCommand_CannotExecute_WhenNameEmpty()
+    public async Task SaveCommand_Validates_WhenNameEmpty()
     {
-        // Arrange
+        await _viewModel.InitializeAsync(null);
         _viewModel.Name = "";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
 
-        // Assert
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsNameInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
-    public void SaveCommand_CanExecute_WhenNameSet()
+    public async Task SaveCommand_Validates_WhenCodeLowEmpty()
     {
-        // Arrange
-        _viewModel.Name = "TestCommand";
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestCmd";
+        _viewModel.CodeLowHex = "";
+        _viewModel.ParameterCount = 0;
 
-        // Assert
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsCodeLowInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("AddAsync"));
+    }
+
+    [Fact]
+    public async Task SaveCommand_Validates_WhenParameterCountNull()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "TestCmd";
+        _viewModel.CodeLowHex = "01";
+        // ParameterCount non impostato (null)
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsParameterCountInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
@@ -129,6 +156,7 @@ public class CommandEditViewModelTests
         _viewModel.Name = "NewCommand";
         // CodeHighHex è computed automaticamente da IsResponse (0x00 per comando)
         _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -145,6 +173,7 @@ public class CommandEditViewModelTests
         _commandService.SeedData(command);
         await _viewModel.InitializeAsync(1);
         _viewModel.Name = "UpdatedName";
+        _viewModel.ParameterCount ??= 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -154,12 +183,17 @@ public class CommandEditViewModelTests
     }
 
     [Fact]
-    public async Task SaveCommand_ParsesParametersFromText()
+    public async Task SaveCommand_SerializesParameterItems()
     {
         // Arrange
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
-        _viewModel.ParametersText = "param1\r\nparam2\r\nparam3";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 2;
+        _viewModel.ParameterItems[0].SizeBytes = "2";
+        _viewModel.ParameterItems[0].Description = "Indirizzo";
+        _viewModel.ParameterItems[1].SizeBytes = "1";
+        _viewModel.ParameterItems[1].Description = "Modalità";
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -174,6 +208,8 @@ public class CommandEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -189,6 +225,8 @@ public class CommandEditViewModelTests
         // Arrange
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
         _commandService.ExceptionToThrow = new Exception("Save failed");
 
         // Act
@@ -268,6 +306,7 @@ public class CommandEditViewModelTests
         _viewModel.Name = "TestCmd";
         _viewModel.IsResponse = false;
         _viewModel.CodeLowHex = "05";
+        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -285,6 +324,7 @@ public class CommandEditViewModelTests
         _viewModel.Name = "TestResp";
         _viewModel.IsResponse = true;
         _viewModel.CodeLowHex = "05";
+        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -422,6 +462,284 @@ public class CommandEditViewModelTests
 
         Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
         Assert.False(_navigationService.GoBackCalled);
+    }
+
+    // === Test ParameterItems (P1-P5 dalla specifica Lean 4) ===
+
+    [Fact]
+    public void HasParameters_FalseWhenCountNull()
+    {
+        Assert.Null(_viewModel.ParameterCount);
+        Assert.False(_viewModel.HasParameters);
+    }
+
+    [Fact]
+    public void HasParameters_FalseWhenCountZero()
+    {
+        _viewModel.ParameterCount = 0;
+        Assert.False(_viewModel.HasParameters);
+    }
+
+    [Fact]
+    public void HasParameters_TrueWhenCountGreaterThanZero()
+    {
+        _viewModel.ParameterCount = 3;
+        Assert.True(_viewModel.HasParameters);
+    }
+
+    [Fact]
+    public void OnParameterCountChanged_GeneratesCorrectNumberOfItems()
+    {
+        // P3: count preserva
+        _viewModel.ParameterCount = 5;
+        Assert.Equal(5, _viewModel.ParameterItems.Count);
+    }
+
+    [Fact]
+    public void OnParameterCountChanged_PreservesExistingData()
+    {
+        // P4: dati preservati
+        _viewModel.ParameterCount = 3;
+        _viewModel.ParameterItems[0].SizeBytes = "2";
+        _viewModel.ParameterItems[0].Description = "Indirizzo";
+        _viewModel.ParameterItems[1].SizeBytes = "1";
+        _viewModel.ParameterItems[1].Description = "Modalità";
+
+        // Aumenta a 5: i primi 2 devono restare intatti
+        _viewModel.ParameterCount = 5;
+        Assert.Equal(5, _viewModel.ParameterItems.Count);
+        Assert.Equal("2", _viewModel.ParameterItems[0].SizeBytes);
+        Assert.Equal("Indirizzo", _viewModel.ParameterItems[0].Description);
+        Assert.Equal("1", _viewModel.ParameterItems[1].SizeBytes);
+        Assert.Equal("Modalità", _viewModel.ParameterItems[1].Description);
+    }
+
+    [Fact]
+    public void OnParameterCountChanged_ReducingCountTruncatesItems()
+    {
+        _viewModel.ParameterCount = 3;
+        _viewModel.ParameterItems[2].Description = "Third";
+
+        _viewModel.ParameterCount = 1;
+        Assert.Single(_viewModel.ParameterItems);
+    }
+
+    [Fact]
+    public void ParameterItems_IndexDisplayFormatsCorrectly()
+    {
+        // P5: IndexDisplay
+        _viewModel.ParameterCount = 2;
+        Assert.Equal("Parametro 1", _viewModel.ParameterItems[0].IndexDisplay);
+        Assert.Equal("Parametro 2", _viewModel.ParameterItems[1].IndexDisplay);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_LoadsStructuredParameters()
+    {
+        // Formato strutturato "size|description"
+        var command = new Command("WriteReg", 0x00, 0x10, false, ["2|Indirizzo", "4|Valore"]);
+        _commandService.SeedData(command);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Equal(2, _viewModel.ParameterCount);
+        Assert.Equal("2", _viewModel.ParameterItems[0].SizeBytes);
+        Assert.Equal("Indirizzo", _viewModel.ParameterItems[0].Description);
+        Assert.Equal("4", _viewModel.ParameterItems[1].SizeBytes);
+        Assert.Equal("Valore", _viewModel.ParameterItems[1].Description);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_LoadsLegacyParameters()
+    {
+        // P2: Legacy fallback — stringhe senza '|'
+        var command = new Command("OldCmd", 0x00, 0x20, false, ["param1", "param2"]);
+        _commandService.SeedData(command);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Equal(2, _viewModel.ParameterCount);
+        Assert.Equal("", _viewModel.ParameterItems[0].SizeBytes);
+        Assert.Equal("param1", _viewModel.ParameterItems[0].Description);
+        Assert.Equal("", _viewModel.ParameterItems[1].SizeBytes);
+        Assert.Equal("param2", _viewModel.ParameterItems[1].Description);
+    }
+
+    [Fact]
+    public async Task SaveCommand_SerializesInPipeFormat()
+    {
+        // P1: Roundtrip serialize
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "WriteReg";
+        _viewModel.CodeLowHex = "10";
+        _viewModel.ParameterCount = 2;
+        _viewModel.ParameterItems[0].SizeBytes = "2";
+        _viewModel.ParameterItems[0].Description = "Indirizzo";
+        _viewModel.ParameterItems[1].SizeBytes = "4";
+        _viewModel.ParameterItems[1].Description = "Valore";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var saved = _commandService.GetSavedCommand();
+        Assert.NotNull(saved);
+        Assert.Equal(2, saved.Parameters.Count);
+        Assert.Equal("2|Indirizzo", saved.Parameters[0]);
+        Assert.Equal("4|Valore", saved.Parameters[1]);
+    }
+
+    [Fact]
+    public void OnParameterCountChanged_SetsHasChanges()
+    {
+        _viewModel.HasChanges = false;
+        _viewModel.ParameterCount = 2;
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void ParameterItem_PropertyChanged_SetsHasChanges()
+    {
+        _viewModel.ParameterCount = 1;
+        _viewModel.HasChanges = false;
+
+        _viewModel.ParameterItems[0].Description = "Changed";
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    // === Validation feedback tests ===
+
+    [Fact]
+    public void ValidationProperties_FalseBeforeSaveAttempt()
+    {
+        _viewModel.Name = "";
+        _viewModel.CodeLowHex = "";
+
+        Assert.False(_viewModel.IsNameInvalid);
+        Assert.False(_viewModel.IsCodeLowInvalid);
+        Assert.False(_viewModel.IsParameterCountInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationClearsAfterFixingFields()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+        _viewModel.CodeLowHex = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+        Assert.True(_viewModel.IsNameInvalid);
+        Assert.True(_viewModel.IsCodeLowInvalid);
+        Assert.True(_viewModel.IsParameterCountInvalid);
+
+        _viewModel.Name = "Fixed";
+        Assert.False(_viewModel.IsNameInvalid);
+        _viewModel.CodeLowHex = "01";
+        Assert.False(_viewModel.IsCodeLowInvalid);
+        _viewModel.ParameterCount = 0;
+        Assert.False(_viewModel.IsParameterCountInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationMessage_ListsMissingFields()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+        _viewModel.CodeLowHex = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var (Message, Severity) = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
+        Assert.Contains("Nome", Message);
+        Assert.Contains("Codice", Message);
+        Assert.Contains("Conteggio parametri", Message);
+    }
+
+    [Fact]
+    public async Task ValidationProperties_FalseAfterSave_WhenFieldsValid()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "ValidCmd";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.False(_viewModel.IsNameInvalid);
+        Assert.False(_viewModel.IsCodeLowInvalid);
+        Assert.False(_viewModel.IsParameterCountInvalid);
+    }
+
+    [Fact]
+    public async Task LoadFromCommand_NoParams_SetsParameterCountToZero()
+    {
+        var command = new Command("NoParams", 0x00, 0x10, false);
+        _commandService.SeedData(command);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Equal(0, _viewModel.ParameterCount);
+        Assert.False(_viewModel.HasParameters);
+        Assert.Empty(_viewModel.ParameterItems);
+    }
+
+    // === Test gap aggiuntivi ===
+
+    [Fact]
+    public async Task InitializeAsync_WhenServiceThrows_ShowsErrorAndSetsMessage()
+    {
+        _commandService.ExceptionToThrow = new Exception("DB connection failed");
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Equal("DB connection failed", _viewModel.ErrorMessage);
+        Assert.True(_dialogService.ShowErrorCalled);
+    }
+
+    [Fact]
+    public void CodeLowHex_DefaultEmpty_FullCodeDisplayShows0x0000()
+    {
+        Assert.Equal(string.Empty, _viewModel.CodeLowHex);
+        Assert.Equal("0x0000", _viewModel.FullCodeDisplay);
+    }   
+
+    [Fact]
+    public async Task LoadFromCommand_WithParams_HasChangesRemainsFalse()
+    {
+        var command = new Command("Cmd", 0x00, 0x10, false, ["2|Addr", "1|Mode"]);
+        _commandService.SeedData(command);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.False(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public async Task SaveCommand_WithZeroParams_SavesEmptyList()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "EmptyCmd";
+        _viewModel.CodeLowHex = "01";
+        _viewModel.ParameterCount = 0;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var saved = _commandService.GetSavedCommand();
+        Assert.NotNull(saved);
+        Assert.Empty(saved.Parameters);
+    }
+
+    [Fact]
+    public async Task Validate_CalledTwice_DoesNotDuplicateMessages()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+        _viewModel.CodeLowHex = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var warnings = _messageService.Messages.Where(m => m.Severity == MessageSeverity.Warning).ToList();
+        Assert.Equal(2, warnings.Count);
+        Assert.Equal(warnings[0].Message, warnings[1].Message);
     }
 }
 #endif
