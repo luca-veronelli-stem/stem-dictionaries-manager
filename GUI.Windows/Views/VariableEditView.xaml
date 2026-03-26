@@ -107,6 +107,13 @@
                                                                                 </MultiDataTrigger.Conditions>
                                                                                 <Setter Property="Visibility" Value="Visible"/>
                                                                             </MultiDataTrigger>
+                                                                            <MultiDataTrigger>
+                                                                                <MultiDataTrigger.Conditions>
+                                                                                    <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Border}}" Value="True"/>
+                                                                                    <Condition Binding="{Binding DataContext.CanRemoveWord, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
+                                                                                </MultiDataTrigger.Conditions>
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </MultiDataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Button.Style>
