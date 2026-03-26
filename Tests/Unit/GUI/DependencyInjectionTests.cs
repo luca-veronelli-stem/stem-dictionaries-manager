@@ -206,17 +206,6 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddGUI_RegistersBoardListViewModel()
-    {
-        // Act
-        var provider = _services.BuildServiceProvider();
-        var viewModel = provider.GetService<BoardListViewModel>();
-
-        // Assert
-        Assert.NotNull(viewModel);
-    }
-
-    [Fact]
     public void AddGUI_RegistersBoardEditViewModel()
     {
         // Act

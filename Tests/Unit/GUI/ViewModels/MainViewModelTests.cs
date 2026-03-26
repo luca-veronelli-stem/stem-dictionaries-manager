@@ -34,6 +34,9 @@ public class MainViewModelTests
         services.AddSingleton<IMessageService>(_messageService);
 
         // Register ViewModels
+        services.AddTransient(sp => new DeviceListViewModel(
+            sp.GetRequiredService<INavigationService>()));
+
         services.AddTransient(sp => new DictionaryListViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<INavigationService>(),
@@ -161,6 +164,22 @@ public class MainViewModelTests
 
         // Assert
         Assert.NotNull(_viewModel.CurrentViewModel);
+    }
+
+    [Fact]
+    public void SetUserAndNavigate_ResetsNavigationHistory()
+    {
+        // Arrange — primo utente naviga in giro
+        _viewModel.SetUserAndNavigate(User.Restore(1, "admin", "Admin"));
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        _navigationService.NavigateTo(ViewType.VariableEdit);
+
+        // Act — secondo utente fa login
+        _viewModel.SetUserAndNavigate(User.Restore(2, "user2", "User 2"));
+
+        // Assert — history pulita, non si può tornare indietro
+        Assert.False(_navigationService.CanGoBack);
+        Assert.Equal(ViewType.DeviceList, _navigationService.CurrentView);
     }
 
     [Fact]

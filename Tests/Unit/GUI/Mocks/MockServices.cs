@@ -10,7 +10,7 @@ public class MockNavigationService : INavigationService
 {
     private readonly Stack<(ViewType View, NavigationParameter? Param, object? ViewModel)> _history = new();
 
-    public ViewType CurrentView { get; private set; } = ViewType.DictionaryList;
+    public ViewType CurrentView { get; private set; } = ViewType.DeviceList;
     public NavigationParameter? CurrentParameter { get; private set; }
     public bool CanGoBack => _history.Count > 0;
     public object? CachedViewModel { get; private set; }
@@ -68,7 +68,7 @@ public class MockNavigationService : INavigationService
     public void Reset()
     {
         _history.Clear();
-        CurrentView = ViewType.DictionaryList;
+        CurrentView = ViewType.DeviceList;
         CurrentParameter = null;
         LastParameter = null;
         _currentViewModel = null;
