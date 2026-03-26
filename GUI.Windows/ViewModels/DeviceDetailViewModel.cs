@@ -18,6 +18,7 @@ public partial class DictionaryItem : ObservableObject
     public string Semantic { get; }
     public int VariableCount { get; }
     public bool IsCommandsEntry { get; init; }
+    public bool IsStandard { get; init; }
 
     public DictionaryItem(int id, string name, string semantic, int variableCount)
     {
@@ -170,7 +171,8 @@ public partial class DeviceDetailViewModel : ObservableObject
             var items = relevantDicts.Select(d =>
             {
                 var semantic = d.IsStandard ? "Standard" : "Specifico";
-                return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count);
+                return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count)
+                    { IsStandard = d.IsStandard };
             });
 
             var sortedItems = items.OrderBy(d => d.Name).ToList();
@@ -224,6 +226,15 @@ public partial class DeviceDetailViewModel : ObservableObject
         if (SelectedDictionary.IsCommandsEntry)
         {
             _navigationService.NavigateTo(ViewType.DeviceCommands, new NavigationParameter
+            {
+                DeviceType = DeviceType!.Value
+            });
+            return;
+        }
+
+        if (SelectedDictionary.IsStandard)
+        {
+            _navigationService.NavigateTo(ViewType.DeviceVariables, new NavigationParameter
             {
                 DeviceType = DeviceType!.Value
             });
