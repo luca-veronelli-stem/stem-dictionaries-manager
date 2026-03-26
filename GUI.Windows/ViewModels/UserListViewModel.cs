@@ -26,8 +26,6 @@ public partial class UserListViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
-    private bool _isInitialized;
-
     [ObservableProperty]
     private bool _isBusy;
 
@@ -68,14 +66,12 @@ public partial class UserListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Inizializza il ViewModel.
+    /// Carica i dati iniziali. Da chiamare dopo la navigazione.
     /// </summary>
-    public async Task InitializeAsync()
+    [RelayCommand]
+    public async Task LoadAsync()
     {
-        if (_isInitialized) return;
-
         await RefreshAsync();
-        _isInitialized = true;
     }
 
     [RelayCommand]
