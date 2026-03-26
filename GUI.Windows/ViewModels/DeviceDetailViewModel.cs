@@ -17,6 +17,7 @@ public partial class DictionaryItem : ObservableObject
     public string Name { get; }
     public string Semantic { get; }
     public int VariableCount { get; }
+    public bool IsCommandsEntry { get; init; }
 
     public DictionaryItem(int id, string name, string semantic, int variableCount)
     {
@@ -219,6 +220,15 @@ public partial class DeviceDetailViewModel : ObservableObject
     private void OpenDictionary()
     {
         if (SelectedDictionary is null) return;
+
+        if (SelectedDictionary.IsCommandsEntry)
+        {
+            _navigationService.NavigateTo(ViewType.DeviceCommands, new NavigationParameter
+            {
+                DeviceType = DeviceType!.Value
+            });
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {
