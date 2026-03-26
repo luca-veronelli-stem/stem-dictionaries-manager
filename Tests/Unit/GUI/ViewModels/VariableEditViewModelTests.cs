@@ -310,7 +310,6 @@ public class VariableEditViewModelTests
     #region DataTypeParam Validation Tests
 
     [Theory]
-    [InlineData(DataTypeKind.Bitmapped)]
     [InlineData(DataTypeKind.Array)]
     [InlineData(DataTypeKind.String)]
     public void RequiresDataTypeParam_TrueForParameterizedTypes(DataTypeKind dataType)
@@ -324,18 +323,11 @@ public class VariableEditViewModelTests
     [InlineData(DataTypeKind.Int16)]
     [InlineData(DataTypeKind.UInt32)]
     [InlineData(DataTypeKind.Other)]
+    [InlineData(DataTypeKind.Bitmapped)]
     public void RequiresDataTypeParam_FalseForSimpleTypes(DataTypeKind dataType)
     {
         _viewModel.SelectedDataTypeKind = dataType;
         Assert.False(_viewModel.RequiresDataTypeParam);
-    }
-
-    [Fact]
-    public void DataTypeParamLabel_Bitmapped_ReturnsWordCountLabel()
-    {
-        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        Assert.Contains("Word Count", _viewModel.DataTypeParamLabel);
-        Assert.Contains("*", _viewModel.DataTypeParamLabel);
     }
 
     [Theory]
@@ -351,12 +343,12 @@ public class VariableEditViewModelTests
     [Fact]
     public async Task SaveCommand_Validates_WhenDataTypeParamRequired_AndNotSet()
     {
-        // Arrange
+        // Arrange — Array richiede DataTypeParam via TextBox
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "TestVar";
         _viewModel.AddressLowHex = "01";
         _viewModel.Description = "Desc";
-        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Array;
         _viewModel.DataTypeParam = null;
 
         // Act
@@ -369,11 +361,11 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void IsDataTypeParamInvalid_FalseWhenParamSet()
+    public void IsDataTypeParamInvalid_FalseForBitmapped()
     {
-        _viewModel.Name = "TestVar";
+        // Bitmapped non usa più DataTypeParam TextBox
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 2;
+        _viewModel.DataTypeParam = null;
 
         Assert.False(_viewModel.IsDataTypeParamInvalid);
     }
@@ -468,7 +460,6 @@ public class VariableEditViewModelTests
     [InlineData(DataTypeKind.UInt8, "UInt8")]
     [InlineData(DataTypeKind.Int16, "Int16")]
     [InlineData(DataTypeKind.UInt32, "UInt32")]
-    [InlineData(DataTypeKind.Bitmapped, "Bitmapped")]
     public void DataTypeForSave_ReturnsEnumName_ForStandardTypes(DataTypeKind dataType, string expected)
     {
         _viewModel.SelectedDataTypeKind = dataType;
@@ -492,11 +483,18 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public void DataTypeForSave_BitmappedWithParam_IncludesParam()
+    public void DataTypeForSave_BitmappedWithWords_IncludesWordCount()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 2;
+        _viewModel.AddWordCommand.Execute(null);
         Assert.Equal("Bitmapped[2]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public void DataTypeForSave_BitmappedSingleWord_ShowsOne()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Equal("Bitmapped[1]", _viewModel.DataTypeForSave);
     }
 
     [Fact]
@@ -553,48 +551,23 @@ public class VariableEditViewModelTests
     #region WordGroups / Bitmapped Tests
 
     [Fact]
-    public void DataTypeParam_WhenBitmapped_GeneratesWordGroups()
+    public void SelectingBitmapped_AutoCreatesWord0()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 3;
 
-        Assert.Equal(3, _viewModel.WordGroups.Count);
+        Assert.Single(_viewModel.WordGroups);
         Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
-        Assert.Equal("Word 1", _viewModel.WordGroups[1].Label);
-        Assert.Equal("Word 2", _viewModel.WordGroups[2].Label);
-        // Ogni word parte con 1 riga (BitIndex = 0)
         Assert.Single(_viewModel.WordGroups[0].Items);
         Assert.Equal(0, _viewModel.WordGroups[0].Items[0].BitIndex);
     }
 
     [Fact]
-    public void DataTypeParam_WhenNotBitmapped_DoesNotGenerateWordGroups()
-    {
-        _viewModel.SelectedDataTypeKind = DataTypeKind.String;
-        _viewModel.DataTypeParam = 20;
-
-        Assert.Empty(_viewModel.WordGroups);
-    }
-
-    [Fact]
-    public void DataTypeParam_ChangingWordCount_RegeneratesGroups()
+    public void SelectingNonBitmapped_ClearsWordGroups()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 2;
-        Assert.Equal(2, _viewModel.WordGroups.Count);
-
-        _viewModel.DataTypeParam = 4;
-        Assert.Equal(4, _viewModel.WordGroups.Count);
-    }
-
-    [Fact]
-    public void DataTypeParam_SetToNull_ClearsWordGroups()
-    {
-        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 2;
         Assert.NotEmpty(_viewModel.WordGroups);
 
-        _viewModel.DataTypeParam = null;
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         Assert.Empty(_viewModel.WordGroups);
     }
 
@@ -602,9 +575,8 @@ public class VariableEditViewModelTests
     public void AddBitToWordCommand_AddsBitToCorrectGroup()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 1;
         var group = _viewModel.WordGroups[0];
-        Assert.Single(group.Items); // riga iniziale BitIndex=0
+        Assert.Single(group.Items);
 
         _viewModel.AddBitToWordCommand.Execute(group);
 
@@ -616,7 +588,6 @@ public class VariableEditViewModelTests
     public void AddBitToWordCommand_SetsHasChanges()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 1;
         _viewModel.HasChanges = false;
 
         _viewModel.AddBitToWordCommand.Execute(_viewModel.WordGroups[0]);
@@ -628,9 +599,8 @@ public class VariableEditViewModelTests
     public void RemoveBitFromWordCommand_RemovesBitAndSetsHasChanges()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 1;
         var group = _viewModel.WordGroups[0];
-        group.TryAddBit(); // ora 2 items
+        group.TryAddBit();
         _viewModel.HasChanges = false;
 
         _viewModel.RemoveBitFromWordCommand.Execute(group.Items[0]);
@@ -642,22 +612,215 @@ public class VariableEditViewModelTests
     [Fact]
     public async Task SaveCommand_Bitmapped_CallsUpdateBitInterpretationsAsync()
     {
-        // Arrange - dizionario non-standard già seedato (AddressHigh = 0x80)
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.Name = "BitmappedVar";
-        // AddressHighHex è computed automaticamente (0x80 per non-standard)
         _viewModel.AddressLowHex = "50";
         _viewModel.Description = "Bitmapped variable";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.DataTypeParam = 1;
         _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
 
-        // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
         Assert.Contains(_variableService.MethodCalls,
             m => m.StartsWith("UpdateBitInterpretationsAsync:"));
+    }
+
+    [Fact]
+    public void AddWordCommand_AddsNewWordGroup()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Single(_viewModel.WordGroups);
+
+        _viewModel.AddWordCommand.Execute(null);
+
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+        Assert.Equal("Word 1", _viewModel.WordGroups[1].Label);
+        Assert.Single(_viewModel.WordGroups[1].Items);
+        Assert.Equal(0, _viewModel.WordGroups[1].Items[0].BitIndex);
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void AddWordCommand_MultipleWords()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.AddWordCommand.Execute(null);
+
+        Assert.Equal(3, _viewModel.WordGroups.Count);
+        Assert.Equal("Bitmapped[3]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_RemovesWord_AndReindexes()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.AddWordCommand.Execute(null);
+        Assert.Equal(3, _viewModel.WordGroups.Count);
+
+        // Rimuovi Word 1 (mezzo)
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
+
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+        Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
+        Assert.Equal("Word 1", _viewModel.WordGroups[1].Label);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_WithNonEmptyMeanings_ShowsConfirmDialog()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.WordGroups[1].Items[0].Meaning = "Motor Active";
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
+
+        Assert.True(_dialogService.ShowConfirmCalled);
+        Assert.Single(_viewModel.WordGroups);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_ConfirmNo_DoesNotRemove()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.WordGroups[1].Items[0].Meaning = "Motor Active";
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
+
+        Assert.Equal(2, _viewModel.WordGroups.Count);
+    }
+
+    [Fact]
+    public void CanRemoveWord_FalseWhenSingleWord()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Single(_viewModel.WordGroups);
+        Assert.False(_viewModel.CanRemoveWord);
+    }
+
+    [Fact]
+    public void CanRemoveWord_TrueWhenMultipleWords()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        Assert.True(_viewModel.CanRemoveWord);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_WhenOnlyOneWord_DoesNothing()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        var singleGroup = _viewModel.WordGroups[0];
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(singleGroup);
+
+        Assert.Single(_viewModel.WordGroups);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_ReindexesItemsWordIndex()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.AddWordCommand.Execute(null);
+        // Word 2 items have WordIndex = 2
+        Assert.Equal(2, _viewModel.WordGroups[2].Items[0].WordIndex);
+
+        // Rimuovi Word 0
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[0]);
+
+        // Ex-Word 2 è ora Word 1
+        Assert.Equal(1, _viewModel.WordGroups[1].Items[0].WordIndex);
+    }
+
+    [Fact]
+    public void RemoveLastBitFromWordCommand_RemovesLastBit()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        var group = _viewModel.WordGroups[0];
+        _viewModel.AddBitToWordCommand.Execute(group);
+        _viewModel.AddBitToWordCommand.Execute(group);
+        Assert.Equal(3, group.Items.Count);
+
+        _viewModel.RemoveLastBitFromWordCommand.Execute(group);
+
+        Assert.Equal(2, group.Items.Count);
+        Assert.Equal(1, group.Items[^1].BitIndex);
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void RemoveLastBitFromWordCommand_WhenSingleBit_DoesNothing()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        var group = _viewModel.WordGroups[0];
+        Assert.Single(group.Items);
+
+        _viewModel.RemoveLastBitFromWordCommand.Execute(group);
+
+        Assert.Single(group.Items);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_UpdatesDataTypeForSave()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.AddWordCommand.Execute(null);
+        Assert.Equal("Bitmapped[3]", _viewModel.DataTypeForSave);
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[2]);
+
+        Assert.Equal("Bitmapped[2]", _viewModel.DataTypeForSave);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_EmptyMeanings_DoesNotShowDialog()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        // Word 1 ha meanings vuoti (default)
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
+
+        Assert.False(_dialogService.ShowConfirmCalled);
+        Assert.Single(_viewModel.WordGroups);
+    }
+
+    [Fact]
+    public async Task RemoveWordCommand_SetsHasChanges()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.AddWordCommand.Execute(null);
+        _viewModel.HasChanges = false;
+
+        await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
+
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void SwitchingBitmappedToOtherAndBack_RecreatesWord0()
+    {
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Single(_viewModel.WordGroups);
+        _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
+
+        // Switch away
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+        Assert.Empty(_viewModel.WordGroups);
+
+        // Switch back
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Single(_viewModel.WordGroups);
+        Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
+        Assert.Single(_viewModel.WordGroups[0].Items);
+        // Meaning è vuoto (Word 0 ricreata da zero)
+        Assert.Equal(string.Empty, _viewModel.WordGroups[0].Items[0].Meaning);
     }
 
     #endregion
