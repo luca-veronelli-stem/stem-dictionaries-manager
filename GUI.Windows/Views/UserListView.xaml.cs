@@ -18,7 +18,7 @@ public partial class UserListView : UserControl
     {
         if (DataContext is UserListViewModel viewModel)
         {
-            await viewModel.InitializeAsync();
+            await viewModel.LoadAsync();
         }
     }
 }

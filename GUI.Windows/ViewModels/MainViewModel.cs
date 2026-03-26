@@ -120,6 +120,12 @@ public partial class MainViewModel : ObservableObject
                     await dictEditVm.ReloadVariablesAsync();
                 if (cached is DeviceDetailViewModel deviceDetailVm)
                     await deviceDetailVm.ReloadBoardsAsync();
+                if (cached is CommandListViewModel cmdListVm)
+                    await cmdListVm.LoadAsync();
+                if (cached is DictionaryListViewModel dictListVm)
+                    await dictListVm.LoadAsync();
+                if (cached is UserListViewModel userListVm)
+                    await userListVm.LoadAsync();
 
                 CurrentViewModel = cached;
                 UpdateTitle(viewType);
@@ -177,11 +183,11 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             case CommandListViewModel vm:
-                await vm.InitializeAsync();
+                await vm.LoadAsync();
                 break;
 
             case UserListViewModel vm:
-                await vm.InitializeAsync();
+                await vm.LoadAsync();
                 break;
 
             case SettingsViewModel vm:

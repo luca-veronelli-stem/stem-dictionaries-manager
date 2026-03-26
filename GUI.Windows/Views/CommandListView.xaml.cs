@@ -18,7 +18,7 @@ public partial class CommandListView : UserControl
     {
         if (DataContext is CommandListViewModel viewModel)
         {
-            await viewModel.InitializeAsync();
+            await viewModel.LoadAsync();
         }
     }
 }
