@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-28
+> **Ultimo aggiornamento:** 2026-03-25
 
 ---
 
