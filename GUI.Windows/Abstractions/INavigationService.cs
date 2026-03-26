@@ -7,6 +7,7 @@ public enum ViewType
 {
     DeviceList,
     DeviceDetail,
+    DeviceCommands,
     DictionaryList,
     DictionaryEdit,
     VariableEdit,
