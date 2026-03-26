@@ -29,6 +29,7 @@ public class MainViewModelTests
         services.AddSingleton<MockDictionaryService>();
         services.AddSingleton<MockVariableService>();
         services.AddSingleton<MockBoardService>();
+        services.AddSingleton<MockCommandService>();
         services.AddSingleton<INavigationService>(_navigationService);
         services.AddSingleton<IDialogService>(_dialogService);
         services.AddSingleton<IMessageService>(_messageService);
@@ -46,6 +47,12 @@ public class MainViewModelTests
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<MockVariableService>(),
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IDialogService>(),
+            sp.GetRequiredService<IMessageService>()));
+
+        services.AddTransient(sp => new CommandListViewModel(
+            sp.GetRequiredService<MockCommandService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));
@@ -388,6 +395,47 @@ public class MainViewModelTests
         Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
         Assert.False(_navigationService.GoBackCalled);
         Assert.Equal(ViewType.DictionaryEdit, _navigationService.CurrentView);
+    }
+
+    // === Test GoBack reload per cached list VMs ===
+
+    [Fact]
+    public void GoBack_ToCachedCommandList_ReloadsData()
+    {
+        // Arrange — naviga a CommandList, poi a CommandEdit
+        _navigationService.NavigateTo(ViewType.CommandList);
+        var cmdListVm = (CommandListViewModel)_viewModel.CurrentViewModel!;
+        var mockCmdService = _serviceProvider.GetRequiredService<MockCommandService>();
+
+        // Forward a CommandEdit: il CommandListVM viene pushato nella history
+        _navigationService.NavigateTo(ViewType.CommandEdit);
+        mockCmdService.MethodCalls.Clear();
+
+        // Act — GoBack: il cached CommandListVM deve essere ricaricato
+        _navigationService.GoBack();
+
+        // Assert — LoadAsync è stato chiamato (= GetAllAsync nel mock)
+        Assert.Contains(mockCmdService.MethodCalls, m => m == "GetAllAsync");
+        Assert.IsType<CommandListViewModel>(_viewModel.CurrentViewModel);
+    }
+
+    [Fact]
+    public void GoBack_ToCachedDictionaryList_ReloadsData()
+    {
+        // Arrange — naviga a DictionaryList, poi a DictionaryEdit
+        _navigationService.NavigateTo(ViewType.DictionaryList);
+        var dictListVm = (DictionaryListViewModel)_viewModel.CurrentViewModel!;
+        var mockDictService = _serviceProvider.GetRequiredService<MockDictionaryService>();
+
+        _navigationService.NavigateTo(ViewType.DictionaryEdit);
+        mockDictService.MethodCalls.Clear();
+
+        // Act — GoBack
+        _navigationService.GoBack();
+
+        // Assert — LoadAsync è stato chiamato
+        Assert.Contains(mockDictService.MethodCalls, m => m == "GetAllAsync");
+        Assert.IsType<DictionaryListViewModel>(_viewModel.CurrentViewModel);
     }
 }
 #endif

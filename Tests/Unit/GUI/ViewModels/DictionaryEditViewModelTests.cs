@@ -98,21 +98,28 @@ public class DictionaryEditViewModelTests
     }
 
     [Fact]
-    public async Task SaveCommand_CannotExecute_WhenNameEmpty()
+    public async Task SaveCommand_Validates_WhenNameEmpty()
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = string.Empty;
 
-        Assert.False(_viewModel.SaveCommand.CanExecute(null));
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsNameInvalid);
+        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
+        Assert.DoesNotContain(_dictionaryService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
-    public async Task SaveCommand_CanExecute_WhenNameSet()
+    public async Task SaveCommand_WhenNameValid_Succeeds()
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "Test";
 
-        Assert.True(_viewModel.SaveCommand.CanExecute(null));
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.False(_viewModel.IsNameInvalid);
+        Assert.Contains(_dictionaryService.MethodCalls, m => m.StartsWith("AddAsync"));
     }
 
     [Fact]
@@ -484,6 +491,40 @@ public class DictionaryEditViewModelTests
 
         Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
         Assert.False(_navigationService.GoBackCalled);
+    }
+
+    // === Validation feedback tests ===
+
+    [Fact]
+    public void IsNameInvalid_FalseBeforeSaveAttempt()
+    {
+        _viewModel.Name = "";
+        Assert.False(_viewModel.IsNameInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationClearsAfterFixingName()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+        Assert.True(_viewModel.IsNameInvalid);
+
+        _viewModel.Name = "Fixed";
+        Assert.False(_viewModel.IsNameInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_ValidationMessage_ListsMissingFields()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "";
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var warning = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
+        Assert.Contains("Nome", warning.Message);
     }
 }
 #endif

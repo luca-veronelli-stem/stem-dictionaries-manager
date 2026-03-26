@@ -72,7 +72,6 @@ public class CommandEditViewModelTests
         Assert.Equal("80", _viewModel.CodeHighHex); // IsResponse=true → 0x80
         Assert.Equal("34", _viewModel.CodeLowHex);
         Assert.True(_viewModel.IsResponse);
-        Assert.Equal(2, _viewModel.ParameterCount);
         Assert.Equal(2, _viewModel.ParameterItems.Count);
         Assert.Equal("param1", _viewModel.ParameterItems[0].Description);
         Assert.Equal("param2", _viewModel.ParameterItems[1].Description);
@@ -109,7 +108,6 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -124,7 +122,6 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCmd";
         _viewModel.CodeLowHex = "";
-        _viewModel.ParameterCount = 0;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -134,18 +131,15 @@ public class CommandEditViewModelTests
     }
 
     [Fact]
-    public async Task SaveCommand_Validates_WhenParameterCountNull()
+    public async Task SaveCommand_WithNoParameters_Succeeds()
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCmd";
         _viewModel.CodeLowHex = "01";
-        // ParameterCount non impostato (null)
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        Assert.True(_viewModel.IsParameterCountInvalid);
-        Assert.Contains(_messageService.Messages, m => m.Severity == MessageSeverity.Warning);
-        Assert.DoesNotContain(_commandService.MethodCalls, m => m.StartsWith("AddAsync"));
+        Assert.Contains(_commandService.MethodCalls, m => m.StartsWith("AddAsync:TestCmd"));
     }
 
     [Fact]
@@ -156,7 +150,6 @@ public class CommandEditViewModelTests
         _viewModel.Name = "NewCommand";
         // CodeHighHex è computed automaticamente da IsResponse (0x00 per comando)
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -173,7 +166,6 @@ public class CommandEditViewModelTests
         _commandService.SeedData(command);
         await _viewModel.InitializeAsync(1);
         _viewModel.Name = "UpdatedName";
-        _viewModel.ParameterCount ??= 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -189,7 +181,8 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 2;
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[0].SizeBytes = "2";
         _viewModel.ParameterItems[0].Description = "Indirizzo";
         _viewModel.ParameterItems[1].SizeBytes = "1";
@@ -209,7 +202,6 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -226,7 +218,6 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "TestCommand";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
         _commandService.ExceptionToThrow = new Exception("Save failed");
 
         // Act
@@ -306,7 +297,6 @@ public class CommandEditViewModelTests
         _viewModel.Name = "TestCmd";
         _viewModel.IsResponse = false;
         _viewModel.CodeLowHex = "05";
-        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -324,7 +314,6 @@ public class CommandEditViewModelTests
         _viewModel.Name = "TestResp";
         _viewModel.IsResponse = true;
         _viewModel.CodeLowHex = "05";
-        _viewModel.ParameterCount = 0;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -467,47 +456,48 @@ public class CommandEditViewModelTests
     // === Test ParameterItems (P1-P5 dalla specifica Lean 4) ===
 
     [Fact]
-    public void HasParameters_FalseWhenCountNull()
+    public void HasParameters_FalseWhenEmpty()
     {
-        Assert.Null(_viewModel.ParameterCount);
         Assert.False(_viewModel.HasParameters);
     }
 
     [Fact]
-    public void HasParameters_FalseWhenCountZero()
+    public void HasParameters_TrueAfterAddParameter()
     {
-        _viewModel.ParameterCount = 0;
-        Assert.False(_viewModel.HasParameters);
-    }
-
-    [Fact]
-    public void HasParameters_TrueWhenCountGreaterThanZero()
-    {
-        _viewModel.ParameterCount = 3;
+        _viewModel.AddParameterCommand.Execute(null);
         Assert.True(_viewModel.HasParameters);
     }
 
     [Fact]
-    public void OnParameterCountChanged_GeneratesCorrectNumberOfItems()
+    public void HasParameters_FalseAfterRemoveLastParameter()
     {
-        // P3: count preserva
-        _viewModel.ParameterCount = 5;
-        Assert.Equal(5, _viewModel.ParameterItems.Count);
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.RemoveLastParameterCommand.Execute(null);
+        Assert.False(_viewModel.HasParameters);
     }
 
     [Fact]
-    public void OnParameterCountChanged_PreservesExistingData()
+    public void AddParameter_GeneratesCorrectNumberOfItems()
     {
-        // P4: dati preservati
-        _viewModel.ParameterCount = 3;
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
+        Assert.Equal(3, _viewModel.ParameterItems.Count);
+    }
+
+    [Fact]
+    public void AddParameter_PreservesExistingData()
+    {
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[0].SizeBytes = "2";
         _viewModel.ParameterItems[0].Description = "Indirizzo";
         _viewModel.ParameterItems[1].SizeBytes = "1";
         _viewModel.ParameterItems[1].Description = "Modalità";
 
-        // Aumenta a 5: i primi 2 devono restare intatti
-        _viewModel.ParameterCount = 5;
-        Assert.Equal(5, _viewModel.ParameterItems.Count);
+        // Aggiungi un terzo: i primi 2 devono restare intatti
+        _viewModel.AddParameterCommand.Execute(null);
+        Assert.Equal(3, _viewModel.ParameterItems.Count);
         Assert.Equal("2", _viewModel.ParameterItems[0].SizeBytes);
         Assert.Equal("Indirizzo", _viewModel.ParameterItems[0].Description);
         Assert.Equal("1", _viewModel.ParameterItems[1].SizeBytes);
@@ -515,22 +505,32 @@ public class CommandEditViewModelTests
     }
 
     [Fact]
-    public void OnParameterCountChanged_ReducingCountTruncatesItems()
+    public void RemoveLastParameter_RemovesLastItem()
     {
-        _viewModel.ParameterCount = 3;
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[2].Description = "Third";
 
-        _viewModel.ParameterCount = 1;
-        Assert.Single(_viewModel.ParameterItems);
+        _viewModel.RemoveLastParameterCommand.Execute(null);
+        Assert.Equal(2, _viewModel.ParameterItems.Count);
+    }
+
+    [Fact]
+    public void RemoveLastParameter_WhenEmpty_DoesNothing()
+    {
+        _viewModel.RemoveLastParameterCommand.Execute(null);
+        Assert.Empty(_viewModel.ParameterItems);
     }
 
     [Fact]
     public void ParameterItems_IndexDisplayFormatsCorrectly()
     {
-        // P5: IndexDisplay
-        _viewModel.ParameterCount = 2;
-        Assert.Equal("Parametro 1", _viewModel.ParameterItems[0].IndexDisplay);
-        Assert.Equal("Parametro 2", _viewModel.ParameterItems[1].IndexDisplay);
+        // P5: IndexDisplay mostra solo il numero
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
+        Assert.Equal("1", _viewModel.ParameterItems[0].IndexDisplay);
+        Assert.Equal("2", _viewModel.ParameterItems[1].IndexDisplay);
     }
 
     [Fact]
@@ -542,7 +542,7 @@ public class CommandEditViewModelTests
 
         await _viewModel.InitializeAsync(1);
 
-        Assert.Equal(2, _viewModel.ParameterCount);
+        Assert.Equal(2, _viewModel.ParameterItems.Count);
         Assert.Equal("2", _viewModel.ParameterItems[0].SizeBytes);
         Assert.Equal("Indirizzo", _viewModel.ParameterItems[0].Description);
         Assert.Equal("4", _viewModel.ParameterItems[1].SizeBytes);
@@ -558,7 +558,7 @@ public class CommandEditViewModelTests
 
         await _viewModel.InitializeAsync(1);
 
-        Assert.Equal(2, _viewModel.ParameterCount);
+        Assert.Equal(2, _viewModel.ParameterItems.Count);
         Assert.Equal("", _viewModel.ParameterItems[0].SizeBytes);
         Assert.Equal("param1", _viewModel.ParameterItems[0].Description);
         Assert.Equal("", _viewModel.ParameterItems[1].SizeBytes);
@@ -572,7 +572,8 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "WriteReg";
         _viewModel.CodeLowHex = "10";
-        _viewModel.ParameterCount = 2;
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.ParameterItems[0].SizeBytes = "2";
         _viewModel.ParameterItems[0].Description = "Indirizzo";
         _viewModel.ParameterItems[1].SizeBytes = "4";
@@ -588,17 +589,27 @@ public class CommandEditViewModelTests
     }
 
     [Fact]
-    public void OnParameterCountChanged_SetsHasChanges()
+    public void AddParameter_SetsHasChanges()
     {
         _viewModel.HasChanges = false;
-        _viewModel.ParameterCount = 2;
+        _viewModel.AddParameterCommand.Execute(null);
+        Assert.True(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public void RemoveLastParameter_SetsHasChanges()
+    {
+        _viewModel.AddParameterCommand.Execute(null);
+        _viewModel.HasChanges = false;
+
+        _viewModel.RemoveLastParameterCommand.Execute(null);
         Assert.True(_viewModel.HasChanges);
     }
 
     [Fact]
     public void ParameterItem_PropertyChanged_SetsHasChanges()
     {
-        _viewModel.ParameterCount = 1;
+        _viewModel.AddParameterCommand.Execute(null);
         _viewModel.HasChanges = false;
 
         _viewModel.ParameterItems[0].Description = "Changed";
@@ -615,7 +626,6 @@ public class CommandEditViewModelTests
 
         Assert.False(_viewModel.IsNameInvalid);
         Assert.False(_viewModel.IsCodeLowInvalid);
-        Assert.False(_viewModel.IsParameterCountInvalid);
     }
 
     [Fact]
@@ -628,14 +638,11 @@ public class CommandEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
         Assert.True(_viewModel.IsNameInvalid);
         Assert.True(_viewModel.IsCodeLowInvalid);
-        Assert.True(_viewModel.IsParameterCountInvalid);
 
         _viewModel.Name = "Fixed";
         Assert.False(_viewModel.IsNameInvalid);
         _viewModel.CodeLowHex = "01";
         Assert.False(_viewModel.IsCodeLowInvalid);
-        _viewModel.ParameterCount = 0;
-        Assert.False(_viewModel.IsParameterCountInvalid);
     }
 
     [Fact]
@@ -650,7 +657,6 @@ public class CommandEditViewModelTests
         var (Message, Severity) = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
         Assert.Contains("Nome", Message);
         Assert.Contains("Codice", Message);
-        Assert.Contains("Conteggio parametri", Message);
     }
 
     [Fact]
@@ -659,24 +665,21 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "ValidCmd";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         Assert.False(_viewModel.IsNameInvalid);
         Assert.False(_viewModel.IsCodeLowInvalid);
-        Assert.False(_viewModel.IsParameterCountInvalid);
     }
 
     [Fact]
-    public async Task LoadFromCommand_NoParams_SetsParameterCountToZero()
+    public async Task LoadFromCommand_NoParams_HasNoParameterItems()
     {
         var command = new Command("NoParams", 0x00, 0x10, false);
         _commandService.SeedData(command);
 
         await _viewModel.InitializeAsync(1);
 
-        Assert.Equal(0, _viewModel.ParameterCount);
         Assert.False(_viewModel.HasParameters);
         Assert.Empty(_viewModel.ParameterItems);
     }
@@ -718,7 +721,6 @@ public class CommandEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "EmptyCmd";
         _viewModel.CodeLowHex = "01";
-        _viewModel.ParameterCount = 0;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
