@@ -234,4 +234,11 @@ public class VariableService : IVariableService
         var entities = await _deviceStateRepository.GetByVariableIdAsync(variableId, ct);
         return VariableDeviceStateMapper.ToDomainList(entities);
     }
+
+    public async Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default)
+    {
+        var entities = await _deviceStateRepository.GetByDeviceTypeAsync(deviceType, ct);
+        return entities.Select(VariableDeviceStateMapper.ToDomain).ToList();
+    }
 }
