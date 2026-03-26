@@ -86,7 +86,8 @@
                     <ItemsControl ItemsSource="{Binding WordGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border x:Name="WordGroupBorder" Margin="0,0,0,16" Padding="0">
+                                <Border x:Name="WordGroupBorder" Margin="0,0,0,16"
+                                       Padding="4" Background="Transparent">
                                                     <StackPanel>
                                                         <!-- Header: Label a sinistra, Remove a destra -->
                                                         <DockPanel Margin="0,0,0,6">
