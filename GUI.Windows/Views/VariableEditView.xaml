@@ -62,7 +62,7 @@
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                     <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
-                              Width="130" Padding="8,6" Margin="0,0,8,0"/>
+                              Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
                              Width="150" IsEnabled="{Binding IsDataTypeOther}"
