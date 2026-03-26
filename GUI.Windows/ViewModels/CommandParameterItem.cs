@@ -15,9 +15,9 @@ public partial class CommandParameterItem : ObservableObject
     public int Index { get; init; }
 
     /// <summary>
-    /// Display per la UI: "Parametro 1", "Parametro 2", etc.
+    /// Display per la UI: "1", "2", etc.
     /// </summary>
-    public string IndexDisplay => $"Parametro {Index + 1}";
+    public string IndexDisplay => $"{Index + 1}";
 
     [ObservableProperty]
     private string _sizeBytes = string.Empty;
