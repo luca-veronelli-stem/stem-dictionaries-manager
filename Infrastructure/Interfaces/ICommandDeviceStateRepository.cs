@@ -16,4 +16,10 @@ public interface ICommandDeviceStateRepository : IRepository<CommandDeviceStateE
     /// </summary>
     Task<IReadOnlyList<CommandDeviceStateEntity>> GetByCommandIdAsync(int commandId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Ottiene tutti gli stati per un tipo di device specifico.
+    /// </summary>
+    Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+        CancellationToken cancellationToken = default);
 }

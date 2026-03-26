@@ -25,4 +25,12 @@ public class CommandDeviceStateRepository : RepositoryBase<CommandDeviceStateEnt
             .Where(s => s.CommandId == commandId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(s => s.DeviceType == deviceType)
+            .ToListAsync(cancellationToken);
+    }
 }

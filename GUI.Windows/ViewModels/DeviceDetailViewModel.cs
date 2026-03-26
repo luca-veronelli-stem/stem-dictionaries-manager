@@ -17,6 +17,7 @@ public partial class DictionaryItem : ObservableObject
     public string Name { get; }
     public string Semantic { get; }
     public int VariableCount { get; }
+    public bool IsCommandsEntry { get; init; }
 
     public DictionaryItem(int id, string name, string semantic, int variableCount)
     {
@@ -99,7 +100,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     public async Task LoadAsync(DeviceType deviceType)
     {
         DeviceType = deviceType;
-        DeviceName = GetDeviceName(deviceType);
+        DeviceName = GetDeviceDisplayName(deviceType);
         await LoadDataAsync();
     }
 
@@ -112,7 +113,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         await LoadBoardsAsync(DeviceType.Value);
     }
 
-    private static string GetDeviceName(DeviceType deviceType) => deviceType switch
+    internal static string GetDeviceDisplayName(DeviceType deviceType) => deviceType switch
     {
         Core.Enums.DeviceType.SherpaSlim => "Sherpa Slim",
         Core.Enums.DeviceType.TopLiftM => "TopLift-M",
@@ -172,8 +173,13 @@ public partial class DeviceDetailViewModel : ObservableObject
                 return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count);
             });
 
-            Dictionaries = new ObservableCollection<DictionaryItem>(
-                items.OrderBy(d => d.Name));
+            var sortedItems = items.OrderBy(d => d.Name).ToList();
+
+            // Aggiungi entry "Comandi" per gestione stato comandi per device
+            sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", 0)
+                { IsCommandsEntry = true });
+
+            Dictionaries = new ObservableCollection<DictionaryItem>(sortedItems);
         }
         catch (Exception ex)
         {
@@ -214,6 +220,15 @@ public partial class DeviceDetailViewModel : ObservableObject
     private void OpenDictionary()
     {
         if (SelectedDictionary is null) return;
+
+        if (SelectedDictionary.IsCommandsEntry)
+        {
+            _navigationService.NavigateTo(ViewType.DeviceCommands, new NavigationParameter
+            {
+                DeviceType = DeviceType!.Value
+            });
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {

@@ -144,9 +144,11 @@ public class DeviceDetailViewModelTests
         // Act — device senza board
         await _viewModel.LoadAsync(DeviceType.Spyke);
 
-        // Assert — Standard è sempre visibile
-        Assert.Single(_viewModel.Dictionaries);
-        Assert.Equal("Standard", _viewModel.Dictionaries[0].Name);
+        // Assert — Standard è sempre visibile (+ entry Comandi)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        Assert.Single(realDicts);
+        Assert.Equal("Standard", realDicts[0].Name);
+        Assert.Single(_viewModel.Dictionaries, d => d.IsCommandsEntry);
     }
 
     [Fact]
@@ -164,9 +166,10 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert
-        Assert.Single(_viewModel.Dictionaries);
-        Assert.Equal("Pulsantiere 4x4", _viewModel.Dictionaries[0].Name);
+        // Assert (+ entry Comandi)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        Assert.Single(realDicts);
+        Assert.Equal("Pulsantiere 4x4", realDicts[0].Name);
     }
 
     [Fact]
@@ -179,8 +182,9 @@ public class DeviceDetailViewModelTests
         // Act — EdenXp non ha board che puntano a quel dizionario
         await _viewModel.LoadAsync(DeviceType.EdenXp);
 
-        // Assert
-        Assert.Empty(_viewModel.Dictionaries);
+        // Assert (solo entry Comandi, nessun dizionario reale)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        Assert.Empty(realDicts);
     }
 
     [Fact]
@@ -206,9 +210,10 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — Standard + Optimus XP + Pulsantiere 4x4, NOT Eden XP
-        Assert.Equal(3, _viewModel.Dictionaries.Count);
-        var names = _viewModel.Dictionaries.Select(d => d.Name).ToList();
+        // Assert — Standard + Optimus XP + Pulsantiere 4x4 + Comandi, NOT Eden XP
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        Assert.Equal(3, realDicts.Count);
+        var names = realDicts.Select(d => d.Name).ToList();
         Assert.Contains("Standard", names);
         Assert.Contains("Optimus XP", names);
         Assert.Contains("Pulsantiere 4x4", names);
@@ -237,11 +242,13 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert — ordinati per nome
-        Assert.Equal(3, _viewModel.Dictionaries.Count);
-        Assert.Equal("Alfa", _viewModel.Dictionaries[0].Name);
-        Assert.Equal("Beta", _viewModel.Dictionaries[1].Name);
-        Assert.Equal("Zeta", _viewModel.Dictionaries[2].Name);
+        // Assert — ordinati per nome (Comandi in coda)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        Assert.Equal(3, realDicts.Count);
+        Assert.Equal("Alfa", realDicts[0].Name);
+        Assert.Equal("Beta", realDicts[1].Name);
+        Assert.Equal("Zeta", realDicts[2].Name);
+        Assert.Equal("Comandi", _viewModel.Dictionaries.Last().Name);
     }
 
     [Fact]
@@ -258,8 +265,9 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.OptimusXp);
 
-        // Assert
-        var item = Assert.Single(_viewModel.Dictionaries);
+        // Assert (+ entry Comandi)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        var item = Assert.Single(realDicts);
         Assert.True(item.Id > 0);
         Assert.Equal("Optimus XP", item.Name);
         Assert.Equal("Specifico", item.Semantic);
@@ -276,8 +284,9 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(DeviceType.Gradino);
 
-        // Assert
-        var item = Assert.Single(_viewModel.Dictionaries);
+        // Assert (+ entry Comandi)
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        var item = Assert.Single(realDicts);
         Assert.Equal("Standard", item.Semantic);
     }
 

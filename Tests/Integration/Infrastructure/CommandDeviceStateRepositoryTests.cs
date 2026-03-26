@@ -177,4 +177,75 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _repository.DeleteAsync(999));
     }
+
+    // === GetByDeviceTypeAsync ===
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_ReturnsOnlyMatchingDevice()
+    {
+        // Arrange — stati per Spark e EdenXp
+        await _repository.AddAsync(new CommandDeviceStateEntity
+        {
+            CommandId = _testCommand.Id,
+            DeviceType = DeviceType.Spark,
+            IsEnabled = false
+        });
+        await _repository.AddAsync(new CommandDeviceStateEntity
+        {
+            CommandId = _testCommand.Id,
+            DeviceType = DeviceType.EdenXp,
+            IsEnabled = true
+        });
+
+        // Act
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Spark);
+
+        // Assert — solo Spark
+        Assert.Single(result);
+        Assert.Equal(DeviceType.Spark, result[0].DeviceType);
+        Assert.False(result[0].IsEnabled);
+    }
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_MultipleCommands_ReturnsAll()
+    {
+        // Arrange — secondo comando
+        var cmd2 = new CommandEntity
+        {
+            Name = "SECOND_COMMAND",
+            CodeHigh = 0x02,
+            CodeLow = 0x00,
+            IsResponse = false
+        };
+        await Context.Commands.AddAsync(cmd2);
+        await Context.SaveChangesAsync();
+
+        await _repository.AddAsync(new CommandDeviceStateEntity
+        {
+            CommandId = _testCommand.Id,
+            DeviceType = DeviceType.OptimusXp,
+            IsEnabled = true
+        });
+        await _repository.AddAsync(new CommandDeviceStateEntity
+        {
+            CommandId = cmd2.Id,
+            DeviceType = DeviceType.OptimusXp,
+            IsEnabled = false
+        });
+
+        // Act
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.OptimusXp);
+
+        // Assert — entrambi i comandi per OptimusXp
+        Assert.Equal(2, result.Count);
+        Assert.All(result, s => Assert.Equal(DeviceType.OptimusXp, s.DeviceType));
+    }
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_NoStates_ReturnsEmptyList()
+    {
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Gradino);
+
+        Assert.Empty(result);
+    }
 }

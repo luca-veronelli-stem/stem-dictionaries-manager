@@ -260,4 +260,70 @@ public class CommandServiceTests : IntegrationTestBase
         // Assert
         Assert.Equal(0x1234, result!.FullCode);
     }
+
+    // === GetDeviceStatesForDeviceAsync ===
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_ReturnsStatesForDevice()
+    {
+        // Arrange — 2 comandi, entrambi con stato per Spark
+        var cmd1 = await _service.AddAsync(new Command("CMD_A", 0x60, 0x00, false));
+        var cmd2 = await _service.AddAsync(new Command("CMD_B", 0x61, 0x00, false));
+        await _service.SetDeviceStateAsync(cmd1.Id, DeviceType.Spark, false);
+        await _service.SetDeviceStateAsync(cmd2.Id, DeviceType.Spark, true);
+
+        // Act
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, s => Assert.Equal(DeviceType.Spark, s.DeviceType));
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_ExcludesOtherDevices()
+    {
+        // Arrange — stato per Spark e EdenXp
+        var cmd = await _service.AddAsync(new Command("CMD_MULTI", 0x62, 0x00, false));
+        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.Spark, false);
+        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.EdenXp, true);
+
+        // Act — solo Spark
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(cmd.Id, result[0].CommandId);
+        Assert.False(result[0].IsEnabled);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_NoStates_ReturnsEmptyList()
+    {
+        // Arrange — comando senza stati
+        await _service.AddAsync(new Command("CMD_NOSTATES", 0x63, 0x00, false));
+
+        // Act
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.R3lXp);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_MapsToDomainCorrectly()
+    {
+        // Arrange
+        var cmd = await _service.AddAsync(new Command("CMD_MAP", 0x64, 0x00, false));
+        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.Gradino, false);
+
+        // Act
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Gradino);
+
+        // Assert — verifica mapping domain
+        var state = Assert.Single(result);
+        Assert.Equal(cmd.Id, state.CommandId);
+        Assert.Equal(DeviceType.Gradino, state.DeviceType);
+        Assert.False(state.IsEnabled);
+    }
 }
