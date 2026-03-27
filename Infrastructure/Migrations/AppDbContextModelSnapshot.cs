@@ -104,7 +104,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DeviceType")
+                    b.Property<int>("DeviceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("DictionaryId")
@@ -133,6 +133,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DeviceId");
+
                     b.HasIndex("DictionaryId");
 
                     b.HasIndex("ProtocolAddress")
@@ -153,7 +155,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DeviceType")
+                    b.Property<int>("DeviceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsEnabled")
@@ -164,7 +166,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CommandId", "DeviceType")
+                    b.HasIndex("CommandId", "DeviceId")
                         .IsUnique();
 
                     b.ToTable("CommandDeviceStates");
@@ -207,6 +209,41 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Commands");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.DeviceEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MachineCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MachineCode")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Devices");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.DictionaryEntity", b =>
@@ -280,7 +317,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DeviceType")
+                    b.Property<int>("DeviceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsEnabled")
@@ -294,7 +331,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VariableId", "DeviceType")
+                    b.HasIndex("VariableId", "DeviceId")
                         .IsUnique();
 
                     b.ToTable("VariableDeviceStates");
@@ -397,10 +434,18 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.BoardEntity", b =>
                 {
+                    b.HasOne("Infrastructure.Entities.DeviceEntity", "Device")
+                        .WithMany("Boards")
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
                         .WithMany("Boards")
                         .HasForeignKey("DictionaryId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Device");
 
                     b.Navigation("Dictionary");
                 });
@@ -441,6 +486,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.CommandEntity", b =>
                 {
                     b.Navigation("DeviceStates");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.DeviceEntity", b =>
+                {
+                    b.Navigation("Boards");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.DictionaryEntity", b =>
