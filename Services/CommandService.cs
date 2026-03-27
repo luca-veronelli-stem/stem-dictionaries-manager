@@ -40,6 +40,12 @@ public class CommandService : ICommandService
     {
         ArgumentNullException.ThrowIfNull(command);
 
+        // Verifica unicità nome
+        var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+        if (existingByName is not null)
+            throw new InvalidOperationException(
+                $"Command with name '{command.Name}' already exists.");
+
         // Verifica unicità codice
         var existing = await _repository.GetByCodeAsync(
             command.CodeHigh, command.CodeLow, command.IsResponse, ct);
@@ -58,7 +64,16 @@ public class CommandService : ICommandService
         ArgumentNullException.ThrowIfNull(command);
 
         var entity = await _repository.GetByIdAsync(command.Id, ct)
-            ?? throw new KeyNotFoundException($"Command with Id {command.Id} not found.");
+            ?? throw new KeyNotFoundException($"Command '{command.Name}' (Id={command.Id}) not found.");
+
+        // Verifica unicità nome (se cambiato)
+        if (!entity.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+            if (existingByName is not null)
+                throw new InvalidOperationException(
+                    $"Command with name '{command.Name}' already exists.");
+        }
 
         CommandMapper.UpdateEntity(entity, command);
         await _repository.UpdateAsync(entity, ct);
