@@ -1,24 +1,23 @@
-using Core.Enums;
-
 namespace Core.Models;
 
 /// <summary>
 /// Scheda fisica in un dispositivo.
-/// FirmwareType direttamente sulla board (SESSION_024: rimosso BoardType).
+/// SESSION_035: DeviceType enum → DeviceId FK a Device entity.
+/// MachineCode denormalizzato per calcolo ProtocolAddress senza join.
 /// DictionaryId opzionale: board senza dizionario (es. SPARK Motore DX).
 /// L'indirizzo protocol è calcolato da MACHINE + FIRMWARE_TYPE + BOARD_NUMBER.
 /// </summary>
 public class Board
 {
     public int Id { get; private set; }
-    public DeviceType DeviceType { get; private set; }
+    public int DeviceId { get; private set; }
     public string Name { get; private set; }
     public int FirmwareType { get; private set; }
     public int BoardNumber { get; private set; }
     public string? PartNumber { get; private set; }
 
     /// <summary>
-    /// True se è la scheda principale del dispositivo. Max 1 per DeviceType (BR-005).
+    /// True se è la scheda principale del dispositivo. Max 1 per Device (BR-005).
     /// </summary>
     public bool IsPrimary { get; private set; }
 
@@ -33,16 +32,27 @@ public class Board
     public string? DictionaryName { get; private set; }
 
     /// <summary>
+    /// Nome del dispositivo (denormalizzato da Device.Name, per display).
+    /// </summary>
+    public string? DeviceName { get; private set; }
+
+    /// <summary>
+    /// MachineCode del dispositivo (denormalizzato da Device.MachineCode, per ProtocolAddress).
+    /// </summary>
+    public int MachineCode { get; private set; }
+
+    /// <summary>
     /// Indirizzo protocol calcolato.
     /// Formula: (MACHINE &lt;&lt; 16) | ((FIRMWARE_TYPE &amp; 0x03FF) &lt;&lt; 6) | (BOARD_NUMBER &amp; 0x003F)
     /// </summary>
     public uint ProtocolAddress => CalculateAddress(
-        (int)DeviceType,
+        MachineCode,
         FirmwareType,
         BoardNumber);
 
-    public Board(DeviceType deviceType, string name, int firmwareType, int boardNumber,
-        string? partNumber = null, bool isPrimary = false, int? dictionaryId = null)
+    public Board(int deviceId, string name, int firmwareType, int boardNumber,
+        string? partNumber = null, bool isPrimary = false, int? dictionaryId = null,
+        int machineCode = 0)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (firmwareType < 0)
@@ -52,27 +62,30 @@ public class Board
             throw new ArgumentOutOfRangeException(nameof(boardNumber),
                 "BoardNumber must be between 1 and 63 (BR-008).");
 
-        DeviceType = deviceType;
+        DeviceId = deviceId;
         Name = name;
         FirmwareType = firmwareType;
         BoardNumber = boardNumber;
         PartNumber = partNumber;
         IsPrimary = isPrimary;
         DictionaryId = dictionaryId;
+        MachineCode = machineCode;
     }
 
     /// <summary>
     /// Factory method per ricostruire da DB.
     /// </summary>
-    public static Board Restore(int id, DeviceType deviceType, string name,
+    public static Board Restore(int id, int deviceId, string name,
         int firmwareType, int boardNumber, string? partNumber, bool isPrimary,
-        int? dictionaryId, string? dictionaryName = null)
+        int? dictionaryId, string? dictionaryName = null,
+        string? deviceName = null, int machineCode = 0)
     {
-        var board = new Board(deviceType, name, firmwareType, boardNumber,
-            partNumber, isPrimary, dictionaryId)
+        var board = new Board(deviceId, name, firmwareType, boardNumber,
+            partNumber, isPrimary, dictionaryId, machineCode)
         {
             Id = id,
-            DictionaryName = dictionaryName
+            DictionaryName = dictionaryName,
+            DeviceName = deviceName
         };
         return board;
     }
