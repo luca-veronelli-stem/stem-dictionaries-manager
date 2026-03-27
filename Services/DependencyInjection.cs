@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandService, CommandService>();
         services.AddScoped<IBoardService, BoardService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IDeviceService, DeviceService>();
 
         return services;
     }

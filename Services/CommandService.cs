@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
@@ -93,7 +92,7 @@ public class CommandService : ICommandService
         return command;
     }
 
-    public async Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled,
+    public async Task SetDeviceStateAsync(int commandId, int deviceId, bool isEnabled,
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
@@ -101,7 +100,7 @@ public class CommandService : ICommandService
             ?? throw new KeyNotFoundException($"Command with Id {commandId} not found.");
 
         // Cerca stato esistente
-        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         if (existingState is not null)
         {
@@ -113,25 +112,25 @@ public class CommandService : ICommandService
             var newState = new CommandDeviceStateEntity
             {
                 CommandId = commandId,
-                DeviceType = deviceType,
+                DeviceId = deviceId,
                 IsEnabled = isEnabled
             };
             await _deviceStateRepository.AddAsync(newState, ct);
         }
     }
 
-    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType,
+    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, int deviceId,
         CancellationToken ct = default)
     {
-        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         return entity is null ? null : CommandDeviceStateMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
-        DeviceType deviceType, CancellationToken ct = default)
+        int deviceId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
         return entities.Select(CommandDeviceStateMapper.ToDomain).ToList();
     }
 }

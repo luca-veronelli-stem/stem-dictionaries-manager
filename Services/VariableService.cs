@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
@@ -185,7 +184,7 @@ public class VariableService : IVariableService
 
     // === DeviceState Management ===
 
-    public async Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled,
+    public async Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled,
         CancellationToken ct = default)
     {
         // Verifica che la variabile esista
@@ -195,12 +194,12 @@ public class VariableService : IVariableService
         // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
         if (!variable.IsEnabled && isEnabled)
             throw new InvalidOperationException(
-                $"Cannot enable variable {variableId} for device {deviceType}: " +
+                $"Cannot enable variable {variableId} for device {deviceId}: " +
                 "variable is deprecated globally (IsEnabled=false).");
 
         // Cerca stato esistente
         var existingState = await _deviceStateRepository
-            .GetByVariableAndDeviceAsync(variableId, deviceType, ct);
+            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
 
         if (existingState is not null)
         {
@@ -212,18 +211,18 @@ public class VariableService : IVariableService
             var newState = new VariableDeviceStateEntity
             {
                 VariableId = variableId,
-                DeviceType = deviceType,
+                DeviceId = deviceId,
                 IsEnabled = isEnabled
             };
             await _deviceStateRepository.AddAsync(newState, ct);
         }
     }
 
-    public async Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType,
+    public async Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, int deviceId,
         CancellationToken ct = default)
     {
         var entity = await _deviceStateRepository
-            .GetByVariableAndDeviceAsync(variableId, deviceType, ct);
+            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
 
         return entity is null ? null : VariableDeviceStateMapper.ToDomain(entity);
     }
@@ -236,9 +235,9 @@ public class VariableService : IVariableService
     }
 
     public async Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
-        DeviceType deviceType, CancellationToken ct = default)
+        int deviceId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
         return entities.Select(VariableDeviceStateMapper.ToDomain).ToList();
     }
 }
