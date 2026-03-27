@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1459%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1461%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
@@ -42,10 +42,10 @@
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 9 repository con interfacce |
 | **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 14 Views attive, dark theme, custom dialogs, status bar |
+| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 14 Views attive, dark theme STEM, custom dialogs, status bar |
 | **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
 | **Variabili standard per device** | ✅ | Stato attivo/disattivo variabili standard per DeviceType (BR-009/011) |
-| **Test Suite** | ✅ | ~913 metodi test / 1459 test cases (unit + integration, 2 target framework) |
+| **Test Suite** | ✅ | ~915 metodi test / 1461 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -97,7 +97,7 @@ Stem.Dictionaries.Manager/
 │   ├── Views/             # 15 Views XAML (incl. LoginView, DarkDialog, DeviceCommandsView, DeviceVariablesView)
 │   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~913 metodi / 1459 cases)
+├── Tests/                 # Unit & integration tests (~915 metodi / 1461 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -142,6 +142,20 @@ Stem.Dictionaries.Manager/
 
 ---
 
+## Palette Colori STEM
+
+| Ruolo | Colore | Hex |
+|-------|--------|-----|
+| 🔵 Accent (base) | ![#004682](https://via.placeholder.com/12/004682/004682.png) | `#004682` |
+| 🔵 Hover (scuro) | ![#003461](https://via.placeholder.com/12/003461/003461.png) | `#003461` |
+| 🔵 Pressed (chiaro) | ![#2668A0](https://via.placeholder.com/12/2668A0/2668A0.png) | `#2668A0` |
+| 🔵 Selezione inattiva | ![#1E3A54](https://via.placeholder.com/12/1E3A54/1E3A54.png) | `#1E3A54` |
+| 🟢 Successo | ![#98D801](https://via.placeholder.com/12/98D801/98D801.png) | `#98D801` |
+| 🔴 Errore | ![#E40032](https://via.placeholder.com/12/E40032/E40032.png) | `#E40032` |
+| 🟡 Warning | ![#FFC04A](https://via.placeholder.com/12/FFC04A/FFC04A.png) | `#FFC04A` |
+
+---
+
 ## CI/CD
 
 Pipeline Bitbucket configurata:
@@ -172,7 +186,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│      MVVM, 15 ViewModels, 14 Views, Dark Theme, Status Bar  │
+│      MVVM, 15 ViewModels, 14 Views, Dark Theme STEM, Status Bar │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
