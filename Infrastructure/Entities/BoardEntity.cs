@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Interfaces;
 
 namespace Infrastructure.Entities;
@@ -28,5 +27,6 @@ public class BoardEntity : IAuditable
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation
+    public DeviceEntity Device { get; set; } = null!;
     public DictionaryEntity? Dictionary { get; set; }
 }
