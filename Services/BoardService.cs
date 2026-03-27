@@ -41,9 +41,10 @@ public class BoardService : IBoardService
         // Verifica che il dizionario esista (se specificato)
         if (board.DictionaryId.HasValue)
         {
-            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
+            if (dict is null)
                 throw new InvalidOperationException(
-                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+                    $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
@@ -62,14 +63,16 @@ public class BoardService : IBoardService
         ArgumentNullException.ThrowIfNull(board);
 
         var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
-            ?? throw new KeyNotFoundException($"Board with Id {board.Id} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Board '{board.Name}' (Id={board.Id}) not found.");
 
         // Verifica dizionario se specificato
         if (board.DictionaryId.HasValue)
         {
-            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
+            if (dict is null)
                 throw new InvalidOperationException(
-                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+                    $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
@@ -110,6 +113,6 @@ public class BoardService : IBoardService
 
         if (existing is not null)
             throw new InvalidOperationException(
-                $"Device Id={deviceId} already has a primary board (Id={existing.Id}).");
+                $"This device already has a primary board ('{existing.Name}').");
     }
 }

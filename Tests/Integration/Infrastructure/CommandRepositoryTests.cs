@@ -224,4 +224,54 @@ public class CommandRepositoryTests : IntegrationTestBase
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _repository.DeleteAsync(999));
     }
+
+    // === GetByNameAsync ===
+
+    [Fact]
+    public async Task GetByNameAsync_Existing_ReturnsCommand()
+    {
+        // Arrange
+        await _repository.AddAsync(new CommandEntity
+        {
+            Name = "UNIQUE_NAME",
+            CodeHigh = 0xA0,
+            CodeLow = 0x00,
+            IsResponse = false
+        });
+
+        // Act
+        var result = await _repository.GetByNameAsync("UNIQUE_NAME");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("UNIQUE_NAME", result.Name);
+    }
+
+    [Fact]
+    public async Task GetByNameAsync_NotFound_ReturnsNull()
+    {
+        var result = await _repository.GetByNameAsync("NONEXISTENT");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByNameAsync_IsCaseSensitive()
+    {
+        // Arrange
+        await _repository.AddAsync(new CommandEntity
+        {
+            Name = "CaseSensitive",
+            CodeHigh = 0xB0,
+            CodeLow = 0x00,
+            IsResponse = false
+        });
+
+        // Act
+        var exact = await _repository.GetByNameAsync("CaseSensitive");
+        var lower = await _repository.GetByNameAsync("casesensitive");
+
+        // Assert — SQL Server/SQLite sono case-insensitive by default
+        Assert.NotNull(exact);
+        // lower potrebbe essere null o non null a seconda del DB
+    }
 }

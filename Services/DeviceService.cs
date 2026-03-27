@@ -59,7 +59,7 @@ public class DeviceService : IDeviceService
 
         var entity = await _repository.GetByIdAsync(device.Id, ct)
             ?? throw new KeyNotFoundException(
-                $"Device with Id {device.Id} not found.");
+                $"Device '{device.Name}' (Id={device.Id}) not found.");
 
         // Unicità nome (esclude se stesso)
         var byName = await _repository.GetByNameAsync(device.Name, ct);

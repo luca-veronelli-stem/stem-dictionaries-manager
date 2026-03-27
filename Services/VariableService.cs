@@ -55,7 +55,8 @@ public class VariableService : IVariableService
         // Verifica che il dizionario esista
         var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
-            throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
+            throw new KeyNotFoundException(
+                $"Dictionary (Id={dictionaryId}) not found.");
 
         // Verifica unicità indirizzo nel dizionario
         var existingByAddress = await _repository.GetByAddressAsync(
@@ -63,7 +64,7 @@ public class VariableService : IVariableService
         if (existingByAddress is not null)
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
-                $"already exists in dictionary {dictionaryId}.");
+                $"already exists in this dictionary.");
 
         var entity = VariableMapper.ToEntity(variable, dictionaryId);
         var created = await _repository.AddAsync(entity, ct);
@@ -75,7 +76,8 @@ public class VariableService : IVariableService
         ArgumentNullException.ThrowIfNull(variable);
 
         var entity = await _repository.GetByIdAsync(variable.Id, ct)
-            ?? throw new KeyNotFoundException($"Variable with Id {variable.Id} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Variable '{variable.Name}' (Id={variable.Id}) not found.");
 
         // Verifica unicità indirizzo (se cambiato)
         if (entity.AddressHigh != variable.AddressHigh || entity.AddressLow != variable.AddressLow)
@@ -120,7 +122,8 @@ public class VariableService : IVariableService
         // Verifica che la variabile esista
         var variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
-            throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+            throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
 
         var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
@@ -134,11 +137,12 @@ public class VariableService : IVariableService
 
         // Verifica che la variabile esista ed sia bitmapped
         var variable = await _repository.GetByIdAsync(variableId, ct)
-            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
 
         if (variable.DataTypeKind != DataTypeKind.Bitmapped)
             throw new InvalidOperationException(
-                $"Variable {variableId} is not bitmapped. Cannot add bit interpretation.");
+                $"Variable '{variable.Name}' is not bitmapped. Cannot add bit interpretation.");
 
         var entity = BitInterpretationMapper.ToEntity(interpretation);
         entity.VariableId = variableId;
@@ -154,11 +158,12 @@ public class VariableService : IVariableService
         ArgumentNullException.ThrowIfNull(interpretations);
 
         var variable = await _repository.GetByIdAsync(variableId, ct)
-            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
 
         if (variable.DataTypeKind != DataTypeKind.Bitmapped)
             throw new InvalidOperationException(
-                $"Variable {variableId} is not bitmapped. Cannot update bit interpretations.");
+                $"Variable '{variable.Name}' is not bitmapped. Cannot update bit interpretations.");
 
         var incoming = interpretations.ToList();
 
@@ -190,12 +195,13 @@ public class VariableService : IVariableService
     {
         // Verifica che la variabile esista
         var variable = await _repository.GetByIdAsync(variableId, ct)
-            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
 
         // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
         if (!variable.IsEnabled && isEnabled)
             throw new InvalidOperationException(
-                $"Cannot enable variable {variableId} for device {deviceId}: " +
+                $"Cannot enable variable '{variable.Name}' for device {deviceId}: " +
                 "variable is deprecated globally (IsEnabled=false).");
 
         // Cerca stato esistente

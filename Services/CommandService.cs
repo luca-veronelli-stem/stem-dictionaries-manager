@@ -52,7 +52,7 @@ public class CommandService : ICommandService
         if (existing is not null)
             throw new InvalidOperationException(
                 $"Command with code 0x{command.CodeHigh:X2}{command.CodeLow:X2} " +
-                $"(IsResponse={command.IsResponse}) already exists.");
+                $"(IsResponse={command.IsResponse}) already exists ('{existing.Name}').");
 
         var entity = CommandMapper.ToEntity(command);
         var created = await _repository.AddAsync(entity, ct);
@@ -111,8 +111,9 @@ public class CommandService : ICommandService
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
-        _ = await _repository.GetByIdAsync(commandId, ct)
-            ?? throw new KeyNotFoundException($"Command with Id {commandId} not found.");
+        var cmd = await _repository.GetByIdAsync(commandId, ct)
+            ?? throw new KeyNotFoundException(
+                $"Command (Id={commandId}) not found.");
 
         // Cerca stato esistente
         var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);

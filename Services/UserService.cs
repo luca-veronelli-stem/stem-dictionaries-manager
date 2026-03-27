@@ -48,7 +48,8 @@ public class UserService : IUserService
         ArgumentNullException.ThrowIfNull(user);
 
         var entity = await _repository.GetByIdAsync(user.Id, ct)
-            ?? throw new KeyNotFoundException($"User with Id {user.Id} not found.");
+            ?? throw new KeyNotFoundException(
+                $"User '{user.Username}' (Id={user.Id}) not found.");
 
         // Verifica unicità username (se cambiato)
         if (!entity.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))

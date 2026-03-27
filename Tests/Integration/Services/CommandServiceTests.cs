@@ -48,6 +48,19 @@ public class CommandServiceTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task AddAsync_DuplicateName_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await _service.AddAsync(new Command("SAME_NAME", 0x01, 0x00, false));
+
+        // Act & Assert - stesso nome, codice diverso
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.AddAsync(new Command("SAME_NAME", 0x02, 0x00, false)));
+        Assert.Contains("SAME_NAME", exception.Message);
+        Assert.Contains("already exists", exception.Message);
+    }
+
+    [Fact]
     public async Task AddAsync_SameCodeDifferentIsResponse_Succeeds()
     {
         // Arrange - Request
@@ -150,6 +163,38 @@ public class CommandServiceTests : IntegrationTestBase
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.UpdateAsync(nonExisting));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_DuplicateName_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        await _service.AddAsync(new Command("EXISTING", 0x01, 0x00, false));
+        var toUpdate = await _service.AddAsync(new Command("TOUPDATE", 0x02, 0x00, false));
+
+        // Act - provo a rinominare con nome già esistente
+        var renamed = Command.Restore(toUpdate.Id, "EXISTING", 0x02, 0x00, false, []);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.UpdateAsync(renamed));
+        Assert.Contains("EXISTING", exception.Message);
+        Assert.Contains("already exists", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_SameName_Succeeds()
+    {
+        // Arrange - creo comando
+        var created = await _service.AddAsync(new Command("KEEPNAME", 0x70, 0x00, false));
+
+        // Act - aggiorno altro campo, stesso nome
+        var updated = Command.Restore(created.Id, "KEEPNAME", 0x70, 0x00, false, ["newparam"]);
+        await _service.UpdateAsync(updated);
+
+        // Assert
+        var result = await _service.GetByIdAsync(created.Id);
+        Assert.Single(result!.Parameters);
     }
 
     [Fact]
