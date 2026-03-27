@@ -6,7 +6,7 @@ namespace Infrastructure.Entities;
 public class BoardEntity : IAuditable
 {
     public int Id { get; set; }
-    public DeviceType DeviceType { get; set; }
+    public int DeviceId { get; set; }
     public string Name { get; set; } = string.Empty;
     public int FirmwareType { get; set; }
     public int BoardNumber { get; set; }
@@ -14,7 +14,7 @@ public class BoardEntity : IAuditable
     public uint ProtocolAddress { get; set; }
 
     /// <summary>
-    /// True se è la scheda principale del dispositivo. Max 1 per DeviceType.
+    /// True se è la scheda principale del dispositivo. Max 1 per Device.
     /// </summary>
     public bool IsPrimary { get; set; }
 
