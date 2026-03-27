@@ -14,9 +14,9 @@ public class SeverityToColorConverterTests
 
     [Theory]
     [InlineData(MessageSeverity.Info, "#FF3C3C3C")]
-    [InlineData(MessageSeverity.Success, "#FF2E7D32")]
-    [InlineData(MessageSeverity.Warning, "#FFE65C00")]
-    [InlineData(MessageSeverity.Error, "#FFC62828")]
+    [InlineData(MessageSeverity.Success, "#FF98D801")]
+    [InlineData(MessageSeverity.Warning, "#FFFFC04A")]
+    [InlineData(MessageSeverity.Error, "#FFE40032")]
     public void Convert_Severity_ReturnsExpectedColor(MessageSeverity severity, string expectedColor)
     {
         var result = _converter.Convert(severity, typeof(Brush), null!, null!) as SolidColorBrush;
