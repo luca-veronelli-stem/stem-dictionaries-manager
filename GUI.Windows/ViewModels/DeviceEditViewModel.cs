@@ -37,7 +37,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMachineCodeInvalid))]
-    private int _machineCode;
+    private string _machineCode = string.Empty;
 
     [ObservableProperty]
     private string _description = string.Empty;
@@ -45,7 +45,8 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     // === Validazione ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
-    public bool IsMachineCodeInvalid => _showValidation && MachineCode <= 0;
+    public bool IsMachineCodeInvalid => _showValidation
+        && (!int.TryParse(MachineCode, out var code) || code <= 0);
     public bool IsNew => _editingId is null;
 
     public DeviceEditViewModel(
@@ -73,7 +74,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 
             _editingId = device.Id;
             Name = device.Name;
-            MachineCode = device.MachineCode;
+            MachineCode = device.MachineCode.ToString();
             Description = device.Description ?? string.Empty;
         }
 
@@ -81,7 +82,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     }
 
     partial void OnNameChanged(string value) => HasChanges = true;
-    partial void OnMachineCodeChanged(int value) => HasChanges = true;
+    partial void OnMachineCodeChanged(string value) => HasChanges = true;
     partial void OnDescriptionChanged(string value) => HasChanges = true;
 
     private bool Validate()
@@ -110,10 +111,11 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             IsBusy = true;
 
             var desc = string.IsNullOrWhiteSpace(Description) ? null : Description;
+            var code = int.Parse(MachineCode);
 
             if (_editingId is null)
             {
-                var device = new Device(Name.Trim(), MachineCode, desc);
+                var device = new Device(Name.Trim(), code, desc);
                 await _deviceService.AddAsync(device);
                 _messageService.Show($"Dispositivo '{Name}' creato.",
                     MessageSeverity.Success, autoHideSeconds: 3);
@@ -121,7 +123,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             else
             {
                 var device = Device.Restore(_editingId.Value, Name.Trim(),
-                    MachineCode, desc);
+                    code, desc);
                 await _deviceService.UpdateAsync(device);
                 _messageService.Show($"Dispositivo '{Name}' aggiornato.",
                     MessageSeverity.Success, autoHideSeconds: 3);
@@ -169,8 +171,16 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     }
 
     [RelayCommand]
-    private void GoBack()
+    private async Task CancelAsync()
     {
+        if (HasChanges)
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Annulla modifiche",
+                "Ci sono modifiche non salvate. Uscire senza salvare?");
+            if (result != DialogResult.Yes) return;
+        }
+
         _navigationService.GoBack();
     }
 }

@@ -1,4 +1,4 @@
-<UserControl x:Class="GUI.Windows.Views.DeviceListView"
+﻿<UserControl x:Class="GUI.Windows.Views.DeviceListView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
@@ -29,10 +29,12 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <Button Content="&#x2795; Nuovo" Command="{Binding AddDeviceCommand}"
+                    Style="{StaticResource ToolbarButtonStyle}"/>
+            <Button Content="&#x1F504; Aggiorna" Command="{Binding RefreshCommand}"
+                    Style="{StaticResource ToolbarButtonStyle}"/>
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource SearchTextBoxStyle}"/>
-            <Button Content="? Nuovo" Command="{Binding AddDeviceCommand}"
-                    Style="{StaticResource ToolbarButtonStyle}" Margin="8,0,0,0"/>
+                     Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
         <!-- Lista dispositivi come grid di card -->

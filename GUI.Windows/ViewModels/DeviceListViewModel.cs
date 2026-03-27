@@ -131,6 +131,12 @@ public partial class DeviceListViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task RefreshAsync()
+    {
+        await LoadAsync();
+    }
+
+    [RelayCommand]
     private async Task DeleteDeviceAsync()
     {
         await _dialogService.ShowErrorAsync(
