@@ -34,7 +34,24 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private VariableDeviceItem? _selectedVariable;
+
     public bool HasChanges => Variables.Any(v => v.HasChanged);
+
+    /// <summary>
+    /// Mostra warning se l'utente seleziona una variabile deprecata globalmente.
+    /// </summary>
+    partial void OnSelectedVariableChanged(VariableDeviceItem? value)
+    {
+        if (value is { IsGloballyDisabled: true })
+        {
+            _messageService.Show(
+                $"\"{value.Name}\" è disattivata globalmente. " +
+                "Riattivarla su Dizionari → Standard → seleziona la variabile.",
+                MessageSeverity.Warning, autoHideSeconds: 5);
+        }
+    }
 
     public DeviceVariablesViewModel(
         IVariableService variableService,
