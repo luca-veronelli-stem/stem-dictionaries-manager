@@ -25,4 +25,12 @@ public class VariableDeviceStateRepository : RepositoryBase<VariableDeviceStateE
             .Where(s => s.VariableId == variableId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(s => s.DeviceType == deviceType)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -17,7 +17,7 @@ public class BoolToErrorBrushConverterTests
         var result = _converter.Convert(true, typeof(Brush), null!, null!) as SolidColorBrush;
 
         Assert.NotNull(result);
-        Assert.Equal("#FFF44336", result.Color.ToString());
+        Assert.Equal("#FFE40032", result.Color.ToString());
     }
 
     [Fact]

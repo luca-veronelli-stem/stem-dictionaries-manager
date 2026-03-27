@@ -55,7 +55,7 @@
                              Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
                              PreviewTextInput="HexTextBox_PreviewTextInput"
                              BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
-                    <TextBlock Text="{Binding FullAddressDisplay}" Foreground="#007ACC" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding FullAddressDisplay}" Foreground="White" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <!-- Tipo Dato -->
@@ -194,7 +194,7 @@
                                  Style="{StaticResource WatermarkTextBoxStyle}" Tag="Max" Width="80" Margin="0,0,16,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
                         <TextBox Text="{Binding Unit}" Style="{StaticResource WatermarkTextBoxStyle}" Tag="Unità" Width="80"/>
                     </StackPanel>
-                    <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="#F44336" FontSize="11" Margin="0,4,0,0"
+                    <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="#E40032" FontSize="11" Margin="0,4,0,0"
                                Visibility="{Binding IsMinMaxValid, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
                 </StackPanel>
 
@@ -219,7 +219,7 @@
         </ScrollViewer>
 
         <!-- Errore -->
-        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,16" CornerRadius="4"
+        <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
@@ -228,7 +228,7 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
             <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
-                    Background="#007ACC" FontWeight="SemiBold"/>
+                    Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 
         <!-- Loading -->

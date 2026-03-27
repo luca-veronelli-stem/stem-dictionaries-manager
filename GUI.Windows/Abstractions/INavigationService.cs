@@ -8,6 +8,7 @@ public enum ViewType
     DeviceList,
     DeviceDetail,
     DeviceCommands,
+    DeviceVariables,
     DictionaryList,
     DictionaryEdit,
     VariableEdit,

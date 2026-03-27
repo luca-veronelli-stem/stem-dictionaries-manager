@@ -71,4 +71,10 @@ public interface IVariableService
     /// </summary>
     Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene tutti gli override per un tipo di device.
+    /// </summary>
+    Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
+        DeviceType deviceType, CancellationToken ct = default);
 }

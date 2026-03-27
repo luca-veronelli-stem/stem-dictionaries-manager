@@ -37,7 +37,7 @@
                            Margin="0,0,0,30" />
 
                 <!-- Errore -->
-                <Border Background="#F44336" 
+                <Border Background="#E40032" 
                         CornerRadius="4" 
                         Padding="10" 
                         Margin="0,0,0,15"

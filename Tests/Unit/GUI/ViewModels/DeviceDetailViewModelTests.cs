@@ -105,12 +105,25 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void OpenDictionaryCommand_WithSelection_NavigatesToDictionaryEdit()
     {
-        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Standard", 10);
+        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Specifico", 10);
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
         Assert.Equal(ViewType.DictionaryEdit, _navigationService.LastNavigatedView);
         Assert.Equal(42, _navigationService.LastParameter?.EntityId);
+    }
+
+    [Fact]
+    public void OpenDictionaryCommand_StandardDictionary_NavigatesToDeviceVariables()
+    {
+        _viewModel.DeviceType = DeviceType.EdenXp;
+        _viewModel.SelectedDictionary = new DictionaryItem(1, "Standard", "Standard", 10)
+            { IsStandard = true };
+
+        _viewModel.OpenDictionaryCommand.Execute(null);
+
+        Assert.Equal(ViewType.DeviceVariables, _navigationService.LastNavigatedView);
+        Assert.Equal(DeviceType.EdenXp, _navigationService.LastParameter?.DeviceType);
     }
 
     [Theory]
@@ -288,6 +301,22 @@ public class DeviceDetailViewModelTests
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
         var item = Assert.Single(realDicts);
         Assert.Equal("Standard", item.Semantic);
+    }
+
+    [Fact]
+    public async Task LoadAsync_StandardDictionary_HasIsStandardTrue()
+    {
+        // Arrange
+        var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
+        _dictionaryService.SeedData(dictStandard);
+
+        // Act
+        await _viewModel.LoadAsync(DeviceType.Gradino);
+
+        // Assert
+        var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
+        var item = Assert.Single(realDicts);
+        Assert.True(item.IsStandard);
     }
 
     [Fact]

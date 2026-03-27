@@ -11,9 +11,9 @@ namespace GUI.Windows.Converters;
 public class SeverityToColorConverter : IValueConverter
 {
     private static readonly SolidColorBrush InfoBrush = new(Color.FromRgb(0x3C, 0x3C, 0x3C));
-    private static readonly SolidColorBrush SuccessBrush = new(Color.FromRgb(0x2E, 0x7D, 0x32));
-    private static readonly SolidColorBrush WarningBrush = new(Color.FromRgb(0xE6, 0x5C, 0x00));
-    private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(0xC6, 0x28, 0x28));
+    private static readonly SolidColorBrush SuccessBrush = new(Color.FromRgb(0x98, 0xD8, 0x01));
+    private static readonly SolidColorBrush WarningBrush = new(Color.FromRgb(0xFF, 0xC0, 0x4A));
+    private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(0xE4, 0x00, 0x32));
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {

@@ -16,4 +16,10 @@ public interface IVariableDeviceStateRepository : IRepository<VariableDeviceStat
     /// </summary>
     Task<IReadOnlyList<VariableDeviceStateEntity>> GetByVariableIdAsync(int variableId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Ottiene tutti gli stati per un tipo di device.
+    /// </summary>
+    Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+        CancellationToken cancellationToken = default);
 }

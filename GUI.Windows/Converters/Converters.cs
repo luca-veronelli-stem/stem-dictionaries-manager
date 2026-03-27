@@ -81,7 +81,7 @@ public class NullToVisibilityConverter : IValueConverter
 /// </summary>
 public class BoolToErrorBrushConverter : IValueConverter
 {
-    private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(0xF4, 0x43, 0x36));
+    private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(0xE4, 0x00, 0x32));
     private static readonly SolidColorBrush NormalBrush = new(Color.FromRgb(0x55, 0x55, 0x55));
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

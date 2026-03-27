@@ -833,6 +833,60 @@ public class VariableServiceTests : IntegrationTestBase
         Assert.Empty(states);
     }
 
+    // === GetDeviceStatesForDeviceAsync ===
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_ReturnsStatesForDevice()
+    {
+        var var1 = await CreateTestVariable(addressLow: 0x60);
+        var var2 = await CreateTestVariable(addressLow: 0x61);
+        await _service.SetDeviceStateAsync(var1.Id, DeviceType.Spark, false);
+        await _service.SetDeviceStateAsync(var2.Id, DeviceType.Spark, true);
+
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+
+        Assert.Equal(2, result.Count);
+        Assert.All(result, s => Assert.Equal(DeviceType.Spark, s.DeviceType));
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_ExcludesOtherDevices()
+    {
+        var variable = await CreateTestVariable(addressLow: 0x62);
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Spark, false);
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.EdenXp, true);
+
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+
+        Assert.Single(result);
+        Assert.Equal(variable.Id, result[0].VariableId);
+        Assert.False(result[0].IsEnabled);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_NoStates_ReturnsEmptyList()
+    {
+        await CreateTestVariable(addressLow: 0x63);
+
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.R3lXp);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetDeviceStatesForDeviceAsync_MapsToDomainCorrectly()
+    {
+        var variable = await CreateTestVariable(addressLow: 0x64);
+        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Gradino, false);
+
+        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Gradino);
+
+        var state = Assert.Single(result);
+        Assert.Equal(variable.Id, state.VariableId);
+        Assert.Equal(DeviceType.Gradino, state.DeviceType);
+        Assert.False(state.IsEnabled);
+    }
+
     private async Task<Variable> CreateTestVariable(
         byte addressLow = 0x01,
         bool isEnabled = true)

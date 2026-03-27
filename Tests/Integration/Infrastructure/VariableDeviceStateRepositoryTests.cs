@@ -191,4 +191,71 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
         var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
         Assert.Empty(result);
     }
+
+    // === GetByDeviceTypeAsync ===
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_FiltersCorrectly()
+    {
+        await _repository.AddAsync(new VariableDeviceStateEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceType = DeviceType.Spark,
+            IsEnabled = false
+        });
+        await _repository.AddAsync(new VariableDeviceStateEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceType = DeviceType.EdenXp,
+            IsEnabled = true
+        });
+
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Spark);
+
+        Assert.Single(result);
+        Assert.Equal(DeviceType.Spark, result[0].DeviceType);
+    }
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_MultipleVariables_ReturnsAll()
+    {
+        // Creo una seconda variabile
+        var dict = (await _dictionaryRepo.GetAllAsync())[0];
+        var var2 = await _variableRepo.AddAsync(new VariableEntity
+        {
+            DictionaryId = dict.Id,
+            Name = "TestVar2",
+            AddressHigh = 0x00,
+            AddressLow = 0x02,
+            DataTypeKind = DataTypeKind.UInt16,
+            DataTypeRaw = "UInt16",
+            AccessMode = AccessMode.ReadWrite,
+            IsEnabled = true
+        });
+
+        await _repository.AddAsync(new VariableDeviceStateEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceType = DeviceType.R3lXp,
+            IsEnabled = false
+        });
+        await _repository.AddAsync(new VariableDeviceStateEntity
+        {
+            VariableId = var2.Id,
+            DeviceType = DeviceType.R3lXp,
+            IsEnabled = true
+        });
+
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.R3lXp);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task GetByDeviceTypeAsync_NoStates_ReturnsEmpty()
+    {
+        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Gradino);
+
+        Assert.Empty(result);
+    }
 }

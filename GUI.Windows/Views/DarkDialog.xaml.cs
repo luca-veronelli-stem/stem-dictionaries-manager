@@ -42,7 +42,7 @@ public partial class DarkDialog : Window
     {
         var dialog = CreateDialog(title, message, "OK", null);
         dialog.TitleText.Foreground = new System.Windows.Media.SolidColorBrush(
-            System.Windows.Media.Color.FromRgb(0xF4, 0x43, 0x36)); // #F44336
+            System.Windows.Media.Color.FromRgb(0xE4, 0x00, 0x32)); // #E40032
         dialog.ShowDialog();
     }
 
@@ -53,7 +53,7 @@ public partial class DarkDialog : Window
     {
         var dialog = CreateDialog(title, message, "OK", null);
         dialog.TitleText.Foreground = new System.Windows.Media.SolidColorBrush(
-            System.Windows.Media.Color.FromRgb(0xFF, 0x98, 0x00)); // #FF9800
+            System.Windows.Media.Color.FromRgb(0xFF, 0xC0, 0x4A)); // #FFC04A
         dialog.ShowDialog();
     }
 
