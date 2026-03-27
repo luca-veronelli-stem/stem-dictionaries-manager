@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Enums;
+using Core.Models;
 using GUI.Windows.Abstractions;
+using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
 
@@ -11,24 +12,30 @@ namespace GUI.Windows.ViewModels;
 /// </summary>
 public partial class DeviceItem : ObservableObject
 {
-    public DeviceType DeviceType { get; }
+    public int DeviceId { get; }
     public string Name { get; }
     public string Description { get; }
+    public int MachineCode { get; }
 
-    public DeviceItem(DeviceType deviceType, string name, string description)
+    public DeviceItem(int deviceId, string name, string description, int machineCode)
     {
-        DeviceType = deviceType;
+        DeviceId = deviceId;
         Name = name;
         Description = description;
+        MachineCode = machineCode;
     }
 }
 
 /// <summary>
-/// ViewModel per la lista dei tipi di dispositivo.
+/// ViewModel per la lista dei dispositivi.
+/// SESSION_035: carica da DB tramite IDeviceService.
 /// </summary>
 public partial class DeviceListViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
+    private readonly IDeviceService _deviceService;
+    private readonly IDialogService _dialogService;
+    private readonly IMessageService _messageService;
 
     [ObservableProperty]
     private ObservableCollection<DeviceItem> _devices = [];
@@ -39,33 +46,44 @@ public partial class DeviceListViewModel : ObservableObject
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    [ObservableProperty]
+    private bool _isLoading;
+
     private List<DeviceItem> _allDevices = [];
 
-    public DeviceListViewModel(INavigationService navigationService)
+    public DeviceListViewModel(
+        INavigationService navigationService,
+        IDeviceService deviceService,
+        IDialogService dialogService,
+        IMessageService messageService)
     {
         _navigationService = navigationService;
-        LoadDevices();
+        _deviceService = deviceService;
+        _dialogService = dialogService;
+        _messageService = messageService;
     }
 
-    private void LoadDevices()
+    public async Task LoadAsync()
     {
-        // Crea lista da enum DeviceType con descrizioni italiane
-        _allDevices =
-        [
-            new DeviceItem(DeviceType.SherpaSlim, "Sherpa Slim", "Sistema di caricamento assistito a controllo elettronico"),
-            new DeviceItem(DeviceType.TopLiftM, "TopLift-M", "Sollevatori oleodinamici serie civile"),
-            new DeviceItem(DeviceType.EdenXp, "Eden-XP", "Supporto barella ammortizzato idropneumatico"),
-            new DeviceItem(DeviceType.Gradino, "Gradino", "Gradini automatici"),
-            new DeviceItem(DeviceType.Spyke, "Spyke", "Barella con sistema di caricamento assistito e manutenzione predittiva"),
-            new DeviceItem(DeviceType.Spark, "Spark", "Barella elettrica robotizzata"),
-            new DeviceItem(DeviceType.TopLiftA2, "TopLift-A2", "Sollevatori oleodinamici serie militare"),
-            new DeviceItem(DeviceType.O3zTech, "O3Z-Tech", "Sistema di sanificazione per veicoli"),
-            new DeviceItem(DeviceType.OptimusXp, "Optimus-XP", "Supporto per barelle elettriche"),
-            new DeviceItem(DeviceType.R3lXp, "R3L-XP", "Supporto barella elettromeccanico con sollevamento e inclinazione"),
-            new DeviceItem(DeviceType.EdenBs8, "Eden-BS8", "Supporto barella ammortizzato con inclinazione regolabile")
-        ];
-
-        ApplyFilter();
+        try
+        {
+            IsLoading = true;
+            var devices = await _deviceService.GetAllAsync();
+            _allDevices = [.. devices
+                .OrderBy(d => d.MachineCode)
+                .Select(d => new DeviceItem(
+                    d.Id, d.Name, d.Description ?? string.Empty, d.MachineCode))];
+            ApplyFilter();
+        }
+        catch (Exception ex)
+        {
+            _messageService.Show($"Errore caricamento dispositivi: {ex.Message}",
+                MessageSeverity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
@@ -99,7 +117,24 @@ public partial class DeviceListViewModel : ObservableObject
 
         _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
         {
-            DeviceType = target.DeviceType
+            DeviceId = target.DeviceId
         });
+    }
+
+    [RelayCommand]
+    private void AddDevice()
+    {
+        _navigationService.NavigateTo(ViewType.DeviceEdit, new NavigationParameter
+        {
+            EntityId = null
+        });
+    }
+
+    [RelayCommand]
+    private async Task DeleteDeviceAsync()
+    {
+        await _dialogService.ShowErrorAsync(
+            "Operazione non consentita",
+            "Solo l'amministratore può eliminare un dispositivo.");
     }
 }

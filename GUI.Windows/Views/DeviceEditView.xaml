@@ -1,0 +1,82 @@
+<UserControl x:Class="GUI.Windows.Views.DeviceEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
+             xmlns:conv="clr-namespace:GUI.Windows.Converters"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DeviceEditViewModel}"
+             Background="#1E1E1E">
+
+    <UserControl.Resources>
+        <conv:BoolToErrorBrushConverter x:Key="BoolToErrorBrush"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare un dispositivo." 
+                   Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid HorizontalAlignment="Left" Width="500">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Nome * -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *"
+                           Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" 
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrush}}"
+                         Margin="0,0,0,12"/>
+
+                <!-- Machine Code * -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Machine Code *"
+                           Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="1" Grid.Column="1" 
+                         Text="{Binding MachineCode, UpdateSourceTrigger=PropertyChanged}"
+                         BorderBrush="{Binding IsMachineCodeInvalid, Converter={StaticResource BoolToErrorBrush}}"
+                         PreviewTextInput="IntTextBox_PreviewTextInput"
+                         Margin="0,0,0,12"/>
+
+                <!-- Descrizione -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Descrizione"
+                           Foreground="#CCCCCC" VerticalAlignment="Top" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="2" Grid.Column="1" 
+                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="80"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,12"/>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Bottone Salva -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Width="120" Height="32"/>
+        </StackPanel>
+
+        <!-- Bottone Elimina (solo edit) -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="🗑️ Elimina dispositivo" Command="{Binding DeleteDeviceCommand}"
+                    Foreground="#E40032" Background="Transparent" BorderBrush="#E40032"
+                    Padding="12,6" Cursor="Hand"
+                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

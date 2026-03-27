@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
@@ -9,8 +8,8 @@ namespace GUI.Windows.ViewModels;
 
 /// <summary>
 /// ViewModel per la creazione/modifica di una scheda.
-/// Domain v2: FirmwareType diretto, DictionaryId?, nessun BoardType.
-/// DeviceType bloccato quando si arriva da DeviceDetail.
+/// SESSION_035: DeviceType enum → int DeviceId.
+/// DeviceId bloccato quando si arriva da DeviceDetail.
 /// </summary>
 public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -40,19 +39,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private DeviceType _selectedDeviceType = DeviceType.OptimusXp;
+    private int _deviceId;
 
     /// <summary>
-    /// True se il DeviceType è bloccato (arrivo da DeviceDetail).
+    /// True se il DeviceId è bloccato (arrivo da DeviceDetail).
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanEditDeviceType))]
-    private bool _isDeviceTypeLocked;
-
-    /// <summary>
-    /// True se l'utente può modificare il DeviceType.
-    /// </summary>
-    public bool CanEditDeviceType => !IsDeviceTypeLocked;
+    private bool _isDeviceIdLocked;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFirmwareTypeInvalid))]
@@ -76,9 +69,8 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
-    public IReadOnlyList<DeviceType> DeviceTypes { get; } = Enum.GetValues<DeviceType>();
 
-    // === Validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+    // === Validazione
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsFirmwareTypeInvalid => _showValidation && FirmwareType <= 0;
@@ -99,7 +91,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         _messageService = messageService;
     }
 
-    public async Task InitializeAsync(int? boardId, DeviceType? presetDeviceType = null)
+    public async Task InitializeAsync(int? boardId, int? presetDeviceId = null)
     {
         if (_isInitialized) return;
 
@@ -108,11 +100,11 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             IsBusy = true;
             _editingId = boardId;
 
-            // Preset e lock DeviceType se arriva da DeviceDetail
-            if (presetDeviceType.HasValue)
+            // Preset e lock DeviceId se arriva da DeviceDetail
+            if (presetDeviceId.HasValue)
             {
-                SelectedDeviceType = presetDeviceType.Value;
-                IsDeviceTypeLocked = true;
+                DeviceId = presetDeviceId.Value;
+                IsDeviceIdLocked = true;
             }
 
             // Carica i dizionari disponibili per il dropdown
@@ -153,7 +145,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private void LoadFromBoard(Board b)
     {
         Name = b.Name;
-        SelectedDeviceType = b.DeviceType;
+        DeviceId = b.DeviceId;
         FirmwareType = b.FirmwareType;
         BoardNumber = b.BoardNumber;
         PartNumber = b.PartNumber;
@@ -200,7 +192,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             if (IsNew)
             {
                 var board = new Board(
-                    deviceType: SelectedDeviceType,
+                    deviceId: DeviceId,
                     name: Name,
                     firmwareType: FirmwareType,
                     boardNumber: BoardNumber,
@@ -215,7 +207,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             {
                 var existing = Board.Restore(
                     id: _editingId!.Value,
-                    deviceType: SelectedDeviceType,
+                    deviceId: DeviceId,
                     name: Name,
                     firmwareType: FirmwareType,
                     boardNumber: BoardNumber,

@@ -31,6 +31,8 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource SearchTextBoxStyle}"/>
+            <Button Content="? Nuovo" Command="{Binding AddDeviceCommand}"
+                    Style="{StaticResource ToolbarButtonStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
         <!-- Lista dispositivi come grid di card -->

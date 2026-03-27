@@ -7,6 +7,7 @@ public enum ViewType
 {
     DeviceList,
     DeviceDetail,
+    DeviceEdit,
     DeviceCommands,
     DeviceVariables,
     DictionaryList,
@@ -35,9 +36,9 @@ public record NavigationParameter
     public int? ParentId { get; init; }
 
     /// <summary>
-    /// Tipo dispositivo per filtro (es. DeviceDetail).
+    /// ID del dispositivo per filtro (es. DeviceDetail).
     /// </summary>
-    public Core.Enums.DeviceType? DeviceType { get; init; }
+    public int? DeviceId { get; init; }
 
     /// <summary>
     /// Parametri aggiuntivi.
