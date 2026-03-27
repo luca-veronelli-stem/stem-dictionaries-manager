@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 
 namespace Infrastructure.Interfaces;
@@ -6,9 +5,9 @@ namespace Infrastructure.Interfaces;
 public interface ICommandDeviceStateRepository : IRepository<CommandDeviceStateEntity>
 {
     /// <summary>
-    /// Ottiene lo stato di un comando per un tipo di device specifico.
+    /// Ottiene lo stato di un comando per un device specifico.
     /// </summary>
-    Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(int commandId, DeviceType deviceType,
+    Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(int commandId, int deviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -18,8 +17,8 @@ public interface ICommandDeviceStateRepository : IRepository<CommandDeviceStateE
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti gli stati per un tipo di device specifico.
+    /// Ottiene tutti gli stati per un device specifico.
     /// </summary>
-    Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+    Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default);
 }

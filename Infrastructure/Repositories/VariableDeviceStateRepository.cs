@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +10,11 @@ public class VariableDeviceStateRepository : RepositoryBase<VariableDeviceStateE
     {
     }
 
-    public async Task<VariableDeviceStateEntity?> GetByVariableAndDeviceAsync(int variableId, DeviceType deviceType,
+    public async Task<VariableDeviceStateEntity?> GetByVariableAndDeviceAsync(int variableId, int deviceId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .FirstOrDefaultAsync(s => s.VariableId == variableId && s.DeviceType == deviceType, cancellationToken);
+            .FirstOrDefaultAsync(s => s.VariableId == variableId && s.DeviceId == deviceId, cancellationToken);
     }
 
     public async Task<IReadOnlyList<VariableDeviceStateEntity>> GetByVariableIdAsync(int variableId,
@@ -26,11 +25,11 @@ public class VariableDeviceStateRepository : RepositoryBase<VariableDeviceStateE
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+    public async Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(s => s.DeviceType == deviceType)
+            .Where(s => s.DeviceId == deviceId)
             .ToListAsync(cancellationToken);
     }
 }
