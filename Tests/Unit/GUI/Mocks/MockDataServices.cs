@@ -1,6 +1,6 @@
 #if WINDOWS
-using Core.Enums;
 using Core.Models;
+using Core.Enums;
 using Services.Interfaces;
 
 namespace Tests.Unit.GUI.Mocks;
@@ -152,7 +152,7 @@ public class MockBoardService : IBoardService
 
         var restored = Board.Restore(
             _nextId++,
-            board.DeviceType,
+            board.DeviceId,
             board.Name,
             board.FirmwareType,
             board.BoardNumber,
@@ -187,11 +187,11 @@ public class MockBoardService : IBoardService
         return Task.FromResult<IReadOnlyList<Board>>(_boards);
     }
 
-    public Task<IReadOnlyList<Board>> GetByDeviceTypeAsync(DeviceType deviceType, CancellationToken ct = default)
+    public Task<IReadOnlyList<Board>> GetByDeviceIdAsync(int deviceId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetByDeviceTypeAsync:{deviceType}");
+        MethodCalls.Add($"GetByDeviceIdAsync:{deviceId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<Board>>([.. _boards.Where(b => b.DeviceType == deviceType)]);
+        return Task.FromResult<IReadOnlyList<Board>>([.. _boards.Where(b => b.DeviceId == deviceId)]);
     }
 
     public Task<Board?> GetByProtocolAddressAsync(uint protocolAddress, CancellationToken ct = default)
@@ -216,7 +216,7 @@ public class MockBoardService : IBoardService
         foreach (var b in boards)
         {
             var restored = Board.Restore(
-                _nextId++, b.DeviceType, b.Name, b.FirmwareType,
+                _nextId++, b.DeviceId, b.Name, b.FirmwareType,
                 b.BoardNumber, b.PartNumber, b.IsPrimary, b.DictionaryId);
             _boards.Add(restored);
         }
@@ -330,19 +330,19 @@ public class MockVariableService : IVariableService
         return Task.CompletedTask;
     }
 
-    public Task SetDeviceStateAsync(int variableId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
+    public Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled, CancellationToken ct = default)
     {
-        MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceType}:{isEnabled}");
+        MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceId}:{isEnabled}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.CompletedTask;
     }
 
-    public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, DeviceType deviceType, CancellationToken ct = default)
+    public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, int deviceId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStateAsync:{variableId}:{deviceType}");
+        MethodCalls.Add($"GetDeviceStateAsync:{variableId}:{deviceId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.FromResult(_deviceStates.FirstOrDefault(
-            s => s.VariableId == variableId && s.DeviceType == deviceType));
+            s => s.VariableId == variableId && s.DeviceId == deviceId));
     }
 
     public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
@@ -354,12 +354,12 @@ public class MockVariableService : IVariableService
     }
 
     public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
-        DeviceType deviceType, CancellationToken ct = default)
+        int deviceId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceType}");
+        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.FromResult<IReadOnlyList<VariableDeviceState>>(
-            [.. _deviceStates.Where(s => s.DeviceType == deviceType)]);
+            [.. _deviceStates.Where(s => s.DeviceId == deviceId)]);
     }
 
     public Task UpdateAsync(Variable variable, CancellationToken ct = default)
@@ -489,28 +489,28 @@ public class MockCommandService : ICommandService
         return Task.FromResult(_commands.FirstOrDefault(c => c.Id == id));
     }
 
-    public Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled, CancellationToken ct = default)
+    public Task SetDeviceStateAsync(int commandId, int deviceId, bool isEnabled, CancellationToken ct = default)
     {
-        MethodCalls.Add($"SetDeviceStateAsync:{commandId}:{deviceType}:{isEnabled}");
+        MethodCalls.Add($"SetDeviceStateAsync:{commandId}:{deviceId}:{isEnabled}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.CompletedTask;
     }
 
-    public Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType, CancellationToken ct = default)
+    public Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, int deviceId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStateAsync:{commandId}:{deviceType}");
+        MethodCalls.Add($"GetDeviceStateAsync:{commandId}:{deviceId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.FromResult(_deviceStates.FirstOrDefault(
-            s => s.CommandId == commandId && s.DeviceType == deviceType));
+            s => s.CommandId == commandId && s.DeviceId == deviceId));
     }
 
     public Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
-        DeviceType deviceType, CancellationToken ct = default)
+        int deviceId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceType}");
+        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.FromResult<IReadOnlyList<CommandDeviceState>>(
-            [.. _deviceStates.Where(s => s.DeviceType == deviceType)]);
+            [.. _deviceStates.Where(s => s.DeviceId == deviceId)]);
     }
 
     public Task UpdateAsync(Command command, CancellationToken ct = default)
@@ -636,6 +636,96 @@ public class MockUserService : IUserService
     public void Reset()
     {
         _users.Clear();
+        _nextId = 1;
+        ExceptionToThrow = null;
+        MethodCalls.Clear();
+    }
+}
+
+/// <summary>
+/// Mock implementation di IDeviceService per i test dei ViewModels.
+/// </summary>
+public class MockDeviceService : IDeviceService
+{
+    private readonly List<Device> _devices = [];
+    private int _nextId = 1;
+
+    public Exception? ExceptionToThrow { get; set; }
+    public List<string> MethodCalls { get; } = [];
+
+    public void SeedDevices(params Device[] devices)
+    {
+        _devices.AddRange(devices);
+        if (devices.Length > 0)
+            _nextId = devices.Max(d => d.Id) + 1;
+    }
+
+    public void SeedDefaultDevices()
+    {
+        SeedDevices(
+            Device.Restore(1, "Sherpa Slim", 1, "Sistema di caricamento assistito"),
+            Device.Restore(2, "TopLift-M", 2, "Sollevatori oleodinamici serie civile"),
+            Device.Restore(3, "Eden-XP", 3, "Supporto barella ammortizzato"),
+            Device.Restore(4, "Gradino", 4, "Gradini automatici"),
+            Device.Restore(5, "Spyke", 5, "Barella con caricamento assistito"),
+            Device.Restore(6, "Spark", 7, "Barella elettrica robotizzata"),
+            Device.Restore(7, "TopLift-A2", 8, "Sollevatori oleodinamici serie militare"),
+            Device.Restore(8, "O3Z-Tech", 9, "Sistema di sanificazione"),
+            Device.Restore(9, "Optimus-XP", 10, "Supporto per barelle elettriche"),
+            Device.Restore(10, "R3L-XP", 11, "Supporto barella elettromeccanico"),
+            Device.Restore(11, "Eden-BS8", 12, "Supporto barella ammortizzato con inclinazione")
+        );
+    }
+
+    public Task<IReadOnlyList<Device>> GetAllAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetAllAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult<IReadOnlyList<Device>>([.. _devices]);
+    }
+
+    public Task<Device?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByIdAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.FromResult(_devices.FirstOrDefault(d => d.Id == id));
+    }
+
+    public Task<Device?> GetByNameAsync(string name, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetByNameAsync:{name}");
+        return Task.FromResult(_devices.FirstOrDefault(
+            d => d.Name.Equals(name, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public Task<Device> AddAsync(Device device, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"AddAsync:{device.Name}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        var restored = Device.Restore(_nextId++, device.Name,
+            device.MachineCode, device.Description);
+        _devices.Add(restored);
+        return Task.FromResult(restored);
+    }
+
+    public Task UpdateAsync(Device device, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateAsync:{device.Id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"DeleteAsync:{id}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        _devices.RemoveAll(d => d.Id == id);
+        return Task.CompletedTask;
+    }
+
+    public void Reset()
+    {
+        _devices.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();

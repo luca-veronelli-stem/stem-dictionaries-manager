@@ -1,8 +1,8 @@
 #if WINDOWS
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Core.Enums;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -11,6 +11,7 @@ public class DeviceVariablesViewModelTests
 {
     private readonly MockVariableService _variableService = new();
     private readonly MockDictionaryService _dictionaryService = new();
+    private readonly MockDeviceService _deviceService = new();
     private readonly MockNavigationService _navigationService = new();
     private readonly MockMessageService _messageService = new();
     private readonly DeviceVariablesViewModel _viewModel;
@@ -20,9 +21,10 @@ public class DeviceVariablesViewModelTests
         // Seed dizionario Standard
         _dictionaryService.SeedData(
             Dictionary.Restore(100, "Standard", null, isStandard: true, []));
+        _deviceService.SeedDefaultDevices();
 
         _viewModel = new DeviceVariablesViewModel(
-            _variableService, _dictionaryService, _navigationService, _messageService);
+            _variableService, _dictionaryService, _deviceService, _navigationService, _messageService);
     }
 
     // === Defaults ===
@@ -30,7 +32,7 @@ public class DeviceVariablesViewModelTests
     [Fact]
     public void Constructor_DefaultValues()
     {
-        Assert.Null(_viewModel.DeviceType);
+        Assert.Null(_viewModel.DeviceId);
         Assert.Equal(string.Empty, _viewModel.DeviceName);
         Assert.Empty(_viewModel.Variables);
         Assert.False(_viewModel.IsLoading);
@@ -43,9 +45,9 @@ public class DeviceVariablesViewModelTests
     [Fact]
     public async Task LoadAsync_SetsDeviceTypeAndName()
     {
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
-        Assert.Equal(DeviceType.EdenXp, _viewModel.DeviceType);
+        Assert.Equal(3, _viewModel.DeviceId);
         Assert.Equal("Eden-XP", _viewModel.DeviceName);
     }
 
@@ -54,7 +56,7 @@ public class DeviceVariablesViewModelTests
     {
         SeedStandardVariables();
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.Equal(2, _viewModel.Variables.Count);
     }
@@ -64,7 +66,7 @@ public class DeviceVariablesViewModelTests
     {
         SeedStandardVariables();
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.True(_viewModel.Variables[0].IsEnabled);
         Assert.True(_viewModel.Variables[0].OriginalIsEnabled);
@@ -76,9 +78,9 @@ public class DeviceVariablesViewModelTests
         SeedStandardVariables();
         var variables = await _variableService.GetByDictionaryIdAsync(100);
         _variableService.SeedDeviceStates(
-            new VariableDeviceState(variables[0].Id, DeviceType.Spark, false));
+            new VariableDeviceState(variables[0].Id, 7, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.False(_viewModel.Variables[0].IsEnabled);
         Assert.False(_viewModel.Variables[0].OriginalIsEnabled);
@@ -90,9 +92,9 @@ public class DeviceVariablesViewModelTests
         SeedStandardVariables();
         var variables = await _variableService.GetByDictionaryIdAsync(100);
         _variableService.SeedDeviceStates(
-            new VariableDeviceState(variables[0].Id, DeviceType.EdenXp, false));
+            new VariableDeviceState(variables[0].Id, 3, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         // Spark non ha override, default = true
         Assert.True(_viewModel.Variables[0].IsEnabled);
@@ -107,7 +109,7 @@ public class DeviceVariablesViewModelTests
                 AccessMode.ReadOnly, "UInt16",
                 isEnabled: false, description: "Deprecata"));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         var item = _viewModel.Variables[0];
         Assert.True(item.IsGloballyDisabled);
@@ -120,7 +122,7 @@ public class DeviceVariablesViewModelTests
     {
         SeedStandardVariables();
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         var item = _viewModel.Variables[0];
         Assert.Equal("0x0001", item.FullAddress);
@@ -132,9 +134,9 @@ public class DeviceVariablesViewModelTests
     {
         _dictionaryService.Reset();
         var vm = new DeviceVariablesViewModel(
-            _variableService, _dictionaryService, _navigationService, _messageService);
+            _variableService, _dictionaryService, _deviceService, _navigationService, _messageService);
 
-        await vm.LoadAsync(DeviceType.Spark);
+        await vm.LoadAsync(7);
 
         Assert.NotNull(vm.ErrorMessage);
         Assert.Contains("Standard", vm.ErrorMessage);
@@ -146,7 +148,7 @@ public class DeviceVariablesViewModelTests
     {
         _variableService.ExceptionToThrow = new InvalidOperationException("DB error");
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.NotNull(_viewModel.ErrorMessage);
         Assert.Contains("DB error", _viewModel.ErrorMessage);
@@ -155,7 +157,7 @@ public class DeviceVariablesViewModelTests
     [Fact]
     public async Task LoadAsync_IsLoadingFalseAfterCompletion()
     {
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         Assert.False(_viewModel.IsLoading);
     }
 
@@ -165,7 +167,7 @@ public class DeviceVariablesViewModelTests
     public async Task HasChanges_NoToggle_False()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.False(_viewModel.HasChanges);
     }
@@ -174,7 +176,7 @@ public class DeviceVariablesViewModelTests
     public async Task HasChanges_AfterToggle_True()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Variables[0].IsEnabled = false;
 
         Assert.True(_viewModel.HasChanges);
@@ -184,7 +186,7 @@ public class DeviceVariablesViewModelTests
     public async Task HasChanges_ToggleBackToOriginal_False()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Variables[0].IsEnabled = false;
         _viewModel.Variables[0].IsEnabled = true;
 
@@ -197,7 +199,7 @@ public class DeviceVariablesViewModelTests
     public async Task Save_NoChanges_ShowsInfoMessage()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -208,7 +210,7 @@ public class DeviceVariablesViewModelTests
     public async Task Save_WithChanges_CallsSetDeviceState()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _variableService.MethodCalls.Clear();
 
         _viewModel.Variables[0].IsEnabled = false;
@@ -223,7 +225,7 @@ public class DeviceVariablesViewModelTests
     public async Task Save_WithChanges_ShowsSuccessMessage()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Variables[0].IsEnabled = false;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -239,7 +241,7 @@ public class DeviceVariablesViewModelTests
                 AccessMode.ReadOnly, "UInt16",
                 isEnabled: false, description: "Deprecata"));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _variableService.MethodCalls.Clear();
 
         // Anche se cambiamo manualmente (non dovrebbe succedere con UI)
@@ -254,7 +256,7 @@ public class DeviceVariablesViewModelTests
     public async Task Save_ServiceThrows_ShowsErrorMessage()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Variables[0].IsEnabled = false;
 
         _variableService.ExceptionToThrow = new InvalidOperationException("Save failed");
@@ -284,7 +286,7 @@ public class DeviceVariablesViewModelTests
                 AccessMode.ReadOnly, "UInt16",
                 isEnabled: false, description: "Deprecata"));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         _viewModel.SelectedVariable = _viewModel.Variables[0];
 
@@ -297,7 +299,7 @@ public class DeviceVariablesViewModelTests
     public async Task SelectEnabledVariable_DoesNotShowWarning()
     {
         SeedStandardVariables();
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         _viewModel.SelectedVariable = _viewModel.Variables[0];
 

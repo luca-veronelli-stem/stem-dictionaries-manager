@@ -1,13 +1,13 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
+using Core.Enums;
 using Services.Mapping;
 
 namespace Tests.Unit.Services.Mapping;
 
 /// <summary>
 /// Unit tests per DictionaryMapper (Domain v2).
-/// IsStandard flag, nessun DeviceType/BoardType.
+/// IsStandard flag, nessun deviceId/BoardType.
 /// </summary>
 public class DictionaryMapperTests
 {

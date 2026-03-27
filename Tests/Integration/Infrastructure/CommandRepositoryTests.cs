@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 
@@ -133,14 +132,12 @@ public class CommandRepositoryTests : IntegrationTestBase
         Context.CommandDeviceStates.AddRange(
             new CommandDeviceStateEntity
             {
-                CommandId = command.Id,
-                DeviceType = DeviceType.OptimusXp,
+                CommandId = command.Id, DeviceId = 10,
                 IsEnabled = true
             },
             new CommandDeviceStateEntity
             {
-                CommandId = command.Id,
-                DeviceType = DeviceType.EdenXp,
+                CommandId = command.Id, DeviceId = 3,
                 IsEnabled = false
             }
         );
@@ -150,8 +147,8 @@ public class CommandRepositoryTests : IntegrationTestBase
 
         Assert.NotNull(result);
         Assert.Equal(2, result.DeviceStates.Count);
-        Assert.Contains(result.DeviceStates, ds => ds.DeviceType == DeviceType.OptimusXp && ds.IsEnabled);
-        Assert.Contains(result.DeviceStates, ds => ds.DeviceType == DeviceType.EdenXp && !ds.IsEnabled);
+        Assert.Contains(result.DeviceStates, ds => ds.DeviceId == 10 && ds.IsEnabled);
+        Assert.Contains(result.DeviceStates, ds => ds.DeviceId == 3 && !ds.IsEnabled);
     }
 
     [Fact]

@@ -90,6 +90,15 @@ public class DependencyInjectionTests
     }
 
     [Fact]
+    public void AddServices_RegistersDeviceService()
+    {
+        var provider = BuildServiceProvider();
+
+        var service = provider.GetService<IDeviceService>();
+        Assert.NotNull(service);
+    }
+
+    [Fact]
     public void AddServices_RegistersServicesAsScoped()
     {
         // Arrange

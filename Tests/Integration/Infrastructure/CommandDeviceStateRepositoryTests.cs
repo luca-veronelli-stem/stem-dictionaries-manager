@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 
@@ -36,15 +35,14 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.OptimusXp,
+            CommandId = _testCommand.Id, DeviceId = 10,
             IsEnabled = true
         };
 
         var result = await _repository.AddAsync(state);
 
         Assert.True(result.Id > 0);
-        Assert.Equal(DeviceType.OptimusXp, result.DeviceType);
+        Assert.Equal(10, result.DeviceId);
         Assert.True(result.IsEnabled);
     }
 
@@ -53,8 +51,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.EdenXp,
+            CommandId = _testCommand.Id, DeviceId = 3,
             IsEnabled = false
         };
         await _repository.AddAsync(state);
@@ -62,7 +59,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         var result = await _repository.GetByIdAsync(state.Id);
 
         Assert.NotNull(result);
-        Assert.Equal(DeviceType.EdenXp, result.DeviceType);
+        Assert.Equal(3, result.DeviceId);
         Assert.False(result.IsEnabled);
     }
 
@@ -79,12 +76,11 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Spark,
+            CommandId = _testCommand.Id, DeviceId = 7,
             IsEnabled = true
         });
 
-        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, DeviceType.Spark);
+        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
 
         Assert.NotNull(result);
         Assert.True(result.IsEnabled);
@@ -93,7 +89,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCommandAndDeviceAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, DeviceType.Spark);
+        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
 
         Assert.Null(result);
     }
@@ -104,20 +100,17 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         // Arrange - aggiungi stati per diversi device
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.OptimusXp,
+            CommandId = _testCommand.Id, DeviceId = 10,
             IsEnabled = true
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.EdenXp,
+            CommandId = _testCommand.Id, DeviceId = 3,
             IsEnabled = false
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Spark,
+            CommandId = _testCommand.Id, DeviceId = 7,
             IsEnabled = true
         });
 
@@ -141,8 +134,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Gradino,
+            CommandId = _testCommand.Id, DeviceId = 4,
             IsEnabled = false
         };
         await _repository.AddAsync(state);
@@ -159,8 +151,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Spyke,
+            CommandId = _testCommand.Id, DeviceId = 5,
             IsEnabled = true
         };
         await _repository.AddAsync(state);
@@ -178,36 +169,34 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
             () => _repository.DeleteAsync(999));
     }
 
-    // === GetByDeviceTypeAsync ===
+    // === GetByDeviceIdAsync ===
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_ReturnsOnlyMatchingDevice()
+    public async Task GetByDeviceIdAsync_ReturnsOnlyMatchingDevice()
     {
         // Arrange — stati per Spark e EdenXp
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.Spark,
+            CommandId = _testCommand.Id, DeviceId = 7,
             IsEnabled = false
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.EdenXp,
+            CommandId = _testCommand.Id, DeviceId = 3,
             IsEnabled = true
         });
 
         // Act
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Spark);
+        var result = await _repository.GetByDeviceIdAsync(7);
 
         // Assert — solo Spark
         Assert.Single(result);
-        Assert.Equal(DeviceType.Spark, result[0].DeviceType);
+        Assert.Equal(7, result[0].DeviceId);
         Assert.False(result[0].IsEnabled);
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_MultipleCommands_ReturnsAll()
+    public async Task GetByDeviceIdAsync_MultipleCommands_ReturnsAll()
     {
         // Arrange — secondo comando
         var cmd2 = new CommandEntity
@@ -222,29 +211,27 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id,
-            DeviceType = DeviceType.OptimusXp,
+            CommandId = _testCommand.Id, DeviceId = 10,
             IsEnabled = true
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = cmd2.Id,
-            DeviceType = DeviceType.OptimusXp,
+            CommandId = cmd2.Id, DeviceId = 10,
             IsEnabled = false
         });
 
         // Act
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.OptimusXp);
+        var result = await _repository.GetByDeviceIdAsync(10);
 
         // Assert — entrambi i comandi per OptimusXp
         Assert.Equal(2, result.Count);
-        Assert.All(result, s => Assert.Equal(DeviceType.OptimusXp, s.DeviceType));
+        Assert.All(result, s => Assert.Equal(10, s.DeviceId));
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_NoStates_ReturnsEmptyList()
+    public async Task GetByDeviceIdAsync_NoStates_ReturnsEmptyList()
     {
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Gradino);
+        var result = await _repository.GetByDeviceIdAsync(4);
 
         Assert.Empty(result);
     }

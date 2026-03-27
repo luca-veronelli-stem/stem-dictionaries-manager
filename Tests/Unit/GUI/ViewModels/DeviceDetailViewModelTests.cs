@@ -1,5 +1,4 @@
 #if WINDOWS
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
@@ -16,6 +15,7 @@ public class DeviceDetailViewModelTests
     private readonly MockNavigationService _navigationService;
     private readonly MockDictionaryService _dictionaryService;
     private readonly MockBoardService _boardService;
+    private readonly MockDeviceService _deviceService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
     private readonly DeviceDetailViewModel _viewModel;
@@ -25,13 +25,16 @@ public class DeviceDetailViewModelTests
         _navigationService = new MockNavigationService();
         _dictionaryService = new MockDictionaryService();
         _boardService = new MockBoardService();
+        _deviceService = new MockDeviceService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
+        _deviceService.SeedDefaultDevices();
 
         _viewModel = new DeviceDetailViewModel(
             _navigationService,
             _dictionaryService,
             _boardService,
+            _deviceService,
             _dialogService,
             _messageService);
     }
@@ -39,7 +42,7 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void Constructor_DefaultValues()
     {
-        Assert.Null(_viewModel.DeviceType);
+        Assert.Null(_viewModel.DeviceId);
         Assert.Empty(_viewModel.DeviceName);
         Assert.Empty(_viewModel.Dictionaries);
         Assert.Empty(_viewModel.Boards);
@@ -50,16 +53,16 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task LoadAsync_SetsDeviceTypeAndName()
     {
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(9);
 
-        Assert.Equal(DeviceType.OptimusXp, _viewModel.DeviceType);
+        Assert.Equal(9, _viewModel.DeviceId);
         Assert.Equal("Optimus-XP", _viewModel.DeviceName);
     }
 
     [Fact]
     public async Task LoadAsync_SherpaSlim_SetsCorrectName()
     {
-        await _viewModel.LoadAsync(DeviceType.SherpaSlim);
+        await _viewModel.LoadAsync(1);
 
         Assert.Equal("Sherpa Slim", _viewModel.DeviceName);
     }
@@ -72,12 +75,12 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        var board = new Board(DeviceType.OptimusXp, "Madre #1", 17, 1,
+        var board = new Board(10, "Madre #1", 17, 1,
             dictionaryId: seededDict.Id);
         await _boardService.AddAsync(board);
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert
         Assert.NotEmpty(_viewModel.Dictionaries);
@@ -116,31 +119,31 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void OpenDictionaryCommand_StandardDictionary_NavigatesToDeviceVariables()
     {
-        _viewModel.DeviceType = DeviceType.EdenXp;
+        _viewModel.DeviceId = 3;
         _viewModel.SelectedDictionary = new DictionaryItem(1, "Standard", "Standard", 10)
             { IsStandard = true };
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
         Assert.Equal(ViewType.DeviceVariables, _navigationService.LastNavigatedView);
-        Assert.Equal(DeviceType.EdenXp, _navigationService.LastParameter?.DeviceType);
+        Assert.Equal(3, _navigationService.LastParameter?.DeviceId);
     }
 
     [Theory]
-    [InlineData(DeviceType.SherpaSlim, "Sherpa Slim")]
-    [InlineData(DeviceType.TopLiftM, "TopLift-M")]
-    [InlineData(DeviceType.EdenXp, "Eden-XP")]
-    [InlineData(DeviceType.Gradino, "Gradino")]
-    [InlineData(DeviceType.Spyke, "Spyke")]
-    [InlineData(DeviceType.Spark, "Spark")]
-    [InlineData(DeviceType.TopLiftA2, "TopLift-A2")]
-    [InlineData(DeviceType.O3zTech, "O3Z-Tech")]
-    [InlineData(DeviceType.OptimusXp, "Optimus-XP")]
-    [InlineData(DeviceType.R3lXp, "R3L-XP")]
-    [InlineData(DeviceType.EdenBs8, "Eden-BS8")]
-    public async Task DeviceName_MapsAllDeviceTypes(DeviceType deviceType, string expectedName)
+    [InlineData(1, "Sherpa Slim")]
+    [InlineData(2, "TopLift-M")]
+    [InlineData(3, "Eden-XP")]
+    [InlineData(4, "Gradino")]
+    [InlineData(5, "Spyke")]
+    [InlineData(6, "Spark")]
+    [InlineData(7, "TopLift-A2")]
+    [InlineData(8, "O3Z-Tech")]
+    [InlineData(9, "Optimus-XP")]
+    [InlineData(10, "R3L-XP")]
+    [InlineData(11, "Eden-BS8")]
+    public async Task DeviceName_MapsAllDeviceTypes(int deviceId, string expectedName)
     {
-        await _viewModel.LoadAsync(deviceType);
+        await _viewModel.LoadAsync(deviceId);
 
         Assert.Equal(expectedName, _viewModel.DeviceName);
     }
@@ -155,7 +158,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dictStandard);
 
         // Act — device senza board
-        await _viewModel.LoadAsync(DeviceType.Spyke);
+        await _viewModel.LoadAsync(5);
 
         // Assert — Standard è sempre visibile (+ entry Comandi)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -172,12 +175,12 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        var board = new Board(DeviceType.OptimusXp, "Tastiera 1", 4, 1,
+        var board = new Board(10, "Tastiera 1", 4, 1,
             dictionaryId: seededDict.Id);
         await _boardService.AddAsync(board);
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert (+ entry Comandi)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -193,7 +196,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
 
         // Act — EdenXp non ha board che puntano a quel dizionario
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
         // Assert (solo entry Comandi, nessun dizionario reale)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -215,13 +218,13 @@ public class DeviceDetailViewModelTests
         var dictPulsantiereId = allDicts.First(d => d.Name == "Pulsantiere 4x4").Id;
 
         // Board di OptimusXp puntano a dictOptimus e dictPulsantiere
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Madre #1", 17, 1,
+        await _boardService.AddAsync(new Board(10, "Madre #1", 17, 1,
             dictionaryId: dictOptimusId));
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Tastiera 1", 4, 2,
+        await _boardService.AddAsync(new Board(10, "Tastiera 1", 4, 2,
             dictionaryId: dictPulsantiereId));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert — Standard + Optimus XP + Pulsantiere 4x4 + Comandi, NOT Eden XP
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -247,13 +250,13 @@ public class DeviceDetailViewModelTests
         // Board di OptimusXp punta a tutti e 3
         foreach (var d in allDicts)
         {
-            await _boardService.AddAsync(new Board(DeviceType.OptimusXp,
+            await _boardService.AddAsync(new Board(10,
                 $"Board-{d.Name}", 17, allDicts.ToList().IndexOf(d) + 1,
                 dictionaryId: d.Id));
         }
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert — ordinati per nome (Comandi in coda)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -272,11 +275,11 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        await _boardService.AddAsync(new Board(DeviceType.OptimusXp, "Board 1", 17, 1,
+        await _boardService.AddAsync(new Board(10, "Board 1", 17, 1,
             dictionaryId: seededDict.Id));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert (+ entry Comandi)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -295,7 +298,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dictStandard);
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.Gradino);
+        await _viewModel.LoadAsync(4);
 
         // Assert (+ entry Comandi)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -311,7 +314,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dictStandard);
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.Gradino);
+        await _viewModel.LoadAsync(4);
 
         // Assert
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
@@ -326,7 +329,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.ExceptionToThrow = new InvalidOperationException("DB connection failed");
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert
         Assert.NotNull(_viewModel.ErrorMessage);
@@ -338,7 +341,7 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_IsLoadingFalseAfterCompletion()
     {
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert
         Assert.False(_viewModel.IsLoading);
@@ -351,7 +354,7 @@ public class DeviceDetailViewModelTests
         _boardService.ExceptionToThrow = new Exception("Errore");
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.OptimusXp);
+        await _viewModel.LoadAsync(10);
 
         // Assert
         Assert.False(_viewModel.IsLoading);
@@ -363,11 +366,11 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_PopulatesBoards()
     {
         // Arrange
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1));
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Pulsantiera", 4, 2));
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1));
+        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
         // Assert
         Assert.Equal(2, _viewModel.Boards.Count);
@@ -377,12 +380,12 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_BoardsAreOrderedByBoardNumber()
     {
         // Arrange — inseriti in ordine inverso
-        await _boardService.AddAsync(new Board(DeviceType.Spark, "Rostro", 22, 4));
-        await _boardService.AddAsync(new Board(DeviceType.Spark, "HMI", 20, 1));
-        await _boardService.AddAsync(new Board(DeviceType.Spark, "Motore DX", 21, 2));
+        await _boardService.AddAsync(new Board(7, "Rostro", 22, 4));
+        await _boardService.AddAsync(new Board(7, "HMI", 20, 1));
+        await _boardService.AddAsync(new Board(7, "Motore DX", 21, 2));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         // Assert
         Assert.Equal(3, _viewModel.Boards.Count);
@@ -399,11 +402,11 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1,
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1,
             partNumber: "DIS0020477", isPrimary: true, dictionaryId: seededDict.Id));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
         // Assert
         var item = Assert.Single(_viewModel.Boards);
@@ -419,11 +422,11 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_OnlyShowsBoardsForSelectedDevice()
     {
         // Arrange — board di due device diversi
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre Eden", 17, 1));
-        await _boardService.AddAsync(new Board(DeviceType.Spark, "HMI Spark", 20, 1));
+        await _boardService.AddAsync(new Board(3, "Madre Eden", 17, 1));
+        await _boardService.AddAsync(new Board(7, "HMI Spark", 20, 1));
 
         // Act
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
         // Assert — solo Eden
         Assert.Single(_viewModel.Boards);
@@ -434,7 +437,7 @@ public class DeviceDetailViewModelTests
     public async Task AddBoardCommand_NavigatesToBoardEdit_WithDeviceType()
     {
         // Arrange
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
         // Act
         _viewModel.AddBoardCommand.Execute(null);
@@ -442,13 +445,13 @@ public class DeviceDetailViewModelTests
         // Assert
         Assert.Equal(ViewType.BoardEdit, _navigationService.LastNavigatedView);
         Assert.Null(_navigationService.LastParameter?.EntityId);
-        Assert.Equal(DeviceType.EdenXp, _navigationService.LastParameter?.DeviceType);
+        Assert.Equal(3, _navigationService.LastParameter?.DeviceId);
     }
 
     [Fact]
     public void AddBoardCommand_WithoutDeviceType_DoesNotNavigate()
     {
-        // Act — DeviceType è null (non ancora caricato)
+        // Act — deviceId è null (non ancora caricato)
         _viewModel.AddBoardCommand.Execute(null);
 
         // Assert
@@ -483,12 +486,12 @@ public class DeviceDetailViewModelTests
     public async Task ReloadBoardsAsync_RefreshesOnlyBoards()
     {
         // Arrange — carica iniziale
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Madre", 17, 1));
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1));
+        await _viewModel.LoadAsync(3);
         Assert.Single(_viewModel.Boards);
 
         // Aggiungi una board dopo il load iniziale
-        await _boardService.AddAsync(new Board(DeviceType.EdenXp, "Pulsantiera", 4, 2));
+        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2));
 
         // Act
         await _viewModel.ReloadBoardsAsync();
@@ -500,13 +503,13 @@ public class DeviceDetailViewModelTests
     [Fact]
     public async Task ReloadBoardsAsync_WithoutDeviceType_DoesNothing()
     {
-        // Act — DeviceType è null (non caricato)
+        // Act — deviceId è null (non caricato)
         await _viewModel.ReloadBoardsAsync();
 
         // Assert
         Assert.Empty(_viewModel.Boards);
         Assert.DoesNotContain(_boardService.MethodCalls,
-            c => c.StartsWith("GetByDeviceTypeAsync"));
+            c => c.StartsWith("GetByDeviceIdAsync"));
     }
 }
 #endif

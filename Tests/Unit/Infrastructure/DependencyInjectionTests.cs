@@ -208,4 +208,17 @@ public class DependencyInjectionTests
         // Assert - Same scope should return same instance
         Assert.Same(repo1, repo2);
     }
+
+    [Fact]
+    public void AddInfrastructure_RegistersDeviceRepository()
+    {
+        var services = new ServiceCollection();
+        services.AddInfrastructure(TestConnectionString);
+        var provider = services.BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var repository = scope.ServiceProvider.GetService<IDeviceRepository>();
+
+        Assert.NotNull(repository);
+    }
 }

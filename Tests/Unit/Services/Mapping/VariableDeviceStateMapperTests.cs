@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Services.Mapping;
@@ -16,14 +15,14 @@ public class VariableDeviceStateMapperTests
     {
         var entity = new VariableDeviceStateEntity
         {
-            Id = 1, VariableId = 10, DeviceType = DeviceType.OptimusXp, IsEnabled = false
+            Id = 1, VariableId = 10, DeviceId = 10, IsEnabled = false
         };
 
         var domain = VariableDeviceStateMapper.ToDomain(entity);
 
         Assert.Equal(1, domain.Id);
         Assert.Equal(10, domain.VariableId);
-        Assert.Equal(DeviceType.OptimusXp, domain.DeviceType);
+        Assert.Equal(10, domain.DeviceId);
         Assert.False(domain.IsEnabled);
     }
 
@@ -36,13 +35,13 @@ public class VariableDeviceStateMapperTests
     [Fact]
     public void ToEntity_MapsAllProperties()
     {
-        var domain = VariableDeviceState.Restore(5, 20, DeviceType.Spark, true);
+        var domain = VariableDeviceState.Restore(5, 20, 7, true);
 
         var entity = VariableDeviceStateMapper.ToEntity(domain);
 
         Assert.Equal(5, entity.Id);
         Assert.Equal(20, entity.VariableId);
-        Assert.Equal(DeviceType.Spark, entity.DeviceType);
+        Assert.Equal(7, entity.DeviceId);
         Assert.True(entity.IsEnabled);
     }
 
@@ -57,21 +56,21 @@ public class VariableDeviceStateMapperTests
     {
         var entity = new VariableDeviceStateEntity
         {
-            Id = 1, VariableId = 10, DeviceType = DeviceType.OptimusXp, IsEnabled = true
+            Id = 1, VariableId = 10, DeviceId = 10, IsEnabled = true
         };
-        var domain = VariableDeviceState.Restore(1, 20, DeviceType.Spark, false);
+        var domain = VariableDeviceState.Restore(1, 20, 7, false);
 
         VariableDeviceStateMapper.UpdateEntity(entity, domain);
 
         Assert.Equal(20, entity.VariableId);
-        Assert.Equal(DeviceType.Spark, entity.DeviceType);
+        Assert.Equal(7, entity.DeviceId);
         Assert.False(entity.IsEnabled);
     }
 
     [Fact]
     public void UpdateEntity_NullEntity_ThrowsArgumentNullException()
     {
-        var domain = VariableDeviceState.Restore(1, 10, DeviceType.Spark, true);
+        var domain = VariableDeviceState.Restore(1, 10, 7, true);
         Assert.Throws<ArgumentNullException>(() => VariableDeviceStateMapper.UpdateEntity(null!, domain));
     }
 
@@ -87,15 +86,15 @@ public class VariableDeviceStateMapperTests
     {
         var entities = new[]
         {
-            new VariableDeviceStateEntity { Id = 1, VariableId = 10, DeviceType = DeviceType.SherpaSlim, IsEnabled = false },
-            new VariableDeviceStateEntity { Id = 2, VariableId = 10, DeviceType = DeviceType.EdenXp, IsEnabled = true }
+            new VariableDeviceStateEntity { Id = 1, VariableId = 10, DeviceId = 1, IsEnabled = false },
+            new VariableDeviceStateEntity { Id = 2, VariableId = 10, DeviceId = 3, IsEnabled = true }
         };
 
         var result = VariableDeviceStateMapper.ToDomainList(entities);
 
         Assert.Equal(2, result.Count);
-        Assert.Equal(DeviceType.SherpaSlim, result[0].DeviceType);
-        Assert.Equal(DeviceType.EdenXp, result[1].DeviceType);
+        Assert.Equal(1, result[0].DeviceId);
+        Assert.Equal(3, result[1].DeviceId);
     }
 
     [Fact]

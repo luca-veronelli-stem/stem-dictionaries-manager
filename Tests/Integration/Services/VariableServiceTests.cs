@@ -1,7 +1,7 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Core.Enums;
 using Services;
 
 namespace Tests.Integration.Services;
@@ -748,9 +748,9 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var variable = await CreateTestVariable();
 
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
+        await _service.SetDeviceStateAsync(variable.Id, 1, false);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim);
+        var state = await _service.GetDeviceStateAsync(variable.Id, 1);
         Assert.NotNull(state);
         Assert.False(state.IsEnabled);
     }
@@ -759,11 +759,11 @@ public class VariableServiceTests : IntegrationTestBase
     public async Task SetDeviceStateAsync_UpdatesExistingState()
     {
         var variable = await CreateTestVariable();
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
+        await _service.SetDeviceStateAsync(variable.Id, 1, false);
 
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, true);
+        await _service.SetDeviceStateAsync(variable.Id, 1, true);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim);
+        var state = await _service.GetDeviceStateAsync(variable.Id, 1);
         Assert.NotNull(state);
         Assert.True(state.IsEnabled);
     }
@@ -772,7 +772,7 @@ public class VariableServiceTests : IntegrationTestBase
     public async Task SetDeviceStateAsync_VariableNotFound_ThrowsKeyNotFoundException()
     {
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => _service.SetDeviceStateAsync(999, DeviceType.Spark, false));
+            () => _service.SetDeviceStateAsync(999, 7, false));
     }
 
     [Fact]
@@ -783,7 +783,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         // BR-011: tentativo di abilitare per un device → errore
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.SetDeviceStateAsync(variable.Id, DeviceType.OptimusXp, true));
+            () => _service.SetDeviceStateAsync(variable.Id, 10, true));
 
         Assert.Contains("deprecated globally", ex.Message);
     }
@@ -794,9 +794,9 @@ public class VariableServiceTests : IntegrationTestBase
         var variable = await CreateTestVariable(isEnabled: false);
 
         // Disabilitare per device su variabile deprecata è consentito (no-op logico ma valido)
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.OptimusXp, false);
+        await _service.SetDeviceStateAsync(variable.Id, 10, false);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.OptimusXp);
+        var state = await _service.GetDeviceStateAsync(variable.Id, 10);
         Assert.NotNull(state);
         Assert.False(state.IsEnabled);
     }
@@ -806,7 +806,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var variable = await CreateTestVariable();
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, DeviceType.Spark);
+        var state = await _service.GetDeviceStateAsync(variable.Id, 7);
 
         Assert.Null(state);
     }
@@ -815,8 +815,8 @@ public class VariableServiceTests : IntegrationTestBase
     public async Task GetDeviceStatesAsync_ReturnsAllOverrides()
     {
         var variable = await CreateTestVariable();
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.SherpaSlim, false);
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Gradino, false);
+        await _service.SetDeviceStateAsync(variable.Id, 1, false);
+        await _service.SetDeviceStateAsync(variable.Id, 4, false);
 
         var states = await _service.GetDeviceStatesAsync(variable.Id);
 
@@ -840,23 +840,23 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var var1 = await CreateTestVariable(addressLow: 0x60);
         var var2 = await CreateTestVariable(addressLow: 0x61);
-        await _service.SetDeviceStateAsync(var1.Id, DeviceType.Spark, false);
-        await _service.SetDeviceStateAsync(var2.Id, DeviceType.Spark, true);
+        await _service.SetDeviceStateAsync(var1.Id, 7, false);
+        await _service.SetDeviceStateAsync(var2.Id, 7, true);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+        var result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         Assert.Equal(2, result.Count);
-        Assert.All(result, s => Assert.Equal(DeviceType.Spark, s.DeviceType));
+        Assert.All(result, s => Assert.Equal(7, s.DeviceId));
     }
 
     [Fact]
     public async Task GetDeviceStatesForDeviceAsync_ExcludesOtherDevices()
     {
         var variable = await CreateTestVariable(addressLow: 0x62);
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Spark, false);
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.EdenXp, true);
+        await _service.SetDeviceStateAsync(variable.Id, 7, false);
+        await _service.SetDeviceStateAsync(variable.Id, 3, true);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+        var result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         Assert.Single(result);
         Assert.Equal(variable.Id, result[0].VariableId);
@@ -868,7 +868,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         await CreateTestVariable(addressLow: 0x63);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.R3lXp);
+        var result = await _service.GetDeviceStatesForDeviceAsync(11);
 
         Assert.Empty(result);
     }
@@ -877,13 +877,13 @@ public class VariableServiceTests : IntegrationTestBase
     public async Task GetDeviceStatesForDeviceAsync_MapsToDomainCorrectly()
     {
         var variable = await CreateTestVariable(addressLow: 0x64);
-        await _service.SetDeviceStateAsync(variable.Id, DeviceType.Gradino, false);
+        await _service.SetDeviceStateAsync(variable.Id, 4, false);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Gradino);
+        var result = await _service.GetDeviceStatesForDeviceAsync(4);
 
         var state = Assert.Single(result);
         Assert.Equal(variable.Id, state.VariableId);
-        Assert.Equal(DeviceType.Gradino, state.DeviceType);
+        Assert.Equal(4, state.DeviceId);
         Assert.False(state.IsEnabled);
     }
 

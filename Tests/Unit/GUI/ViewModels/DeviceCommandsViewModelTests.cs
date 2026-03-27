@@ -1,5 +1,4 @@
 #if WINDOWS
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
@@ -10,14 +9,16 @@ namespace Tests.Unit.GUI.ViewModels;
 public class DeviceCommandsViewModelTests
 {
     private readonly MockCommandService _commandService = new();
+    private readonly MockDeviceService _deviceService = new();
     private readonly MockNavigationService _navigationService = new();
     private readonly MockMessageService _messageService = new();
     private readonly DeviceCommandsViewModel _viewModel;
 
     public DeviceCommandsViewModelTests()
     {
+        _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceCommandsViewModel(
-            _commandService, _navigationService, _messageService);
+            _commandService, _deviceService, _navigationService, _messageService);
     }
 
     // === Defaults ===
@@ -25,7 +26,7 @@ public class DeviceCommandsViewModelTests
     [Fact]
     public void Constructor_DefaultValues()
     {
-        Assert.Null(_viewModel.DeviceType);
+        Assert.Null(_viewModel.DeviceId);
         Assert.Equal(string.Empty, _viewModel.DeviceName);
         Assert.Empty(_viewModel.Commands);
         Assert.False(_viewModel.IsLoading);
@@ -38,9 +39,9 @@ public class DeviceCommandsViewModelTests
     [Fact]
     public async Task LoadAsync_SetsDeviceTypeAndName()
     {
-        await _viewModel.LoadAsync(DeviceType.EdenXp);
+        await _viewModel.LoadAsync(3);
 
-        Assert.Equal(DeviceType.EdenXp, _viewModel.DeviceType);
+        Assert.Equal(3, _viewModel.DeviceId);
         Assert.Equal("Eden-XP", _viewModel.DeviceName);
     }
 
@@ -51,7 +52,7 @@ public class DeviceCommandsViewModelTests
             new Command("Read Variable", 0x00, 0x01, false),
             new Command("Write Variable", 0x00, 0x02, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.Equal(2, _viewModel.Commands.Count);
     }
@@ -62,7 +63,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.True(_viewModel.Commands[0].IsEnabled);
         Assert.True(_viewModel.Commands[0].OriginalIsEnabled);
@@ -75,9 +76,9 @@ public class DeviceCommandsViewModelTests
             new Command("Read Variable", 0x00, 0x01, false));
         var cmd = (await _commandService.GetAllAsync())[0];
         _commandService.SeedDeviceStates(
-            new CommandDeviceState(cmd.Id, DeviceType.Spark, false));
+            new CommandDeviceState(cmd.Id, 7, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.False(_viewModel.Commands[0].IsEnabled);
         Assert.False(_viewModel.Commands[0].OriginalIsEnabled);
@@ -90,9 +91,9 @@ public class DeviceCommandsViewModelTests
             new Command("Read Variable", 0x00, 0x01, false));
         var cmd = (await _commandService.GetAllAsync())[0];
         _commandService.SeedDeviceStates(
-            new CommandDeviceState(cmd.Id, DeviceType.EdenXp, false));
+            new CommandDeviceState(cmd.Id, 3, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         // Spark non ha override, default = true
         Assert.True(_viewModel.Commands[0].IsEnabled);
@@ -104,7 +105,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         var item = _viewModel.Commands[0];
         Assert.Equal("Read Variable", item.Name);
@@ -118,7 +119,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable Response", 0x80, 0x01, true));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.Equal("Risposta", _viewModel.Commands[0].TypeDisplay);
         Assert.Equal("0x8001", _viewModel.Commands[0].FullCode);
@@ -129,7 +130,7 @@ public class DeviceCommandsViewModelTests
     {
         _commandService.ExceptionToThrow = new InvalidOperationException("DB error");
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.NotNull(_viewModel.ErrorMessage);
         Assert.Contains("DB error", _viewModel.ErrorMessage);
@@ -139,7 +140,7 @@ public class DeviceCommandsViewModelTests
     [Fact]
     public async Task LoadAsync_IsLoadingFalseAfterCompletion()
     {
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         Assert.False(_viewModel.IsLoading);
     }
 
@@ -151,7 +152,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         Assert.False(_viewModel.HasChanges);
     }
@@ -162,7 +163,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Commands[0].IsEnabled = false;
 
         Assert.True(_viewModel.HasChanges);
@@ -174,7 +175,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
 
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Commands[0].IsEnabled = false;
         _viewModel.Commands[0].IsEnabled = true;
 
@@ -188,7 +189,7 @@ public class DeviceCommandsViewModelTests
     {
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -201,7 +202,7 @@ public class DeviceCommandsViewModelTests
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false),
             new Command("Write Variable", 0x00, 0x02, false));
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _commandService.MethodCalls.Clear();
 
         // Disabilita solo il primo
@@ -219,7 +220,7 @@ public class DeviceCommandsViewModelTests
     {
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Commands[0].IsEnabled = false;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -232,7 +233,7 @@ public class DeviceCommandsViewModelTests
     {
         _commandService.SeedData(
             new Command("Read Variable", 0x00, 0x01, false));
-        await _viewModel.LoadAsync(DeviceType.Spark);
+        await _viewModel.LoadAsync(7);
         _viewModel.Commands[0].IsEnabled = false;
         _commandService.ExceptionToThrow = new InvalidOperationException("Save failed");
 
@@ -258,15 +259,17 @@ public class DeviceCommandsViewModelTests
     {
         var dictionaryService = new MockDictionaryService();
         var boardService = new MockBoardService();
+        var deviceService = new MockDeviceService();
         var dialogService = new MockDialogService();
         var messageService = new MockMessageService();
         var navigationService = new MockNavigationService();
+        deviceService.SeedDefaultDevices();
 
         var vm = new DeviceDetailViewModel(
-            navigationService, dictionaryService, boardService,
+            navigationService, dictionaryService, boardService, deviceService,
             dialogService, messageService);
 
-        await vm.LoadAsync(DeviceType.Spark);
+        await vm.LoadAsync(7);
 
         // L'ultimo item deve essere "Comandi"
         var comandiEntry = vm.Dictionaries.Last();
@@ -277,9 +280,9 @@ public class DeviceCommandsViewModelTests
         vm.SelectedDictionary = comandiEntry;
         vm.OpenDictionaryCommand.Execute(null);
 
-        // Deve navigare a DeviceCommands con DeviceType
+        // Deve navigare a DeviceCommands con deviceId
         Assert.Equal(ViewType.DeviceCommands, navigationService.LastNavigatedView);
-        Assert.Equal(DeviceType.Spark, navigationService.LastParameter?.DeviceType);
+        Assert.Equal(7, navigationService.LastParameter?.DeviceId);
     }
 }
 #endif

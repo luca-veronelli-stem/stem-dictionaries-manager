@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Entities;
 
 namespace Tests.Integration.Infrastructure;

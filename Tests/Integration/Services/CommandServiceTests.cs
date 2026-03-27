@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Repositories;
 using Services;
@@ -183,10 +182,10 @@ public class CommandServiceTests : IntegrationTestBase
         var command = await _service.AddAsync(new Command("STATE_TEST", 0x50, 0x00, false));
 
         // Act
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.OptimusXp, true);
+        await _service.SetDeviceStateAsync(command.Id, 10, true);
 
         // Assert
-        var state = await _service.GetDeviceStateAsync(command.Id, DeviceType.OptimusXp);
+        var state = await _service.GetDeviceStateAsync(command.Id, 10);
         Assert.NotNull(state);
         Assert.True(state.IsEnabled);
     }
@@ -196,13 +195,13 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange
         var command = await _service.AddAsync(new Command("UPDATE_STATE", 0x51, 0x00, false));
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, true);
+        await _service.SetDeviceStateAsync(command.Id, 3, true);
 
         // Act
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, false);
+        await _service.SetDeviceStateAsync(command.Id, 3, false);
 
         // Assert
-        var state = await _service.GetDeviceStateAsync(command.Id, DeviceType.EdenXp);
+        var state = await _service.GetDeviceStateAsync(command.Id, 3);
         Assert.NotNull(state);
         Assert.False(state.IsEnabled);
     }
@@ -211,7 +210,7 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task SetDeviceStateAsync_NonExistingCommand_ThrowsKeyNotFoundException()
     {
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => _service.SetDeviceStateAsync(999, DeviceType.Spark, true));
+            () => _service.SetDeviceStateAsync(999, 7, true));
     }
 
     [Fact]
@@ -221,7 +220,7 @@ public class CommandServiceTests : IntegrationTestBase
         var command = await _service.AddAsync(new Command("NO_STATE", 0x52, 0x00, false));
 
         // Act
-        var result = await _service.GetDeviceStateAsync(command.Id, DeviceType.R3lXp);
+        var result = await _service.GetDeviceStateAsync(command.Id, 11);
 
         // Assert
         Assert.Null(result);
@@ -232,9 +231,9 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange
         var command = await _service.AddAsync(new Command("MULTI_STATE", 0x53, 0x00, false));
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.OptimusXp, true);
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.EdenXp, false);
-        await _service.SetDeviceStateAsync(command.Id, DeviceType.Spark, true);
+        await _service.SetDeviceStateAsync(command.Id, 10, true);
+        await _service.SetDeviceStateAsync(command.Id, 3, false);
+        await _service.SetDeviceStateAsync(command.Id, 7, true);
 
         // Act
         var result = await _service.GetWithDeviceStatesAsync(command.Id);
@@ -242,8 +241,8 @@ public class CommandServiceTests : IntegrationTestBase
         // Assert
         Assert.NotNull(result);
         // Stati sono caricati ma accessibili tramite GetDeviceStateAsync
-        var state1 = await _service.GetDeviceStateAsync(command.Id, DeviceType.OptimusXp);
-        var state2 = await _service.GetDeviceStateAsync(command.Id, DeviceType.EdenXp);
+        var state1 = await _service.GetDeviceStateAsync(command.Id, 10);
+        var state2 = await _service.GetDeviceStateAsync(command.Id, 3);
         Assert.True(state1!.IsEnabled);
         Assert.False(state2!.IsEnabled);
     }
@@ -269,15 +268,15 @@ public class CommandServiceTests : IntegrationTestBase
         // Arrange — 2 comandi, entrambi con stato per Spark
         var cmd1 = await _service.AddAsync(new Command("CMD_A", 0x60, 0x00, false));
         var cmd2 = await _service.AddAsync(new Command("CMD_B", 0x61, 0x00, false));
-        await _service.SetDeviceStateAsync(cmd1.Id, DeviceType.Spark, false);
-        await _service.SetDeviceStateAsync(cmd2.Id, DeviceType.Spark, true);
+        await _service.SetDeviceStateAsync(cmd1.Id, 7, false);
+        await _service.SetDeviceStateAsync(cmd2.Id, 7, true);
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+        var result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.All(result, s => Assert.Equal(DeviceType.Spark, s.DeviceType));
+        Assert.All(result, s => Assert.Equal(7, s.DeviceId));
     }
 
     [Fact]
@@ -285,11 +284,11 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange — stato per Spark e EdenXp
         var cmd = await _service.AddAsync(new Command("CMD_MULTI", 0x62, 0x00, false));
-        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.Spark, false);
-        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.EdenXp, true);
+        await _service.SetDeviceStateAsync(cmd.Id, 7, false);
+        await _service.SetDeviceStateAsync(cmd.Id, 3, true);
 
         // Act — solo Spark
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Spark);
+        var result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         // Assert
         Assert.Single(result);
@@ -304,7 +303,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("CMD_NOSTATES", 0x63, 0x00, false));
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.R3lXp);
+        var result = await _service.GetDeviceStatesForDeviceAsync(11);
 
         // Assert
         Assert.Empty(result);
@@ -315,15 +314,15 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange
         var cmd = await _service.AddAsync(new Command("CMD_MAP", 0x64, 0x00, false));
-        await _service.SetDeviceStateAsync(cmd.Id, DeviceType.Gradino, false);
+        await _service.SetDeviceStateAsync(cmd.Id, 4, false);
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(DeviceType.Gradino);
+        var result = await _service.GetDeviceStatesForDeviceAsync(4);
 
         // Assert — verifica mapping domain
         var state = Assert.Single(result);
         Assert.Equal(cmd.Id, state.CommandId);
-        Assert.Equal(DeviceType.Gradino, state.DeviceType);
+        Assert.Equal(4, state.DeviceId);
         Assert.False(state.IsEnabled);
     }
 }
