@@ -207,6 +207,17 @@ public partial class DeviceDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void EditDevice()
+    {
+        if (DeviceId is null) return;
+
+        _navigationService.NavigateTo(ViewType.DeviceEdit, new NavigationParameter
+        {
+            EntityId = DeviceId.Value
+        });
+    }
+
+    [RelayCommand]
     private void OpenDictionary()
     {
         if (SelectedDictionary is null) return;
