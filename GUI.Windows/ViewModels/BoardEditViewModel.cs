@@ -77,6 +77,14 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     public bool IsBoardNumberInvalid => _showValidation
         && (BoardNumber < 1 || BoardNumber > 63);
 
+    // === HasChanges tracking ===
+    partial void OnNameChanged(string value) => HasChanges = true;
+    partial void OnFirmwareTypeChanged(int value) => HasChanges = true;
+    partial void OnBoardNumberChanged(int value) => HasChanges = true;
+    partial void OnPartNumberChanged(string? value) => HasChanges = true;
+    partial void OnIsPrimaryChanged(bool value) => HasChanges = true;
+    partial void OnSelectedDictionaryChanged(DictionarySelectItem? value) => HasChanges = true;
+
     public BoardEditViewModel(
         IBoardService boardService,
         IDictionaryService dictionaryService,

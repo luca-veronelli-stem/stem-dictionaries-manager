@@ -215,10 +215,9 @@ public class MockBoardService : IBoardService
     {
         foreach (var b in boards)
         {
-            var restored = Board.Restore(
-                _nextId++, b.DeviceId, b.Name, b.FirmwareType,
-                b.BoardNumber, b.PartNumber, b.IsPrimary, b.DictionaryId);
-            _boards.Add(restored);
+            // Usa l'ID del board passato, non _nextId
+            _boards.Add(b);
+            if (b.Id >= _nextId) _nextId = b.Id + 1;
         }
     }
 
@@ -652,6 +651,15 @@ public class MockDeviceService : IDeviceService
 
     public Exception? ExceptionToThrow { get; set; }
     public List<string> MethodCalls { get; } = [];
+
+    public void SeedData(params Device[] devices)
+    {
+        foreach (var d in devices)
+        {
+            _devices.Add(d);
+            if (d.Id >= _nextId) _nextId = d.Id + 1;
+        }
+    }
 
     public void SeedDevices(params Device[] devices)
     {
