@@ -95,6 +95,25 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
+    public async Task EditDeviceCommand_NavigatesToDeviceEdit()
+    {
+        await _viewModel.LoadAsync(3);
+
+        _viewModel.EditDeviceCommand.Execute(null);
+
+        Assert.Equal(ViewType.DeviceEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(3, _navigationService.LastParameter?.EntityId);
+    }
+
+    [Fact]
+    public void EditDeviceCommand_WhenNoDeviceId_DoesNotNavigate()
+    {
+        _viewModel.EditDeviceCommand.Execute(null);
+
+        Assert.Empty(_navigationService.NavigationHistory);
+    }
+
+    [Fact]
     public void OpenDictionaryCommand_WithNull_DoesNotNavigate()
     {
         _viewModel.SelectedDictionary = null;

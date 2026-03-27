@@ -8,6 +8,8 @@ namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
 /// Test per DeviceEditViewModel.
+/// MachineCode è string per evitare "0" iniziale e FormatException su binding vuoto.
+/// CancelCommand sostituisce GoBackCommand (check HasChanges + dialog).
 /// </summary>
 public class DeviceEditViewModelTests
 {
@@ -30,7 +32,7 @@ public class DeviceEditViewModelTests
     public void Constructor_DefaultValues()
     {
         Assert.Equal(string.Empty, _viewModel.Name);
-        Assert.Equal(0, _viewModel.MachineCode);
+        Assert.Equal(string.Empty, _viewModel.MachineCode);
         Assert.Equal(string.Empty, _viewModel.Description);
         Assert.False(_viewModel.HasChanges);
         Assert.False(_viewModel.IsBusy);
@@ -58,7 +60,7 @@ public class DeviceEditViewModelTests
 
         Assert.False(_viewModel.IsNew);
         Assert.Equal("Eden-XP", _viewModel.Name);
-        Assert.Equal(3, _viewModel.MachineCode);
+        Assert.Equal("3", _viewModel.MachineCode);
         Assert.False(string.IsNullOrEmpty(_viewModel.Description));
         Assert.False(_viewModel.HasChanges);
     }
@@ -90,7 +92,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
 
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         Assert.True(_viewModel.HasChanges);
     }
@@ -111,7 +113,7 @@ public class DeviceEditViewModelTests
     public async Task SaveCommand_EmptyName_ShowsWarning()
     {
         await _viewModel.InitializeAsync(null);
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -121,10 +123,23 @@ public class DeviceEditViewModelTests
     }
 
     [Fact]
-    public async Task SaveCommand_ZeroMachineCode_ShowsWarning()
+    public async Task SaveCommand_EmptyMachineCode_ShowsWarning()
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New Device";
+
+        _viewModel.SaveCommand.Execute(null);
+        await Task.Delay(50);
+
+        Assert.True(_viewModel.IsMachineCodeInvalid);
+    }
+
+    [Fact]
+    public async Task SaveCommand_NonNumericMachineCode_ShowsWarning()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "New Device";
+        _viewModel.MachineCode = "abc";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -151,7 +166,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New Device";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -166,7 +181,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New Device";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
         _viewModel.Description = "Test desc";
 
         _viewModel.SaveCommand.Execute(null);
@@ -181,7 +196,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New Device";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
         _viewModel.Description = "   ";
 
         _viewModel.SaveCommand.Execute(null);
@@ -212,7 +227,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -225,7 +240,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -241,7 +256,7 @@ public class DeviceEditViewModelTests
         _deviceService.ExceptionToThrow = new InvalidOperationException("Duplicate");
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New";
-        _viewModel.MachineCode = 99;
+        _viewModel.MachineCode = "99";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -304,14 +319,47 @@ public class DeviceEditViewModelTests
         Assert.Equal(MessageSeverity.Error, _messageService.CurrentSeverity);
     }
 
-    // === GoBackCommand ===
+    // === CancelCommand ===
 
     [Fact]
-    public void GoBackCommand_CallsNavigationGoBack()
+    public async Task CancelCommand_NoChanges_GoesBackDirectly()
     {
-        _viewModel.GoBackCommand.Execute(null);
+        await _viewModel.InitializeAsync(null);
+
+        _viewModel.CancelCommand.Execute(null);
+        await Task.Delay(50);
 
         Assert.True(_navigationService.GoBackCalled);
+        Assert.DoesNotContain(_dialogService.Calls, c => c.Type == "Confirm");
+    }
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_ShowsConfirmDialog()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Modified";
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        _viewModel.CancelCommand.Execute(null);
+        await Task.Delay(50);
+
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Confirm" && c.Message.Contains("modifiche non salvate"));
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task CancelCommand_WithChanges_UserCancels_StaysOnPage()
+    {
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Modified";
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        _viewModel.CancelCommand.Execute(null);
+        await Task.Delay(50);
+
+        Assert.Contains(_dialogService.Calls, c => c.Type == "Confirm");
+        Assert.False(_navigationService.GoBackCalled);
     }
 
     // === IEditableViewModel ===
