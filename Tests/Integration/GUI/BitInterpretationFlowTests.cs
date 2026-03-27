@@ -69,23 +69,6 @@ public class BitInterpretationFlowTests
         Assert.Equal(1, _viewModel.WordGroups[1].WordIndex);
     }
 
-    [Fact(Skip = "RemoveWordCommand behavior TBD - verifica manualmente")]
-    public async Task RemoveWord_RemovesLastWordGroup()
-    {
-        // Arrange
-        await _viewModel.InitializeAsync(null, dictionaryId: 1);
-        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
-        _viewModel.AddWordCommand.Execute(null);
-        _viewModel.AddWordCommand.Execute(null); // Aggiungi una terza word
-        Assert.Equal(3, _viewModel.WordGroups.Count);
-
-        // Act
-        _viewModel.RemoveWordCommand.Execute(null);
-
-        // Assert
-        Assert.Equal(2, _viewModel.WordGroups.Count);
-    }
-
     [Fact]
     public async Task RemoveWord_CannotRemoveLastWord()
     {
