@@ -53,16 +53,30 @@
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="2*" MinWidth="200"
                                     IsReadOnly="True"/>
-                <DataGridTemplateColumn Header="Attivo" Width="80" MinWidth="60">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <CheckBox IsChecked="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}"
-                                      IsEnabled="{Binding IsGloballyDisabled, Converter={StaticResource InverseBoolConverter}}"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Style="{StaticResource DarkDataGridCheckBoxStyle}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <DataGridCheckBoxColumn Header="Attivo" 
+                                         Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="80" MinWidth="60">
+                    <DataGridCheckBoxColumn.ElementStyle>
+                        <Style TargetType="CheckBox" BasedOn="{StaticResource DarkDataGridCheckBoxStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGloballyDisabled}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridCheckBoxColumn.ElementStyle>
+                    <DataGridCheckBoxColumn.EditingElementStyle>
+                        <Style TargetType="CheckBox">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsGloballyDisabled}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridCheckBoxColumn.EditingElementStyle>
+                </DataGridCheckBoxColumn>
             </DataGrid.Columns>
         </DataGrid>
 
