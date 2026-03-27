@@ -30,7 +30,7 @@
                     Style="{StaticResource ToolbarButtonStyle}" Click="SecondaryButton_Click"
                     Visibility="Collapsed"/>
             <Button x:Name="PrimaryButton" Content="OK" MinWidth="80"
-                    Style="{StaticResource ToolbarButtonStyle}" Background="#007ACC" FontWeight="SemiBold"
+                    Style="{StaticResource ToolbarButtonStyle}" Background="#004682" FontWeight="SemiBold"
                     Click="PrimaryButton_Click" IsDefault="True"/>
         </StackPanel>
     </Grid>

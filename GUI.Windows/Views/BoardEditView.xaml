@@ -74,7 +74,7 @@
         </ScrollViewer>
 
         <!-- Errore -->
-        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,16" CornerRadius="4"
+        <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
@@ -85,7 +85,7 @@
                     Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
             <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
             <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
-                    Background="#007ACC" FontWeight="SemiBold"/>
+                    Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 
         <!-- Loading -->

@@ -25,7 +25,7 @@
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
         <!-- Error message -->
-        <Border Grid.Row="2" Background="#F44336" Padding="10" Margin="0,0,0,10" CornerRadius="4"
+        <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,10" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
