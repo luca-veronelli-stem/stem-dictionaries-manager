@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -22,8 +22,8 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Entities** | ✅ | 9 entity classes con IAuditable |
-| **Repositories** | ✅ | 9 repository + base generica |
+| **Entities** | ✅ | 10 entity classes con IAuditable |
+| **Repositories** | ✅ | 10 repository + base generica |
 | **Migrations** | ✅ | 1 migration (InitialCreate_DomainV2) |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
@@ -91,6 +91,7 @@ Infrastructure/
 │   ├── BitInterpretationEntity.cs     # Interpretazione bit bitmapped
 │   ├── CommandEntity.cs               # Comando protocollo (ParametersJson)
 │   ├── CommandDeviceStateEntity.cs    # Stato comando per device
+│   ├── DeviceEntity.cs                # Dispositivo STEM
 │   ├── VariableDeviceStateEntity.cs   # Override variabile per device (BR-009)
 │   └── AuditEntryEntity.cs            # Audit trail (no IAuditable)
 ├── Interfaces/
@@ -103,6 +104,7 @@ Infrastructure/
 │   ├── ICommandRepository.cs
 │   ├── IBitInterpretationRepository.cs
 │   ├── ICommandDeviceStateRepository.cs
+│   ├── IDeviceRepository.cs
 │   ├── IVariableDeviceStateRepository.cs
 │   └── IAuditEntryRepository.cs
 ├── Repositories/
@@ -114,11 +116,12 @@ Infrastructure/
 │   ├── CommandRepository.cs
 │   ├── BitInterpretationRepository.cs
 │   ├── CommandDeviceStateRepository.cs
+│   ├── DeviceRepository.cs
 │   ├── VariableDeviceStateRepository.cs
 │   └── AuditEntryRepository.cs
 ├── Migrations/
 │   └── InitialCreate_DomainV2             # Schema completo Domain v2
-├── AppDbContext.cs                    # DbContext con audit automatico (9 DbSet)
+├── AppDbContext.cs                    # DbContext con audit automatico (10 DbSet)
 ├── DatabaseSeeder.cs                  # Dati demo per sviluppo
 ├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI
 └── DependencyInjection.cs             # Extension method AddInfrastructure()
@@ -139,6 +142,7 @@ Infrastructure/
 | `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable |
 | `CommandEntity` | Commands | ✅ | ParametersJson, unique (CodeHigh, CodeLow, IsResponse) |
 | `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType, unique (CommandId, DeviceType) |
+| `DeviceEntity` | Devices | ✅ | Name, MachineCode, Description |
 | `VariableDeviceStateEntity` | VariableDeviceStates | ✅ | FK → Variable, DeviceType, unique (VariableId, DeviceType) |
 | `AuditEntryEntity` | AuditEntries | ❌ | Immutabile, FK → User |
 
@@ -154,6 +158,7 @@ Infrastructure/
 | `ICommandRepository` | GetByCodeAsync, GetWithDeviceStatesAsync |
 | `IBitInterpretationRepository` | GetByVariableIdAsync, SyncByVariableIdAsync |
 | `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
+| `IDeviceRepository` | GetByNameAsync, GetByMachineCodeAsync |
 | `IVariableDeviceStateRepository` | GetByVariableAndDeviceAsync, GetByVariableIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync |
 
@@ -202,7 +207,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 6 risolte (0 critiche, 0 alte, 0 medie, 2 basse)
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 6 risolte
 
 ---
 

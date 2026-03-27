@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -22,7 +22,7 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Services** | ✅ | 5 services con interface |
+| **Services** | ✅ | 6 services con interface |
 | **Mappers** | ✅ | 9 mapper bidirezionali |
 | **DI Extension** | ✅ | AddServices() per registrazione |
 | **Aggregate Pattern** | ✅ | Dictionary gestisce Variables |
@@ -87,6 +87,7 @@ Services/
 │   ├── IVariableService.cs        # Variabili singole + BitInterpretation + DeviceState
 │   ├── ICommandService.cs         # Comandi + DeviceState
 │   ├── IBoardService.cs           # Board (FirmwareType diretto, DictionaryId?)
+│   ├── IDeviceService.cs          # Dispositivi CRUD
 │   └── IUserService.cs            # Utenti
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
@@ -95,17 +96,18 @@ Services/
 │   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (IsStandard flag)
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
 │   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
+│   ├── DeviceMapper.cs                # Device Entity ↔ Domain
 │   ├── VariableDeviceStateMapper.cs   # VariableDeviceState Entity ↔ Domain
 │   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain
 ├── DictionaryService.cs           # Aggregate root (IsStandard uniqueness)
 ├── VariableService.cs             # Implementazione + DeviceState (BR-009/010/011)
 ├── CommandService.cs              # Implementazione
 ├── BoardService.cs                # Implementazione
+├── DeviceService.cs               # Implementazione CRUD dispositivi
 ├── UserService.cs                 # Implementazione
-├── Class1.cs                      # ⚠️ Placeholder non rimosso (SVC-010)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
-└── ISSUES.md                      # 4 issue aperte, 7 risolte
+└── ISSUES.md
 ```
 
 ---
@@ -120,6 +122,7 @@ Services/
 | `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, SetDeviceStateAsync, GetDeviceStateAsync, GetDeviceStatesAsync | - |
 | `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync | - |
 | `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync | - |
+| `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
 
 ### IDictionaryService (Aggregate Root)
@@ -280,6 +283,7 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 // - IVariableService → VariableService (Scoped)
 // - ICommandService → CommandService (Scoped)
 // - IBoardService → BoardService (Scoped)
+// - IDeviceService → DeviceService (Scoped)
 // - IUserService → UserService (Scoped)
 ```
 
@@ -290,20 +294,22 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Categoria | File | Metodi Test |
 |-----------|------|:-----------:|
 | Unit/Mapping | `UserMapperTests.cs` | 10 |
-| Unit/Mapping | `BoardMapperTests.cs` | 10 |
+| Unit/Mapping | `BoardMapperTests.cs` | 8 |
 | Unit/Mapping | `VariableMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandMapperTests.cs` | 13 |
-| Unit/Mapping | `DictionaryMapperTests.cs` | 14 |
+| Unit/Mapping | `DictionaryMapperTests.cs` | 12 |
+| Unit/Mapping | `DeviceMapperTests.cs` | 12 |
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
 | Unit/Mapping | `VariableDeviceStateMapperTests.cs` | 9 |
-| Unit/DI | `DependencyInjectionTests.cs` | 10 |
+| Unit/DI | `DependencyInjectionTests.cs` | 11 |
 | Integration | `UserServiceTests.cs` | 15 |
-| Integration | `DictionaryServiceTests.cs` | 21 |
-| Integration | `BoardServiceTests.cs` | 23 |
-| Integration | `CommandServiceTests.cs` | 18 |
-| Integration | `VariableServiceTests.cs` | 37 |
-| **Totale** | | **~211** |
+| Integration | `DictionaryServiceTests.cs` | 20 |
+| Integration | `BoardServiceTests.cs` | 18 |
+| Integration | `CommandServiceTests.cs` | 22 |
+| Integration | `DeviceServiceTests.cs` | 16 |
+| Integration | `VariableServiceTests.cs` | 41 |
+| **Totale** | | **~238** |
 
 ```bash
 # Eseguire test Services
@@ -314,14 +320,13 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 7 risolte (0 critiche, 0 alte, 1 media, 3 basse)
+→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 7 risolte
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
-| SVC-003 | Media | GetAllAsync senza paginazione |
 
 ---
 

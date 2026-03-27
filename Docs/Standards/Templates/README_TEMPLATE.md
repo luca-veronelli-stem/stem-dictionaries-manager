@@ -253,10 +253,10 @@ Stem.Dictionaries.Manager/
 
 | Progetto | Note |
 |----------|------|
-| **Core** | Modelli dominio (9), enums (6), nessuna dipendenza esterna |
-| **Infrastructure** | EF Core, AppDbContext, 9 Repositories, 3 Migrations, Seeder |
-| **Services** | 5 services, 8 mapper bidirezionali, 8 business rules, DI |
-| **GUI.Windows** | WPF + MVVM, 14 ViewModels, 13 Views, dark theme, navigation |
+| **Core** | Modelli dominio (10), enums (6), nessuna dipendenza esterna |
+| **Infrastructure** | EF Core, AppDbContext, 10 Repositories, 1 Migration, Seeder |
+| **Services** | 6 services, 9 mapper bidirezionali, 8 business rules, DI |
+| **GUI.Windows** | WPF + MVVM, 15 ViewModels, 15 Views, dark theme STEM, navigation |
 | **Tests** | xUnit, unit e integration, multi-target net10.0 + net10.0-windows |
 
 ---
