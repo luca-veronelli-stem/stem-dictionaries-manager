@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 
 namespace Tests.Unit.Models;
@@ -11,10 +10,10 @@ public class CommandDeviceStateTests
     [Fact]
     public void Constructor_ValidInput_CreatesState()
     {
-        var state = new CommandDeviceState(5, DeviceType.OptimusXp);
+        var state = new CommandDeviceState(5, 10);
 
         Assert.Equal(5, state.CommandId);
-        Assert.Equal(DeviceType.OptimusXp, state.DeviceType);
+        Assert.Equal(10, state.DeviceId);
         Assert.True(state.IsEnabled);
         Assert.Equal(0, state.Id);
     }
@@ -22,7 +21,7 @@ public class CommandDeviceStateTests
     [Fact]
     public void Constructor_DisabledState()
     {
-        var state = new CommandDeviceState(5, DeviceType.OptimusXp, isEnabled: false);
+        var state = new CommandDeviceState(5, 10, isEnabled: false);
 
         Assert.False(state.IsEnabled);
     }
@@ -30,7 +29,7 @@ public class CommandDeviceStateTests
     [Fact]
     public void Enable_SetsIsEnabledTrue()
     {
-        var state = new CommandDeviceState(5, DeviceType.OptimusXp, isEnabled: false);
+        var state = new CommandDeviceState(5, 10, isEnabled: false);
 
         state.Enable();
 
@@ -40,7 +39,7 @@ public class CommandDeviceStateTests
     [Fact]
     public void Disable_SetsIsEnabledFalse()
     {
-        var state = new CommandDeviceState(5, DeviceType.OptimusXp, isEnabled: true);
+        var state = new CommandDeviceState(5, 10, isEnabled: true);
 
         state.Disable();
 
@@ -50,11 +49,11 @@ public class CommandDeviceStateTests
     [Fact]
     public void Restore_SetsIdAndProperties()
     {
-        var state = CommandDeviceState.Restore(77, 5, DeviceType.EdenBs8, false);
+        var state = CommandDeviceState.Restore(77, 5, 12, false);
 
         Assert.Equal(77, state.Id);
         Assert.Equal(5, state.CommandId);
-        Assert.Equal(DeviceType.EdenBs8, state.DeviceType);
+        Assert.Equal(12, state.DeviceId);
         Assert.False(state.IsEnabled);
     }
 }

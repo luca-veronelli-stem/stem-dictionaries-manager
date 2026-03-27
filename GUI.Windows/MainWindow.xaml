@@ -20,6 +20,9 @@
         <DataTemplate DataType="{x:Type vm:DeviceDetailViewModel}">
             <views:DeviceDetailView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeviceEditViewModel}">
+            <views:DeviceEditView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:DeviceCommandsViewModel}">
             <views:DeviceCommandsView />
         </DataTemplate>

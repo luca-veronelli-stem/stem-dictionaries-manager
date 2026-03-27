@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Enums;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -9,18 +8,18 @@ namespace GUI.Windows.ViewModels;
 
 /// <summary>
 /// ViewModel per la gestione stato variabili standard per un device specifico.
-/// Mostra tutte le variabili del dizionario Standard con checkbox "Attivo" editabile.
-/// Variabili deprecate (IsEnabled=false) mostrate con checkbox greyed out (BR-009/011).
+/// SESSION_035: DeviceType enum → int DeviceId.
 /// </summary>
 public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IVariableService _variableService;
     private readonly IDictionaryService _dictionaryService;
+    private readonly IDeviceService _deviceService;
     private readonly INavigationService _navigationService;
     private readonly IMessageService _messageService;
 
     [ObservableProperty]
-    private DeviceType? _deviceType;
+    private int? _deviceId;
 
     [ObservableProperty]
     private string _deviceName = string.Empty;
@@ -39,9 +38,6 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
 
     public bool HasChanges => Variables.Any(v => v.HasChanged);
 
-    /// <summary>
-    /// Mostra warning se l'utente seleziona una variabile deprecata globalmente.
-    /// </summary>
     partial void OnSelectedVariableChanged(VariableDeviceItem? value)
     {
         if (value is { IsGloballyDisabled: true })
@@ -56,29 +52,27 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
     public DeviceVariablesViewModel(
         IVariableService variableService,
         IDictionaryService dictionaryService,
+        IDeviceService deviceService,
         INavigationService navigationService,
         IMessageService messageService)
     {
         _variableService = variableService;
         _dictionaryService = dictionaryService;
+        _deviceService = deviceService;
         _navigationService = navigationService;
         _messageService = messageService;
     }
 
-    /// <summary>
-    /// Carica tutte le variabili standard con il loro stato per il device specificato.
-    /// </summary>
-    public async Task LoadAsync(DeviceType deviceType)
+    public async Task LoadAsync(int deviceId, string? deviceName = null)
     {
-        DeviceType = deviceType;
-        DeviceName = DeviceDetailViewModel.GetDeviceDisplayName(deviceType);
+        DeviceId = deviceId;
+        DeviceName = deviceName ?? (await _deviceService.GetByIdAsync(deviceId))?.Name ?? $"Device #{deviceId}";
 
         IsLoading = true;
         ErrorMessage = null;
 
         try
         {
-            // Trova il dizionario Standard
             var standardDict = await _dictionaryService.GetStandardDictionaryAsync();
             if (standardDict is null)
             {
@@ -87,26 +81,20 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
                 return;
             }
 
-            // Carica variabili del dizionario Standard
             var allVariables = await _variableService
                 .GetByDictionaryIdAsync(standardDict.Id);
 
-            // Carica override per questo DeviceType
             var deviceStates = await _variableService
-                .GetDeviceStatesForDeviceAsync(deviceType);
+                .GetDeviceStatesForDeviceAsync(deviceId);
             var stateMap = deviceStates.ToDictionary(
                 s => s.VariableId, s => s.IsEnabled);
 
-            // Mappa: per ogni variabile, calcola stato effettivo (BR-009)
             var items = allVariables
                 .OrderBy(v => v.AddressLow)
                 .Select(v =>
                 {
                     var isGloballyDisabled = !v.IsEnabled;
 
-                    // BR-009: se globalmente disabilitata → false
-                    // Se override presente → usa override
-                    // Altrimenti → true (default attiva)
                     bool effectiveEnabled;
                     if (isGloballyDisabled)
                     {
@@ -164,12 +152,11 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
             foreach (var item in changedItems)
             {
                 await _variableService.SetDeviceStateAsync(
-                    item.VariableId, DeviceType!.Value, item.IsEnabled);
+                    item.VariableId, DeviceId!.Value, item.IsEnabled);
             }
 
-            // Ricarica dopo il salvataggio
-            if (DeviceType is not null)
-                await LoadAsync(DeviceType.Value);
+            if (DeviceId is not null)
+                await LoadAsync(DeviceId.Value, DeviceName);
 
             _messageService.Show(
                 $"Salvati {changedItems.Count} stati variabile.",

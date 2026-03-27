@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 
@@ -16,12 +15,17 @@ public class BoardRepositoryTests : IntegrationTestBase
         _repository = new BoardRepository(Context);
     }
 
+    public override async Task InitializeAsync()
+    {
+        await SeedTestDevicesAsync();
+    }
+
     [Fact]
     public async Task AddAsync_CreatesBoard()
     {
         var board = new BoardEntity
         {
-            DeviceType = DeviceType.OptimusXp,
+            DeviceId = 10,
             Name = "Madre",
             FirmwareType = 17,
             BoardNumber = 1,
@@ -41,7 +45,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         var board = new BoardEntity
         {
-            DeviceType = DeviceType.EdenXp,
+            DeviceId = 3,
             Name = "TestBoard",
             FirmwareType = 18,
             BoardNumber = 1,
@@ -64,34 +68,34 @@ public class BoardRepositoryTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_ReturnsMatchingBoards()
+    public async Task GetByDeviceIdAsync_ReturnsMatchingBoards()
     {
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.OptimusXp, Name = "Board1",
+            DeviceId = 10, Name = "Board1",
             FirmwareType = 17, BoardNumber = 1, ProtocolAddress = 0x000A0441
         });
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.OptimusXp, Name = "Board2",
+            DeviceId = 10, Name = "Board2",
             FirmwareType = 4, BoardNumber = 2, ProtocolAddress = 0x000A0102
         });
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.EdenXp, Name = "EdenBoard",
+            DeviceId = 3, Name = "EdenBoard",
             FirmwareType = 18, BoardNumber = 1, ProtocolAddress = 0x00030481
         });
 
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.OptimusXp);
+        var result = await _repository.GetByDeviceIdAsync(10);
 
         Assert.Equal(2, result.Count);
-        Assert.All(result, b => Assert.Equal(DeviceType.OptimusXp, b.DeviceType));
+        Assert.All(result, b => Assert.Equal(10, b.DeviceId));
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_NoMatch_ReturnsEmptyList()
+    public async Task GetByDeviceIdAsync_NoMatch_ReturnsEmptyList()
     {
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Spyke);
+        var result = await _repository.GetByDeviceIdAsync(5);
         Assert.Empty(result);
     }
 
@@ -100,7 +104,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.Spark, Name = "SparkBoard",
+            DeviceId = 7, Name = "SparkBoard",
             FirmwareType = 20, BoardNumber = 1, ProtocolAddress = 0x00070501
         });
 
@@ -126,12 +130,12 @@ public class BoardRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceType = DeviceType.R3lXp, Name = "R3lBoard",
+            DeviceId = 11, Name = "R3lBoard",
             FirmwareType = 11, BoardNumber = 1, ProtocolAddress = 0x000B02C1,
             DictionaryId = dict.Id
         });
 
-        var boards = await _repository.GetByDeviceTypeAsync(DeviceType.R3lXp);
+        var boards = await _repository.GetByDeviceIdAsync(11);
 
         Assert.Single(boards);
         Assert.NotNull(boards[0].Dictionary);
@@ -143,7 +147,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         var board = new BoardEntity
         {
-            DeviceType = DeviceType.Spark, Name = "ToDelete",
+            DeviceId = 7, Name = "ToDelete",
             FirmwareType = 20, BoardNumber = 1, ProtocolAddress = 0x00060501
         };
         await _repository.AddAsync(board);

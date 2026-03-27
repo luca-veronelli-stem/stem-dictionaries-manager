@@ -2,13 +2,14 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Core.Enums;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
 /// Test per DictionaryEditViewModel (Domain v2).
-/// IsStandard flag, nessun DeviceType/BoardType.
+/// IsStandard flag, nessun deviceId/BoardType.
 /// </summary>
 public class DictionaryEditViewModelTests
 {

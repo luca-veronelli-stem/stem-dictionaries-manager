@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
@@ -41,13 +40,19 @@ public class CommandService : ICommandService
     {
         ArgumentNullException.ThrowIfNull(command);
 
+        // Verifica unicità nome
+        var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+        if (existingByName is not null)
+            throw new InvalidOperationException(
+                $"Command with name '{command.Name}' already exists.");
+
         // Verifica unicità codice
         var existing = await _repository.GetByCodeAsync(
             command.CodeHigh, command.CodeLow, command.IsResponse, ct);
         if (existing is not null)
             throw new InvalidOperationException(
                 $"Command with code 0x{command.CodeHigh:X2}{command.CodeLow:X2} " +
-                $"(IsResponse={command.IsResponse}) already exists.");
+                $"(IsResponse={command.IsResponse}) already exists ('{existing.Name}').");
 
         var entity = CommandMapper.ToEntity(command);
         var created = await _repository.AddAsync(entity, ct);
@@ -59,7 +64,16 @@ public class CommandService : ICommandService
         ArgumentNullException.ThrowIfNull(command);
 
         var entity = await _repository.GetByIdAsync(command.Id, ct)
-            ?? throw new KeyNotFoundException($"Command with Id {command.Id} not found.");
+            ?? throw new KeyNotFoundException($"Command '{command.Name}' (Id={command.Id}) not found.");
+
+        // Verifica unicità nome (se cambiato)
+        if (!entity.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+            if (existingByName is not null)
+                throw new InvalidOperationException(
+                    $"Command with name '{command.Name}' already exists.");
+        }
 
         CommandMapper.UpdateEntity(entity, command);
         await _repository.UpdateAsync(entity, ct);
@@ -93,15 +107,16 @@ public class CommandService : ICommandService
         return command;
     }
 
-    public async Task SetDeviceStateAsync(int commandId, DeviceType deviceType, bool isEnabled,
+    public async Task SetDeviceStateAsync(int commandId, int deviceId, bool isEnabled,
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
-        _ = await _repository.GetByIdAsync(commandId, ct)
-            ?? throw new KeyNotFoundException($"Command with Id {commandId} not found.");
+        var cmd = await _repository.GetByIdAsync(commandId, ct)
+            ?? throw new KeyNotFoundException(
+                $"Command (Id={commandId}) not found.");
 
         // Cerca stato esistente
-        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         if (existingState is not null)
         {
@@ -113,25 +128,25 @@ public class CommandService : ICommandService
             var newState = new CommandDeviceStateEntity
             {
                 CommandId = commandId,
-                DeviceType = deviceType,
+                DeviceId = deviceId,
                 IsEnabled = isEnabled
             };
             await _deviceStateRepository.AddAsync(newState, ct);
         }
     }
 
-    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, DeviceType deviceType,
+    public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, int deviceId,
         CancellationToken ct = default)
     {
-        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceType, ct);
+        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         return entity is null ? null : CommandDeviceStateMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
-        DeviceType deviceType, CancellationToken ct = default)
+        int deviceId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
         return entities.Select(CommandDeviceStateMapper.ToDomain).ToList();
     }
 }

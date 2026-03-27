@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
@@ -45,19 +44,20 @@ public record BoardListItem
 }
 
 /// <summary>
-/// ViewModel per il dettaglio di un tipo dispositivo.
-/// Mostra dizionari (derivati) e schede del device (F5.2).
+/// ViewModel per il dettaglio di un dispositivo.
+/// SESSION_035: DeviceType enum → int DeviceId. Nome dal DB.
 /// </summary>
 public partial class DeviceDetailViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
     private readonly IDictionaryService _dictionaryService;
     private readonly IBoardService _boardService;
+    private readonly IDeviceService _deviceService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
     [ObservableProperty]
-    private DeviceType? _deviceType;
+    private int? _deviceId;
 
     [ObservableProperty]
     private string _deviceName = string.Empty;
@@ -84,24 +84,28 @@ public partial class DeviceDetailViewModel : ObservableObject
         INavigationService navigationService,
         IDictionaryService dictionaryService,
         IBoardService boardService,
+        IDeviceService deviceService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _navigationService = navigationService;
         _dictionaryService = dictionaryService;
         _boardService = boardService;
+        _deviceService = deviceService;
         _dialogService = dialogService;
         _messageService = messageService;
     }
 
     /// <summary>
     /// Carica dizionari e schede per il device specificato.
-    /// Chiamato da MainViewModel.InitializeViewModelAsync.
     /// </summary>
-    public async Task LoadAsync(DeviceType deviceType)
+    public async Task LoadAsync(int deviceId)
     {
-        DeviceType = deviceType;
-        DeviceName = GetDeviceDisplayName(deviceType);
+        DeviceId = deviceId;
+
+        var device = await _deviceService.GetByIdAsync(deviceId);
+        DeviceName = device?.Name ?? $"Device #{deviceId}";
+
         await LoadDataAsync();
     }
 
@@ -110,39 +114,23 @@ public partial class DeviceDetailViewModel : ObservableObject
     /// </summary>
     public async Task ReloadBoardsAsync()
     {
-        if (DeviceType is null) return;
-        await LoadBoardsAsync(DeviceType.Value);
+        if (DeviceId is null) return;
+        await LoadBoardsAsync(DeviceId.Value);
     }
-
-    internal static string GetDeviceDisplayName(DeviceType deviceType) => deviceType switch
-    {
-        Core.Enums.DeviceType.SherpaSlim => "Sherpa Slim",
-        Core.Enums.DeviceType.TopLiftM => "TopLift-M",
-        Core.Enums.DeviceType.EdenXp => "Eden-XP",
-        Core.Enums.DeviceType.Gradino => "Gradino",
-        Core.Enums.DeviceType.Spyke => "Spyke",
-        Core.Enums.DeviceType.Spark => "Spark",
-        Core.Enums.DeviceType.TopLiftA2 => "TopLift-A2",
-        Core.Enums.DeviceType.O3zTech => "O3Z-Tech",
-        Core.Enums.DeviceType.OptimusXp => "Optimus-XP",
-        Core.Enums.DeviceType.R3lXp => "R3L-XP",
-        Core.Enums.DeviceType.EdenBs8 => "Eden-BS8",
-        _ => deviceType.ToString()
-    };
 
     private async Task LoadDataAsync()
     {
-        if (DeviceType is null) return;
+        if (DeviceId is null) return;
 
         IsLoading = true;
         ErrorMessage = null;
 
         try
         {
-            var dt = DeviceType.Value;
+            var id = DeviceId.Value;
 
             // Carica board di questo device
-            var boards = await _boardService.GetByDeviceTypeAsync(dt);
+            var boards = await _boardService.GetByDeviceIdAsync(id);
 
             // Popola sezione schede
             Boards = new ObservableCollection<BoardListItem>(
@@ -193,11 +181,11 @@ public partial class DeviceDetailViewModel : ObservableObject
         }
     }
 
-    private async Task LoadBoardsAsync(DeviceType dt)
+    private async Task LoadBoardsAsync(int deviceId)
     {
         try
         {
-            var boards = await _boardService.GetByDeviceTypeAsync(dt);
+            var boards = await _boardService.GetByDeviceIdAsync(deviceId);
             Boards = new ObservableCollection<BoardListItem>(
                 boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
                 {
@@ -219,6 +207,17 @@ public partial class DeviceDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void EditDevice()
+    {
+        if (DeviceId is null) return;
+
+        _navigationService.NavigateTo(ViewType.DeviceEdit, new NavigationParameter
+        {
+            EntityId = DeviceId.Value
+        });
+    }
+
+    [RelayCommand]
     private void OpenDictionary()
     {
         if (SelectedDictionary is null) return;
@@ -227,7 +226,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         {
             _navigationService.NavigateTo(ViewType.DeviceCommands, new NavigationParameter
             {
-                DeviceType = DeviceType!.Value
+                DeviceId = DeviceId!.Value
             });
             return;
         }
@@ -236,7 +235,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         {
             _navigationService.NavigateTo(ViewType.DeviceVariables, new NavigationParameter
             {
-                DeviceType = DeviceType!.Value
+                DeviceId = DeviceId!.Value
             });
             return;
         }
@@ -250,12 +249,12 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void AddBoard()
     {
-        if (DeviceType is null) return;
+        if (DeviceId is null) return;
 
         _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
         {
             EntityId = null,
-            DeviceType = DeviceType.Value
+            DeviceId = DeviceId.Value
         });
     }
 
@@ -267,7 +266,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
         {
             EntityId = item.Id,
-            DeviceType = DeviceType
+            DeviceId = DeviceId
         });
     }
 

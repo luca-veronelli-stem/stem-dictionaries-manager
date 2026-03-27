@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 
 namespace Infrastructure.Interfaces;
@@ -6,9 +5,9 @@ namespace Infrastructure.Interfaces;
 public interface IVariableDeviceStateRepository : IRepository<VariableDeviceStateEntity>
 {
     /// <summary>
-    /// Ottiene lo stato di una variabile per un tipo di device specifico.
+    /// Ottiene lo stato di una variabile per un device specifico.
     /// </summary>
-    Task<VariableDeviceStateEntity?> GetByVariableAndDeviceAsync(int variableId, DeviceType deviceType,
+    Task<VariableDeviceStateEntity?> GetByVariableAndDeviceAsync(int variableId, int deviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -18,8 +17,8 @@ public interface IVariableDeviceStateRepository : IRepository<VariableDeviceStat
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti gli stati per un tipo di device.
+    /// Ottiene tutti gli stati per un device.
     /// </summary>
-    Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+    Task<IReadOnlyList<VariableDeviceStateEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default);
 }

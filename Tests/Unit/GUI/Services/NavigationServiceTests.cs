@@ -183,7 +183,7 @@ public class NavigationServiceTests
         // Arrange
         var param = new NavigationParameter
         {
-            DeviceType = Core.Enums.DeviceType.OptimusXp
+            DeviceId = 10
         };
 
         // Act
@@ -191,7 +191,7 @@ public class NavigationServiceTests
 
         // Assert
         Assert.Equal(ViewType.DeviceDetail, _service.CurrentView);
-        Assert.Equal(Core.Enums.DeviceType.OptimusXp, _service.CurrentParameter?.DeviceType);
+        Assert.Equal(10, _service.CurrentParameter?.DeviceId);
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class NavigationServiceTests
         _service.NavigateTo(ViewType.DeviceList);
         _service.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
         {
-            DeviceType = Core.Enums.DeviceType.SherpaSlim
+            DeviceId = 1
         });
 
         // Act

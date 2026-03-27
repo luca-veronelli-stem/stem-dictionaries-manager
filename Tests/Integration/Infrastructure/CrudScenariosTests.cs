@@ -1,6 +1,6 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Tests.Integration.Infrastructure;
@@ -232,13 +232,13 @@ public class CrudScenariosTests : IntegrationTestBase
         };
         var state1 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.OptimusXp,
+            DeviceId = 10,
             IsEnabled = true,
             Command = command
         };
         var state2 = new CommandDeviceStateEntity
         {
-            DeviceType = DeviceType.EdenXp,
+            DeviceId = 3,
             IsEnabled = false,
             Command = command
         };

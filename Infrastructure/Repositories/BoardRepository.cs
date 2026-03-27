@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +15,7 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
     {
         return await DbSet
             .Include(b => b.Dictionary)
+            .Include(b => b.Device)
             .ToListAsync(cancellationToken);
     }
 
@@ -24,15 +24,17 @@ public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
     {
         return await DbSet
             .Include(b => b.Dictionary)
+            .Include(b => b.Device)
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<BoardEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+    public async Task<IReadOnlyList<BoardEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Include(b => b.Dictionary)
-            .Where(b => b.DeviceType == deviceType)
+            .Include(b => b.Device)
+            .Where(b => b.DeviceId == deviceId)
             .ToListAsync(cancellationToken);
     }
 

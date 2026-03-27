@@ -1,13 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1461%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-1563%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-26
-
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -36,16 +35,16 @@
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 models + 6 enums (Variable, Dictionary, Board, VariableDeviceState, etc.) |
+| **Modelli dominio** | ✅ | 10 models + 6 enums (Variable, Dictionary, Board, Device, VariableDeviceState, etc.) |
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), 1 migration Domain v2 |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
-| **Repository Pattern** | ✅ | 9 repository con interfacce |
-| **Services Layer** | ✅ | 5 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 14 Views attive, dark theme STEM, custom dialogs, status bar |
+| **Repository Pattern** | ✅ | 10 repository con interfacce |
+| **Services Layer** | ✅ | 6 services + 9 mappers + business rules |
+| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 15 Views, dark theme STEM, custom dialogs, status bar |
 | **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
 | **Variabili standard per device** | ✅ | Stato attivo/disattivo variabili standard per DeviceType (BR-009/011) |
-| **Test Suite** | ✅ | ~915 metodi test / 1461 test cases (unit + integration, 2 target framework) |
+| **Test Suite** | ✅ | ~995 metodi test / 1563 test cases (unit + integration, 2 target framework) |
 
 ---
 
@@ -81,23 +80,23 @@ dotnet ef database update -p Infrastructure -s GUI.Windows
 
 ```
 Stem.Dictionaries.Manager/
-├── Core/                  # Modelli dominio, enums (10 classi, 6 enum)
+├── Core/                  # Modelli dominio, enums (10 models, 6 enum)
 │   ├── Enums/             # DeviceType, AccessMode, DataTypeKind, etc.
 │   └── Models/            # Variable, Dictionary, Board, VariableDeviceState, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
-│   ├── Interfaces/        # Service interfaces (5)
+│   ├── Interfaces/        # Service interfaces (6)
 │   └── Mapping/           # Mapper bidirezionali (9)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
-│   ├── Entities/          # Entity classes (9)
-│   ├── Repositories/      # Repository implementations (9)
+│   ├── Entities/          # Entity classes (10)
+│   ├── Repositories/      # Repository implementations (10)
 │   └── Migrations/        # 1 migration Domain v2
-├── GUI.Windows/           # Applicazione WPF (MVVM, 15 ViewModels, 14 Views attive)
+├── GUI.Windows/           # Applicazione WPF (MVVM, 15 ViewModels, 15 Views)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
 │   ├── ViewModels/        # 15 ViewModels + helper classes
-│   ├── Views/             # 15 Views XAML (incl. LoginView, DarkDialog, DeviceCommandsView, DeviceVariablesView)
+│   ├── Views/             # 15 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView, DeviceVariablesView)
 │   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~915 metodi / 1461 cases)
+├── Tests/                 # Unit & integration tests (~995 metodi / 1563 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -105,7 +104,7 @@ Stem.Dictionaries.Manager/
 │   ├── Standards/         # Template documentazione
 │   └── ER-schema.puml     # Schema database
 ├── .copilot/              # Copilot instructions e agents
-└── ISSUES_TRACKER.md      # Riepilogo globale issue (13 aperte, 33 risolte)
+└── ISSUES_TRACKER.md      # Riepilogo globale issue
 ```
 
 ---
@@ -127,7 +126,7 @@ Stem.Dictionaries.Manager/
 
 ## Issue Tracking
 
-→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale: **13 aperte**, 33 risolte
+→ **[ISSUES_TRACKER.md](./ISSUES_TRACKER.md)** — Riepilogo globale issue
 
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
@@ -186,7 +185,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│      MVVM, 15 ViewModels, 14 Views, Dark Theme STEM, Status Bar │
+│      MVVM, 15 ViewModels, 15 Views, Dark Theme STEM, Status Bar │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -198,7 +197,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      Infrastructure                         │
-│         EF Core, 9 Repositories, 1 Migration                │
+│         EF Core, 10 Repositories, 1 Migration               │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼

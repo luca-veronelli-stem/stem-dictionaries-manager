@@ -19,6 +19,7 @@ public static class DependencyInjection
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IBoardRepository, BoardRepository>();
         services.AddScoped<IDictionaryRepository, DictionaryRepository>();
         services.AddScoped<IVariableRepository, VariableRepository>();

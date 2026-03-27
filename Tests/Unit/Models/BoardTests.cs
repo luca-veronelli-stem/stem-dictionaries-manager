@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 
 namespace Tests.Unit.Models;
@@ -12,9 +11,9 @@ public class BoardTests
     [Fact]
     public void Constructor_ValidInput_CreatesBoard()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, "DIS0020477");
+        var board = new Board(10, "Madre", 17, 1, "DIS0020477");
 
-        Assert.Equal(DeviceType.OptimusXp, board.DeviceType);
+        Assert.Equal(10, board.DeviceId);
         Assert.Equal("Madre", board.Name);
         Assert.Equal(17, board.FirmwareType);
         Assert.Equal(1, board.BoardNumber);
@@ -26,21 +25,21 @@ public class BoardTests
     [Fact]
     public void Constructor_NullPartNumber_IsValid()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
+        var board = new Board(10, "Madre", 17, 1);
         Assert.Null(board.PartNumber);
     }
 
     [Fact]
     public void Constructor_WithDictionaryId_SetsProperty()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, dictionaryId: 42);
+        var board = new Board(10, "Madre", 17, 1, dictionaryId: 42);
         Assert.Equal(42, board.DictionaryId);
     }
 
     [Fact]
     public void Constructor_NullDictionaryId_IsValid()
     {
-        var board = new Board(DeviceType.Spark, "Motore DX", 21, 2);
+        var board = new Board(7, "Motore DX", 21, 2);
         Assert.Null(board.DictionaryId);
     }
 
@@ -50,21 +49,21 @@ public class BoardTests
     public void Constructor_InvalidName_ThrowsArgumentException(string name)
     {
         Assert.Throws<ArgumentException>(() =>
-            new Board(DeviceType.OptimusXp, name, 17, 1));
+            new Board(10, name, 17, 1));
     }
 
     [Fact]
     public void Constructor_NullName_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new Board(DeviceType.OptimusXp, null!, 17, 1));
+            new Board(10, null!, 17, 1));
     }
 
     [Fact]
     public void Constructor_NegativeFirmwareType_ThrowsArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Board(DeviceType.OptimusXp, "Madre", -1, 1));
+            new Board(10, "Madre", -1, 1));
     }
 
     [Theory]
@@ -75,7 +74,7 @@ public class BoardTests
     public void Constructor_InvalidBoardNumber_ThrowsArgumentOutOfRangeException(int boardNumber)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Board(DeviceType.OptimusXp, "Madre", 17, boardNumber));
+            new Board(10, "Madre", 17, boardNumber));
     }
 
     [Theory]
@@ -83,7 +82,7 @@ public class BoardTests
     [InlineData(63)]
     public void Constructor_ValidBoardNumber_IsAccepted(int boardNumber)
     {
-        var board = new Board(DeviceType.OptimusXp, "Test", 17, boardNumber);
+        var board = new Board(10, "Test", 17, boardNumber);
         Assert.Equal(boardNumber, board.BoardNumber);
     }
 
@@ -104,17 +103,17 @@ public class BoardTests
     [Fact]
     public void ProtocolAddress_ReturnsCalculatedValue()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
+        var board = new Board(10, "Madre", 17, 1, machineCode: 10);
         Assert.Equal(0x000A0441u, board.ProtocolAddress);
     }
 
     [Fact]
     public void Restore_SetsIdAndProperties()
     {
-        var board = Board.Restore(99, DeviceType.EdenBs8, "Madre", 19, 1, "DIS123", false, 5);
+        var board = Board.Restore(99, 12, "Madre", 19, 1, "DIS123", false, 5);
 
         Assert.Equal(99, board.Id);
-        Assert.Equal(DeviceType.EdenBs8, board.DeviceType);
+        Assert.Equal(12, board.DeviceId);
         Assert.Equal(19, board.FirmwareType);
         Assert.Equal("DIS123", board.PartNumber);
         Assert.Equal(5, board.DictionaryId);
@@ -123,7 +122,7 @@ public class BoardTests
     [Fact]
     public void Restore_WithDictionaryName_SetsProperty()
     {
-        var board = Board.Restore(1, DeviceType.OptimusXp, "Madre", 17, 1, null, false, 5, "Standard");
+        var board = Board.Restore(1, 10, "Madre", 17, 1, null, false, 5, "Standard");
 
         Assert.Equal("Standard", board.DictionaryName);
         Assert.Equal(5, board.DictionaryId);
@@ -132,7 +131,7 @@ public class BoardTests
     [Fact]
     public void Restore_WithoutDictionaryName_DefaultsToNull()
     {
-        var board = Board.Restore(1, DeviceType.OptimusXp, "Madre", 17, 1, null, false, null);
+        var board = Board.Restore(1, 10, "Madre", 17, 1, null, false, null);
 
         Assert.Null(board.DictionaryName);
     }
@@ -140,7 +139,7 @@ public class BoardTests
     [Fact]
     public void Constructor_DictionaryName_IsNull()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1);
+        var board = new Board(10, "Madre", 17, 1);
 
         Assert.Null(board.DictionaryName);
     }
@@ -148,21 +147,21 @@ public class BoardTests
     [Fact]
     public void Constructor_DefaultIsPrimary_IsFalse()
     {
-        var board = new Board(DeviceType.OptimusXp, "Periferica", 4, 2);
+        var board = new Board(10, "Periferica", 4, 2);
         Assert.False(board.IsPrimary);
     }
 
     [Fact]
     public void Constructor_IsPrimaryTrue_SetsProperty()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, isPrimary: true);
+        var board = new Board(10, "Madre", 17, 1, isPrimary: true);
         Assert.True(board.IsPrimary);
     }
 
     [Fact]
     public void Restore_IsPrimaryTrue_SetsProperty()
     {
-        var board = Board.Restore(1, DeviceType.Spyke, "HMI", 20, 1, null, true, null);
+        var board = Board.Restore(1, 5, "HMI", 20, 1, null, true, null);
         Assert.True(board.IsPrimary);
     }
 }

@@ -1,5 +1,4 @@
 #if WINDOWS
-using Core.Enums;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Tests.Unit.GUI.Mocks;
@@ -8,155 +7,153 @@ namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
 /// Test per DeviceListViewModel.
+/// SESSION_035: carica da DB tramite IDeviceService.
 /// </summary>
 public class DeviceListViewModelTests
 {
     private readonly MockNavigationService _navigationService;
+    private readonly MockDeviceService _deviceService;
+    private readonly MockDialogService _dialogService;
+    private readonly MockMessageService _messageService;
     private readonly DeviceListViewModel _viewModel;
 
     public DeviceListViewModelTests()
     {
         _navigationService = new MockNavigationService();
-        _viewModel = new DeviceListViewModel(_navigationService);
+        _deviceService = new MockDeviceService();
+        _dialogService = new MockDialogService();
+        _messageService = new MockMessageService();
+        _deviceService.SeedDefaultDevices();
+        _viewModel = new DeviceListViewModel(
+            _navigationService, _deviceService, _dialogService, _messageService);
     }
 
     [Fact]
-    public void Constructor_LoadsAllDevices()
+    public async Task LoadAsync_LoadsAllDevices()
     {
-        // Assert - tutti gli 11 DeviceType caricati
-        var deviceTypeCount = Enum.GetValues<DeviceType>().Length;
-        Assert.Equal(deviceTypeCount, _viewModel.Devices.Count);
+        await _viewModel.LoadAsync();
+
+        Assert.Equal(11, _viewModel.Devices.Count);
     }
 
     [Fact]
-    public void Devices_ContainsAllDeviceTypes()
+    public async Task SearchText_FiltersListByName()
     {
-        // Assert
-        foreach (var deviceType in Enum.GetValues<DeviceType>())
-        {
-            Assert.Contains(_viewModel.Devices, d => d.DeviceType == deviceType);
-        }
-    }
+        await _viewModel.LoadAsync();
 
-    [Fact]
-    public void SearchText_FiltersListByName()
-    {
-        // Act
         _viewModel.SearchText = "Sherpa";
 
-        // Assert
         Assert.Single(_viewModel.Devices);
-        Assert.Equal(DeviceType.SherpaSlim, _viewModel.Devices[0].DeviceType);
+        Assert.Equal("Sherpa Slim", _viewModel.Devices[0].Name);
     }
 
     [Fact]
-    public void SearchText_FiltersListByDescription()
+    public async Task SearchText_FiltersListByDescription()
     {
-        // Act
+        await _viewModel.LoadAsync();
+
         _viewModel.SearchText = "sanificazione";
 
-        // Assert
         Assert.Single(_viewModel.Devices);
-        Assert.Equal(DeviceType.O3zTech, _viewModel.Devices[0].DeviceType);
+        Assert.Equal("O3Z-Tech", _viewModel.Devices[0].Name);
     }
 
     [Fact]
-    public void SearchText_CaseInsensitive()
+    public async Task SearchText_CaseInsensitive()
     {
-        // Act
+        await _viewModel.LoadAsync();
+
         _viewModel.SearchText = "SPARK";
 
-        // Assert
         Assert.Single(_viewModel.Devices);
-        Assert.Equal(DeviceType.Spark, _viewModel.Devices[0].DeviceType);
+        Assert.Equal("Spark", _viewModel.Devices[0].Name);
     }
 
     [Fact]
-    public void SearchText_EmptyString_ShowsAll()
+    public async Task SearchText_EmptyString_ShowsAll()
     {
-        // Arrange
+        await _viewModel.LoadAsync();
         _viewModel.SearchText = "Sherpa";
         Assert.Single(_viewModel.Devices);
 
-        // Act
         _viewModel.SearchText = string.Empty;
 
-        // Assert
-        Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.Devices.Count);
+        Assert.Equal(11, _viewModel.Devices.Count);
     }
 
     [Fact]
-    public void SearchText_NoMatch_ShowsEmpty()
+    public async Task SearchText_NoMatch_ShowsEmpty()
     {
-        // Act
+        await _viewModel.LoadAsync();
+
         _viewModel.SearchText = "zzzzzzz";
 
-        // Assert
         Assert.Empty(_viewModel.Devices);
     }
 
     [Fact]
-    public void SelectDeviceCommand_SetsSelectedDevice()
+    public async Task SelectDeviceCommand_SetsSelectedDevice()
     {
-        // Arrange
+        await _viewModel.LoadAsync();
         var device = _viewModel.Devices[0];
 
-        // Act
         _viewModel.SelectDeviceCommand.Execute(device);
 
-        // Assert
         Assert.Equal(device, _viewModel.SelectedDevice);
     }
 
     [Fact]
-    public void OpenDeviceCommand_NavigatesToDeviceDetail()
+    public async Task OpenDeviceCommand_NavigatesToDeviceDetail()
     {
-        // Arrange
-        var device = _viewModel.Devices.First(d => d.DeviceType == DeviceType.OptimusXp);
+        await _viewModel.LoadAsync();
+        var device = _viewModel.Devices.First(d => d.Name == "Optimus-XP");
 
-        // Act
         _viewModel.OpenDeviceCommand.Execute(device);
 
-        // Assert
         Assert.Equal(ViewType.DeviceDetail, _navigationService.LastNavigatedView);
-        Assert.Equal(DeviceType.OptimusXp, _navigationService.LastParameter?.DeviceType);
+        Assert.Equal(device.DeviceId, _navigationService.LastParameter?.DeviceId);
     }
 
     [Fact]
-    public void OpenDeviceCommand_WithNull_UsesSelectedDevice()
+    public async Task OpenDeviceCommand_WithNull_UsesSelectedDevice()
     {
-        // Arrange
-        var device = _viewModel.Devices.First(d => d.DeviceType == DeviceType.EdenXp);
+        await _viewModel.LoadAsync();
+        var device = _viewModel.Devices.First(d => d.Name == "Eden-XP");
         _viewModel.SelectedDevice = device;
 
-        // Act
         _viewModel.OpenDeviceCommand.Execute(null);
 
-        // Assert
         Assert.Equal(ViewType.DeviceDetail, _navigationService.LastNavigatedView);
-        Assert.Equal(DeviceType.EdenXp, _navigationService.LastParameter?.DeviceType);
+        Assert.Equal(device.DeviceId, _navigationService.LastParameter?.DeviceId);
     }
 
     [Fact]
     public void OpenDeviceCommand_WithNullAndNoSelection_DoesNotNavigate()
     {
-        // Arrange
         _viewModel.SelectedDevice = null;
 
-        // Act
         _viewModel.OpenDeviceCommand.Execute(null);
 
-        // Assert
         Assert.Empty(_navigationService.NavigationHistory);
     }
 
     [Fact]
-    public void DeviceItem_HasCorrectProperties()
+    public async Task DeviceItem_HasCorrectProperties()
     {
-        // Assert
-        var sherpa = _viewModel.Devices.First(d => d.DeviceType == DeviceType.SherpaSlim);
-        Assert.Equal("Sherpa Slim", sherpa.Name);
+        await _viewModel.LoadAsync();
+
+        var sherpa = _viewModel.Devices.First(d => d.Name == "Sherpa Slim");
         Assert.False(string.IsNullOrWhiteSpace(sherpa.Description));
+        Assert.Equal(1, sherpa.MachineCode);
+    }
+
+    [Fact]
+    public void AddDeviceCommand_NavigatesToDeviceEdit()
+    {
+        _viewModel.AddDeviceCommand.Execute(null);
+
+        Assert.Equal(ViewType.DeviceEdit, _navigationService.LastNavigatedView);
+        Assert.Null(_navigationService.LastParameter?.EntityId);
     }
 }
 #endif

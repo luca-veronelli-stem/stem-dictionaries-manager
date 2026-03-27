@@ -66,7 +66,8 @@ public class DictionaryService : IDictionaryService
         ArgumentNullException.ThrowIfNull(dictionary);
 
         var entity = await _dictionaryRepository.GetByIdAsync(dictionary.Id, ct)
-            ?? throw new KeyNotFoundException($"Dictionary with Id {dictionary.Id} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Dictionary '{dictionary.Name}' (Id={dictionary.Id}) not found.");
 
         // Verifica unicità nome (se cambiato)
         if (!entity.Name.Equals(dictionary.Name, StringComparison.OrdinalIgnoreCase))
@@ -120,7 +121,8 @@ public class DictionaryService : IDictionaryService
         ArgumentNullException.ThrowIfNull(variable);
 
         var dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
-            ?? throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Dictionary (Id={dictionaryId}) not found.");
 
         // Verifica unicità indirizzo
         var existingByAddress = await _variableRepository.GetByAddressAsync(
@@ -139,14 +141,16 @@ public class DictionaryService : IDictionaryService
         CancellationToken ct = default)
     {
         if (!await _dictionaryRepository.ExistsAsync(dictionaryId, ct))
-            throw new KeyNotFoundException($"Dictionary with Id {dictionaryId} not found.");
+            throw new KeyNotFoundException(
+                $"Dictionary (Id={dictionaryId}) not found.");
 
         var variable = await _variableRepository.GetByIdAsync(variableId, ct)
-            ?? throw new KeyNotFoundException($"Variable with Id {variableId} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
 
         if (variable.DictionaryId != dictionaryId)
             throw new InvalidOperationException(
-                $"Variable {variableId} does not belong to dictionary {dictionaryId}.");
+                $"Variable '{variable.Name}' does not belong to this dictionary.");
 
         await _variableRepository.DeleteAsync(variableId, ct);
     }

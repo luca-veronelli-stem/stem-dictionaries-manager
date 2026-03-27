@@ -1,5 +1,5 @@
-using Core.Enums;
 using Infrastructure.Entities;
+using Core.Enums;
 using Infrastructure.Repositories;
 
 namespace Tests.Integration.Infrastructure;
@@ -46,8 +46,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.OptimusXp,
+            VariableId = _testVariable.Id, DeviceId = 10,
             IsEnabled = false
         };
 
@@ -55,7 +54,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
 
         Assert.True(created.Id > 0);
         Assert.Equal(_testVariable.Id, created.VariableId);
-        Assert.Equal(DeviceType.OptimusXp, created.DeviceType);
+        Assert.Equal(10, created.DeviceId);
         Assert.False(created.IsEnabled);
     }
 
@@ -64,13 +63,12 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.SherpaSlim,
+            VariableId = _testVariable.Id, DeviceId = 1,
             IsEnabled = false
         });
 
         var result = await _repository.GetByVariableAndDeviceAsync(
-            _testVariable.Id, DeviceType.SherpaSlim);
+            _testVariable.Id, 1);
 
         Assert.NotNull(result);
         Assert.False(result.IsEnabled);
@@ -80,7 +78,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     public async Task GetByVariableAndDeviceAsync_NotExists_ReturnsNull()
     {
         var result = await _repository.GetByVariableAndDeviceAsync(
-            _testVariable.Id, DeviceType.Spark);
+            _testVariable.Id, 7);
 
         Assert.Null(result);
     }
@@ -90,14 +88,12 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.SherpaSlim,
+            VariableId = _testVariable.Id, DeviceId = 1,
             IsEnabled = false
         });
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Gradino,
+            VariableId = _testVariable.Id, DeviceId = 4,
             IsEnabled = false
         });
 
@@ -119,8 +115,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.EdenXp,
+            VariableId = _testVariable.Id, DeviceId = 3,
             IsEnabled = false
         });
 
@@ -137,8 +132,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.TopLiftA2,
+            VariableId = _testVariable.Id, DeviceId = 8,
             IsEnabled = false
         });
 
@@ -160,15 +154,13 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Spark,
+            VariableId = _testVariable.Id, DeviceId = 7,
             IsEnabled = false
         });
 
         var duplicate = new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Spark,
+            VariableId = _testVariable.Id, DeviceId = 7,
             IsEnabled = true
         };
 
@@ -181,8 +173,7 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.SherpaSlim,
+            VariableId = _testVariable.Id, DeviceId = 1,
             IsEnabled = false
         });
 
@@ -192,32 +183,30 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
         Assert.Empty(result);
     }
 
-    // === GetByDeviceTypeAsync ===
+    // === GetByDeviceIdAsync ===
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_FiltersCorrectly()
+    public async Task GetByDeviceIdAsync_FiltersCorrectly()
     {
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.Spark,
+            VariableId = _testVariable.Id, DeviceId = 7,
             IsEnabled = false
         });
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.EdenXp,
+            VariableId = _testVariable.Id, DeviceId = 3,
             IsEnabled = true
         });
 
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Spark);
+        var result = await _repository.GetByDeviceIdAsync(7);
 
         Assert.Single(result);
-        Assert.Equal(DeviceType.Spark, result[0].DeviceType);
+        Assert.Equal(7, result[0].DeviceId);
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_MultipleVariables_ReturnsAll()
+    public async Task GetByDeviceIdAsync_MultipleVariables_ReturnsAll()
     {
         // Creo una seconda variabile
         var dict = (await _dictionaryRepo.GetAllAsync())[0];
@@ -235,26 +224,24 @@ public class VariableDeviceStateRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = _testVariable.Id,
-            DeviceType = DeviceType.R3lXp,
+            VariableId = _testVariable.Id, DeviceId = 11,
             IsEnabled = false
         });
         await _repository.AddAsync(new VariableDeviceStateEntity
         {
-            VariableId = var2.Id,
-            DeviceType = DeviceType.R3lXp,
+            VariableId = var2.Id, DeviceId = 11,
             IsEnabled = true
         });
 
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.R3lXp);
+        var result = await _repository.GetByDeviceIdAsync(11);
 
         Assert.Equal(2, result.Count);
     }
 
     [Fact]
-    public async Task GetByDeviceTypeAsync_NoStates_ReturnsEmpty()
+    public async Task GetByDeviceIdAsync_NoStates_ReturnsEmpty()
     {
-        var result = await _repository.GetByDeviceTypeAsync(DeviceType.Gradino);
+        var result = await _repository.GetByDeviceIdAsync(4);
 
         Assert.Empty(result);
     }

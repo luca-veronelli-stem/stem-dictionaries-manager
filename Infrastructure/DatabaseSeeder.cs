@@ -6,16 +6,12 @@ namespace Infrastructure;
 
 /// <summary>
 /// Popola il database con dati di esempio per sviluppo/demo.
-/// Domain v2: Board→Dictionary diretto, nessun BoardType.
+/// SESSION_035: Device entity nel DB (era DeviceType enum).
 /// </summary>
 public static class DatabaseSeeder
 {
-    /// <summary>
-    /// Popola il database con dati di esempio se è vuoto.
-    /// </summary>
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Se ci sono già dati, non fare nulla
         if (await context.Users.AnyAsync())
             return;
 
@@ -29,6 +25,23 @@ public static class DatabaseSeeder
             new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" }
         };
         context.Users.AddRange(users);
+
+        // === Devices ===
+        var devSherpa = new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" };
+        var devTopLiftM = new DeviceEntity { Name = "TopLift-M", MachineCode = 2, Description = "Sollevatori oleodinamici serie civile" };
+        var devEdenXp = new DeviceEntity { Name = "Eden-XP", MachineCode = 3, Description = "Supporto barella ammortizzato idropneumatico" };
+        var devGradino = new DeviceEntity { Name = "Gradino", MachineCode = 4, Description = "Gradini automatici" };
+        var devSpyke = new DeviceEntity { Name = "Spyke", MachineCode = 5, Description = "Barella con sistema di caricamento assistito e manutenzione predittiva" };
+        var devSpark = new DeviceEntity { Name = "Spark", MachineCode = 7, Description = "Barella elettrica robotizzata" };
+        var devTopLiftA2 = new DeviceEntity { Name = "TopLift-A2", MachineCode = 8, Description = "Sollevatori oleodinamici serie militare" };
+        var devO3zTech = new DeviceEntity { Name = "O3Z-Tech", MachineCode = 9, Description = "Sistema di sanificazione per veicoli" };
+        var devOptimusXp = new DeviceEntity { Name = "Optimus-XP", MachineCode = 10, Description = "Supporto per barelle elettriche" };
+        var devR3lXp = new DeviceEntity { Name = "R3L-XP", MachineCode = 11, Description = "Supporto barella elettromeccanico con sollevamento e inclinazione" };
+        var devEdenBs8 = new DeviceEntity { Name = "Eden-BS8", MachineCode = 12, Description = "Supporto barella ammortizzato con inclinazione regolabile" };
+
+        context.Devices.AddRange(devSherpa, devTopLiftM, devEdenXp, devGradino, devSpyke,
+            devSpark, devTopLiftA2, devO3zTech, devOptimusXp, devR3lXp, devEdenBs8);
+        await context.SaveChangesAsync();
 
         // === Dictionaries ===
         var dictStandard = new DictionaryEntity
@@ -78,40 +91,40 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === Boards ===
-        // OptimusXp
         var boards = new List<BoardEntity>
         {
-            CreateBoard(DeviceType.OptimusXp, "Madre Master", 17, 1, "DIS0100001",
+            // OptimusXp
+            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Madre Master", 17, 1, "DIS0100001",
                 isPrimary: true, dictionaryId: dictOptimusXp.Id),
-            CreateBoard(DeviceType.OptimusXp, "Pulsantiera 1", 4, 1, "DIS0100010",
+            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Pulsantiera 1", 4, 1, "DIS0100010",
                 dictionaryId: dictPulsantiere.Id),
-            CreateBoard(DeviceType.OptimusXp, "Pulsantiera 2", 5, 2, "DIS0100011",
+            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Pulsantiera 2", 5, 2, "DIS0100011",
                 dictionaryId: dictPulsantiere.Id),
 
             // EdenXp
-            CreateBoard(DeviceType.EdenXp, "Madre", 18, 1, "DIS0030001",
+            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Madre", 18, 1, "DIS0030001",
                 isPrimary: true, dictionaryId: dictEdenXp.Id),
-            CreateBoard(DeviceType.EdenXp, "Pulsantiera 1", 4, 1, "DIS0030010",
+            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Pulsantiera 1", 4, 1, "DIS0030010",
                 dictionaryId: dictPulsantiere.Id),
-            CreateBoard(DeviceType.EdenXp, "Driver Motore", 25, 1, "DIS0030030",
+            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Driver Motore", 25, 1, "DIS0030030",
                 dictionaryId: dictMotore.Id),
 
             // SherpaSlim
-            CreateBoard(DeviceType.SherpaSlim, "Madre", 20, 1, "DIS0010001",
+            CreateBoard(devSherpa.Id, devSherpa.MachineCode, "Madre", 20, 1, "DIS0010001",
                 isPrimary: true),
 
             // R3L-XP (2 board con dizionari diversi)
-            CreateBoard(DeviceType.R3lXp, "Master", 11, 1, "DIS0110001",
+            CreateBoard(devR3lXp.Id, devR3lXp.MachineCode, "Master", 11, 1, "DIS0110001",
                 isPrimary: true, dictionaryId: dictR3lMaster.Id),
-            CreateBoard(DeviceType.R3lXp, "Slave", 12, 2, "DIS0110002",
+            CreateBoard(devR3lXp.Id, devR3lXp.MachineCode, "Slave", 12, 2, "DIS0110002",
                 dictionaryId: dictR3lSlave.Id),
 
             // Spark (HMI con dizionario, motori/rostro senza)
-            CreateBoard(DeviceType.Spark, "HMI", 20, 1, "DIS0060001",
+            CreateBoard(devSpark.Id, devSpark.MachineCode, "HMI", 20, 1, "DIS0060001",
                 isPrimary: true, dictionaryId: dictSpark.Id),
-            CreateBoard(DeviceType.Spark, "Motore DX", 21, 2, "DIS0060002"),
-            CreateBoard(DeviceType.Spark, "Motore SX", 21, 3, "DIS0060003"),
-            CreateBoard(DeviceType.Spark, "Rostro", 22, 4, "DIS0060004"),
+            CreateBoard(devSpark.Id, devSpark.MachineCode, "Motore DX", 21, 2, "DIS0060002"),
+            CreateBoard(devSpark.Id, devSpark.MachineCode, "Motore SX", 21, 3, "DIS0060003"),
+            CreateBoard(devSpark.Id, devSpark.MachineCode, "Rostro", 22, 4, "DIS0060004"),
         };
         context.Boards.AddRange(boards);
         await context.SaveChangesAsync();
@@ -351,33 +364,27 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === Command Device States ===
-        // Disabilita alcuni comandi per dispositivi specifici
         var commandDeviceStates = new[]
         {
-            // Reset non disponibile su SherpaSlim
-            new CommandDeviceStateEntity { CommandId = cmdReset.Id, DeviceType = DeviceType.SherpaSlim, IsEnabled = false },
-
-            // Set Config non disponibile su Pulsantiere (troppo semplici)
-            new CommandDeviceStateEntity { CommandId = cmdSetConfig.Id, DeviceType = DeviceType.Gradino, IsEnabled = false },
+            new CommandDeviceStateEntity { CommandId = cmdReset.Id, DeviceId = devSherpa.Id, IsEnabled = false },
+            new CommandDeviceStateEntity { CommandId = cmdSetConfig.Id, DeviceId = devGradino.Id, IsEnabled = false },
         };
         context.CommandDeviceStates.AddRange(commandDeviceStates);
 
         // === Variable Device States ===
-        // Override per-device su variabili Standard (BR-009)
-        // "Debug Mode" non supportata su SherpaSlim e Gradino
         var varDebugMode = standardVars.First(v => v.Name == "Debug Mode");
         var variableDeviceStates = new[]
         {
             new VariableDeviceStateEntity
             {
                 VariableId = varDebugMode.Id,
-                DeviceType = DeviceType.SherpaSlim,
+                DeviceId = devSherpa.Id,
                 IsEnabled = false
             },
             new VariableDeviceStateEntity
             {
                 VariableId = varDebugMode.Id,
-                DeviceType = DeviceType.Gradino,
+                DeviceId = devGradino.Id,
                 IsEnabled = false
             },
         };
@@ -386,17 +393,17 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
     }
 
-    private static BoardEntity CreateBoard(DeviceType deviceType,
+    private static BoardEntity CreateBoard(int deviceId, int machineCode,
         string name, int firmwareType, int boardNumber, string? partNumber,
         bool isPrimary = false, int? dictionaryId = null)
     {
-        var protocolAddress = ((uint)deviceType << 16) |
+        var protocolAddress = ((uint)machineCode << 16) |
             (((uint)firmwareType & 0x03FF) << 6) |
             ((uint)boardNumber & 0x003F);
 
         return new BoardEntity
         {
-            DeviceType = deviceType,
+            DeviceId = deviceId,
             Name = name,
             FirmwareType = firmwareType,
             BoardNumber = boardNumber,

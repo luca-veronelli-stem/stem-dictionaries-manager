@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +10,11 @@ public class CommandDeviceStateRepository : RepositoryBase<CommandDeviceStateEnt
     {
     }
 
-    public async Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(int commandId, DeviceType deviceType,
+    public async Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(int commandId, int deviceId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .FirstOrDefaultAsync(s => s.CommandId == commandId && s.DeviceType == deviceType, cancellationToken);
+            .FirstOrDefaultAsync(s => s.CommandId == commandId && s.DeviceId == deviceId, cancellationToken);
     }
 
     public async Task<IReadOnlyList<CommandDeviceStateEntity>> GetByCommandIdAsync(int commandId,
@@ -26,11 +25,11 @@ public class CommandDeviceStateRepository : RepositoryBase<CommandDeviceStateEnt
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceTypeAsync(DeviceType deviceType,
+    public async Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(s => s.DeviceType == deviceType)
+            .Where(s => s.DeviceId == deviceId)
             .ToListAsync(cancellationToken);
     }
 }

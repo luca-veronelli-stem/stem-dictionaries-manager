@@ -1,5 +1,4 @@
 #if WINDOWS
-using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
@@ -48,7 +47,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
-        var board = new Board(DeviceType.OptimusXp, "Existing", 17, 1);
+        var board = new Board(10, "Existing", 17, 1);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -74,13 +73,13 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_LoadsExistingData()
     {
-        var board = new Board(DeviceType.EdenXp, "TestBoard", 18, 3, "PN123");
+        var board = new Board(3, "TestBoard", 18, 3, "PN123");
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
 
         Assert.Equal("TestBoard", _viewModel.Name);
-        Assert.Equal(DeviceType.EdenXp, _viewModel.SelectedDeviceType);
+        Assert.Equal(3, _viewModel.DeviceId);
         Assert.Equal(18, _viewModel.FirmwareType);
         Assert.Equal(3, _viewModel.BoardNumber);
         Assert.Equal("PN123", _viewModel.PartNumber);
@@ -93,7 +92,7 @@ public class BoardEditViewModelTests
         var allDicts = await _dictionaryService.GetAllAsync();
         var dictId = allDicts[0].Id;
 
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, dictionaryId: dictId);
+        var board = new Board(10, "Madre", 17, 1, dictionaryId: dictId);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -198,22 +197,20 @@ public class BoardEditViewModelTests
     }
 
     [Fact]
-    public async Task IsDeviceTypeLocked_WhenPresetDeviceType()
+    public async Task IsDeviceIdLocked_WhenPresetDeviceId()
     {
-        await _viewModel.InitializeAsync(null, DeviceType.EdenXp);
+        await _viewModel.InitializeAsync(null, 3);
 
-        Assert.True(_viewModel.IsDeviceTypeLocked);
-        Assert.False(_viewModel.CanEditDeviceType);
-        Assert.Equal(DeviceType.EdenXp, _viewModel.SelectedDeviceType);
+        Assert.True(_viewModel.IsDeviceIdLocked);
+        Assert.Equal(3, _viewModel.DeviceId);
     }
 
     [Fact]
-    public async Task IsDeviceTypeLocked_FalseWithoutPreset()
+    public async Task IsDeviceIdLocked_FalseWithoutPreset()
     {
         await _viewModel.InitializeAsync(null);
 
-        Assert.False(_viewModel.IsDeviceTypeLocked);
-        Assert.True(_viewModel.CanEditDeviceType);
+        Assert.False(_viewModel.IsDeviceIdLocked);
     }
 
     [Fact]
@@ -267,9 +264,9 @@ public class BoardEditViewModelTests
     }
 
     [Fact]
-    public void DeviceTypes_ContainsAllValues()
+    public void DeviceId_DefaultsToZero()
     {
-        Assert.Equal(Enum.GetValues<DeviceType>().Length, _viewModel.DeviceTypes.Count);
+        Assert.Equal(0, _viewModel.DeviceId);
     }
 
     [Fact]
@@ -281,7 +278,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithPrimaryBoard_SetsIsPrimary()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1, isPrimary: true);
+        var board = new Board(10, "Madre", 17, 1, isPrimary: true);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -336,7 +333,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ConfirmedYes_DeletesAndGoesBack()
     {
-        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -352,7 +349,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ConfirmedNo_DoesNotDelete()
     {
-        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -367,7 +364,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ServiceThrows_ShowsErrorDialog()
     {
-        var board = new Board(DeviceType.EdenXp, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);

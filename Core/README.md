@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -88,6 +88,7 @@ Core/
     ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, DictionaryName, calcolo indirizzo
     ├── Command.cs                 # Comando protocollo
     ├── CommandDeviceState.cs      # Stato comando per device specifico
+    ├── Device.cs                  # Dispositivo STEM (Name, MachineCode, Description)
     ├── Dictionary.cs              # Set di variabili, IsStandard flag
     ├── User.cs                    # Utente sistema (audit)
     ├── Variable.cs                # Variabile dizionario con tipo e permessi
@@ -152,7 +153,7 @@ uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNu
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 4 risolte (0 critiche, 0 alte, 0 medie, 3 basse)
+→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 4 risolte
 
 ---
 

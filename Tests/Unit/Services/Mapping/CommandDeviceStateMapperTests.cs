@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Services.Mapping;
@@ -16,8 +15,7 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 1,
-            CommandId = 10,
-            DeviceType = DeviceType.OptimusXp,
+            CommandId = 10, DeviceId = 10,
             IsEnabled = true
         };
 
@@ -25,7 +23,7 @@ public class CommandDeviceStateMapperTests
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.CommandId);
-        Assert.Equal(DeviceType.OptimusXp, result.DeviceType);
+        Assert.Equal(10, result.DeviceId);
         Assert.True(result.IsEnabled);
     }
 
@@ -35,8 +33,7 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 2,
-            CommandId = 20,
-            DeviceType = DeviceType.EdenXp,
+            CommandId = 20, DeviceId = 3,
             IsEnabled = false
         };
 
@@ -55,13 +52,13 @@ public class CommandDeviceStateMapperTests
     [Fact]
     public void ToEntity_ValidDomain_ReturnsEntity()
     {
-        var domain = CommandDeviceState.Restore(1, 10, DeviceType.Spark, true);
+        var domain = CommandDeviceState.Restore(1, 10, 7, true);
 
         var result = CommandDeviceStateMapper.ToEntity(domain);
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.CommandId);
-        Assert.Equal(DeviceType.Spark, result.DeviceType);
+        Assert.Equal(7, result.DeviceId);
         Assert.True(result.IsEnabled);
     }
 
@@ -78,23 +75,22 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 1,
-            CommandId = 10,
-            DeviceType = DeviceType.Gradino,
+            CommandId = 10, DeviceId = 4,
             IsEnabled = false
         };
-        var domain = CommandDeviceState.Restore(1, 20, DeviceType.Spyke, true);
+        var domain = CommandDeviceState.Restore(1, 20, 5, true);
 
         CommandDeviceStateMapper.UpdateEntity(entity, domain);
 
         Assert.Equal(20, entity.CommandId);
-        Assert.Equal(DeviceType.Spyke, entity.DeviceType);
+        Assert.Equal(5, entity.DeviceId);
         Assert.True(entity.IsEnabled);
     }
 
     [Fact]
     public void UpdateEntity_NullEntity_ThrowsArgumentNullException()
     {
-        var domain = CommandDeviceState.Restore(1, 10, DeviceType.EdenXp, true);
+        var domain = CommandDeviceState.Restore(1, 10, 3, true);
 
         Assert.Throws<ArgumentNullException>(() =>
             CommandDeviceStateMapper.UpdateEntity(null!, domain));
@@ -114,9 +110,9 @@ public class CommandDeviceStateMapperTests
     {
         var entities = new List<CommandDeviceStateEntity>
         {
-            new() { Id = 1, CommandId = 10, DeviceType = DeviceType.OptimusXp, IsEnabled = true },
-            new() { Id = 2, CommandId = 10, DeviceType = DeviceType.EdenXp, IsEnabled = false },
-            new() { Id = 3, CommandId = 10, DeviceType = DeviceType.Spark, IsEnabled = true }
+            new() { Id = 1, CommandId = 10, DeviceId = 10, IsEnabled = true },
+            new() { Id = 2, CommandId = 10, DeviceId = 3, IsEnabled = false },
+            new() { Id = 3, CommandId = 10, DeviceId = 7, IsEnabled = true }
         };
 
         var result = CommandDeviceStateMapper.ToDomainList(entities);
@@ -141,8 +137,7 @@ public class CommandDeviceStateMapperTests
         var original = new CommandDeviceStateEntity
         {
             Id = 42,
-            CommandId = 100,
-            DeviceType = DeviceType.R3lXp,
+            CommandId = 100, DeviceId = 11,
             IsEnabled = true
         };
 
@@ -151,7 +146,7 @@ public class CommandDeviceStateMapperTests
 
         Assert.Equal(original.Id, roundTrip.Id);
         Assert.Equal(original.CommandId, roundTrip.CommandId);
-        Assert.Equal(original.DeviceType, roundTrip.DeviceType);
+        Assert.Equal(original.DeviceId, roundTrip.DeviceId);
         Assert.Equal(original.IsEnabled, roundTrip.IsEnabled);
     }
 }

@@ -21,6 +21,13 @@ public class CommandRepository : RepositoryBase<CommandEntity>, ICommandReposito
                 cancellationToken);
     }
 
+    public async Task<CommandEntity?> GetByNameAsync(string name,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .FirstOrDefaultAsync(c => c.Name == name, cancellationToken);
+    }
+
     public async Task<CommandEntity?> GetWithDeviceStatesAsync(int id,
         CancellationToken cancellationToken = default)
     {

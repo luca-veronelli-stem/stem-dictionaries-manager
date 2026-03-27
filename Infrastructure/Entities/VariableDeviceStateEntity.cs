@@ -1,4 +1,3 @@
-using Core.Enums;
 using Infrastructure.Interfaces;
 
 namespace Infrastructure.Entities;
@@ -7,7 +6,7 @@ public class VariableDeviceStateEntity : IAuditable
 {
     public int Id { get; set; }
     public int VariableId { get; set; }
-    public DeviceType DeviceType { get; set; }
+    public int DeviceId { get; set; }
     public bool IsEnabled { get; set; }
 
     // IAuditable

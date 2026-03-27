@@ -126,6 +126,8 @@ public partial class MainViewModel : ObservableObject
                     await dictListVm.LoadAsync();
                 if (cached is UserListViewModel userListVm)
                     await userListVm.LoadAsync();
+                if (cached is DeviceListViewModel deviceListVm)
+                    await deviceListVm.LoadAsync();
 
                 CurrentViewModel = cached;
                 UpdateTitle(viewType);
@@ -161,6 +163,7 @@ public partial class MainViewModel : ObservableObject
         {
             ViewType.DeviceList => _serviceProvider.GetService(typeof(DeviceListViewModel)),
             ViewType.DeviceDetail => _serviceProvider.GetService(typeof(DeviceDetailViewModel)),
+            ViewType.DeviceEdit => _serviceProvider.GetService(typeof(DeviceEditViewModel)),
             ViewType.DeviceCommands => _serviceProvider.GetService(typeof(DeviceCommandsViewModel)),
             ViewType.DeviceVariables => _serviceProvider.GetService(typeof(DeviceVariablesViewModel)),
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
@@ -180,6 +183,10 @@ public partial class MainViewModel : ObservableObject
         switch (viewModel)
         {
             // List ViewModels - caricano i dati iniziali
+            case DeviceListViewModel vm:
+                await vm.LoadAsync();
+                break;
+
             case DictionaryListViewModel vm:
                 await vm.LoadAsync();
                 break;
@@ -197,18 +204,23 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             // Device Detail - carica dizionari per il device selezionato
-            case DeviceDetailViewModel vm when parameter?.DeviceType is not null:
-                await vm.LoadAsync(parameter.DeviceType.Value);
+            case DeviceDetailViewModel vm when parameter?.DeviceId is not null:
+                await vm.LoadAsync(parameter.DeviceId.Value);
+                break;
+
+            // Device Edit - crea o modifica dispositivo
+            case DeviceEditViewModel vm:
+                await vm.InitializeAsync(parameter?.EntityId);
                 break;
 
             // Device Commands - carica comandi con stato per device
-            case DeviceCommandsViewModel vm when parameter?.DeviceType is not null:
-                await vm.LoadAsync(parameter.DeviceType.Value);
+            case DeviceCommandsViewModel vm when parameter?.DeviceId is not null:
+                await vm.LoadAsync(parameter.DeviceId.Value);
                 break;
 
             // Device Variables - carica variabili standard con stato per device
-            case DeviceVariablesViewModel vm when parameter?.DeviceType is not null:
-                await vm.LoadAsync(parameter.DeviceType.Value);
+            case DeviceVariablesViewModel vm when parameter?.DeviceId is not null:
+                await vm.LoadAsync(parameter.DeviceId.Value);
                 break;
 
             // Edit ViewModels - caricano entità esistente o preparano per nuova
@@ -225,7 +237,7 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             case BoardEditViewModel vm:
-                await vm.InitializeAsync(parameter?.EntityId, parameter?.DeviceType);
+                await vm.InitializeAsync(parameter?.EntityId, parameter?.DeviceId);
                 break;
         }
     }
@@ -236,6 +248,7 @@ public partial class MainViewModel : ObservableObject
         {
             ViewType.DeviceList => "Dispositivi",
             ViewType.DeviceDetail => "Dettaglio Dispositivo",
+            ViewType.DeviceEdit => "Modifica Dispositivo",
             ViewType.DeviceCommands => "Comandi Dispositivo",
             ViewType.DeviceVariables => "Variabili Standard",
             ViewType.DictionaryList => "Dizionari",

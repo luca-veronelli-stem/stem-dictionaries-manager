@@ -5,32 +5,28 @@ namespace Services.Mapping;
 
 /// <summary>
 /// Mapper bidirezionale per Board Entity ↔ Domain.
-/// Domain v2: nessun BoardType, FirmwareType diretto + DictionaryId?.
+/// SESSION_035: DeviceType → DeviceId + DeviceName + MachineCode.
 /// </summary>
 public static class BoardMapper
 {
-    /// <summary>
-    /// Converte BoardEntity in Board (Domain).
-    /// </summary>
     public static Board ToDomain(BoardEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         return Board.Restore(
             entity.Id,
-            entity.DeviceType,
+            entity.DeviceId,
             entity.Name,
             entity.FirmwareType,
             entity.BoardNumber,
             entity.PartNumber,
             entity.IsPrimary,
             entity.DictionaryId,
-            entity.Dictionary?.Name);
+            entity.Dictionary?.Name,
+            entity.Device?.Name,
+            entity.Device?.MachineCode ?? 0);
     }
 
-    /// <summary>
-    /// Converte Board (Domain) in BoardEntity per creazione.
-    /// </summary>
     public static BoardEntity ToEntity(Board domain)
     {
         ArgumentNullException.ThrowIfNull(domain);
@@ -38,7 +34,7 @@ public static class BoardMapper
         return new BoardEntity
         {
             Id = domain.Id,
-            DeviceType = domain.DeviceType,
+            DeviceId = domain.DeviceId,
             Name = domain.Name,
             FirmwareType = domain.FirmwareType,
             BoardNumber = domain.BoardNumber,
@@ -49,15 +45,12 @@ public static class BoardMapper
         };
     }
 
-    /// <summary>
-    /// Aggiorna BoardEntity esistente con dati da Board (Domain).
-    /// </summary>
     public static void UpdateEntity(BoardEntity entity, Board domain)
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(domain);
 
-        entity.DeviceType = domain.DeviceType;
+        entity.DeviceId = domain.DeviceId;
         entity.Name = domain.Name;
         entity.FirmwareType = domain.FirmwareType;
         entity.BoardNumber = domain.BoardNumber;
@@ -67,9 +60,6 @@ public static class BoardMapper
         entity.DictionaryId = domain.DictionaryId;
     }
 
-    /// <summary>
-    /// Converte lista di entities in lista di domain models.
-    /// </summary>
     public static IReadOnlyList<Board> ToDomainList(IEnumerable<BoardEntity> entities)
     {
         return [.. entities.Select(ToDomain)];

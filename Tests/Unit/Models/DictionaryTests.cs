@@ -5,7 +5,7 @@ namespace Tests.Unit.Models;
 
 /// <summary>
 /// Test per Dictionary model (Domain v2).
-/// IsStandard flag, nessun DeviceType/BoardType.
+/// IsStandard flag, nessun deviceId/BoardType.
 /// </summary>
 public class DictionaryTests
 {

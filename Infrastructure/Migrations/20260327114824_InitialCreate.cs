@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate_DomainV2 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,6 +28,23 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Commands", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Devices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    MachineCode = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Devices", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,7 +87,7 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CommandId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeviceType = table.Column<int>(type: "INTEGER", nullable: false),
+                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -92,7 +109,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    DeviceType = table.Column<int>(type: "INTEGER", nullable: false),
+                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     FirmwareType = table.Column<int>(type: "INTEGER", nullable: false),
                     BoardNumber = table.Column<int>(type: "INTEGER", nullable: false),
@@ -106,6 +123,12 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Boards", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Boards_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Boards_Dictionaries_DictionaryId",
                         column: x => x.DictionaryId,
@@ -199,6 +222,29 @@ namespace Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VariableDeviceStates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    VariableId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VariableDeviceStates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VariableDeviceStates_Variables_VariableId",
+                        column: x => x.VariableId,
+                        principalTable: "Variables",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuditEntries_ChangedAt",
                 table: "AuditEntries",
@@ -221,6 +267,11 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Boards_DeviceId",
+                table: "Boards",
+                column: "DeviceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Boards_DictionaryId",
                 table: "Boards",
                 column: "DictionaryId");
@@ -232,15 +283,27 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CommandDeviceStates_CommandId_DeviceType",
+                name: "IX_CommandDeviceStates_CommandId_DeviceId",
                 table: "CommandDeviceStates",
-                columns: new[] { "CommandId", "DeviceType" },
+                columns: new[] { "CommandId", "DeviceId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Commands_CodeHigh_CodeLow_IsResponse",
                 table: "Commands",
                 columns: new[] { "CodeHigh", "CodeLow", "IsResponse" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Devices_MachineCode",
+                table: "Devices",
+                column: "MachineCode",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Devices_Name",
+                table: "Devices",
+                column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -253,6 +316,12 @@ namespace Infrastructure.Migrations
                 name: "IX_Users_Username",
                 table: "Users",
                 column: "Username",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VariableDeviceStates_VariableId_DeviceId",
+                table: "VariableDeviceStates",
+                columns: new[] { "VariableId", "DeviceId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -278,13 +347,19 @@ namespace Infrastructure.Migrations
                 name: "CommandDeviceStates");
 
             migrationBuilder.DropTable(
+                name: "VariableDeviceStates");
+
+            migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Variables");
+                name: "Devices");
 
             migrationBuilder.DropTable(
                 name: "Commands");
+
+            migrationBuilder.DropTable(
+                name: "Variables");
 
             migrationBuilder.DropTable(
                 name: "Dictionaries");

@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
@@ -8,7 +7,7 @@ namespace Services;
 
 /// <summary>
 /// Implementazione service per gestione schede.
-/// Domain v2: nessun BoardType, FirmwareType diretto su Board.
+/// SESSION_035: DeviceType enum → DeviceId FK.
 /// </summary>
 public class BoardService : IBoardService
 {
@@ -42,14 +41,15 @@ public class BoardService : IBoardService
         // Verifica che il dizionario esista (se specificato)
         if (board.DictionaryId.HasValue)
         {
-            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
+            if (dict is null)
                 throw new InvalidOperationException(
-                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+                    $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
-        // Validazione: max 1 IsPrimary per DeviceType (BR-005)
+        // Validazione: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
-            await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: null, ct);
+            await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: null, ct);
 
         var entity = BoardMapper.ToEntity(board);
         var created = await _boardRepository.AddAsync(entity, ct);
@@ -63,19 +63,21 @@ public class BoardService : IBoardService
         ArgumentNullException.ThrowIfNull(board);
 
         var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
-            ?? throw new KeyNotFoundException($"Board with Id {board.Id} not found.");
+            ?? throw new KeyNotFoundException(
+                $"Board '{board.Name}' (Id={board.Id}) not found.");
 
         // Verifica dizionario se specificato
         if (board.DictionaryId.HasValue)
         {
-            if (!await _dictionaryRepository.ExistsAsync(board.DictionaryId.Value, ct))
+            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
+            if (dict is null)
                 throw new InvalidOperationException(
-                    $"Dictionary with Id {board.DictionaryId.Value} not found.");
+                    $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
-        // Validazione: max 1 IsPrimary per DeviceType (BR-005)
+        // Validazione: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
-            await EnsureNoPrimaryExistsAsync(board.DeviceType, excludeBoardId: board.Id, ct);
+            await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: board.Id, ct);
 
         BoardMapper.UpdateEntity(entity, board);
         await _boardRepository.UpdateAsync(entity, ct);
@@ -86,10 +88,10 @@ public class BoardService : IBoardService
         await _boardRepository.DeleteAsync(id, ct);
     }
 
-    public async Task<IReadOnlyList<Board>> GetByDeviceTypeAsync(DeviceType deviceType,
+    public async Task<IReadOnlyList<Board>> GetByDeviceIdAsync(int deviceId,
         CancellationToken ct = default)
     {
-        var entities = await _boardRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var entities = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
         return BoardMapper.ToDomainList(entities);
     }
 
@@ -103,14 +105,14 @@ public class BoardService : IBoardService
     // === Private helpers ===
 
     private async Task EnsureNoPrimaryExistsAsync(
-        DeviceType deviceType, int? excludeBoardId, CancellationToken ct)
+        int deviceId, int? excludeBoardId, CancellationToken ct)
     {
-        var boards = await _boardRepository.GetByDeviceTypeAsync(deviceType, ct);
+        var boards = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
         var existing = boards.FirstOrDefault(b =>
             b.IsPrimary && b.Id != (excludeBoardId ?? -1));
 
         if (existing is not null)
             throw new InvalidOperationException(
-                $"DeviceType '{deviceType}' already has a primary board (Id={existing.Id}).");
+                $"This device already has a primary board ('{existing.Name}').");
     }
 }

@@ -1,4 +1,3 @@
-using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Services.Mapping;
@@ -18,7 +17,7 @@ public class BoardMapperTests
         var result = BoardMapper.ToDomain(entity);
 
         Assert.Equal(10, result.Id);
-        Assert.Equal(DeviceType.OptimusXp, result.DeviceType);
+        Assert.Equal(10, result.DeviceId);
         Assert.Equal("Test Board", result.Name);
         Assert.Equal(17, result.FirmwareType);
         Assert.Equal(1, result.BoardNumber);
@@ -50,12 +49,12 @@ public class BoardMapperTests
     [Fact]
     public void ToEntity_MapsAllProperties()
     {
-        var board = new Board(DeviceType.OptimusXp, "Madre", 17, 1,
+        var board = new Board(10, "Madre", 17, 1,
             "DIS001", isPrimary: true, dictionaryId: 3);
 
         var result = BoardMapper.ToEntity(board);
 
-        Assert.Equal(DeviceType.OptimusXp, result.DeviceType);
+        Assert.Equal(10, result.DeviceId);
         Assert.Equal("Madre", result.Name);
         Assert.Equal(17, result.FirmwareType);
         Assert.Equal(1, result.BoardNumber);
@@ -67,7 +66,7 @@ public class BoardMapperTests
     [Fact]
     public void ToEntity_IsPrimaryFalse_MapsCorrectly()
     {
-        var board = new Board(DeviceType.OptimusXp, "Periferica", 4, 2);
+        var board = new Board(10, "Periferica", 4, 2);
 
         var result = BoardMapper.ToEntity(board);
 
@@ -79,11 +78,11 @@ public class BoardMapperTests
     public void UpdateEntity_UpdatesAllFields()
     {
         var entity = CreateEntity(isPrimary: false);
-        var updated = Board.Restore(10, DeviceType.EdenXp, "Renamed", 18, 2, "NEW", true, 7);
+        var updated = Board.Restore(10, 3, "Renamed", 18, 2, "NEW", true, 7);
 
         BoardMapper.UpdateEntity(entity, updated);
 
-        Assert.Equal(DeviceType.EdenXp, entity.DeviceType);
+        Assert.Equal(3, entity.DeviceId);
         Assert.Equal("Renamed", entity.Name);
         Assert.Equal(18, entity.FirmwareType);
         Assert.Equal(2, entity.BoardNumber);
@@ -116,8 +115,7 @@ public class BoardMapperTests
 
     private static BoardEntity CreateEntity(bool isPrimary, int? dictionaryId = null) => new()
     {
-        Id = 10,
-        DeviceType = DeviceType.OptimusXp,
+        Id = 10, DeviceId = 10,
         Name = "Test Board",
         FirmwareType = 17,
         BoardNumber = 1,
