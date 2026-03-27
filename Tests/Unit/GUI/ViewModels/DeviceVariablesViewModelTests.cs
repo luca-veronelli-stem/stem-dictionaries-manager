@@ -274,6 +274,37 @@ public class DeviceVariablesViewModelTests
         Assert.True(_navigationService.GoBackCalled);
     }
 
+    // === SelectedVariable warning ===
+
+    [Fact]
+    public async Task SelectGloballyDisabled_ShowsWarningMessage()
+    {
+        _variableService.SeedData(
+            new Variable("Deprecated Var", 0x00, 0x50, DataTypeKind.UInt16,
+                AccessMode.ReadOnly, "UInt16",
+                isEnabled: false, description: "Deprecata"));
+
+        await _viewModel.LoadAsync(DeviceType.Spark);
+
+        _viewModel.SelectedVariable = _viewModel.Variables[0];
+
+        Assert.Equal(MessageSeverity.Warning, _messageService.CurrentSeverity);
+        Assert.Contains("disattivata globalmente", _messageService.CurrentMessage ?? "");
+        Assert.Contains("Deprecated Var", _messageService.CurrentMessage ?? "");
+    }
+
+    [Fact]
+    public async Task SelectEnabledVariable_DoesNotShowWarning()
+    {
+        SeedStandardVariables();
+        await _viewModel.LoadAsync(DeviceType.Spark);
+
+        _viewModel.SelectedVariable = _viewModel.Variables[0];
+
+        // Nessun warning per variabili attive
+        Assert.NotEqual(MessageSeverity.Warning, _messageService.CurrentSeverity);
+    }
+
     // === Helper ===
 
     private void SeedStandardVariables()
