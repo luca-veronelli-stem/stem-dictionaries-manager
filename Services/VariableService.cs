@@ -1,3 +1,4 @@
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
@@ -238,6 +239,6 @@ public class VariableService : IVariableService
         int deviceId, CancellationToken ct = default)
     {
         var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
-        return entities.Select(VariableDeviceStateMapper.ToDomain).ToList();
+        return [.. entities.Select(VariableDeviceStateMapper.ToDomain)];
     }
 }
