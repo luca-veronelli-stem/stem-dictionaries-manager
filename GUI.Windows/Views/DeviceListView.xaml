@@ -38,12 +38,13 @@
             <ItemsControl ItemsSource="{Binding Devices}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid Columns="2"/>
+                        <StackPanel Orientation="Vertical"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:DeviceItem}">
-                        <Border Style="{StaticResource DeviceCardStyle}" Margin="8"
+                        <Border Style="{StaticResource DeviceCardStyle}" Margin="0,0,0,6"
+                                Width="500" HorizontalAlignment="Left"
                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" 
