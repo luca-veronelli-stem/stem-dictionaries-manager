@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-27
 
 ---
 
@@ -13,8 +13,8 @@
 | [Services](./Services/ISSUES.md) | 4 | 7 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
-| **Trasversali** | **1** | **2** | **3** |
-| **Totale** | **13** | **33** | **46** |
+| **Trasversali** | **2** | **2** | **4** |
+| **Totale** | **14** | **33** | **47** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 8% |
-| **Bassa** | 12 | 92% |
-| **Totale** | **13** | 100% |
+| **Bassa** | 13 | 93% |
+| **Totale** | **14** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ████████████░░░░░░░░ 12
+Bassa:       █████████████░░░░░░░ 13
 ```
 
 ---
@@ -62,9 +62,50 @@ Bassa:       ████████████░░░░░░░░ 12
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
+| [T-004](#t-004--aggiungere-db-constraints-per-regole-di-business) | Aggiungere DB constraints per regole di business | Bassa | Aperto | Infrastructure |
 | [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
+
+### T-004 — Aggiungere DB constraints per regole di business
+
+**Descrizione:**  
+Diverse regole di business sono attualmente protette solo a livello codice (Core constructor, Services). Aggiungere guard a livello DB (unique indexes, partial indexes, CHECK constraints) come ultima trincea contro dati corrotti.
+
+**Status:** Aperto  
+**Priorità:** Bassa  
+**Data Apertura:** 2026-03-27
+
+**Componenti Coinvolti:**
+- Infrastructure (AppDbContext.OnModelCreating, nuova migration)
+
+**Constraint da aggiungere:**
+
+| # | Regola | Tipo DB | EF Core API | Entità |
+|---|--------|---------|-------------|--------|
+| 1 | BR-004: Max 1 dizionario Standard | Partial unique index `(IsStandard) WHERE IsStandard = 1` | `HasIndex().IsUnique().HasFilter()` | Dictionary |
+| 2 | BR-005: Max 1 primary board per device | Partial unique index `(DeviceId) WHERE IsPrimary = 1` | `HasIndex().IsUnique().HasFilter()` | Board |
+| 3 | BR-014: MachineCode > 0 | CHECK constraint | `HasCheckConstraint()` | Device |
+| 4 | BR-016: Command.Name univoco | Unique index (**oggi manca!**) | `HasIndex().IsUnique()` | Command |
+| 5 | BitIndex 0-15 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
+| 6 | WordIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
+
+**Esclusi (restano solo nel codice):**
+
+| Regola | Motivazione |
+|--------|-------------|
+| BR-011: Override coerenza (Variable.IsEnabled + State) | Cross-entity, servirebbe trigger SQL — troppo complesso |
+| BR-015: MachineCode ≠ 6 (BLE reserved) | Regola business che potrebbe cambiare — meglio flessibile |
+
+**Effort stimato:** S (1-2h) — solo configurazione EF Core + migration
+
+**Benefici Attesi:**
+- Protezione DB come ultima trincea contro dati corrotti
+- Impossibilità di bypassare vincoli anche con bug nel codice
+- Allineamento DB ↔ regole di business
+- Costo zero (solo configurazione)
+
+---
 
 ### T-003 — Aggiungere logging infrastructure
 
