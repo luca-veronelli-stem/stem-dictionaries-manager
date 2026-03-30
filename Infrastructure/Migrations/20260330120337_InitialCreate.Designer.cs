@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260327114824_InitialCreate")]
+    [Migration("20260330120337_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,6 +74,9 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("DeviceId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Meaning")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
@@ -89,8 +92,15 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DeviceId");
+
                     b.HasIndex("VariableId", "WordIndex", "BitIndex")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeviceId] IS NULL");
+
+                    b.HasIndex("VariableId", "DeviceId", "WordIndex", "BitIndex")
+                        .IsUnique()
+                        .HasFilter("[DeviceId] IS NOT NULL");
 
                     b.ToTable("BitInterpretations");
                 });
@@ -426,11 +436,18 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.BitInterpretationEntity", b =>
                 {
+                    b.HasOne("Infrastructure.Entities.DeviceEntity", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
                         .WithMany("BitInterpretations")
                         .HasForeignKey("VariableId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Device");
 
                     b.Navigation("Variable");
                 });
