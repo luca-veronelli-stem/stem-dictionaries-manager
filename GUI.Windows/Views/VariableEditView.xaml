@@ -17,13 +17,19 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare una variabile." 
-                   Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Compila i campi per creare o modificare una variabile." 
+                       Foreground="#888888" FontSize="13"
+                       Visibility="{Binding IsNotDeviceContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <TextBlock Text="Modifica le interpretazioni bit per questo device. I campi variabile sono in sola lettura." 
+                       Foreground="#FFC04A" FontSize="13"
+                       Visibility="{Binding IsDeviceContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,16,0">
                 <!-- Campi form a larghezza fissa -->
-                <Grid HorizontalAlignment="Left" Width="750">
+                <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDeviceContext}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
@@ -175,7 +181,7 @@
                 </StackPanel>
 
                 <!-- Campi rimanenti a larghezza fissa -->
-                <Grid HorizontalAlignment="Left" Width="750">
+                <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDeviceContext}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
@@ -238,7 +244,7 @@
         <!-- Bottoni -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+            <Button Content="{Binding SaveButtonLabel}" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
                     Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 
