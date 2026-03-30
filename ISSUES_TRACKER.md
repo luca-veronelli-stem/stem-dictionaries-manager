@@ -13,8 +13,8 @@
 | [Services](./Services/ISSUES.md) | 4 | 7 | 11 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 6 | 8 |
 | [Tests](./Tests/ISSUES.md) | 1 | 8 | 9 |
-| **Trasversali** | **2** | **2** | **4** |
-| **Totale** | **14** | **33** | **47** |
+| **Trasversali** | **3** | **2** | **5** |
+| **Totale** | **15** | **33** | **48** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 8% |
-| **Bassa** | 13 | 93% |
-| **Totale** | **14** | 100% |
+| **Bassa** | 14 | 93% |
+| **Totale** | **15** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       █████████████░░░░░░░ 13
+Bassa:       ██████████████░░░░░░ 14
 ```
 
 ---
@@ -62,10 +62,48 @@ Bassa:       █████████████░░░░░░░ 13
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
+| [T-005](#t-005--rendere-espliciti-parametri-semantici-nei-domain-models) | Rendere espliciti parametri semantici nei domain models | Bassa | Aperto | Core, Tests |
 | [T-004](#t-004--aggiungere-db-constraints-per-regole-di-business) | Aggiungere DB constraints per regole di business | Bassa | Aperto | Infrastructure |
 | [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
+
+### T-005 — Rendere espliciti parametri semantici nei domain models
+
+**Descrizione:**  
+Diversi constructor e factory method `Restore` nei domain models hanno parametri opzionali con default che nascondono scelte semantiche di dominio. Il pattern è stato corretto per `BitInterpretation.DeviceId` (SESSION_037), ma rimane in altri model. L'obiettivo è rimuovere i default dove il valore ha un significato di dominio, forzando il chiamante a dichiarare sempre l'intento.
+
+**Status:** Aperto  
+**Priorità:** Bassa  
+**Data Apertura:** 2026-03-30
+
+**Precedente:**  
+`BitInterpretation(deviceId = null)` → reso obbligatorio in SESSION_037. Il default nascondeva "interpretazione comune a tutti i device".
+
+**Parametri da valutare:**
+
+| # | Model | Parametro | Default | Rischio | Note |
+|---|-------|-----------|---------|---------|------|
+| 1 | Board | `machineCode` | `= 0` | Medio | 0 è illegale per BR-014. In Restore (da DB) potrebbe mascherare un mapper incompleto |
+| 2 | Board.Restore | `machineCode` | `= 0` | Medio | Stesso problema — dato denormalizzato da Device |
+| 3 | CommandDeviceState | `isEnabled` | `= true` | Basso | Restore esplicito, constructor usato solo nei test |
+| 4 | VariableDeviceState | `isEnabled` | `= true` | Basso | Idem |
+| 5 | Command | `isResponse` | `= false` | Basso | Restore esplicito, mapper passa il valore |
+| 6 | Dictionary | `isStandard` | `= false` | Basso | Restore esplicito, GUI passa esplicitamente |
+| 7 | Variable | `isEnabled` | `= true` | Basso | Restore completamente esplicito |
+
+**Criteri di priorità:**
+- **Medio**: il default è un valore illegale o il Restore lo ha opzionale
+- **Basso**: il Restore è già esplicito e il mapper passa sempre il valore
+
+**Effort stimato:** S-M (2-4h) — rimozione default + aggiornamento call site nei test
+
+**Benefici Attesi:**
+- Coerenza con il pattern già applicato su `BitInterpretation.DeviceId`
+- Impossibilità di dimenticare un parametro semantico
+- Codice auto-documentante: ogni call site dichiara l'intento
+
+---
 
 ### T-004 — Aggiungere DB constraints per regole di business
 
