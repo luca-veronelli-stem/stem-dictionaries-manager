@@ -38,7 +38,7 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
     [ObservableProperty]
     private VariableDeviceItem? _selectedVariable;
 
-    public bool HasChanges => Variables.Any(v => v.HasChanged);
+    public bool HasChanges => false;
 
     partial void OnSelectedVariableChanged(VariableDeviceItem? value)
     {
@@ -139,46 +139,9 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
     }
 
     [RelayCommand]
-    private async Task SaveAsync()
-    {
-        var changedItems = Variables
-            .Where(v => v.HasChanged && !v.IsGloballyDisabled)
-            .ToList();
-
-        if (changedItems.Count == 0)
-        {
-            _messageService.Show("Nessuna modifica da salvare.",
-                MessageSeverity.Info, autoHideSeconds: 3);
-            return;
-        }
-
-        try
-        {
-            foreach (var item in changedItems)
-            {
-                await _variableService.SetDeviceStateAsync(
-                    item.VariableId, DeviceId!.Value, item.IsEnabled);
-            }
-
-            if (DeviceId is not null)
-                await LoadAsync(DeviceId.Value, DeviceName);
-
-            _messageService.Show(
-                $"Salvati {changedItems.Count} stati variabile.",
-                MessageSeverity.Success, autoHideSeconds: 3);
-        }
-        catch (Exception ex)
-        {
-            _messageService.Show(
-                $"Errore salvataggio: {ex.Message}",
-                MessageSeverity.Error, autoHideSeconds: 0);
-        }
-    }
-
-    [RelayCommand]
     private void EditBitInterpretations(VariableDeviceItem? item)
     {
-        if (item is null || !item.IsBitmapped || DeviceId is null || _standardDictionaryId is null) return;
+        if (item is null || DeviceId is null || _standardDictionaryId is null) return;
 
         _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
         {

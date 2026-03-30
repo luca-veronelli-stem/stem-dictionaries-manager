@@ -191,7 +191,6 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                             <!-- Accesso -->
@@ -226,12 +225,18 @@
                                      Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
                                      AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
                                      BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
-
-                            <!-- Abilitata -->
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
-                                      Foreground="White" Margin="0,0,0,12"/>
                         </Grid>
+
+                <!-- Stato variabile — sempre editabile (anche in DeviceContext) -->
+                <Grid HorizontalAlignment="Left" Width="750">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
+                              Foreground="White" Margin="0,0,0,12"/>
+                </Grid>
                     </StackPanel>
                 </ScrollViewer>
 
@@ -244,7 +249,7 @@
         <!-- Bottoni -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="{Binding SaveButtonLabel}" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
                     Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 

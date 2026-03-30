@@ -327,6 +327,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 LoadFromVariable(variable);
 
+                // DeviceContext: sovrascrive IsEnabled con lo stato per device
+                if (_deviceContextId.HasValue)
+                {
+                    var deviceState = await _variableService.GetDeviceStateAsync(
+                        variableId.Value, _deviceContextId.Value);
+                    // Se esiste override ? usa quello, altrimenti default = true
+                    IsEnabled = deviceState?.IsEnabled ?? true;
+                }
+
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
                 {
                     // DeviceContext: carica interpretazioni per device (con fallback a comuni)
@@ -432,7 +441,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             if (IsDeviceContext)
             {
-                // DeviceContext: salva solo le BitInterpretation con DeviceId
+                // DeviceContext: salva stato variabile per device + bit interpretations
+                await SaveDeviceStateAsync();
                 await SaveBitInterpretationsForDeviceAsync();
             }
             else
@@ -539,7 +549,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             .ToList();
         await _variableService.UpdateBitInterpretationsForDeviceAsync(
             _editingId!.Value, _deviceContextId, bitsToSave);
-        _messageService.Show("Interpretazioni bit per device salvate", MessageSeverity.Success);
+    }
+
+    private async Task SaveDeviceStateAsync()
+    {
+        if (_deviceContextId is null || _editingId is null) return;
+        await _variableService.SetDeviceStateAsync(
+            _editingId.Value, _deviceContextId.Value, IsEnabled);
+        _messageService.Show("Stato variabile per device salvato", MessageSeverity.Success);
     }
 
     [RelayCommand]
