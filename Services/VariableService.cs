@@ -130,6 +130,20 @@ public class VariableService : IVariableService
         return BitInterpretationMapper.ToDomainList(entities);
     }
 
+    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
+        int variableId, int deviceId, CancellationToken ct = default)
+    {
+        var variableExists = await _repository.ExistsAsync(variableId, ct);
+        if (!variableExists)
+            throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
+
+        var entities = await _bitInterpretationRepository
+            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
+
+        return BitInterpretationMapper.ToDomainList(entities);
+    }
+
     public async Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation,
         CancellationToken ct = default)
     {
@@ -154,6 +168,13 @@ public class VariableService : IVariableService
 
     public async Task UpdateBitInterpretationsAsync(int variableId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        await UpdateBitInterpretationsForDeviceAsync(variableId, null, interpretations, ct);
+    }
+
+    public async Task UpdateBitInterpretationsForDeviceAsync(int variableId,
+        int? deviceId, IEnumerable<BitInterpretation> interpretations,
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretations);
 
@@ -185,7 +206,7 @@ public class VariableService : IVariableService
         }
 
         var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
-        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, entities, ct);
+        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, deviceId, entities, ct);
     }
 
     // === DeviceState Management ===
