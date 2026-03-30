@@ -5,7 +5,7 @@ namespace Infrastructure;
 
 /// <summary>
 /// Popola il database con dati iniziali.
-/// Utenti + Comandi: il resto viene inserito manualmente dalla GUI.
+/// Utenti + Dispositivi + Comandi: il resto viene inserito manualmente dalla GUI.
 /// </summary>
 public static class DatabaseSeeder
 {
@@ -25,6 +25,24 @@ public static class DatabaseSeeder
             new UserEntity { Username = "lorenzo.vecchi", DisplayName = "Lorenzo Vecchi" }
         };
         context.Users.AddRange(users);
+
+        // === Dispositivi STEM ===
+        // MachineCode 6 è riservato per BLE Module (BR-015)
+        var devices = new[]
+        {
+            new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" },
+            new DeviceEntity { Name = "TopLift-M", MachineCode = 2, Description = "Sollevatori oleodinamici serie civile" },
+            new DeviceEntity { Name = "Eden-XP", MachineCode = 3, Description = "Supporto barella oleodinamico con altezza e inclinazione regolabili, e molleggio" },
+            new DeviceEntity { Name = "Gradino", MachineCode = 4, Description = "Gradini automatici" },
+            new DeviceEntity { Name = "Spyke", MachineCode = 5, Description = "Barella" },
+            new DeviceEntity { Name = "Spark", MachineCode = 7, Description = "Barella elettrica robotizzata" },
+            new DeviceEntity { Name = "TopLift-A2", MachineCode = 8, Description = "Sollevatori oleodinamici serie militare" },
+            new DeviceEntity { Name = "O3Z-Tech", MachineCode = 9, Description = "Sistema di sanificazione per ambienti" },
+            new DeviceEntity { Name = "Optimus-XP", MachineCode = 10, Description = "Supporto barelle elettriche oleodinamico con altezza regolabile, e molleggio" },
+            new DeviceEntity { Name = "R3L-XP", MachineCode = 11, Description = "Supporto barella elettromeccanico con altezza e inclinazione regolabili" },
+            new DeviceEntity { Name = "Eden-BS8", MachineCode = 12, Description = "Supporto barelle elettriche oleodinamico con altezza ed inclinazione regolabili, e molleggio" },
+        };
+        context.Devices.AddRange(devices);
 
         // === Comandi protocollo STEM (da comandi.csv) ===
         // Regola: CodeHigh = 0x00 per comandi, 0x80 per risposte
