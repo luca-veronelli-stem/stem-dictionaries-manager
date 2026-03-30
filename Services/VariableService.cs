@@ -127,7 +127,12 @@ public class VariableService : IVariableService
 
         var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
-        return BitInterpretationMapper.ToDomainList(entities);
+        // Normal mode: ritorna solo le interpretazioni comuni (DeviceId = null)
+        var common = BitInterpretationMapper.ToDomainList(entities)
+            .Where(b => b.DeviceId is null)
+            .ToList();
+
+        return common;
     }
 
     public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
@@ -141,7 +146,17 @@ public class VariableService : IVariableService
         var entities = await _bitInterpretationRepository
             .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
 
-        return BitInterpretationMapper.ToDomainList(entities);
+        var allBits = BitInterpretationMapper.ToDomainList(entities);
+
+        // Merge: per ogni (WordIndex, BitIndex), device-specific ha priorità su comune
+        var merged = allBits
+            .GroupBy(b => (b.WordIndex, b.BitIndex))
+            .Select(g => g.FirstOrDefault(b => b.DeviceId is not null) ?? g.First())
+            .OrderBy(b => b.WordIndex)
+            .ThenBy(b => b.BitIndex)
+            .ToList();
+
+        return merged;
     }
 
     public async Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation,
