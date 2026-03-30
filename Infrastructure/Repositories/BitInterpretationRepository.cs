@@ -15,17 +15,30 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
     {
         return await DbSet
             .Where(bi => bi.VariableId == variableId)
-            .OrderBy(bi => bi.WordIndex)
+            .OrderBy(bi => bi.DeviceId)
+            .ThenBy(bi => bi.WordIndex)
             .ThenBy(bi => bi.BitIndex)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task SyncByVariableIdAsync(int variableId,
+    public async Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableAndDeviceAsync(int variableId,
+        int deviceId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(bi => bi.VariableId == variableId
+                && (bi.DeviceId == deviceId || bi.DeviceId == null))
+            .OrderBy(bi => bi.DeviceId)
+            .ThenBy(bi => bi.WordIndex)
+            .ThenBy(bi => bi.BitIndex)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task SyncByVariableIdAsync(int variableId, int? deviceId,
         IReadOnlyList<BitInterpretationEntity> incoming,
         CancellationToken cancellationToken = default)
     {
         var existing = await DbSet
-            .Where(bi => bi.VariableId == variableId)
+            .Where(bi => bi.VariableId == variableId && bi.DeviceId == deviceId)
             .ToListAsync(cancellationToken);
 
         var existingByKey = existing.ToDictionary(e => (e.WordIndex, e.BitIndex));
@@ -54,6 +67,7 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
                 await DbSet.AddAsync(new BitInterpretationEntity
                 {
                     VariableId = variableId,
+                    DeviceId = deviceId,
                     WordIndex = i.WordIndex,
                     BitIndex = i.BitIndex,
                     Meaning = i.Meaning
