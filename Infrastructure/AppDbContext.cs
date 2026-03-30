@@ -134,11 +134,23 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BitInterpretationEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.VariableId, e.WordIndex, e.BitIndex }).IsUnique();
+
+            // BR-017: 2 partial indexes per unicità con DeviceId nullable
+            entity.HasIndex(e => new { e.VariableId, e.WordIndex, e.BitIndex })
+                  .IsUnique()
+                  .HasFilter("[DeviceId] IS NULL");
+            entity.HasIndex(e => new { e.VariableId, e.DeviceId, e.WordIndex, e.BitIndex })
+                  .IsUnique()
+                  .HasFilter("[DeviceId] IS NOT NULL");
+
             entity.Property(e => e.Meaning).HasMaxLength(200);
             entity.HasOne(e => e.Variable)
                   .WithMany(v => v.BitInterpretations)
                   .HasForeignKey(e => e.VariableId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Device)
+                  .WithMany()
+                  .HasForeignKey(e => e.DeviceId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
