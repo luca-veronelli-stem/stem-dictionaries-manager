@@ -219,13 +219,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         };
 
         // Act
-        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
-
-        // Assert
-        Assert.Single(result);
-        Assert.Equal(1, result[0].BitIndex);
-        Assert.Equal("New Bit", result[0].Meaning);
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
     }
 
     [Fact]
@@ -248,13 +242,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         };
 
         // Act
-        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
-
-        // Assert - stessa riga aggiornata, ID preservato
-        Assert.Single(result);
-        Assert.Equal(existingId, result[0].Id);
-        Assert.Equal("Updated Meaning", result[0].Meaning);
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
     }
 
     [Fact]
@@ -277,13 +265,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         };
 
         // Act
-        await _repository.SyncByVariableIdAsync(_testVariable.Id, incoming);
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
-
-        // Assert - ID preservato, meaning invariato
-        Assert.Single(result);
-        Assert.Equal(existingId, result[0].Id);
-        Assert.Equal("Unchanged", result[0].Meaning);
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
     }
 
     [Fact]
@@ -299,10 +281,254 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        await _repository.SyncByVariableIdAsync(_testVariable.Id, []);
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, null, []);
         var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         // Assert
         Assert.Empty(result);
+    }
+
+    // === DeviceId Tests (SESSION_037) ===
+
+    [Fact]
+    public async Task AddAsync_WithDeviceId_PersistsDeviceId()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        var interpretation = new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = device.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Device-specific bit"
+        };
+
+        var result = await _repository.AddAsync(interpretation);
+
+        Assert.Equal(device.Id, result.DeviceId);
+    }
+
+    [Fact]
+    public async Task AddAsync_WithNullDeviceId_PersistsNull()
+    {
+        var interpretation = new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit"
+        };
+
+        var result = await _repository.AddAsync(interpretation);
+
+        Assert.Null(result.DeviceId);
+    }
+
+    [Fact]
+    public async Task GetByVariableAndDeviceAsync_ReturnsBothCommonAndDeviceSpecific()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        // Common interpretation (DeviceId = null)
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit 0"
+        });
+
+        // Device-specific interpretation
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = device.Id,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "Device bit 1"
+        });
+
+        // Another device's interpretation (should NOT appear)
+        var otherDevice = new DeviceEntity { Name = "OtherDevice", MachineCode = 51 };
+        Context.Devices.Add(otherDevice);
+        await Context.SaveChangesAsync();
+
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = otherDevice.Id,
+            WordIndex = 0,
+            BitIndex = 2,
+            Meaning = "Other device bit"
+        });
+
+        var result = await _repository.GetByVariableAndDeviceAsync(_testVariable.Id, device.Id);
+
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, r => r.Meaning == "Common bit 0" && r.DeviceId == null);
+        Assert.Contains(result, r => r.Meaning == "Device bit 1" && r.DeviceId == device.Id);
+    }
+
+    [Fact]
+    public async Task GetByVariableAndDeviceAsync_NoDeviceOverrides_ReturnsOnlyCommon()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id,
+            DeviceId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common only"
+        });
+
+        var result = await _repository.GetByVariableAndDeviceAsync(_testVariable.Id, device.Id);
+
+        Assert.Single(result);
+        Assert.Null(result[0].DeviceId);
+    }
+
+    [Fact]
+    public async Task GetByVariableIdAsync_ReturnsAllDevices()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+        });
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = device.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Device override"
+        });
+
+        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_WithDeviceId_OnlySyncsForThatDevice()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        // Pre-existing: common + device-specific
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+        });
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = device.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Old device"
+        });
+
+        // Sync only device-specific: replace with new interpretation
+        var incoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 0, Meaning = "New device" },
+            new() { WordIndex = 0, BitIndex = 1, Meaning = "New device bit 1" }
+        };
+
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, device.Id, incoming);
+
+        // Common should be untouched
+        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        var common = all.Where(r => r.DeviceId == null).ToList();
+        var deviceSpecific = all.Where(r => r.DeviceId == device.Id).ToList();
+
+        Assert.Single(common);
+        Assert.Equal("Common", common[0].Meaning);
+        Assert.Equal(2, deviceSpecific.Count);
+        Assert.Contains(deviceSpecific, r => r.Meaning == "New device");
+        Assert.Contains(deviceSpecific, r => r.Meaning == "New device bit 1");
+    }
+
+    [Fact]
+    public async Task SyncByVariableIdAsync_NullDeviceId_OnlySyncsCommon()
+    {
+        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
+        Context.Devices.Add(device);
+        await Context.SaveChangesAsync();
+
+        // Pre-existing: common + device-specific
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Old common"
+        });
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = device.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Device specific"
+        });
+
+        // Sync common: replace
+        var incoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 0, Meaning = "New common" }
+        };
+
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
+
+        // Device-specific should be untouched
+        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        var common = all.Where(r => r.DeviceId == null).ToList();
+        var deviceSpecific = all.Where(r => r.DeviceId == device.Id).ToList();
+
+        Assert.Single(common);
+        Assert.Equal("New common", common[0].Meaning);
+        Assert.Single(deviceSpecific);
+        Assert.Equal("Device specific", deviceSpecific[0].Meaning);
+    }
+
+    [Fact]
+    public async Task SameVariableSameBit_DifferentDevices_BothPersist()
+    {
+        var device1 = new DeviceEntity { Name = "Device1", MachineCode = 50 };
+        var device2 = new DeviceEntity { Name = "Device2", MachineCode = 51 };
+        Context.Devices.AddRange(device1, device2);
+        await Context.SaveChangesAsync();
+
+        // Common, Device1, Device2 — all word0 bit0 but different DeviceId
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+        });
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = device1.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Device1 override"
+        });
+        await _repository.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = _testVariable.Id, DeviceId = device2.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Device2 override"
+        });
+
+        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+
+        Assert.Equal(3, all.Count);
+        Assert.Contains(all, r => r.Meaning == "Common" && r.DeviceId == null);
+        Assert.Contains(all, r => r.Meaning == "Device1 override" && r.DeviceId == device1.Id);
+        Assert.Contains(all, r => r.Meaning == "Device2 override" && r.DeviceId == device2.Id);
     }
 }

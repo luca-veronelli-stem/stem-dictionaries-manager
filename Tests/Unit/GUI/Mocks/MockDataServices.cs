@@ -329,6 +329,24 @@ public class MockVariableService : IVariableService
         return Task.CompletedTask;
     }
 
+    public Task UpdateBitInterpretationsForDeviceAsync(int variableId, int? deviceId,
+        IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
+        int variableId, int deviceId, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        if (_bitInterpretations.TryGetValue(variableId, out var bits))
+            return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
+        return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
+    }
+
     public Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled, CancellationToken ct = default)
     {
         MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceId}:{isEnabled}");

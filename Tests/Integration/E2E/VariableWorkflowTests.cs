@@ -160,6 +160,185 @@ public class VariableWorkflowTests : IntegrationTestBase
 
     #endregion
 
+    #region Per-Device BitInterpretation Tests (SESSION_037)
+
+    [Fact]
+    public async Task FullWorkflow_BitInterpretations_CommonAndDeviceOverride()
+    {
+        // Setup
+        var deviceRepo = new DeviceRepository(Context);
+        var dictRepo = new DictionaryRepository(Context);
+        var varRepo = new VariableRepository(Context);
+        var bitRepo = new BitInterpretationRepository(Context);
+
+        var device = new DeviceEntity { Name = "Sherpa", MachineCode = 1 };
+        await deviceRepo.AddAsync(device);
+
+        var dict = new DictionaryEntity { Name = "Standard", IsStandard = true };
+        await dictRepo.AddAsync(dict);
+
+        var bitmappedVar = new VariableEntity
+        {
+            Name = "Allarmi",
+            AddressHigh = 0x00,
+            AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[2]",
+            DataTypeParam = 2,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            DictionaryId = dict.Id
+        };
+        await varRepo.AddAsync(bitmappedVar);
+
+        // Common interpretations (DeviceId = null)
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Fusibile aperto"
+        });
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 1, Meaning = "Sovracorrente"
+        });
+
+        // Device-specific override for bit 1 only
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = device.Id,
+            WordIndex = 0, BitIndex = 1, Meaning = "Sovracorrente relè"
+        });
+
+        // GetByVariableAndDevice returns common + device-specific
+        var forDevice = await bitRepo.GetByVariableAndDeviceAsync(bitmappedVar.Id, device.Id);
+        Assert.Equal(3, forDevice.Count);
+        Assert.Contains(forDevice, r => r.Meaning == "Fusibile aperto" && r.DeviceId == null);
+        Assert.Contains(forDevice, r => r.Meaning == "Sovracorrente" && r.DeviceId == null);
+        Assert.Contains(forDevice, r => r.Meaning == "Sovracorrente relè" && r.DeviceId == device.Id);
+
+        // GetByVariableId returns everything
+        var all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        Assert.Equal(3, all.Count);
+    }
+
+    [Fact]
+    public async Task FullWorkflow_SyncDeviceOverrides_DoesNotAffectCommon()
+    {
+        // Setup
+        var deviceRepo = new DeviceRepository(Context);
+        var dictRepo = new DictionaryRepository(Context);
+        var varRepo = new VariableRepository(Context);
+        var bitRepo = new BitInterpretationRepository(Context);
+
+        var device = new DeviceEntity { Name = "Optimus", MachineCode = 2 };
+        await deviceRepo.AddAsync(device);
+
+        var dict = new DictionaryEntity { Name = "Standard", IsStandard = true };
+        await dictRepo.AddAsync(dict);
+
+        var bitmappedVar = new VariableEntity
+        {
+            Name = "Allarmi",
+            AddressHigh = 0x00,
+            AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[2]",
+            DataTypeParam = 2,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            DictionaryId = dict.Id
+        };
+        await varRepo.AddAsync(bitmappedVar);
+
+        // Seed common
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Common bit 0"
+        });
+
+        // Sync device-specific (should NOT touch common)
+        var deviceIncoming = new List<BitInterpretationEntity>
+        {
+            new() { WordIndex = 0, BitIndex = 0, Meaning = "Optimus bit 0" },
+            new() { WordIndex = 0, BitIndex = 1, Meaning = "Optimus bit 1" }
+        };
+        await bitRepo.SyncByVariableIdAsync(bitmappedVar.Id, device.Id, deviceIncoming);
+
+        // Verify: common is untouched
+        var all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        var common = all.Where(r => r.DeviceId == null).ToList();
+        var deviceSpecific = all.Where(r => r.DeviceId == device.Id).ToList();
+
+        Assert.Single(common);
+        Assert.Equal("Common bit 0", common[0].Meaning);
+        Assert.Equal(2, deviceSpecific.Count);
+    }
+
+    [Fact]
+    public async Task FullWorkflow_MultipleDevices_IndependentOverrides()
+    {
+        // Setup
+        var deviceRepo = new DeviceRepository(Context);
+        var dictRepo = new DictionaryRepository(Context);
+        var varRepo = new VariableRepository(Context);
+        var bitRepo = new BitInterpretationRepository(Context);
+
+        var sherpa = new DeviceEntity { Name = "Sherpa", MachineCode = 1 };
+        var optimus = new DeviceEntity { Name = "Optimus", MachineCode = 2 };
+        await deviceRepo.AddAsync(sherpa);
+        await deviceRepo.AddAsync(optimus);
+
+        var dict = new DictionaryEntity { Name = "Standard", IsStandard = true };
+        await dictRepo.AddAsync(dict);
+
+        var bitmappedVar = new VariableEntity
+        {
+            Name = "Allarmi",
+            AddressHigh = 0x00,
+            AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "bitmapped[2]",
+            DataTypeParam = 2,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            DictionaryId = dict.Id
+        };
+        await varRepo.AddAsync(bitmappedVar);
+
+        // Same word/bit, different devices
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = null,
+            WordIndex = 0, BitIndex = 2, Meaning = "Batteria scarica"
+        });
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = sherpa.Id,
+            WordIndex = 0, BitIndex = 2, Meaning = "Batteria scarica (Sherpa)"
+        });
+        await bitRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = bitmappedVar.Id, DeviceId = optimus.Id,
+            WordIndex = 0, BitIndex = 2, Meaning = "Sovracorrente EV1 (Optimus)"
+        });
+
+        // Sherpa sees common + sherpa override
+        var forSherpa = await bitRepo.GetByVariableAndDeviceAsync(bitmappedVar.Id, sherpa.Id);
+        Assert.Equal(2, forSherpa.Count);
+        Assert.Contains(forSherpa, r => r.DeviceId == null);
+        Assert.Contains(forSherpa, r => r.DeviceId == sherpa.Id);
+
+        // Optimus sees common + optimus override
+        var forOptimus = await bitRepo.GetByVariableAndDeviceAsync(bitmappedVar.Id, optimus.Id);
+        Assert.Equal(2, forOptimus.Count);
+        Assert.Contains(forOptimus, r => r.DeviceId == null);
+        Assert.Contains(forOptimus, r => r.DeviceId == optimus.Id);
+    }
+
+    #endregion
+
     #region Address Uniqueness Tests
 
     [Fact]

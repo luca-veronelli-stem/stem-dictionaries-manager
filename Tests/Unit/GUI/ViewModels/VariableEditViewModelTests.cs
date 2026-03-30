@@ -1016,5 +1016,169 @@ public class VariableEditViewModelTests
     }
 
     #endregion
+
+    #region DeviceContext Mode Tests
+
+    [Fact]
+    public async Task InitializeAsync_WithDeviceId_SetsDeviceContextMode()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Assert
+        Assert.True(_viewModel.IsDeviceContext);
+        Assert.False(_viewModel.IsNotDeviceContext);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithoutDeviceId_SetsNormalMode()
+    {
+        await _viewModel.InitializeAsync(variableId: null, dictionaryId: 1);
+
+        Assert.False(_viewModel.IsDeviceContext);
+        Assert.True(_viewModel.IsNotDeviceContext);
+    }
+
+    [Fact]
+    public async Task FormTitle_InDeviceContext_ReturnsDeviceTitle()
+    {
+        SeedBitmappedVariable();
+
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        Assert.Equal("Interpretazione Bit (Device)", _viewModel.FormTitle);
+    }
+
+    [Fact]
+    public async Task SaveButtonLabel_InDeviceContext_ReturnsSalvaBit()
+    {
+        SeedBitmappedVariable();
+
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        Assert.Contains("Salva Bit", _viewModel.SaveButtonLabel);
+    }
+
+    [Fact]
+    public async Task SaveButtonLabel_InNormalMode_ReturnsSalva()
+    {
+        await _viewModel.InitializeAsync(variableId: null, dictionaryId: 1);
+
+        Assert.EndsWith("Salva", _viewModel.SaveButtonLabel);
+        Assert.DoesNotContain("Bit", _viewModel.SaveButtonLabel);
+    }
+
+    [Fact]
+    public async Task DeviceContext_Save_CallsUpdateBitInterpretationsForDeviceAsync()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Modifica un bit
+        _viewModel.WordGroups[0].Items[0].Meaning = "Device override";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert — deve usare il metodo per-device
+        Assert.Contains(_variableService.MethodCalls,
+            m => m.StartsWith("UpdateBitInterpretationsForDeviceAsync:1:42"));
+    }
+
+    [Fact]
+    public async Task DeviceContext_Save_DoesNotCallUpdateAsync()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert — non deve salvare la variabile stessa
+        Assert.DoesNotContain(_variableService.MethodCalls,
+            m => m.StartsWith("UpdateAsync:"));
+        Assert.DoesNotContain(_variableService.MethodCalls,
+            m => m.StartsWith("AddAsync:"));
+    }
+
+    [Fact]
+    public async Task DeviceContext_Save_DoesNotValidateVariableFields()
+    {
+        // Arrange — variabile bitmapped caricata, campi nome/desc sono vuoti (read-only in GUI)
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Act — salva senza errori (campi variabile non validati in DeviceContext)
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert — navigazione GoBack avvenuta (salvataggio riuscito)
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeviceContext_LoadsBitsForDevice()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        _variableService.SeedBitInterpretations(1,
+        [
+            new BitInterpretation(1, 0, 0, "Device bit 0", deviceId: 42),
+            new BitInterpretation(1, 0, 1, "Common bit 1", deviceId: null),
+        ]);
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Assert — deve chiamare GetBitInterpretationsForDeviceAsync
+        Assert.Contains(_variableService.MethodCalls,
+            m => m == "GetBitInterpretationsForDeviceAsync:1:42");
+    }
+
+    [Fact]
+    public async Task NormalMode_LoadsBitsWithGetBitInterpretationsAsync()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1);
+
+        // Assert — deve usare il metodo classico (senza device)
+        Assert.Contains(_variableService.MethodCalls,
+            m => m == "GetBitInterpretationsAsync:1");
+    }
+
+    [Fact]
+    public async Task DeviceContext_Save_ShowsSuccessMessage()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains("bit per device", _messageService.CurrentMessage ?? "",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void SeedBitmappedVariable()
+    {
+        var bitmapped = Variable.Restore(
+            id: 1, name: "StatusBits", addressHigh: 0x00, addressLow: 0x10,
+            dataTypeKind: DataTypeKind.Bitmapped, dataTypeRaw: "bitmapped[1]",
+            dataTypeParam: 1, accessMode: AccessMode.ReadOnly,
+            isEnabled: true, format: null, minValue: null, maxValue: null,
+            unit: null, usage: null, description: "Status flags");
+        _variableService.SeedData(bitmapped);
+    }
+
+    #endregion
 }
 #endif

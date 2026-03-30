@@ -504,7 +504,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 5,
-            meaning: "Pump Active");
+            meaning: "Pump Active", deviceId: null);
 
         // Act
         var result = await _service.AddBitInterpretationAsync(variable.Id, interpretation);
@@ -520,7 +520,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var interpretation = new BitInterpretation(variableId: 999, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test");
+            meaning: "Test", deviceId: null);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddBitInterpretationAsync(999, interpretation));
@@ -545,7 +545,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test");
+            meaning: "Test", deviceId: null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -610,8 +610,8 @@ public class VariableServiceTests : IntegrationTestBase
         // Nuove interpretazioni (0 modificata, 1 eliminata, 2 nuova)
         var newInterpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Updated Motor"),
-            new(variable.Id, 0, 2, "New Error")
+            new(variable.Id, 0, 0, "Updated Motor", null),
+            new(variable.Id, 0, 2, "New Error", null)
         };
 
         // Act
@@ -630,7 +630,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var interpretations = new List<BitInterpretation>
         {
-            new(999, 0, 0, "Test")
+            new(999, 0, 0, "Test", null)
         };
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -656,7 +656,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Test")
+            new(variable.Id, 0, 0, "Test", null)
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -683,8 +683,8 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "First"),
-            new(variable.Id, 0, 0, "Duplicate")
+            new(variable.Id, 0, 0, "First", null),
+            new(variable.Id, 0, 0, "Duplicate", null)
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -729,7 +729,7 @@ public class VariableServiceTests : IntegrationTestBase
         // Act - aggiorna meaning, stessa chiave
         var updated = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Motor Updated")
+            new(variable.Id, 0, 0, "Motor Updated", null)
         };
         await _service.UpdateBitInterpretationsAsync(variable.Id, updated);
 

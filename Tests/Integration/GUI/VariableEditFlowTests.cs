@@ -341,9 +341,9 @@ public class VariableEditFlowTests
         // Seed bit interpretations nel mock (ID 1, coerente con SeedData)
         _variableService.SeedBitInterpretations(1,
         [
-            new BitInterpretation(1, 0, 0, "Motor"),
-            new BitInterpretation(1, 0, 3, "Pump"),
-            new BitInterpretation(1, 1, 0, "Alarm")
+            new BitInterpretation(1, 0, 0, "Motor", null),
+            new BitInterpretation(1, 0, 3, "Pump", null),
+            new BitInterpretation(1, 1, 0, "Alarm", null)
         ]);
 
         // Act

@@ -173,9 +173,9 @@ public class BitInterpretationFlowTests
         _variableService.SeedData(bitmappedVar);
         _variableService.SeedBitInterpretations(1,
         [
-            BitInterpretation.Restore(1, 1, 0, 0, "Bit 0 Word 0"),
-            BitInterpretation.Restore(2, 1, 0, 1, "Bit 1 Word 0"),
-            BitInterpretation.Restore(3, 1, 1, 0, "Bit 0 Word 1"),
+            BitInterpretation.Restore(1, 1, 0, 0, "Bit 0 Word 0", null),
+            BitInterpretation.Restore(2, 1, 0, 1, "Bit 1 Word 0", null),
+            BitInterpretation.Restore(3, 1, 1, 0, "Bit 0 Word 1", null),
         ]);
 
         // Act
