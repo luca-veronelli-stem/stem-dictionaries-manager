@@ -18,6 +18,8 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
     private readonly INavigationService _navigationService;
     private readonly IMessageService _messageService;
 
+    private int? _standardDictionaryId;
+
     [ObservableProperty]
     private int? _deviceId;
 
@@ -81,6 +83,8 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
                 return;
             }
 
+            _standardDictionaryId = standardDict.Id;
+
             var allVariables = await _variableService
                 .GetByDictionaryIdAsync(standardDict.Id);
 
@@ -115,6 +119,7 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
                         Name = v.Name,
                         FullAddress = $"0x{v.AddressHigh:X2}{v.AddressLow:X2}",
                         Description = v.Description ?? string.Empty,
+                        DataTypeKind = v.DataTypeKind,
                         IsGloballyDisabled = isGloballyDisabled,
                         OriginalIsEnabled = effectiveEnabled,
                         IsEnabled = effectiveEnabled
@@ -168,6 +173,19 @@ public partial class DeviceVariablesViewModel : ObservableObject, IEditableViewM
                 $"Errore salvataggio: {ex.Message}",
                 MessageSeverity.Error, autoHideSeconds: 0);
         }
+    }
+
+    [RelayCommand]
+    private void EditBitInterpretations(VariableDeviceItem? item)
+    {
+        if (item is null || !item.IsBitmapped || DeviceId is null || _standardDictionaryId is null) return;
+
+        _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
+        {
+            EntityId = item.VariableId,
+            ParentId = _standardDictionaryId.Value,
+            DeviceId = DeviceId.Value
+        });
     }
 
     [RelayCommand]

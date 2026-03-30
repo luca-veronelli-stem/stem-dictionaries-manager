@@ -40,6 +40,11 @@
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   IsReadOnly="False">
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" 
+                              Command="{Binding EditBitInterpretationsCommand}" 
+                              CommandParameter="{Binding SelectedVariable}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="*" MinWidth="200"
                                     IsReadOnly="True"/>
