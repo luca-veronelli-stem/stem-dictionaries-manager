@@ -1163,9 +1163,53 @@ public class VariableEditViewModelTests
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert
-        Assert.Contains("bit per device", _messageService.CurrentMessage ?? "",
+        // Assert — salva stato device, mostra messaggio successo
+        Assert.Contains("device", _messageService.CurrentMessage ?? "",
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task DeviceContext_Save_CallsSetDeviceStateAsync()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        _viewModel.IsEnabled = false;
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert — deve salvare lo stato device
+        Assert.Contains(_variableService.MethodCalls,
+            m => m == "SetDeviceStateAsync:1:42:False");
+    }
+
+    [Fact]
+    public async Task DeviceContext_LoadsDeviceState()
+    {
+        // Arrange — override esistente: disabilitata per device 42
+        SeedBitmappedVariable();
+        _variableService.SeedDeviceStates(
+            VariableDeviceState.Restore(1, 1, 42, isEnabled: false));
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Assert
+        Assert.False(_viewModel.IsEnabled);
+    }
+
+    [Fact]
+    public async Task DeviceContext_NoDeviceState_DefaultsToEnabled()
+    {
+        // Arrange — nessun override per device 42
+        SeedBitmappedVariable();
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+
+        // Assert — default = true
+        Assert.True(_viewModel.IsEnabled);
     }
 
     private void SeedBitmappedVariable()

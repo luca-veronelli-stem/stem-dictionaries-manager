@@ -161,109 +161,15 @@ public class DeviceVariablesViewModelTests
         Assert.False(_viewModel.IsLoading);
     }
 
-    // === HasChanges ===
+    // === HasChanges (read-only list) ===
 
     [Fact]
-    public async Task HasChanges_NoToggle_False()
+    public async Task HasChanges_AlwaysFalse()
     {
         SeedStandardVariables();
         await _viewModel.LoadAsync(7);
 
         Assert.False(_viewModel.HasChanges);
-    }
-
-    [Fact]
-    public async Task HasChanges_AfterToggle_True()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-        _viewModel.Variables[0].IsEnabled = false;
-
-        Assert.True(_viewModel.HasChanges);
-    }
-
-    [Fact]
-    public async Task HasChanges_ToggleBackToOriginal_False()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-        _viewModel.Variables[0].IsEnabled = false;
-        _viewModel.Variables[0].IsEnabled = true;
-
-        Assert.False(_viewModel.HasChanges);
-    }
-
-    // === SaveCommand ===
-
-    [Fact]
-    public async Task Save_NoChanges_ShowsInfoMessage()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        Assert.Contains("Nessuna modifica", _messageService.CurrentMessage ?? "");
-    }
-
-    [Fact]
-    public async Task Save_WithChanges_CallsSetDeviceState()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-        _variableService.MethodCalls.Clear();
-
-        _viewModel.Variables[0].IsEnabled = false;
-
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        Assert.Contains(_variableService.MethodCalls,
-            c => c.StartsWith("SetDeviceStateAsync:") && c.Contains("False"));
-    }
-
-    [Fact]
-    public async Task Save_WithChanges_ShowsSuccessMessage()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-        _viewModel.Variables[0].IsEnabled = false;
-
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        Assert.Equal(MessageSeverity.Success, _messageService.CurrentSeverity);
-    }
-
-    [Fact]
-    public async Task Save_GloballyDisabled_SkipsItem()
-    {
-        _variableService.SeedData(
-            new Variable("Deprecated Var", 0x00, 0x50, DataTypeKind.UInt16,
-                AccessMode.ReadOnly, "UInt16",
-                isEnabled: false, description: "Deprecata"));
-
-        await _viewModel.LoadAsync(7);
-        _variableService.MethodCalls.Clear();
-
-        // Anche se cambiamo manualmente (non dovrebbe succedere con UI)
-        // il save deve ignorarla perché IsGloballyDisabled
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        Assert.DoesNotContain(_variableService.MethodCalls,
-            c => c.StartsWith("SetDeviceStateAsync:"));
-    }
-
-    [Fact]
-    public async Task Save_ServiceThrows_ShowsErrorMessage()
-    {
-        SeedStandardVariables();
-        await _viewModel.LoadAsync(7);
-        _viewModel.Variables[0].IsEnabled = false;
-
-        _variableService.ExceptionToThrow = new InvalidOperationException("Save failed");
-
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        Assert.Equal(MessageSeverity.Error, _messageService.CurrentSeverity);
     }
 
     // === GoBack ===
@@ -318,6 +224,86 @@ public class DeviceVariablesViewModelTests
             new Variable("Serial Number", 0x00, 0x02, DataTypeKind.UInt32,
                 AccessMode.ReadOnly, "UInt32",
                 isEnabled: true, description: "Numero seriale"));
+    }
+
+    // === EditBitInterpretations (doppio click) ===
+
+    [Fact]
+    public async Task EditBitInterpretations_BitmappedVariable_NavigatesToVariableEdit()
+    {
+        _variableService.SeedData(
+            new Variable("StatusBits", 0x00, 0x10, DataTypeKind.Bitmapped,
+                AccessMode.ReadOnly, "bitmapped[1]",
+                isEnabled: true, description: "Status flags"));
+
+        await _viewModel.LoadAsync(7);
+
+        _viewModel.EditBitInterpretationsCommand.Execute(_viewModel.Variables[0]);
+
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public async Task EditBitInterpretations_PassesCorrectParameters()
+    {
+        _variableService.SeedData(
+            new Variable("StatusBits", 0x00, 0x10, DataTypeKind.Bitmapped,
+                AccessMode.ReadOnly, "bitmapped[1]",
+                isEnabled: true, description: "Status flags"));
+
+        await _viewModel.LoadAsync(7);
+
+        _viewModel.EditBitInterpretationsCommand.Execute(_viewModel.Variables[0]);
+
+        var param = _navigationService.LastParameter;
+        Assert.NotNull(param);
+        Assert.NotNull(param!.EntityId);        // VariableId
+        Assert.NotNull(param.ParentId);          // StandardDictionaryId
+        Assert.Equal(7, param.DeviceId);         // DeviceId per DeviceContext mode
+    }
+
+    [Fact]
+    public async Task EditBitInterpretations_NonBitmapped_StillNavigates()
+    {
+        SeedStandardVariables(); // UInt16, UInt32
+
+        await _viewModel.LoadAsync(7);
+
+        _viewModel.EditBitInterpretationsCommand.Execute(_viewModel.Variables[0]);
+
+        // Tutte le variabili navigano in DeviceContext (per stato + bit)
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public void EditBitInterpretations_NullItem_DoesNotNavigate()
+    {
+        _viewModel.EditBitInterpretationsCommand.Execute(null);
+
+        Assert.Null(_navigationService.LastNavigatedView);
+    }
+
+    [Fact]
+    public async Task LoadAsync_BitmappedVariable_SetsIsBitmapped()
+    {
+        _variableService.SeedData(
+            new Variable("StatusBits", 0x00, 0x10, DataTypeKind.Bitmapped,
+                AccessMode.ReadOnly, "bitmapped[1]",
+                isEnabled: true, description: "Status flags"));
+
+        await _viewModel.LoadAsync(7);
+
+        Assert.True(_viewModel.Variables[0].IsBitmapped);
+    }
+
+    [Fact]
+    public async Task LoadAsync_NonBitmappedVariable_IsNotBitmapped()
+    {
+        SeedStandardVariables();
+
+        await _viewModel.LoadAsync(7);
+
+        Assert.False(_viewModel.Variables[0].IsBitmapped);
     }
 }
 #endif

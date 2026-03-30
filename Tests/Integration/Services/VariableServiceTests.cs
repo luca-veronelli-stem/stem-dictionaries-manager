@@ -897,4 +897,145 @@ public class VariableServiceTests : IntegrationTestBase
             isEnabled: isEnabled);
         return await _service.AddAsync(_testDictionary.Id, variable);
     }
+
+    // === GetBitInterpretationsAsync (normal mode — solo comuni) ===
+
+    [Fact]
+    public async Task GetBitInterpretationsAsync_ExcludesDeviceSpecific()
+    {
+        // Arrange — bit comuni + device-specific
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "MixedBits", 0x00, 0x73,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
+            Meaning = "Common bit 1", DeviceId = null
+        });
+
+        // Act — normal mode (no device)
+        var result = await _service.GetBitInterpretationsAsync(created.Id);
+
+        // Assert — solo le comuni, nessuna device-specific
+        Assert.Equal(2, result.Count);
+        Assert.All(result, b => Assert.Null(b.DeviceId));
+        Assert.Contains(result, b => b.BitIndex == 0 && b.Meaning == "Common bit 0");
+        Assert.Contains(result, b => b.BitIndex == 1 && b.Meaning == "Common bit 1");
+    }
+
+    // === GetBitInterpretationsForDeviceAsync merge/override ===
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_MergesDeviceOverCommon()
+    {
+        // Arrange — variabile bitmapped con bit comuni + device-specific
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "StatusBits", 0x00, 0x70,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        // Bit comuni (DeviceId = null)
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
+            Meaning = "Common bit 1", DeviceId = null
+        });
+        // Override per device: solo bit 0
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+
+        // Assert — 2 bit: bit 0 = device override, bit 1 = common fallback
+        Assert.Equal(2, result.Count);
+        Assert.Equal("Device bit 0", result.First(b => b.BitIndex == 0).Meaning);
+        Assert.Equal("Common bit 1", result.First(b => b.BitIndex == 1).Meaning);
+    }
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_NoOverride_ReturnsCommon()
+    {
+        // Arrange — solo bit comuni, nessun override per device 99
+        var variable = new Variable(
+            "StatusBits2", 0x00, 0x71,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common only", DeviceId = null
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, 99);
+
+        // Assert — fallback alle comuni
+        Assert.Single(result);
+        Assert.Equal("Common only", result[0].Meaning);
+        Assert.Null(result[0].DeviceId);
+    }
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_AllOverridden_ReturnsOnlyDevice()
+    {
+        // Arrange — tutti i bit hanno override per device
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "StatusBits3", 0x00, 0x72,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+
+        // Assert — solo 1 bit (device override, non duplicato)
+        Assert.Single(result);
+        Assert.Equal("Device bit 0", result[0].Meaning);
+        Assert.Equal(device.Id, result[0].DeviceId);
+    }
 }
