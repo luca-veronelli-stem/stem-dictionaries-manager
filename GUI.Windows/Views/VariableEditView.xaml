@@ -21,67 +21,63 @@
                    Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid HorizontalAlignment="Left" Width="750">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <StackPanel Margin="0,0,16,0">
+                <!-- Campi form a larghezza fissa -->
+                <Grid HorizontalAlignment="Left" Width="750">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <!-- Nome -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome variabile" MaxLength="100" Margin="0,0,0,12"
-                         BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                    <!-- Nome -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome variabile" MaxLength="100" Margin="0,0,0,12"
+                             BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                <!-- Indirizzo -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <TextBlock Text="High: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding AddressHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                    <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
-                             PreviewTextInput="HexTextBox_PreviewTextInput"
-                             BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
-                    <TextBlock Text="{Binding FullAddressDisplay}" Foreground="White" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                </StackPanel>
+                    <!-- Indirizzo -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="High: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding AddressHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                        <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
+                                 PreviewTextInput="HexTextBox_PreviewTextInput"
+                                 BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                        <TextBlock Text="{Binding FullAddressDisplay}" Foreground="White" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
 
-                <!-- Tipo Dato -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                    <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
-                              Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
-                             Width="150" Visibility="{Binding IsDataTypeOther, Converter={StaticResource BoolToVisibilityConverter}}"
-                             BorderBrush="{Binding IsCustomDataTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
-                </StackPanel>
+                    <!-- Tipo Dato -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+                        <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
+                                  Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
+                                 Width="150" Visibility="{Binding IsDataTypeOther, Converter={StaticResource BoolToVisibilityConverter}}"
+                                 BorderBrush="{Binding IsCustomDataTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                    </StackPanel>
 
-                <!-- Parametro Tipo -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding DataTypeParamLabel}" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"
-                           Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Dimensione"
-                         Width="100" HorizontalAlignment="Left" Margin="0,0,0,12"
-                         Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
-                         PreviewTextInput="IntTextBox_PreviewTextInput"
-                         BorderBrush="{Binding IsDataTypeParamInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                    <!-- Parametro Tipo -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding DataTypeParamLabel}" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"
+                               Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}" 
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Dimensione"
+                             Width="100" HorizontalAlignment="Left" Margin="0,0,0,12"
+                             Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
+                             PreviewTextInput="IntTextBox_PreviewTextInput"
+                             BorderBrush="{Binding IsDataTypeParamInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                </Grid>
 
-                <!-- Sezione BitInterpretations (solo per Bitmapped) -->
-                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
-                            Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}"
+                <!-- Sezione BitInterpretations (solo per Bitmapped) - larghezza piena -->
+                <StackPanel Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}"
                             Margin="0,0,0,12">
                     <ItemsControl ItemsSource="{Binding WordGroups}">
                         <ItemsControl.ItemTemplate>
@@ -178,45 +174,60 @@
                             Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- Accesso -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Accesso" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="5" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
-                          Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
+                <!-- Campi rimanenti a larghezza fissa -->
+                <Grid HorizontalAlignment="Left" Width="750">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <!-- Min/Max/Unita -->
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Min - Max / Unità" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,0,0,12">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
-                                 Style="{StaticResource WatermarkTextBoxStyle}" Tag="Min" Width="80" Margin="0,0,8,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
-                        <TextBlock Text="—" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
-                                 Style="{StaticResource WatermarkTextBoxStyle}" Tag="Max" Width="80" Margin="0,0,16,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
-                        <TextBox Text="{Binding Unit}" Style="{StaticResource WatermarkTextBoxStyle}" Tag="Unità" Width="80"/>
+                            <!-- Accesso -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Accesso" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
+                                      Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
+
+                            <!-- Min/Max/Unita -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Min - Max / Unità" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
+                                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Min" Width="80" Margin="0,0,8,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
+                                    <TextBlock Text="—" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
+                                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Max" Width="80" Margin="0,0,16,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
+                                    <TextBox Text="{Binding Unit}" Style="{StaticResource WatermarkTextBoxStyle}" Tag="Unità" Width="80"/>
+                                </StackPanel>
+                                <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="#E40032" FontSize="11" Margin="0,4,0,0"
+                                           Visibility="{Binding IsMinMaxValid, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                            </StackPanel>
+
+                            <!-- Formato -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Formato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Format}" 
+                                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: %.2f"
+                                     Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+
+                            <!-- Descrizione -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
+                                     AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
+                                     BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+
+                            <!-- Abilitata -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
+                                      Foreground="White" Margin="0,0,0,12"/>
+                        </Grid>
                     </StackPanel>
-                    <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="#E40032" FontSize="11" Margin="0,4,0,0"
-                               Visibility="{Binding IsMinMaxValid, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
-                </StackPanel>
-
-                <!-- Formato -->
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Formato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Format}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: %.2f"
-                         Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
-
-                <!-- Descrizione -->
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
-                         AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
-                         BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
-
-                <!-- Abilitata -->
-                <TextBlock Grid.Row="9" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
-                          Foreground="White" Margin="0,0,0,12"/>
-            </Grid>
-        </ScrollViewer>
+                </ScrollViewer>
 
         <!-- Errore -->
         <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,16" CornerRadius="4"
