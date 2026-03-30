@@ -16,7 +16,7 @@ public class BitInterpretation
     public string? Meaning { get; private set; }
 
     public BitInterpretation(int variableId, int wordIndex, int bitIndex,
-        string? meaning, int? deviceId = null)
+        string? meaning, int? deviceId)
     {
         if (wordIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(wordIndex), "WordIndex must be non-negative.");
@@ -34,7 +34,7 @@ public class BitInterpretation
     /// Factory method per ricostruire da DB.
     /// </summary>
     public static BitInterpretation Restore(int id, int variableId,
-        int wordIndex, int bitIndex, string? meaning, int? deviceId = null)
+        int wordIndex, int bitIndex, string? meaning, int? deviceId)
     {
         var interpretation = new BitInterpretation(variableId, wordIndex, bitIndex, meaning, deviceId)
         {
