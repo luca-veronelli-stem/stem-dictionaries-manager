@@ -459,7 +459,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                         variableId: _editingId!.Value,
                         wordIndex: b.WordIndex,
                         bitIndex: b.BitIndex,
-                        meaning: b.Meaning))
+                        meaning: b.Meaning,
+                        deviceId: null))
                     .ToList();
                 await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
             }
