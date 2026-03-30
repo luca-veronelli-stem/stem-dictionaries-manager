@@ -28,4 +28,26 @@ public static class DatabaseSeeder
         context.Users.AddRange(users);
         await context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Helper per creare un CommandEntity con parametri.
+    /// Formato parametro: "size|description" (es. "1|Stato", "2|IndirizzoHL")
+    /// </summary>
+    private static CommandEntity Cmd(string name, byte codeHigh, byte codeLow, bool isResponse,
+        params string[] parameters)
+    {
+        // Serializza i parametri come JSON array
+        var paramsJson = parameters.Length > 0
+            ? "[" + string.Join(",", parameters.Select(p => $"\"{p}\"")) + "]"
+            : "[]";
+
+        return new CommandEntity
+        {
+            Name = name,
+            CodeHigh = codeHigh,
+            CodeLow = codeLow,
+            IsResponse = isResponse,
+            ParametersJson = paramsJson
+        };
+    }
 }
