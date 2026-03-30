@@ -26,6 +26,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _isLoading;
     private bool _showValidation;
 
+    /// <summary>
+    /// Se valorizzato, la view è in modalità DeviceContext: campi variabile read-only,
+    /// WordGroups editabili con DeviceId. Null = modalità Normal.
+    /// </summary>
+    private int? _deviceContextId;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -133,7 +139,23 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     // === Computed Properties ===
 
     public bool IsNew => _editingId is null;
-    public string FormTitle => IsNew ? "Nuova Variabile" : "Modifica Variabile";
+
+    /// <summary>
+    /// True se in modalità DeviceContext (campi variabile read-only, solo bit editabili).
+    /// </summary>
+    public bool IsDeviceContext => _deviceContextId.HasValue;
+
+    /// <summary>
+    /// True se i campi variabile sono editabili (modalità Normal).
+    /// </summary>
+    public bool IsNotDeviceContext => !IsDeviceContext;
+
+    public string FormTitle => IsDeviceContext
+        ? "Interpretazione Bit (Device)"
+        : IsNew ? "Nuova Variabile" : "Modifica Variabile";
+
+    public string SaveButtonLabel => IsDeviceContext
+        ? "?? Salva Bit" : "?? Salva";
 
     /// <summary>
     /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
@@ -271,8 +293,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Inizializza il ViewModel.
+    /// deviceId != null ? DeviceContext mode (read-only + bit editabili per device).
     /// </summary>
-    public async Task InitializeAsync(int? variableId, int dictionaryId)
+    public async Task InitializeAsync(int? variableId, int dictionaryId, int? deviceId = null)
     {
         if (_isInitialized) return;
 
@@ -282,12 +305,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isLoading = true;
             _editingId = variableId;
             _dictionaryId = dictionaryId;
+            _deviceContextId = deviceId;
 
             // Carica il dizionario per determinare AddressHigh
             var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
             _isStandardDictionary = dictionary?.IsStandard ?? false;
             OnPropertyChanged(nameof(AddressHighHex));
             OnPropertyChanged(nameof(FullAddressDisplay));
+            OnPropertyChanged(nameof(IsDeviceContext));
+            OnPropertyChanged(nameof(IsNotDeviceContext));
 
             if (variableId.HasValue)
             {
@@ -303,7 +329,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
                 {
-                    var bits = await _variableService.GetBitInterpretationsAsync(variableId.Value);
+                    // DeviceContext: carica interpretazioni per device (con fallback a comuni)
+                    // Normal: carica tutte le interpretazioni comuni
+                    var bits = _deviceContextId.HasValue
+                        ? await _variableService.GetBitInterpretationsForDeviceAsync(
+                            variableId.Value, _deviceContextId.Value)
+                        : await _variableService.GetBitInterpretationsAsync(variableId.Value);
+
                     var existingItems = bits.Select(b => new BitInterpretationItem
                     {
                         WordIndex = b.WordIndex,
@@ -394,75 +426,21 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
-
         try
         {
             IsBusy = true;
 
-            var addressHigh = ParseHexByte(AddressHighHex);
-            var addressLow = ParseHexByte(AddressLowHex);
-
-            // Per Bitmapped, DataTypeParam = numero di word
-            var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
-
-            if (IsNew)
+            if (IsDeviceContext)
             {
-                var variable = new Variable(
-                    name: Name,
-                    addressHigh: addressHigh,
-                    addressLow: addressLow,
-                    dataTypeKind: SelectedDataTypeKind,
-                    accessMode: SelectedAccessMode,
-                    dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: dataTypeParam,
-                    isEnabled: IsEnabled,
-                    format: Format,
-                    minValue: MinValue,
-                    maxValue: MaxValue,
-                    unit: Unit,
-                    usage: null,
-                    description: Description);
-
-                var created = await _variableService.AddAsync(_dictionaryId, variable);
-                _editingId = created.Id; // per il salvataggio dei bit
-                _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
+                // DeviceContext: salva solo le BitInterpretation con DeviceId
+                await SaveBitInterpretationsForDeviceAsync();
             }
             else
             {
-                var existing = Variable.Restore(
-                    id: _editingId!.Value,
-                    name: Name,
-                    addressHigh: addressHigh,
-                    addressLow: addressLow,
-                    dataTypeKind: SelectedDataTypeKind,
-                    dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: dataTypeParam,
-                    accessMode: SelectedAccessMode,
-                    isEnabled: IsEnabled,
-                    format: Format,
-                    minValue: MinValue,
-                    maxValue: MaxValue,
-                    unit: Unit,
-                    usage: null,
-                    description: Description);
-
-                await _variableService.UpdateAsync(existing);
-                _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
-            }
-
-            if (SelectedDataTypeKind == DataTypeKind.Bitmapped)
-            {
-                var bitsToSave = WordGroups
-                    .SelectMany(g => g.Items)
-                    .Select(b => new BitInterpretation(
-                        variableId: _editingId!.Value,
-                        wordIndex: b.WordIndex,
-                        bitIndex: b.BitIndex,
-                        meaning: b.Meaning,
-                        deviceId: null))
-                    .ToList();
-                await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
+                // Normal: salva variabile + bit comuni
+                if (!Validate()) return;
+                await SaveVariableAsync();
+                await SaveCommonBitInterpretationsAsync();
             }
 
             HasChanges = false;
@@ -476,6 +454,92 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             IsBusy = false;
         }
+    }
+
+    private async Task SaveVariableAsync()
+    {
+        var addressHigh = ParseHexByte(AddressHighHex);
+        var addressLow = ParseHexByte(AddressLowHex);
+        var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
+
+        if (IsNew)
+        {
+            var variable = new Variable(
+                name: Name,
+                addressHigh: addressHigh,
+                addressLow: addressLow,
+                dataTypeKind: SelectedDataTypeKind,
+                accessMode: SelectedAccessMode,
+                dataTypeRaw: DataTypeForSave,
+                dataTypeParam: dataTypeParam,
+                isEnabled: IsEnabled,
+                format: Format,
+                minValue: MinValue,
+                maxValue: MaxValue,
+                unit: Unit,
+                usage: null,
+                description: Description);
+
+            var created = await _variableService.AddAsync(_dictionaryId, variable);
+            _editingId = created.Id;
+            _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
+        }
+        else
+        {
+            var existing = Variable.Restore(
+                id: _editingId!.Value,
+                name: Name,
+                addressHigh: addressHigh,
+                addressLow: addressLow,
+                dataTypeKind: SelectedDataTypeKind,
+                dataTypeRaw: DataTypeForSave,
+                dataTypeParam: dataTypeParam,
+                accessMode: SelectedAccessMode,
+                isEnabled: IsEnabled,
+                format: Format,
+                minValue: MinValue,
+                maxValue: MaxValue,
+                unit: Unit,
+                usage: null,
+                description: Description);
+
+            await _variableService.UpdateAsync(existing);
+            _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
+        }
+    }
+
+    private async Task SaveCommonBitInterpretationsAsync()
+    {
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+
+        var bitsToSave = WordGroups
+            .SelectMany(g => g.Items)
+            .Select(b => new BitInterpretation(
+                variableId: _editingId!.Value,
+                wordIndex: b.WordIndex,
+                bitIndex: b.BitIndex,
+                meaning: b.Meaning,
+                deviceId: null))
+            .ToList();
+        await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
+    }
+
+    private async Task SaveBitInterpretationsForDeviceAsync()
+    {
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+
+        var bitsToSave = WordGroups
+            .SelectMany(g => g.Items)
+            .Select(b => new BitInterpretation(
+                variableId: _editingId!.Value,
+                wordIndex: b.WordIndex,
+                bitIndex: b.BitIndex,
+                meaning: b.Meaning,
+                deviceId: _deviceContextId))
+            .ToList();
+        await _variableService.UpdateBitInterpretationsForDeviceAsync(
+            _editingId!.Value, _deviceContextId, bitsToSave);
+        _messageService.Show("Interpretazioni bit per device salvate", MessageSeverity.Success);
     }
 
     [RelayCommand]
