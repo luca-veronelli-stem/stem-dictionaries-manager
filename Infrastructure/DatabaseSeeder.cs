@@ -240,7 +240,7 @@ public static class DatabaseSeeder
 
         // === Schede STEM (da indirizzi.csv) ===
         // ProtocolAddress: (MACHINE << 16) | ((FW & 0x3FF) << 6) | (BOARD_NUMBER & 0x3F)
-        // DictionaryId e PartNumber: null (da configurare dalla GUI)
+        // DictionaryId: assegnato dopo il seed dei dizionari
         // BLE Module (MC=6): skippato (BR-015)
         var boards = new[]
         {
@@ -307,6 +307,9 @@ public static class DatabaseSeeder
 
         // === Dizionario Standard (da dati_standard.CSV) ===
         await SeedStandardDictionaryAsync(context);
+
+        // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
+        await SeedPulsantiereDictionaryAsync(context, boards);
     }
 
     /// <summary>
@@ -478,9 +481,156 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
+    /// Crea il dizionario pulsantiere con le variabili specifiche delle tastiere STEM.
+    /// Fonte: Docs/Dictionaries/pulsantiere.CSV
+    /// AddressHigh = 0x80 per tutte le variabili pulsantiere.
+    /// Aggiorna le BoardEntity pulsantiera per puntare a questo dizionario.
+    /// </summary>
+    private static async Task SeedPulsantiereDictionaryAsync(AppDbContext context, BoardEntity[] boards)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Pulsantiere",
+            Description = "Dizionario variabili logiche per tastiere esterne STEM",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var variables = new[]
+        {
+            // 0x8000 — Foto Tasti
+            Var(dictionary.Id, "Foto Tasti", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "Variabile logica gestita dalla tastiera esterna"),
+
+            // 0x8001 — Stato sistema (non più usato, disabilitata)
+            Var(dictionary.Id, "Stato sistema", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1, isEnabled: false,
+                description: "0 = piano fermo, 1 = piano in movimento. Non più utilizzata."),
+
+            // 0x8002 — Comando Led Verde (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Led Verde", 0x80, 0x02,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern lampeggio LED verde. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione LED, numero di ripetizioni"),
+
+            // 0x8003 — Comando Led Rosso (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Led Rosso", 0x80, 0x03,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern lampeggio LED rosso. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione LED, numero di ripetizioni"),
+
+            // 0x8004 — Comando Buzzer (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Buzzer", 0x80, 0x04,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern suono buzzer. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione buzzer, numero di ripetizioni"),
+
+            // 0x8005 — Beep tasti
+            Var(dictionary.Id, "Beep tasti", 0x80, 0x05,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "Abilitazione beep alla pressione dei tasti. 0 = off, 1 = on"),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretations per Comando Led Verde / Rosso / Buzzer ===
+        // Big-endian: Word 3 = BYTE 0 (attivazione, bit interpretati)
+        // Word 0/1/2: valori interi con interpretazione a bit 0
+        var ledVerde = variables[2];
+        var ledRosso = variables[3];
+        var buzzer = variables[4];
+
+        var bitInterpretations = new List<BitInterpretationEntity>();
+
+        foreach (var varId in new[] { ledVerde.Id, ledRosso.Id, buzzer.Id })
+        {
+            bitInterpretations.AddRange(TimingWordBits(varId));
+        }
+
+        // Led Verde — Word 3 (attivazione)
+        bitInterpretations.AddRange(LedBits(ledVerde.Id, 3));
+        // Led Rosso — Word 3 (attivazione)
+        bitInterpretations.AddRange(LedBits(ledRosso.Id, 3));
+        // Buzzer — Word 3 (attivazione, senza bit 2 "single shot")
+        bitInterpretations.AddRange(BuzzerBits(buzzer.Id, 3));
+
+        context.Set<BitInterpretationEntity>().AddRange(bitInterpretations);
+
+        // Aggiorna le board pulsantiera per puntare a questo dizionario.
+        // Tutte le board con FirmwareType=4 sono pulsantiere (FW=4 nel protocollo STEM)
+        // più le pulsantiere TopLift-A2 con FirmwareType=15.
+        foreach (var board in boards)
+        {
+            if (board.FirmwareType is 4 or 15
+                && board.Name.Contains("Pulsantiera", StringComparison.OrdinalIgnoreCase))
+            {
+                board.DictionaryId = dictionary.Id;
+            }
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) per LED (Verde/Rosso).
+    /// bit 0: fisso, bit 1: lampeggiante, bit 2: single shot/loop, bit 3-7: ripetizioni per ciclo
+    /// </summary>
+    private static BitInterpretationEntity[] LedBits(int variableId, int wordIndex) =>
+    [
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 0, Meaning = "Led acceso fisso" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 1, Meaning = "Led lampeggiante" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 2, Meaning = "Single shot (1) / Loop (0)" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 3, Meaning = "Bit dal 3 al 7 (inclusi) rappresentano un numero intero, il numero di lampeggi per ciclo" },
+    ];
+
+    /// <summary>
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) per Buzzer.
+    /// bit 0: fisso, bit 1: lampeggiante, bit 2-7: ripetizioni per ciclo
+    /// </summary>
+    private static BitInterpretationEntity[] BuzzerBits(int variableId, int wordIndex) =>
+    [
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 0, Meaning = "Buzzer acceso fisso" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 1, Meaning = "Buzzer lampeggiante" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 2, Meaning = "Bit dal 2 al 7 (inclusi) rappresentano un numero intero, il numero di lampeggi per ciclo" },
+    ];
+
+    /// <summary>
+    /// BitInterpretation per le Word di timing (Word 0/1/2, big-endian).
+    /// Ogni word è un valore intero in unità di 4 ms.
+    /// </summary>
+    private static BitInterpretationEntity[] TimingWordBits(int variableId) =>
+    [
+        new() { VariableId = variableId, WordIndex = 0, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di pausa tra i cicli di lampeggi in unità di 4 ms" },
+        new() { VariableId = variableId, WordIndex = 1, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di OFF tra i singoli lampeggi in unità di 4 ms" },
+        new() { VariableId = variableId, WordIndex = 2, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di ON tra i singoli lampeggi in unità di 4 ms" },
+    ];
+
+    /// <summary>
     /// Helper per creare una VariableEntity standard (AddressHigh = 0x00).
     /// </summary>
     private static VariableEntity Var(int dictionaryId, string name, byte addressLow,
+        DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
+        int? dataTypeParam = null, string? format = null,
+        double? min = null, double? max = null, string? unit = null,
+        string? description = null, bool isEnabled = true, int? wordSize = null)
+    {
+        return Var(dictionaryId, name, 0x00, addressLow,
+            dataTypeKind, dataTypeRaw, accessMode,
+            dataTypeParam, format, min, max, unit, description, isEnabled, wordSize);
+    }
+
+    /// <summary>
+    /// Helper per creare una VariableEntity con AddressHigh esplicito.
+    /// </summary>
+    private static VariableEntity Var(int dictionaryId, string name, byte addressHigh, byte addressLow,
         DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
         int? dataTypeParam = null, string? format = null,
         double? min = null, double? max = null, string? unit = null,
@@ -490,7 +640,7 @@ public static class DatabaseSeeder
         {
             DictionaryId = dictionaryId,
             Name = name,
-            AddressHigh = 0x00,
+            AddressHigh = addressHigh,
             AddressLow = addressLow,
             DataTypeKind = dataTypeKind,
             DataTypeRaw = dataTypeRaw,
