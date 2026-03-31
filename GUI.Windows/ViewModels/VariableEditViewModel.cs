@@ -115,20 +115,80 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Quando cambia WordSize: ricrea WordGroups con la nuova dimensione.
+    /// Quando cambia WordSize: gestisce riduzione con troncamento bit e conferma.
     /// </summary>
-    partial void OnSelectedWordSizeChanged(int? value)
+    partial void OnSelectedWordSizeChanged(int? oldValue, int? newValue)
     {
         if (_isLoading) return;
 
-        if (value.HasValue && IsBitmapped)
+        if (newValue.HasValue && IsBitmapped)
         {
             if (WordGroups.Count == 0)
+            {
                 CreateInitialWordGroup();
-            else
-                RegenerateWordGroups(WordGroups.Count);
+                HasChanges = true;
+                return;
+            }
 
-            HasChanges = true;
+            // Controlla se la riduzione tronca dei bit esistenti
+            var hasOverflowBits = WordGroups.Any(g =>
+                g.Items.Any(i => i.BitIndex >= newValue.Value));
+
+            if (hasOverflowBits)
+            {
+                _ = HandleWordSizeReductionAsync(oldValue, newValue.Value);
+            }
+            else
+            {
+                RegenerateWordGroups(WordGroups.Count);
+                HasChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gestisce la riduzione del WordSize con conferma e troncamento.
+    /// </summary>
+    private async Task HandleWordSizeReductionAsync(int? previousWordSize, int newWordSize)
+    {
+        var hasNonEmptyOverflow = WordGroups.Any(g =>
+            g.Items.Any(i => i.BitIndex >= newWordSize
+                && !string.IsNullOrWhiteSpace(i.Meaning)));
+
+        if (hasNonEmptyOverflow)
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Riduzione Word Size",
+                $"Alcune word contengono bit con indice ? {newWordSize} " +
+                "che hanno definizioni. Questi bit verranno eliminati. Continuare?");
+
+            if (result != DialogResult.Yes)
+            {
+                _isLoading = true;
+                SelectedWordSize = previousWordSize;
+                _isLoading = false;
+                return;
+            }
+        }
+
+        TruncateBitsToWordSize(newWordSize);
+        RegenerateWordGroups(WordGroups.Count);
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Rimuove i bit con indice ? wordSize da tutte le word.
+    /// </summary>
+    private void TruncateBitsToWordSize(int wordSize)
+    {
+        foreach (var group in WordGroups)
+        {
+            var toRemove = group.Items
+                .Where(i => i.BitIndex >= wordSize)
+                .ToList();
+
+            foreach (var item in toRemove)
+                group.TryRemoveBit(item);
         }
     }
 
