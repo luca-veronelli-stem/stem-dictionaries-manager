@@ -247,9 +247,31 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private async Task DeleteDictionaryAsync()
     {
-        await _dialogService.ShowErrorAsync(
-            "Funzionalità riservata",
-            "L'eliminazione dei dizionari è riservata all'amministratore.");
+        if (_editingId is null) return;
+
+        var result = await _dialogService.ShowConfirmAsync(
+            "Conferma eliminazione",
+            $"L'eliminazione del dizionario '{Name}' e di tutte le sue variabili è irreversibile. Continuare?");
+
+        if (result != Abstractions.DialogResult.Yes) return;
+
+        try
+        {
+            IsBusy = true;
+            await _dictionaryService.DeleteAsync(_editingId.Value);
+            _messageService.Show($"Dizionario '{Name}' eliminato", MessageSeverity.Success);
+            HasChanges = false;
+            _navigationService.GoBack();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Errore",
+                $"Impossibile eliminare: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
