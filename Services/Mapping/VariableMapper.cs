@@ -31,7 +31,8 @@ public static class VariableMapper
             maxValue: entity.MaxValue,
             unit: entity.Unit,
             usage: entity.Usage,
-            description: entity.Description);
+            description: entity.Description,
+            wordSize: entity.WordSize);
     }
 
     /// <summary>
@@ -58,7 +59,8 @@ public static class VariableMapper
             MaxValue = domain.MaxValue,
             Unit = domain.Unit,
             Usage = domain.Usage,
-            Description = domain.Description
+            Description = domain.Description,
+            WordSize = domain.WordSize
         };
     }
 
@@ -85,6 +87,7 @@ public static class VariableMapper
         entity.Unit = domain.Unit;
         entity.Usage = domain.Usage;
         entity.Description = domain.Description;
+        entity.WordSize = domain.WordSize;
     }
 
     /// <summary>

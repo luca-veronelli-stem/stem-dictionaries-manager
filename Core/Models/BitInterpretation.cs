@@ -16,12 +16,13 @@ public class BitInterpretation
     public string? Meaning { get; private set; }
 
     public BitInterpretation(int variableId, int wordIndex, int bitIndex,
-        string? meaning, int? deviceId)
+        string? meaning, int? deviceId, int maxBitIndex = 15)
     {
         if (wordIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(wordIndex), "WordIndex must be non-negative.");
-        if (bitIndex < 0 || bitIndex > 15)
-            throw new ArgumentOutOfRangeException(nameof(bitIndex), "BitIndex must be between 0 and 15.");
+        if (bitIndex < 0 || bitIndex > maxBitIndex)
+            throw new ArgumentOutOfRangeException(nameof(bitIndex),
+                $"BitIndex must be between 0 and {maxBitIndex}.");
 
         VariableId = variableId;
         DeviceId = deviceId;

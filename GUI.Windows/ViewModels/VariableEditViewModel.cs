@@ -79,6 +79,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [ObservableProperty]
     private int? _dataTypeParam;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasWordSize))]
+    [NotifyPropertyChangedFor(nameof(IsWordSizeInvalid))]
+    [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
+    private int? _selectedWordSize;
+
     /// <summary>
     /// Notifica validazione quando cambia il DataTypeParam (Size per Array/String).
     /// </summary>
@@ -88,7 +94,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Quando cambia il tipo dato: se Bitmapped, crea Word 0 automaticamente.
+    /// Quando cambia il tipo dato: se Bitmapped, attende WordSize prima di creare WordGroups.
     /// </summary>
     partial void OnSelectedDataTypeKindChanged(DataTypeKind value)
     {
@@ -96,13 +102,33 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         if (value == DataTypeKind.Bitmapped)
         {
-            if (WordGroups.Count == 0)
-                CreateInitialWordGroup();
+            SelectedWordSize = null;
+            WordGroups.Clear();
+            OnPropertyChanged(nameof(CanRemoveWord));
         }
         else
         {
+            SelectedWordSize = null;
             WordGroups.Clear();
             OnPropertyChanged(nameof(CanRemoveWord));
+        }
+    }
+
+    /// <summary>
+    /// Quando cambia WordSize: ricrea WordGroups con la nuova dimensione.
+    /// </summary>
+    partial void OnSelectedWordSizeChanged(int? value)
+    {
+        if (_isLoading) return;
+
+        if (value.HasValue && IsBitmapped)
+        {
+            if (WordGroups.Count == 0)
+                CreateInitialWordGroup();
+            else
+                RegenerateWordGroups(WordGroups.Count);
+
+            HasChanges = true;
         }
     }
 
@@ -132,7 +158,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Gruppi di bit per word (solo per DataType == Bitmapped).
-    /// Ogni WordBitGroup contiene max 16 BitInterpretationItem.
+    /// Ogni WordBitGroup contiene max WordSize BitInterpretationItem.
     /// </summary>
     public ObservableCollection<WordBitGroup> WordGroups { get; } = [];
 
@@ -169,9 +195,22 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
-    /// True se è Bitmapped (mostra Word Count / Word Size).
+    /// True se è Bitmapped (mostra Word Size selector).
     /// </summary>
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
+
+    /// <summary>
+    /// True se è Bitmapped e WordSize è stato selezionato (mostra WordGroups).
+    /// </summary>
+    public bool HasWordSize => IsBitmapped && SelectedWordSize.HasValue;
+
+    /// <summary>
+    /// Validazione: WordSize obbligatorio per Bitmapped.
+    /// </summary>
+    public bool IsWordSizeInvalid => _showValidation && IsBitmapped && !SelectedWordSize.HasValue;
+
+    /// <summary>Opzioni per il ComboBox WordSize.</summary>
+    public IReadOnlyList<int> WordSizeOptions { get; } = Variable.AllowedWordSizes;
 
     /// <summary>
     /// Label per il parametro tipo (con asterisco).
@@ -360,8 +399,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isInitialized = true;
             HasChanges = false;
 
-            // Se nuovo e tipo è Bitmapped (improbabile ma safe), crea Word 0
-            if (IsBitmapped && WordGroups.Count == 0)
+            // Se nuovo e tipo è Bitmapped con WordSize già impostato, crea Word 0
+            if (HasWordSize && WordGroups.Count == 0)
                 CreateInitialWordGroup();
 
             OnPropertyChanged(nameof(IsNew));
@@ -394,6 +433,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         Unit = v.Unit;
         Description = v.Description;
         IsEnabled = v.IsEnabled;
+        SelectedWordSize = v.WordSize;
 
         // Imposta custom type se è Other
         if (v.DataTypeKind == DataTypeKind.Other)
@@ -412,6 +452,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         OnPropertyChanged(nameof(IsDescriptionInvalid));
         OnPropertyChanged(nameof(IsDataTypeParamInvalid));
         OnPropertyChanged(nameof(IsCustomDataTypeInvalid));
+        OnPropertyChanged(nameof(IsWordSizeInvalid));
 
         var missing = new List<string>();
 
@@ -420,6 +461,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         if (string.IsNullOrWhiteSpace(Description)) missing.Add("Descrizione");
         if (RequiresDataTypeParam && !DataTypeParam.HasValue) missing.Add(DataTypeParamLabel.TrimEnd(' ', '*'));
         if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType)) missing.Add("Tipo dato custom");
+        if (IsBitmapped && !SelectedWordSize.HasValue) missing.Add("Word Size (bits)");
         if (!IsAddressLowValid) missing.Add("Indirizzo (formato hex non valido)");
         if (!IsMinMaxValid) missing.Add("Min/Max (Min deve essere ? Max)");
 
@@ -471,6 +513,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         var addressHigh = ParseHexByte(AddressHighHex);
         var addressLow = ParseHexByte(AddressLowHex);
         var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
+        var wordSize = IsBitmapped ? SelectedWordSize : null;
 
         if (IsNew)
         {
@@ -488,7 +531,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 maxValue: MaxValue,
                 unit: Unit,
                 usage: null,
-                description: Description);
+                description: Description,
+                wordSize: wordSize);
 
             var created = await _variableService.AddAsync(_dictionaryId, variable);
             _editingId = created.Id;
@@ -511,7 +555,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 maxValue: MaxValue,
                 unit: Unit,
                 usage: null,
-                description: Description);
+                description: Description,
+                wordSize: wordSize);
 
             await _variableService.UpdateAsync(existing);
             _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
@@ -608,7 +653,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private void AddWord()
     {
-        var newGroup = new WordBitGroup(WordGroups.Count);
+        var newGroup = new WordBitGroup(WordGroups.Count, SelectedWordSize ?? 16);
         newGroup.TryAddBit();
         newGroup.Items[0].PropertyChanged += (_, _) => HasChanges = true;
         WordGroups.Add(newGroup);
@@ -645,7 +690,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     private void CreateInitialWordGroup()
     {
-        var group = new WordBitGroup(0);
+        var group = new WordBitGroup(0, SelectedWordSize ?? 16);
         group.TryAddBit();
         group.Items[0].PropertyChanged += (_, _) => HasChanges = true;
         WordGroups.Add(group);
@@ -678,7 +723,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         for (var w = 0; w < wordCount; w++)
         {
-            var group = new WordBitGroup(w);
+            var group = new WordBitGroup(w, SelectedWordSize ?? 16);
             var wordItems = existingItems
                 .Where(i => i.WordIndex == w)
                 .OrderBy(i => i.BitIndex)

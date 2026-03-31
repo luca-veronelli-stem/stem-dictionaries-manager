@@ -82,8 +82,21 @@
                              BorderBrush="{Binding IsDataTypeParamInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                 </Grid>
 
-                <!-- Sezione BitInterpretations (solo per Bitmapped) - larghezza piena -->
-                <StackPanel Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}"
+                <!-- Word Size selector (solo per Bitmapped) -->
+                <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDeviceContext}"
+                      Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Word Size (bits) *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding WordSizeOptions}" 
+                              SelectedItem="{Binding SelectedWordSize}"
+                              Width="100" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
+                </Grid>
+
+                <!-- Sezione BitInterpretations (solo per Bitmapped con WordSize selezionato) - larghezza piena -->
+                <StackPanel Visibility="{Binding HasWordSize, Converter={StaticResource BoolToVisibilityConverter}}"
                             Margin="0,0,0,12">
                     <ItemsControl ItemsSource="{Binding WordGroups}">
                         <ItemsControl.ItemTemplate>

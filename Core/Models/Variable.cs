@@ -31,6 +31,15 @@ public class Variable
     public bool IsEnabled { get; private set; }
 
     /// <summary>
+    /// Dimensione in bit di ogni word per variabili Bitmapped (8, 16 o 32).
+    /// Null per tutti gli altri tipi. BR-019.
+    /// </summary>
+    public int? WordSize { get; private set; }
+
+    /// <summary>Valori ammessi per WordSize (BR-019).</summary>
+    public static readonly int[] AllowedWordSizes = [8, 16, 32];
+
+    /// <summary>
     /// Indirizzo completo (AddressHigh << 8 | AddressLow).
     /// </summary>
     public ushort FullAddress => (ushort)((AddressHigh << 8) | AddressLow);
@@ -59,7 +68,8 @@ public class Variable
         double? maxValue = null,
         string? unit = null,
         string? usage = null,
-        string? description = null)
+        string? description = null,
+        int? wordSize = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(dataTypeRaw);
@@ -67,6 +77,10 @@ public class Variable
         if (addressHigh != 0x00 && addressHigh != 0x80)
             throw new ArgumentOutOfRangeException(nameof(addressHigh),
                 $"AddressHigh must be 0x00 (Standard) or 0x80 (DeviceSpecific), got 0x{addressHigh:X2}.");
+
+        if (wordSize.HasValue && !AllowedWordSizes.Contains(wordSize.Value))
+            throw new ArgumentOutOfRangeException(nameof(wordSize),
+                $"WordSize must be 8, 16 or 32, got {wordSize.Value}.");
 
         Name = name;
         AddressHigh = addressHigh;
@@ -82,6 +96,7 @@ public class Variable
         Unit = unit;
         Usage = usage;
         Description = description;
+        WordSize = wordSize;
     }
 
     /// <summary>
@@ -102,10 +117,12 @@ public class Variable
         double? maxValue,
         string? unit,
         string? usage,
-        string? description)
+        string? description,
+        int? wordSize = null)
     {
         var variable = new Variable(name, addressHigh, addressLow, dataTypeKind, accessMode,
-            dataTypeRaw, dataTypeParam, isEnabled, format, minValue, maxValue, unit, usage, description)
+            dataTypeRaw, dataTypeParam, isEnabled, format, minValue, maxValue, unit, usage,
+            description, wordSize)
         {
             Id = id
         };

@@ -21,6 +21,7 @@ public class VariableEntity : IAuditable
     public string? Usage { get; set; }
     public string? Description { get; set; }
     public bool IsEnabled { get; set; }
+    public int? WordSize { get; set; }
 
     // IAuditable
     public DateTime CreatedAt { get; set; }
