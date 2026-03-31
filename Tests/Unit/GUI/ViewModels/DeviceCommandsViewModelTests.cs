@@ -260,6 +260,7 @@ public class DeviceCommandsViewModelTests
         var dictionaryService = new MockDictionaryService();
         var boardService = new MockBoardService();
         var deviceService = new MockDeviceService();
+        var commandService = new MockCommandService();
         var dialogService = new MockDialogService();
         var messageService = new MockMessageService();
         var navigationService = new MockNavigationService();
@@ -267,7 +268,7 @@ public class DeviceCommandsViewModelTests
 
         var vm = new DeviceDetailViewModel(
             navigationService, dictionaryService, boardService, deviceService,
-            dialogService, messageService);
+            commandService, dialogService, messageService);
 
         await vm.LoadAsync(7);
 

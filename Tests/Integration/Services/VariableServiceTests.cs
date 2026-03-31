@@ -1038,4 +1038,78 @@ public class VariableServiceTests : IntegrationTestBase
         Assert.Equal("Device bit 0", result[0].Meaning);
         Assert.Equal(device.Id, result[0].DeviceId);
     }
+
+    // === WordSize Persistence Tests ===
+
+    [Fact]
+    public async Task AddAsync_Bitmapped_WithWordSize_PersistsWordSize()
+    {
+        // Arrange
+        var variable = new Variable(
+            name: "StatusFlags",
+            addressHigh: 0x00,
+            addressLow: 0xA0,
+            dataTypeKind: DataTypeKind.Bitmapped,
+            accessMode: AccessMode.ReadOnly,
+            dataTypeRaw: "Bitmapped[2]",
+            dataTypeParam: 2,
+            description: "Bitmapped with wordSize",
+            wordSize: 8);
+
+        // Act
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        // Assert — round-trip: reload from DB
+        var loaded = await _service.GetByIdAsync(created.Id);
+        Assert.NotNull(loaded);
+        Assert.Equal(8, loaded.WordSize);
+        Assert.Equal(DataTypeKind.Bitmapped, loaded.DataTypeKind);
+        Assert.Equal(2, loaded.DataTypeParam);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Bitmapped_WordSize_UpdatesInDb()
+    {
+        // Arrange — crea con wordSize=16
+        var entity = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "AlarmFlags",
+            AddressHigh = 0x00,
+            AddressLow = 0xA1,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "Bitmapped[1]",
+            DataTypeParam = 1,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            WordSize = 16
+        };
+        await _variableRepo.AddAsync(entity);
+
+        // Act — aggiorna wordSize a 32
+        var updated = Variable.Restore(
+            id: entity.Id,
+            name: "AlarmFlags",
+            addressHigh: 0x00,
+            addressLow: 0xA1,
+            dataTypeKind: DataTypeKind.Bitmapped,
+            dataTypeRaw: "Bitmapped[1]",
+            dataTypeParam: 1,
+            accessMode: AccessMode.ReadOnly,
+            isEnabled: true,
+            format: null,
+            minValue: null,
+            maxValue: null,
+            unit: null,
+            usage: null,
+            description: null,
+            wordSize: 32);
+
+        await _service.UpdateAsync(updated);
+
+        // Assert
+        var loaded = await _service.GetByIdAsync(entity.Id);
+        Assert.NotNull(loaded);
+        Assert.Equal(32, loaded.WordSize);
+    }
 }

@@ -486,6 +486,7 @@ public class VariableEditViewModelTests
     public void DataTypeForSave_BitmappedWithWords_IncludesWordCount()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         Assert.Equal("Bitmapped[2]", _viewModel.DataTypeForSave);
     }
@@ -494,6 +495,7 @@ public class VariableEditViewModelTests
     public void DataTypeForSave_BitmappedSingleWord_ShowsOne()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Equal("Bitmapped[1]", _viewModel.DataTypeForSave);
     }
 
@@ -554,6 +556,7 @@ public class VariableEditViewModelTests
     public void SelectingBitmapped_AutoCreatesWord0()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
 
         Assert.Single(_viewModel.WordGroups);
         Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
@@ -565,6 +568,7 @@ public class VariableEditViewModelTests
     public void SelectingNonBitmapped_ClearsWordGroups()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.NotEmpty(_viewModel.WordGroups);
 
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
@@ -575,6 +579,7 @@ public class VariableEditViewModelTests
     public void AddBitToWordCommand_AddsBitToCorrectGroup()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var group = _viewModel.WordGroups[0];
         Assert.Single(group.Items);
 
@@ -588,6 +593,7 @@ public class VariableEditViewModelTests
     public void AddBitToWordCommand_SetsHasChanges()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.HasChanges = false;
 
         _viewModel.AddBitToWordCommand.Execute(_viewModel.WordGroups[0]);
@@ -599,6 +605,7 @@ public class VariableEditViewModelTests
     public void RemoveBitFromWordCommand_RemovesBitAndSetsHasChanges()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var group = _viewModel.WordGroups[0];
         group.TryAddBit();
         _viewModel.HasChanges = false;
@@ -617,6 +624,7 @@ public class VariableEditViewModelTests
         _viewModel.AddressLowHex = "50";
         _viewModel.Description = "Bitmapped variable";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -629,6 +637,7 @@ public class VariableEditViewModelTests
     public void AddWordCommand_AddsNewWordGroup()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
 
         _viewModel.AddWordCommand.Execute(null);
@@ -644,6 +653,7 @@ public class VariableEditViewModelTests
     public void AddWordCommand_MultipleWords()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.AddWordCommand.Execute(null);
 
@@ -655,6 +665,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_RemovesWord_AndReindexes()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.AddWordCommand.Execute(null);
         Assert.Equal(3, _viewModel.WordGroups.Count);
@@ -671,6 +682,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_WithNonEmptyMeanings_ShowsConfirmDialog()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.WordGroups[1].Items[0].Meaning = "Motor Active";
         _dialogService.ConfirmResult = DialogResult.Yes;
@@ -685,6 +697,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_ConfirmNo_DoesNotRemove()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.WordGroups[1].Items[0].Meaning = "Motor Active";
         _dialogService.ConfirmResult = DialogResult.No;
@@ -698,6 +711,7 @@ public class VariableEditViewModelTests
     public void CanRemoveWord_FalseWhenSingleWord()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
         Assert.False(_viewModel.CanRemoveWord);
     }
@@ -706,6 +720,7 @@ public class VariableEditViewModelTests
     public void CanRemoveWord_TrueWhenMultipleWords()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         Assert.True(_viewModel.CanRemoveWord);
     }
@@ -714,6 +729,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_WhenOnlyOneWord_DoesNothing()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var singleGroup = _viewModel.WordGroups[0];
 
         await _viewModel.RemoveWordCommand.ExecuteAsync(singleGroup);
@@ -725,6 +741,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_ReindexesItemsWordIndex()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.AddWordCommand.Execute(null);
         // Word 2 items have WordIndex = 2
@@ -741,6 +758,7 @@ public class VariableEditViewModelTests
     public void RemoveLastBitFromWordCommand_RemovesLastBit()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var group = _viewModel.WordGroups[0];
         _viewModel.AddBitToWordCommand.Execute(group);
         _viewModel.AddBitToWordCommand.Execute(group);
@@ -757,6 +775,7 @@ public class VariableEditViewModelTests
     public void RemoveLastBitFromWordCommand_WhenSingleBit_DoesNothing()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var group = _viewModel.WordGroups[0];
         Assert.Single(group.Items);
 
@@ -769,6 +788,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_UpdatesDataTypeForSave()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.AddWordCommand.Execute(null);
         Assert.Equal("Bitmapped[3]", _viewModel.DataTypeForSave);
@@ -782,6 +802,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_EmptyMeanings_DoesNotShowDialog()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         // Word 1 ha meanings vuoti (default)
 
@@ -795,6 +816,7 @@ public class VariableEditViewModelTests
     public async Task RemoveWordCommand_SetsHasChanges()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.AddWordCommand.Execute(null);
         _viewModel.HasChanges = false;
 
@@ -807,15 +829,18 @@ public class VariableEditViewModelTests
     public void SwitchingBitmappedToOtherAndBack_RecreatesWord0()
     {
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
         _viewModel.WordGroups[0].Items[0].Meaning = "Motor";
 
-        // Switch away
+        // Switch away — resets WordSize and WordGroups
         _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
         Assert.Empty(_viewModel.WordGroups);
+        Assert.Null(_viewModel.SelectedWordSize);
 
-        // Switch back
+        // Switch back — need to set WordSize again
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
         Assert.Equal("Word 0", _viewModel.WordGroups[0].Label);
         Assert.Single(_viewModel.WordGroups[0].Items);
@@ -1219,8 +1244,266 @@ public class VariableEditViewModelTests
             dataTypeKind: DataTypeKind.Bitmapped, dataTypeRaw: "bitmapped[1]",
             dataTypeParam: 1, accessMode: AccessMode.ReadOnly,
             isEnabled: true, format: null, minValue: null, maxValue: null,
-            unit: null, usage: null, description: "Status flags");
+            unit: null, usage: null, description: "Status flags",
+            wordSize: 16);
         _variableService.SeedData(bitmapped);
+    }
+
+    #endregion
+
+    #region WordSize (BR-019)
+
+    [Fact]
+    public async Task SelectedWordSize_NullByDefault()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        Assert.Null(_viewModel.SelectedWordSize);
+    }
+
+    [Fact]
+    public async Task IsBitmapped_ShowsWordSizeSelector()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+
+        Assert.True(_viewModel.IsBitmapped);
+        Assert.False(_viewModel.HasWordSize);
+    }
+
+    [Fact]
+    public async Task HasWordSize_TrueAfterSelectingWordSize()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        Assert.True(_viewModel.HasWordSize);
+    }
+
+    [Fact]
+    public async Task SelectedWordSize_CreatesWordGroupsWhenSet()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        Assert.Empty(_viewModel.WordGroups);
+
+        _viewModel.SelectedWordSize = 8;
+
+        Assert.Single(_viewModel.WordGroups);
+        Assert.Equal(8, _viewModel.WordGroups[0].MaxBitsPerWord);
+    }
+
+    [Fact]
+    public async Task ChangingDataTypeKind_ResetsWordSize()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+        Assert.True(_viewModel.HasWordSize);
+
+        _viewModel.SelectedDataTypeKind = DataTypeKind.UInt16;
+
+        Assert.Null(_viewModel.SelectedWordSize);
+        Assert.False(_viewModel.HasWordSize);
+    }
+
+    [Fact]
+    public async Task WordSizeOptions_Contains_8_16_32()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+
+        Assert.Equal([8, 16, 32], _viewModel.WordSizeOptions);
+    }
+
+    [Fact]
+    public async Task Validate_MissingWordSize_ShowsWarning()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "Test";
+        _viewModel.AddressLowHex = "06";
+        _viewModel.Description = "Allarmi";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        // SelectedWordSize left null
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.IsWordSizeInvalid);
+    }
+
+    [Fact]
+    public async Task LoadExisting_BitmappedWithWordSize_LoadsWordSize()
+    {
+        SeedBitmappedVariable();
+        _dictionaryService.SeedData(
+            new Dictionary("Standard", "Standard vars", isStandard: true));
+
+        await _viewModel.InitializeAsync(1, 2);
+
+        Assert.Equal(16, _viewModel.SelectedWordSize);
+        Assert.True(_viewModel.HasWordSize);
+    }
+
+    [Fact]
+    public async Task SaveNew_Bitmapped_IncludesWordSize()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.Name = "Allarmi";
+        _viewModel.AddressLowHex = "06";
+        _viewModel.Description = "Allarmi bitmapped";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 32;
+
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var saved = _variableService.GetSavedVariable();
+        Assert.NotNull(saved);
+        Assert.Equal(32, saved.WordSize);
+    }
+
+    [Fact]
+    public async Task ReduceWordSize_TruncatesOverflowBits()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        // Aggiungi 10 bit alla Word 0
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 9; i++)
+            group.TryAddBit();
+        Assert.Equal(10, group.Items.Count);
+
+        // Riduci a 8 — i bit 8 e 9 devono sparire
+        _viewModel.SelectedWordSize = 8;
+
+        Assert.Equal(8, _viewModel.WordGroups[0].Items.Count);
+        Assert.True(_viewModel.WordGroups[0].Items.All(i => i.BitIndex < 8));
+    }
+
+    [Fact]
+    public async Task ReduceWordSize_WithNonEmptyMeanings_ShowsConfirm()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        // Aggiungi bit e metti un meaning al bit 10
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 10; i++)
+            group.TryAddBit();
+        group.Items[10].Meaning = "Overflow alarm";
+
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        // Riduci a 8
+        _viewModel.SelectedWordSize = 8;
+
+        // Deve attendere il dialog async
+        await Task.Delay(50);
+
+        Assert.True(_dialogService.ShowConfirmCalled);
+        Assert.Equal(8, _viewModel.WordGroups[0].Items.Count);
+    }
+
+    [Fact]
+    public async Task ReduceWordSize_ConfirmNo_RestoresPreviousValue()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 10; i++)
+            group.TryAddBit();
+        group.Items[10].Meaning = "Alarm";
+
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        // Riduci a 8 — utente dice No
+        _viewModel.SelectedWordSize = 8;
+
+        await Task.Delay(50);
+
+        Assert.True(_dialogService.ShowConfirmCalled);
+        // WordSize ripristinato a 16
+        Assert.Equal(16, _viewModel.SelectedWordSize);
+        // Bit non troncati
+        Assert.Equal(11, _viewModel.WordGroups[0].Items.Count);
+    }
+
+    [Fact]
+    public async Task ReduceWordSize_NoOverflow_NoConfirm()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        // Solo 3 bit — tutti sotto 8
+        var group = _viewModel.WordGroups[0];
+        group.TryAddBit();
+        group.TryAddBit();
+        Assert.Equal(3, group.Items.Count);
+
+        // Riduci a 8 — nessun overflow
+        _viewModel.SelectedWordSize = 8;
+
+        Assert.False(_dialogService.ShowConfirmCalled);
+        Assert.Equal(3, _viewModel.WordGroups[0].Items.Count);
+        Assert.Equal(8, _viewModel.WordGroups[0].MaxBitsPerWord);
+    }
+
+    [Fact]
+    public async Task IncreaseWordSize_KeepsExistingBits()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 8;
+
+        // Aggiungi 5 bit (totale 6) alla Word 0
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 5; i++)
+            group.TryAddBit();
+        Assert.Equal(6, group.Items.Count);
+        group.Items[3].Meaning = "Important";
+
+        // Aumenta a 16
+        _viewModel.SelectedWordSize = 16;
+
+        // Bit esistenti preservati, MaxBitsPerWord aggiornato
+        Assert.Equal(6, _viewModel.WordGroups[0].Items.Count);
+        Assert.Equal(16, _viewModel.WordGroups[0].MaxBitsPerWord);
+        Assert.Equal("Important", _viewModel.WordGroups[0].Items[3].Meaning);
+        Assert.False(_dialogService.ShowConfirmCalled);
+    }
+
+    [Fact]
+    public async Task ReduceWordSize_EmptyMeanings_NoConfirm_StillTruncates()
+    {
+        await _viewModel.InitializeAsync(null, 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        // Aggiungi 10 bit alla Word 0 — tutti con meaning vuoto
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 9; i++)
+            group.TryAddBit();
+        Assert.Equal(10, group.Items.Count);
+
+        // Riduci a 8 — overflow ma senza meanings
+        _viewModel.SelectedWordSize = 8;
+
+        // Serve delay per l'async in HandleWordSizeReductionAsync
+        await Task.Delay(50);
+
+        // Nessun dialog (meanings vuoti) ma bit troncati
+        Assert.False(_dialogService.ShowConfirmCalled);
+        Assert.Equal(8, _viewModel.WordGroups[0].Items.Count);
+        Assert.True(_viewModel.WordGroups[0].Items.All(i => i.BitIndex < 8));
     }
 
     #endregion

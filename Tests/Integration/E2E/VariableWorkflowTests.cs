@@ -396,4 +396,58 @@ public class VariableWorkflowTests : IntegrationTestBase
     }
 
     #endregion
+
+    #region WordSize Persistence Tests
+
+    [Fact]
+    public async Task FullWorkflow_CreateBitmappedWithWordSize_PersistsAndLoads()
+    {
+        // Setup
+        var dictRepo = new DictionaryRepository(Context);
+        var varRepo = new VariableRepository(Context);
+        var bitRepo = new BitInterpretationRepository(Context);
+
+        var dict = new DictionaryEntity { Name = "WordSizeDict", IsStandard = false };
+        await dictRepo.AddAsync(dict);
+
+        // Create bitmapped variable with wordSize=8
+        var bitmappedVar = new VariableEntity
+        {
+            Name = "CompactFlags",
+            AddressHigh = 0x80,
+            AddressLow = 0x30,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "Bitmapped[2]",
+            DataTypeParam = 2,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            DictionaryId = dict.Id,
+            WordSize = 8
+        };
+        await varRepo.AddAsync(bitmappedVar);
+
+        // Add bit interpretations within 8-bit range
+        var bits = new List<BitInterpretationEntity>
+        {
+            new() { VariableId = bitmappedVar.Id, WordIndex = 0, BitIndex = 0, Meaning = "Power" },
+            new() { VariableId = bitmappedVar.Id, WordIndex = 0, BitIndex = 7, Meaning = "Error" },
+            new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 0, Meaning = "Motor" },
+            new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 5, Meaning = "Brake" },
+        };
+        foreach (var bi in bits)
+            await bitRepo.AddAsync(bi);
+
+        // Verify — reload variable
+        var loadedVar = await Context.Variables.FindAsync(bitmappedVar.Id);
+        Assert.NotNull(loadedVar);
+        Assert.Equal(8, loadedVar.WordSize);
+        Assert.Equal(2, loadedVar.DataTypeParam);
+
+        // Verify — bit interpretations persisted
+        var loadedBits = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        Assert.Equal(4, loadedBits.Count);
+        Assert.True(loadedBits.All(b => b.BitIndex < 8));
+    }
+
+    #endregion
 }

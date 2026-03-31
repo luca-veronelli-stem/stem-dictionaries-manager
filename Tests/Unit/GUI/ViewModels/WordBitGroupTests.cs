@@ -235,5 +235,68 @@ public class WordBitGroupTests
 
         Assert.False(group.CanRemoveBit);
     }
+
+    // === maxBitsPerWord configurabile (BR-019) ===
+
+    [Fact]
+    public void Constructor_DefaultMaxBitsPerWord_Is16()
+    {
+        var group = new WordBitGroup(0);
+
+        Assert.Equal(16, group.MaxBitsPerWord);
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(16)]
+    [InlineData(32)]
+    public void Constructor_CustomMaxBitsPerWord_SetsProperty(int maxBits)
+    {
+        var group = new WordBitGroup(0, maxBits);
+
+        Assert.Equal(maxBits, group.MaxBitsPerWord);
+    }
+
+    [Fact]
+    public void TryAddBit_RespectsCustomMaxBitsPerWord_8()
+    {
+        var group = new WordBitGroup(0, maxBitsPerWord: 8);
+        for (var i = 0; i < 8; i++)
+            group.TryAddBit();
+
+        Assert.Equal(8, group.Items.Count);
+        Assert.False(group.TryAddBit());
+    }
+
+    [Fact]
+    public void TryAddBit_RespectsCustomMaxBitsPerWord_32()
+    {
+        var group = new WordBitGroup(0, maxBitsPerWord: 32);
+        for (var i = 0; i < 32; i++)
+            Assert.True(group.TryAddBit());
+
+        Assert.Equal(32, group.Items.Count);
+        Assert.False(group.TryAddBit());
+    }
+
+    [Fact]
+    public void CanAddBit_FalseWhenAt8_WithMaxBits8()
+    {
+        var group = new WordBitGroup(0, maxBitsPerWord: 8);
+        for (var i = 0; i < 8; i++)
+            group.TryAddBit();
+
+        Assert.False(group.CanAddBit);
+    }
+
+    [Fact]
+    public void CanAddBit_TrueWhenAt8_WithMaxBits32()
+    {
+        var group = new WordBitGroup(0, maxBitsPerWord: 32);
+        for (var i = 0; i < 8; i++)
+            group.TryAddBit();
+
+        Assert.True(group.CanAddBit);
+    }
 }
 #endif

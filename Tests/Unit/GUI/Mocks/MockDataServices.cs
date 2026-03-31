@@ -263,7 +263,8 @@ public class MockVariableService : IVariableService
             variable.MaxValue,
             variable.Unit,
             variable.Usage,
-            variable.Description);
+            variable.Description,
+            variable.WordSize);
         _variables.Add(restored);
         return Task.FromResult(restored);
     }
@@ -408,10 +409,14 @@ public class MockVariableService : IVariableService
                 v.MaxValue,
                 v.Unit,
                 v.Usage,
-                v.Description);
+                v.Description,
+                v.WordSize);
             _variables.Add(restored);
         }
     }
+
+    /// <summary>Ritorna l'ultima variabile salvata (per verifiche nei test).</summary>
+    public Variable? GetSavedVariable() => _variables.LastOrDefault();
 
     public void SeedBitInterpretations(int variableId, List<BitInterpretation> bits)
     {

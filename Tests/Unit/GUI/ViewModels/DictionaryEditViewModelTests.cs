@@ -305,14 +305,59 @@ public class DictionaryEditViewModelTests
     }
 
     [Fact]
-    public async Task DeleteDictionaryCommand_ShowsAdminMessage()
+    public async Task DeleteDictionaryCommand_ConfirmedYes_DeletesAndGoesBack()
+    {
+        var dict = new Dictionary("ToDelete", "Desc");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        await _viewModel.DeleteDictionaryCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dictionaryService.MethodCalls, c => c == "DeleteAsync:1");
+        Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteDictionaryCommand_ConfirmedNo_DoesNotDelete()
+    {
+        var dict = new Dictionary("ToKeep", "Desc");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        _dialogService.ConfirmResult = DialogResult.No;
+
+        await _viewModel.DeleteDictionaryCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain(_dictionaryService.MethodCalls, c => c.StartsWith("DeleteAsync"));
+        Assert.False(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteDictionaryCommand_ServiceThrows_ShowsError()
+    {
+        var dict = new Dictionary("ToFail", "Desc");
+        _dictionaryService.SeedData(dict);
+        await _viewModel.InitializeAsync(1);
+
+        _dialogService.ConfirmResult = DialogResult.Yes;
+        _dictionaryService.ExceptionToThrow = new InvalidOperationException("FK constraint");
+
+        await _viewModel.DeleteDictionaryCommand.ExecuteAsync(null);
+
+        Assert.Contains(_dialogService.Calls, c =>
+            c.Type == "Error" && c.Message.Contains("FK constraint"));
+    }
+
+    [Fact]
+    public async Task DeleteDictionaryCommand_WhenNew_DoesNothing()
     {
         await _viewModel.InitializeAsync(null);
 
         await _viewModel.DeleteDictionaryCommand.ExecuteAsync(null);
 
-        Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Error" && c.Message.Contains("riservata"));
+        Assert.DoesNotContain(_dictionaryService.MethodCalls, c => c.StartsWith("DeleteAsync"));
     }
 
     [Fact]

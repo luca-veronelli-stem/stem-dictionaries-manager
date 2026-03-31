@@ -302,4 +302,70 @@ public class VariableMapperTests
         Assert.Equal(originalEntity.IsEnabled, resultEntity.IsEnabled);
         Assert.Equal(originalEntity.Format, resultEntity.Format);
     }
+
+    // === WordSize mapping ===
+
+    [Fact]
+    public void ToDomain_WithWordSize_MapsCorrectly()
+    {
+        var entity = new VariableEntity
+        {
+            Id = 50, DictionaryId = 1, Name = "Allarmi",
+            AddressHigh = 0x00, AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.Bitmapped, DataTypeParam = 2,
+            DataTypeRaw = "Bitmapped[2]", AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true, WordSize = 16
+        };
+
+        var result = VariableMapper.ToDomain(entity);
+
+        Assert.Equal(16, result.WordSize);
+    }
+
+    [Fact]
+    public void ToDomain_WithoutWordSize_MapsNull()
+    {
+        var entity = new VariableEntity
+        {
+            Id = 51, DictionaryId = 1, Name = "Test",
+            AddressHigh = 0x00, AddressLow = 0x00,
+            DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
+            AccessMode = AccessMode.ReadOnly, IsEnabled = true, WordSize = null
+        };
+
+        var result = VariableMapper.ToDomain(entity);
+
+        Assert.Null(result.WordSize);
+    }
+
+    [Fact]
+    public void ToEntity_WithWordSize_MapsCorrectly()
+    {
+        var domain = new Variable("Allarmi", 0x00, 0x06,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",
+            dataTypeParam: 2, wordSize: 32);
+
+        var entity = VariableMapper.ToEntity(domain, 1);
+
+        Assert.Equal(32, entity.WordSize);
+    }
+
+    [Fact]
+    public void UpdateEntity_WithWordSize_MapsCorrectly()
+    {
+        var entity = new VariableEntity
+        {
+            Id = 52, DictionaryId = 1, Name = "Old",
+            AddressHigh = 0x00, AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
+            AccessMode = AccessMode.ReadOnly, IsEnabled = true, WordSize = null
+        };
+        var domain = new Variable("Allarmi", 0x00, 0x06,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",
+            dataTypeParam: 2, wordSize: 8);
+
+        VariableMapper.UpdateEntity(entity, domain);
+
+        Assert.Equal(8, entity.WordSize);
+    }
 }
