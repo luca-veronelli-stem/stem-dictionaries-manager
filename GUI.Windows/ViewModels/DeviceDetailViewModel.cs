@@ -15,16 +15,16 @@ public partial class DictionaryItem : ObservableObject
     public int Id { get; }
     public string Name { get; }
     public string Semantic { get; }
-    public int VariableCount { get; }
+    public int ItemCount { get; }
     public bool IsCommandsEntry { get; init; }
     public bool IsStandard { get; init; }
 
-    public DictionaryItem(int id, string name, string semantic, int variableCount)
+    public DictionaryItem(int id, string name, string semantic, int itemCount)
     {
         Id = id;
         Name = name;
         Semantic = semantic;
-        VariableCount = variableCount;
+        ItemCount = itemCount;
     }
 }
 
@@ -53,6 +53,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     private readonly IDictionaryService _dictionaryService;
     private readonly IBoardService _boardService;
     private readonly IDeviceService _deviceService;
+    private readonly ICommandService _commandService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
@@ -85,6 +86,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         IDictionaryService dictionaryService,
         IBoardService boardService,
         IDeviceService deviceService,
+        ICommandService commandService,
         IDialogService dialogService,
         IMessageService messageService)
     {
@@ -92,6 +94,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         _dictionaryService = dictionaryService;
         _boardService = boardService;
         _deviceService = deviceService;
+        _commandService = commandService;
         _dialogService = dialogService;
         _messageService = messageService;
     }
@@ -165,8 +168,9 @@ public partial class DeviceDetailViewModel : ObservableObject
 
             var sortedItems = items.OrderBy(d => d.Name).ToList();
 
-            // Aggiungi entry "Comandi" per gestione stato comandi per device
-            sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", 0)
+            // Aggiungi entry "Comandi" con conteggio reale
+            var allCommands = await _commandService.GetAllAsync();
+            sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", allCommands.Count)
                 { IsCommandsEntry = true });
 
             Dictionaries = new ObservableCollection<DictionaryItem>(sortedItems);
