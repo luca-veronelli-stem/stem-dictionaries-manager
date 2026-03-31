@@ -1,3 +1,4 @@
+using Core.Enums;
 using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -303,6 +304,206 @@ public static class DatabaseSeeder
         context.Boards.AddRange(boards);
 
         await context.SaveChangesAsync();
+
+        // === Dizionario Standard (da dati_standard.CSV) ===
+        await SeedStandardDictionaryAsync(context);
+    }
+
+    /// <summary>
+    /// Crea il dizionario standard con le variabili comuni a tutti i dispositivi STEM.
+    /// Fonte: Docs/Dictionaries/dati_standard.CSV
+    /// AddressHigh = 0x00 per tutte le variabili standard.
+    /// BitInterpretations: vuote nello standard, i device le overridano.
+    /// </summary>
+    private static async Task SeedStandardDictionaryAsync(AppDbContext context)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Standard",
+            Description = "Dizionario variabili standard comune a tutti i dispositivi STEM",
+            IsStandard = true
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var variables = new[]
+        {
+            // 0x0000 — Firmware macchina
+            Var(dictionary.Id, "Firmware macchina", 0x00,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware globale della macchina"),
+
+            // 0x0001 — Firmware scheda
+            Var(dictionary.Id, "Firmware scheda", 0x01,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware della singola scheda"),
+
+            // 0x0002 — Modello
+            Var(dictionary.Id, "Modello", 0x02,
+                DataTypeKind.String, "String[20]",
+                AccessMode.ReadOnly, dataTypeParam: 20,
+                description: "Nome modello del dispositivo"),
+
+            // 0x0003 — Matricola
+            Var(dictionary.Id, "Matricola", 0x03,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite, min: 0, max: 4294967295,
+                description: "Numero di serie del dispositivo"),
+
+            // 0x0004 — Tipo scheda (R/W="N" nel CSV, ma attiva)
+            Var(dictionary.Id, "Tipo scheda", 0x04,
+                DataTypeKind.Other, "Enum dipendente dalle macchine",
+                AccessMode.ReadOnly, isEnabled: true,
+                description: "Tipo scheda, enumerazione dipendente dal dispositivo"),
+
+            // 0x0005 — Stato (3*uint32_t → Other)
+            Var(dictionary.Id, "Stato", 0x05,
+                DataTypeKind.Other, "3 * uint32_t",
+                AccessMode.ReadOnly,
+                description: "Stato della macchina a stati in cui si trova il dispositivo. Interpretazioni words/bits definite per-device"),
+
+            // 0x0006 — Allarmi (Bitmapped[2], WordSize=16, bit interpretations vuote)
+            Var(dictionary.Id, "Allarmi", 0x06,
+                DataTypeKind.Bitmapped, "Bitmapped[2]",
+                AccessMode.ReadOnly, dataTypeParam: 2, wordSize: 16,
+                description: "Word 0: allarmi, Word 1: warnings. Interpretazioni bit definite per-device"),
+
+            // 0x0007 — Comandi (R/W="N" nel CSV, disabilitata globalmente)
+            Var(dictionary.Id, "Comandi", 0x07,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Riservata, non utilizzata"),
+
+            // 0x0008 — Temperatura scheda
+            Var(dictionary.Id, "Temperatura scheda", 0x08,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Temperatura del microcontrollore"),
+
+            // 0x0009 — Secondi lavoro motore parziale
+            Var(dictionary.Id, "Secondi lavoro motore parziale", 0x09,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Secondi di lavoro motore, contatore parziale resettabile"),
+
+            // 0x000A — Secondi lavoro motore totale
+            Var(dictionary.Id, "Secondi lavoro motore totale", 0x0A,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Secondi di lavoro motore, contatore totale"),
+
+            // 0x000B — Cicli complessivi parziale
+            Var(dictionary.Id, "Cicli complessivi parziale", 0x0B,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli complessivi, contatore parziale resettabile"),
+
+            // 0x000C — Cicli complessivi totale
+            Var(dictionary.Id, "Cicli complessivi totale", 0x0C,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli complessivi, contatore totale"),
+
+            // 0x000D — Cicli completi eseguiti parziale
+            Var(dictionary.Id, "Cicli completi eseguiti parziale", 0x0D,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli completi eseguiti, contatore parziale resettabile"),
+
+            // 0x000E — Cicli completi eseguiti totale
+            Var(dictionary.Id, "Cicli completi eseguiti totale", 0x0E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli completi eseguiti, contatore totale"),
+
+            // 0x000F — Livello batteria
+            Var(dictionary.Id, "Livello batteria", 0x0F,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Livello di carica della batteria del veicolo"),
+
+            // 0x0010 — Salute batteria
+            Var(dictionary.Id, "Salute batteria", 0x10,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Stato di salute (SOH) della batteria"),
+
+            // 0x0011 — Cicli batteria
+            Var(dictionary.Id, "Cicli batteria", 0x11,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Numero di cicli di carica/scarica della batteria"),
+
+            // 0x0012 — Temperatura batteria
+            Var(dictionary.Id, "Temperatura batteria", 0x12,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly,
+                description: "Temperatura della batteria in decimi di grado (÷10 per °C)"),
+
+            // 0x0013 — BatteryFirmware
+            Var(dictionary.Id, "BatteryFirmware", 0x13,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly,
+                description: "Versione firmware della batteria"),
+
+            // 0x0014 — BatterySerial
+            Var(dictionary.Id, "BatterySerial", 0x14,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly,
+                description: "Numero seriale della batteria"),
+
+            // 0x0015 — Stato ingressi fisici (Bitmapped[1], WordSize=32)
+            Var(dictionary.Id, "Stato ingressi fisici", 0x15,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 32,
+                description: "Stato degli ingressi fisici della scheda. Interpretazioni bit definite per-device."),
+
+            // 0x0016 — Stato uscite fisiche (Bitmapped[1], WordSize=32)
+            Var(dictionary.Id, "Stato uscite fisiche", 0x16,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 32,
+                description: "Stato delle uscite fisiche della scheda. Interpretazioni bit definite per-device."),
+
+            // 0x0017 — Firmware Bootloader
+            Var(dictionary.Id, "Firmware Bootloader", 0x17,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware del bootloader"),
+        };
+        context.Variables.AddRange(variables);
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Helper per creare una VariableEntity standard (AddressHigh = 0x00).
+    /// </summary>
+    private static VariableEntity Var(int dictionaryId, string name, byte addressLow,
+        DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
+        int? dataTypeParam = null, string? format = null,
+        double? min = null, double? max = null, string? unit = null,
+        string? description = null, bool isEnabled = true, int? wordSize = null)
+    {
+        return new VariableEntity
+        {
+            DictionaryId = dictionaryId,
+            Name = name,
+            AddressHigh = 0x00,
+            AddressLow = addressLow,
+            DataTypeKind = dataTypeKind,
+            DataTypeRaw = dataTypeRaw,
+            DataTypeParam = dataTypeParam,
+            AccessMode = accessMode,
+            Format = format,
+            MinValue = min,
+            MaxValue = max,
+            Unit = unit,
+            Description = description,
+            IsEnabled = isEnabled,
+            WordSize = wordSize
+        };
     }
 
     /// <summary>
