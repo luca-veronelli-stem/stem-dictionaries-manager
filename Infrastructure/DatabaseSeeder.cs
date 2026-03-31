@@ -5,14 +5,20 @@ namespace Infrastructure;
 
 /// <summary>
 /// Popola il database con dati iniziali.
-/// Utenti + Dispositivi + Comandi: il resto viene inserito manualmente dalla GUI.
+/// Utenti + Dispositivi + Comandi + Schede: il resto viene inserito dalla GUI.
 /// </summary>
 public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Se esistono già utenti, non fare nulla
+        // Se esistono già dati, non fare nulla
         if (await context.Users.AnyAsync())
+            return;
+        if (await context.Devices.AnyAsync())
+            return;
+        if (await context.Commands.AnyAsync())
+            return;
+        if (await context.Boards.AnyAsync())
             return;
 
         // === Utenti del team firmware STEM ===
@@ -228,6 +234,74 @@ public static class DatabaseSeeder
         };
         context.Commands.AddRange(commands);
 
+        // Salva prima di inserire le schede, perché hanno FK verso i dispositivi
+        await context.SaveChangesAsync();
+
+        // === Schede STEM (da indirizzi.csv) ===
+        // ProtocolAddress: (MACHINE << 16) | ((FW & 0x3FF) << 6) | (BOARD_NUMBER & 0x3F)
+        // DictionaryId e PartNumber: null (da configurare dalla GUI)
+        // BLE Module (MC=6): skippato (BR-015)
+        var boards = new[]
+        {
+            // Sherpa Slim (MC=1)
+            Brd(1, devices[0].Id, "Azionamento",    1, 1, true),
+            Brd(1, devices[0].Id, "Pulsantiera",    2, 1, false),
+
+            // TopLift-M (MC=2)
+            Brd(2, devices[1].Id, "Madre",           3, 1, true),
+            Brd(2, devices[1].Id, "Pulsantiera",     4, 1, false),
+
+            // Eden-XP (MC=3)
+            Brd(3, devices[2].Id, "Madre",           5, 1, true),
+            Brd(3, devices[2].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(3, devices[2].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(3, devices[2].Id, "Pulsantiera 3",   4, 3, false),
+
+            // Gradino (MC=4)
+            Brd(4, devices[3].Id, "Azionamento",     6, 1, true),
+
+            // Spyke (MC=5)
+            Brd(5, devices[4].Id, "Display",         8, 1, true),
+            Brd(5, devices[4].Id, "Gateway",         7, 1, false),
+            Brd(5, devices[4].Id, "HMI",             9, 1, false),
+
+            // Spark (MC=7)
+            Brd(7, devices[5].Id, "HMI",            11, 1, true),
+            Brd(7, devices[5].Id, "Motori DX",      12, 1, false),
+            Brd(7, devices[5].Id, "Motori SX",      12, 2, false),
+            Brd(7, devices[5].Id, "Rostro",         13, 1, false),
+
+            // TopLift-A2 (MC=8)
+            Brd(8, devices[6].Id, "Madre",           14, 1, true),
+            Brd(8, devices[6].Id, "Pulsantiera 1",   15, 1, false),
+            Brd(8, devices[6].Id, "Pulsantiera 2",   15, 2, false),
+            Brd(8, devices[6].Id, "Pulsantiera 3",   15, 3, false),
+            Brd(8, devices[6].Id, "Pulsantiera vecchia", 4, 1, false),
+
+            // O3Z-Tech (MC=9)
+            Brd(9, devices[7].Id, "Display",         16, 1, true),
+
+            // Optimus-XP (MC=10)
+            Brd(10, devices[8].Id, "Madre",          17, 1, true),
+            Brd(10, devices[8].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(10, devices[8].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(10, devices[8].Id, "Pulsantiera 3",   4, 3, false),
+
+            // R3L-XP (MC=11)
+            Brd(11, devices[9].Id, "Madre Master",   18, 1, true),
+            Brd(11, devices[9].Id, "Madre Slave",    20, 1, false),
+            Brd(11, devices[9].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(11, devices[9].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(11, devices[9].Id, "Pulsantiera 3",   4, 3, false),
+
+            // Eden-BS8 (MC=12)
+            Brd(12, devices[10].Id, "Madre",         19, 1, true),
+            Brd(12, devices[10].Id, "Pulsantiera 1",  4, 1, false),
+            Brd(12, devices[10].Id, "Pulsantiera 2",  4, 2, false),
+            Brd(12, devices[10].Id, "Pulsantiera 3",  4, 3, false),
+        };
+        context.Boards.AddRange(boards);
+
         await context.SaveChangesAsync();
     }
 
@@ -250,6 +324,28 @@ public static class DatabaseSeeder
             CodeLow = codeLow,
             IsResponse = isResponse,
             ParametersJson = paramsJson
+        };
+    }
+
+    /// <summary>
+    /// Helper per creare una BoardEntity con indirizzo calcolato.
+    /// Formula: (machineCode &lt;&lt; 16) | ((fwType &amp; 0x3FF) &lt;&lt; 6) | (boardNumber &amp; 0x3F)
+    /// </summary>
+    private static BoardEntity Brd(int machineCode, int deviceId, string name,
+        int fwType, int boardNumber, bool isPrimary)
+    {
+        var address = (uint)((machineCode << 16)
+            | ((fwType & 0x3FF) << 6)
+            | (boardNumber & 0x3F));
+
+        return new BoardEntity
+        {
+            DeviceId = deviceId,
+            Name = name,
+            FirmwareType = fwType,
+            BoardNumber = boardNumber,
+            IsPrimary = isPrimary,
+            ProtocolAddress = address,
         };
     }
 }
