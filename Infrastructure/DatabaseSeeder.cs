@@ -5,426 +5,688 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure;
 
 /// <summary>
-/// Popola il database con dati di esempio per sviluppo/demo.
-/// SESSION_035: Device entity nel DB (era DeviceType enum).
+/// Popola il database con dati iniziali.
+/// Utenti + Dispositivi + Comandi + Schede: il resto viene inserito dalla GUI.
 /// </summary>
 public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
+        // Se esistono già dati, non fare nulla
         if (await context.Users.AnyAsync())
             return;
+        if (await context.Devices.AnyAsync())
+            return;
+        if (await context.Commands.AnyAsync())
+            return;
+        if (await context.Boards.AnyAsync())
+            return;
 
-        // === Users ===
+        // === Utenti del team firmware STEM ===
         var users = new[]
         {
-            new UserEntity { Username = "michele.pignedoli", DisplayName = "Michele Pignedoli" },
-            new UserEntity { Username = "lorenzo.vecchi", DisplayName = "Lorenzo Vecchi" },
-            new UserEntity { Username = "andrea.acunzo", DisplayName = "Andrea Acunzo" },
+            new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" },
             new UserEntity { Username = "alessandro.goldoni", DisplayName = "Alessandro Goldoni" },
-            new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" }
+            new UserEntity { Username = "andrea.acunzo", DisplayName = "Andrea Acunzo" },
+            new UserEntity { Username = "michele.pignedoli", DisplayName = "Michele Pignedoli" },
+            new UserEntity { Username = "lorenzo.vecchi", DisplayName = "Lorenzo Vecchi" }
         };
         context.Users.AddRange(users);
 
-        // === Devices ===
-        var devSherpa = new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" };
-        var devTopLiftM = new DeviceEntity { Name = "TopLift-M", MachineCode = 2, Description = "Sollevatori oleodinamici serie civile" };
-        var devEdenXp = new DeviceEntity { Name = "Eden-XP", MachineCode = 3, Description = "Supporto barella ammortizzato idropneumatico" };
-        var devGradino = new DeviceEntity { Name = "Gradino", MachineCode = 4, Description = "Gradini automatici" };
-        var devSpyke = new DeviceEntity { Name = "Spyke", MachineCode = 5, Description = "Barella con sistema di caricamento assistito e manutenzione predittiva" };
-        var devSpark = new DeviceEntity { Name = "Spark", MachineCode = 7, Description = "Barella elettrica robotizzata" };
-        var devTopLiftA2 = new DeviceEntity { Name = "TopLift-A2", MachineCode = 8, Description = "Sollevatori oleodinamici serie militare" };
-        var devO3zTech = new DeviceEntity { Name = "O3Z-Tech", MachineCode = 9, Description = "Sistema di sanificazione per veicoli" };
-        var devOptimusXp = new DeviceEntity { Name = "Optimus-XP", MachineCode = 10, Description = "Supporto per barelle elettriche" };
-        var devR3lXp = new DeviceEntity { Name = "R3L-XP", MachineCode = 11, Description = "Supporto barella elettromeccanico con sollevamento e inclinazione" };
-        var devEdenBs8 = new DeviceEntity { Name = "Eden-BS8", MachineCode = 12, Description = "Supporto barella ammortizzato con inclinazione regolabile" };
+        // === Dispositivi STEM ===
+        // MachineCode 6 è riservato per BLE Module (BR-015)
+        var devices = new[]
+        {
+            new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" },
+            new DeviceEntity { Name = "TopLift-M", MachineCode = 2, Description = "Sollevatori oleodinamici serie civile" },
+            new DeviceEntity { Name = "Eden-XP", MachineCode = 3, Description = "Supporto barella oleodinamico con altezza e inclinazione regolabili, e molleggio" },
+            new DeviceEntity { Name = "Gradino", MachineCode = 4, Description = "Gradini automatici" },
+            new DeviceEntity { Name = "Spyke", MachineCode = 5, Description = "Barella" },
+            new DeviceEntity { Name = "Spark", MachineCode = 7, Description = "Barella elettrica robotizzata" },
+            new DeviceEntity { Name = "TopLift-A2", MachineCode = 8, Description = "Sollevatori oleodinamici serie militare" },
+            new DeviceEntity { Name = "O3Z-Tech", MachineCode = 9, Description = "Sistema di sanificazione per ambienti" },
+            new DeviceEntity { Name = "Optimus-XP", MachineCode = 10, Description = "Supporto barelle elettriche oleodinamico con altezza regolabile, e molleggio" },
+            new DeviceEntity { Name = "R3L-XP", MachineCode = 11, Description = "Supporto barella elettromeccanico con altezza e inclinazione regolabili" },
+            new DeviceEntity { Name = "Eden-BS8", MachineCode = 12, Description = "Supporto barelle elettriche oleodinamico con altezza ed inclinazione regolabili, e molleggio" },
+        };
+        context.Devices.AddRange(devices);
 
-        context.Devices.AddRange(devSherpa, devTopLiftM, devEdenXp, devGradino, devSpyke,
-            devSpark, devTopLiftA2, devO3zTech, devOptimusXp, devR3lXp, devEdenBs8);
+        // === Comandi protocollo STEM (da comandi.csv) ===
+        // Regola: CodeHigh = 0x00 per comandi, 0x80 per risposte
+        var commands = new[]
+        {
+            // 0x00 - Versione protocollo
+            Cmd("Versione protocollo", 0x00, 0x00, false),
+            Cmd("Versione protocollo risposta", 0x80, 0x00, true, "2|Versione"),
+
+            // 0x01 - Leggi variabile logica
+            Cmd("Leggi variabile logica", 0x00, 0x01, false, "2|Indirizzo"),
+            Cmd("Leggi variabile logica risposta", 0x80, 0x01, true,
+                "2|Indirizzo", "N|Valori (Come da dizionario)"),
+
+            // 0x02 - Scrivi variabile logica
+            Cmd("Scrivi variabile logica", 0x00, 0x02, false,
+                "2|Indirizzo", "N|Valori (Come da dizionario)"),
+            Cmd("Scrivi variabile logica risposta", 0x80, 0x02, true,
+                "2|Indirizzo"),
+
+            // 0x03 - Leggi area di memoria
+            Cmd("Leggi area di memoria", 0x00, 0x03, false,
+                "2|Indirizzo iniziale", "2|Numero variabili"),
+            Cmd("Leggi area di memoria risposta", 0x80, 0x03, true,
+                "2|Indirizzo iniziale", "2|Numero variabili", "N|Valori (Come da numero variabili)"),
+
+            // 0x04 - Scrivi area di memoria
+            Cmd("Scrivi area di memoria", 0x00, 0x04, false,
+                "2|Indirizzo", "2|Dimensione array", "N|Valori (Come da dimensione array)"),
+            Cmd("Scrivi area di memoria risposta", 0x80, 0x04, true,
+                "2|Indirizzo", "2|Dimensione array"),
+
+            // 0x05 - Avvia bootloader
+            Cmd("Avvia bootloader", 0x00, 0x05, false),
+            Cmd("Avvia bootloader risposta", 0x80, 0x05, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x06 - Arresta bootloader
+            Cmd("Arresta bootloader", 0x00, 0x06, false),
+            Cmd("Arresta bootloader risposta", 0x80, 0x06, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x07 - Aggiorna pagina bootloader
+            Cmd("Aggiorna pagina bootloader", 0x00, 0x07, false,
+                "2|Firmware type", "4|Numero pagina", "4|Dimensione pagina", "4|Reserved", 
+                "N|Valori (Come da dimensione pagina)"),
+            Cmd("Aggiorna pagina bootloader risposta", 0x80, 0x07, true,
+                "2|Firmware type", "4|Numero pagina", "4|Dimensione pagina", "4|Reserved", "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x08 - Avvia dispositivo
+            Cmd("Avvia dispositivo", 0x00, 0x08, false),
+            Cmd("Avvia dispositivo risposta", 0x80, 0x08, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x09 - Arresta dispositivo
+            Cmd("Arresta dispositivo", 0x00, 0x09, false),
+            Cmd("Arresta dispositivo risposta", 0x80, 0x09, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x0A - Riavvia dispositivo
+            Cmd("Riavvia dispositivo", 0x00, 0x0A, false),
+            Cmd("Riavvia dispositivo risposta", 0x80, 0x0A, true),
+
+            // 0x0B - Unlock caratteristica BLE
+            Cmd("Unlock caratteristica BLE", 0x00, 0x0B, false),
+
+            // 0x0C - Lock caratteristica BLE
+            Cmd("Lock caratteristica BLE", 0x00, 0x0C, false),
+
+            // 0x0D - Su da pulsantiera
+            Cmd("Su da pulsantiera", 0x00, 0x0D, false, "1|Stato (0 = rilasciato, 1 = premuto)"),
+
+            // 0x0E - Giù da pulsantiera
+            Cmd("Giù da pulsantiera", 0x00, 0x0E, false, "1|Stato (0 = rilasciato, 1 = premuto)"),
+
+            // 0x0F - Inizia auto apprendimento
+            Cmd("Inizia auto apprendimento", 0x00, 0x0F, false),
+            Cmd("Inizia auto apprendimento risposta", 0x80, 0x0F, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x10 - Salva posizione
+            Cmd("Salva posizione", 0x00, 0x10, false, "1|Direzione (1 = scarico, 2 = carico, 3 = entrambe)", "1|Stato movimento (0 = ferma, 1 = in movimento)"),
+            Cmd("Salva posizione risposta", 0x80, 0x10, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x11 - Finisci auto apprendimento
+            Cmd("Finisci auto apprendimento", 0x00, 0x11, false),
+            Cmd("Finisci auto apprendimento risposta", 0x80, 0x11, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x12 - Muovi piano
+            Cmd("Muovi piano", 0x00, 0x12, false, "1|Muovi (0 = no, 1 = si)", "4|Angolo"),
+            Cmd("Muovi piano risposta", 0x80, 0x12, true, "1|Risultato (0 = ok, !0 = non puo muoversi)"),
+
+            // 0x13 - Abilita pairing BLE
+            Cmd("Abilita pairing BLE", 0x00, 0x13, false, "10|Nome dispositivo"),
+
+            // 0x14 - Disabilita pairing BLE
+            Cmd("Disabilita pairing BLE", 0x00, 0x14, false),
+
+            // 0x15 - Configura telemetria
+            Cmd("Configura telemetria", 0x00, 0x15, false, "4|Tipo di telemetria (codice univoco deciso dall'amministratore)",
+                "4|Indirizzo di destinazione (indirizzo di protocollo STEM a cui inviare la telemetria)", 
+                "1|Istanza telemetria (numero del task che ospita la telemetria)", "2|Periodo (ms)",
+                "4|Indirizzo scheda (indirizzo del protocollo STEM da cui rilevare la telemetria)", 
+                "N|Indirizzi logici (2 bytes ciascuno al massimo SP_TEL_N_VARS, variabile definita nel firmware)"),
+            Cmd("Configura telemetria risposta", 0x80, 0x15, true),
+
+            // 0x16 - Avvia telemetria
+            Cmd("Avvia telemetria", 0x00, 0x16, false, "1|Istanza telemetria"),
+            Cmd("Avvia telemetria risposta", 0x80, 0x16, true),
+
+            // 0x17 - Arresta telemetria
+            Cmd("Arresta telemetria", 0x00, 0x17, false, "1|Istanza telemetria"),
+            Cmd("Arresta telemetria risposta", 0x80, 0x17, true),
+
+            // 0x18 - Pacchetto di telemetria
+            Cmd("Pacchetto di telemetria", 0x00, 0x18, false,"4|Tipo di telemetria", "N|Dati"),
+
+            // 0x19 - Configura log
+            Cmd("Configura log", 0x00, 0x19, false, "4|Tipo di log (codice univoco deciso dall'amministratore)", 
+                "1|Istanza log", "4|Indirizzo scheda evento", "2|Indirizzo logico evento",
+                "4|Soglia evento", "1|Tipo trigger", "1|Direzione trigger", "2|Periodo (ms)",
+                "4|Indirizzo scheda", "N|Indirizzi logici (2 bytes ciascuno al massimo SP_TEL_N_VARS, variabile definita nel firmware)"),
+
+            // 0x1A - Avvia log
+            Cmd("Avvia log", 0x00, 0x1A, false, "1|Istanza log"),
+            Cmd("Avvia log risposta", 0x80, 0x1A, true),
+
+            // 0x1B - Arresta log
+            Cmd("Arresta log", 0x00, 0x1B, false, "1|Istanza log"),
+            Cmd("Arresta log risposta", 0x80, 0x1B, true),
+
+            // 0x1C - Richiesta log
+            Cmd("Richiesta log", 0x00, 0x1C, false, "4|Index (univoco incrementale assegnato dal dispositivo ai records)"),
+            Cmd("Richiesta log risposta", 0x80, 0x1C, true,
+                "4|Index", "4|Tipo di log", "4|Timestamp", "N|Dati"),
+
+            // 0x1D - Stato connessione client BLE
+            Cmd("Stato connessione BLE", 0x00, 0x1D, false),
+            Cmd("Stato connessione BLE risposta", 0x80, 0x1D, true, "1|Stato (0 = non connesso, !0 = connesso)", "1|RSSI connessione"),
+
+            // 0x1E - Connessione BLE
+            Cmd("Imposta connessione BLE", 0x00, 0x1E, false),
+
+            // 0x1F - Richiesta configurazione attuale log
+            Cmd("Richiesta configurazione attuale log", 0x00, 0x1F, false, "1|Istanza log"),
+            Cmd("Richiesta configurazione attuale log risposta", 0x80, 0x1F, true,
+                "4|Tipo di log", "1|Istanza log","4|Indirizzo scheda evento","2|Indirizzo logico evento",
+                "4|Soglia evento","1|Tipo trigger", "1|Direzione trigger", "2|Periodo (ms)",
+                "4|Indirizzo scheda","N|Indirizzi logici (2 bytes ciascuno al massimo SP_TEL_N_VARS, variabile definita nel firmware)"),
+
+            // 0x20 - Richiedi info fat log
+            Cmd("Richiedi fat log", 0x00, 0x20, false, "1|Istanza log"),
+            Cmd("Richiedi fat log risposta", 0x80, 0x20, true, "4|Usati", "4|Primo", "4|Ultimo"),
+
+            // 0x21 - Inizia sessione gateway
+            Cmd("Avvia sessione gateway", 0x00, 0x21, false),
+
+            // 0x22 - Arresta sessione gateway
+            Cmd("Arresta sessione gateway", 0x00, 0x22, false),
+
+            // 0x23 - Indirizzamento automatico chi siete
+            Cmd("Indirizzamento automatico chi siete", 0x00, 0x23, false,
+                "1|Machine type", "2|Firmware type", "1|Reset battezzamento (0 = no, 1 = si)"),
+
+            // 0x24 - Indirizzamento automatico chi sono
+            Cmd("Indirizzamento automatico chi sono", 0x00, 0x24, false,
+                "1|Machine type", "2|Firmware type","12|MAC address"),
+
+            // 0x25 - Indirizzamento automatico battezzati
+            Cmd("Indirizzamento automatico battezzati", 0x00, 0x25, false, "12|MAC address", "4|Indirizzo protocollo STEM"),
+
+            // 0x26 - Indirizzamento automatico risultato battezzamento
+            Cmd("Indirizzamento automatico risultato battezzamento", 0x00, 0x26, false, "12|MAC address", "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x27 - Avvia indirizzamento automatico
+            Cmd("Avvia indirizzamento automatico", 0x00, 0x27, false, "2|Firmware type"),
+
+            // 0x28 - Up/Down da telecomando
+            Cmd("Up/Down da telecomando", 0x00, 0x28, false, "1|Stato (0 = rilasciato, !0 = premuto)"),
+
+            // 0x29 - Reset valori EEPROM al default
+            Cmd("Reset valori EEPROM al default", 0x00, 0x29, false),
+            Cmd("Reset valori EEPROM al default risposta", 0x80, 0x29, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x2A - Esegui autotest
+            Cmd("Esegui autotest", 0x00, 0x2A, false),
+            Cmd("Esegui autotest risposta", 0x80, 0x2A, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+        };
+        context.Commands.AddRange(commands);
+
+        // Salva prima di inserire le schede, perché hanno FK verso i dispositivi
         await context.SaveChangesAsync();
 
-        // === Dictionaries ===
-        var dictStandard = new DictionaryEntity
+        // === Schede STEM (da indirizzi.csv) ===
+        // ProtocolAddress: (MACHINE << 16) | ((FW & 0x3FF) << 6) | (BOARD_NUMBER & 0x3F)
+        // DictionaryId: assegnato dopo il seed dei dizionari
+        // BLE Module (MC=6): skippato (BR-015)
+        var boards = new[]
         {
-            Name = "Standard",
-            Description = "Variabili comuni a tutti i dispositivi STEM",
-            IsStandard = true
-        };
-        var dictOptimusXp = new DictionaryEntity
-        {
-            Name = "Optimus XP",
-            Description = "Variabili specifiche schede madre Optimus XP (FW Type 17)"
-        };
-        var dictEdenXp = new DictionaryEntity
-        {
-            Name = "Eden XP",
-            Description = "Variabili specifiche schede madre Eden XP (FW Type 18)"
-        };
-        var dictPulsantiere = new DictionaryEntity
-        {
-            Name = "Pulsantiere",
-            Description = "Variabili per tastiere e pulsantiere (condiviso tra device)"
-        };
-        var dictMotore = new DictionaryEntity
-        {
-            Name = "Driver Motore",
-            Description = "Variabili per controllo motori"
-        };
-        var dictR3lMaster = new DictionaryEntity
-        {
-            Name = "R3L-XP Master",
-            Description = "Variabili specifiche R3L-XP scheda Master (FW Type 11)"
-        };
-        var dictR3lSlave = new DictionaryEntity
-        {
-            Name = "R3L-XP Slave",
-            Description = "Variabili specifiche R3L-XP scheda Slave (FW Type 12)"
-        };
-        var dictSpark = new DictionaryEntity
-        {
-            Name = "Spark",
-            Description = "Variabili specifiche Spark HMI (FW Type 20)"
-        };
+            // Sherpa Slim (MC=1)
+            Brd(1, devices[0].Id, "Azionamento",    1, 1, true),
+            Brd(1, devices[0].Id, "Pulsantiera",    2, 1, false),
 
-        context.Dictionaries.AddRange(dictStandard, dictOptimusXp, dictEdenXp,
-            dictPulsantiere, dictMotore, dictR3lMaster, dictR3lSlave, dictSpark);
-        await context.SaveChangesAsync();
+            // TopLift-M (MC=2)
+            Brd(2, devices[1].Id, "Madre",           3, 1, true),
+            Brd(2, devices[1].Id, "Pulsantiera",     4, 1, false),
 
-        // === Boards ===
-        var boards = new List<BoardEntity>
-        {
-            // OptimusXp
-            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Madre Master", 17, 1, "DIS0100001",
-                isPrimary: true, dictionaryId: dictOptimusXp.Id),
-            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Pulsantiera 1", 4, 1, "DIS0100010",
-                dictionaryId: dictPulsantiere.Id),
-            CreateBoard(devOptimusXp.Id, devOptimusXp.MachineCode, "Pulsantiera 2", 5, 2, "DIS0100011",
-                dictionaryId: dictPulsantiere.Id),
+            // Eden-XP (MC=3)
+            Brd(3, devices[2].Id, "Madre",           5, 1, true),
+            Brd(3, devices[2].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(3, devices[2].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(3, devices[2].Id, "Pulsantiera 3",   4, 3, false),
 
-            // EdenXp
-            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Madre", 18, 1, "DIS0030001",
-                isPrimary: true, dictionaryId: dictEdenXp.Id),
-            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Pulsantiera 1", 4, 1, "DIS0030010",
-                dictionaryId: dictPulsantiere.Id),
-            CreateBoard(devEdenXp.Id, devEdenXp.MachineCode, "Driver Motore", 25, 1, "DIS0030030",
-                dictionaryId: dictMotore.Id),
+            // Gradino (MC=4)
+            Brd(4, devices[3].Id, "Azionamento",     6, 1, true),
 
-            // SherpaSlim
-            CreateBoard(devSherpa.Id, devSherpa.MachineCode, "Madre", 20, 1, "DIS0010001",
-                isPrimary: true),
+            // Spyke (MC=5)
+            Brd(5, devices[4].Id, "Display",         8, 1, true),
+            Brd(5, devices[4].Id, "Gateway",         7, 1, false),
+            Brd(5, devices[4].Id, "HMI",             9, 1, false),
 
-            // R3L-XP (2 board con dizionari diversi)
-            CreateBoard(devR3lXp.Id, devR3lXp.MachineCode, "Master", 11, 1, "DIS0110001",
-                isPrimary: true, dictionaryId: dictR3lMaster.Id),
-            CreateBoard(devR3lXp.Id, devR3lXp.MachineCode, "Slave", 12, 2, "DIS0110002",
-                dictionaryId: dictR3lSlave.Id),
+            // Spark (MC=7)
+            Brd(7, devices[5].Id, "HMI",            11, 1, true),
+            Brd(7, devices[5].Id, "Motori DX",      12, 1, false),
+            Brd(7, devices[5].Id, "Motori SX",      12, 2, false),
+            Brd(7, devices[5].Id, "Rostro",         13, 1, false),
 
-            // Spark (HMI con dizionario, motori/rostro senza)
-            CreateBoard(devSpark.Id, devSpark.MachineCode, "HMI", 20, 1, "DIS0060001",
-                isPrimary: true, dictionaryId: dictSpark.Id),
-            CreateBoard(devSpark.Id, devSpark.MachineCode, "Motore DX", 21, 2, "DIS0060002"),
-            CreateBoard(devSpark.Id, devSpark.MachineCode, "Motore SX", 21, 3, "DIS0060003"),
-            CreateBoard(devSpark.Id, devSpark.MachineCode, "Rostro", 22, 4, "DIS0060004"),
+            // TopLift-A2 (MC=8)
+            Brd(8, devices[6].Id, "Madre",           14, 1, true),
+            Brd(8, devices[6].Id, "Pulsantiera 1",   15, 1, false),
+            Brd(8, devices[6].Id, "Pulsantiera 2",   15, 2, false),
+            Brd(8, devices[6].Id, "Pulsantiera 3",   15, 3, false),
+            Brd(8, devices[6].Id, "Pulsantiera vecchia", 4, 1, false),
+
+            // O3Z-Tech (MC=9)
+            Brd(9, devices[7].Id, "Display",         16, 1, true),
+
+            // Optimus-XP (MC=10)
+            Brd(10, devices[8].Id, "Madre",          17, 1, true),
+            Brd(10, devices[8].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(10, devices[8].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(10, devices[8].Id, "Pulsantiera 3",   4, 3, false),
+
+            // R3L-XP (MC=11)
+            Brd(11, devices[9].Id, "Madre Master",   18, 1, true),
+            Brd(11, devices[9].Id, "Madre Slave",    20, 1, false),
+            Brd(11, devices[9].Id, "Pulsantiera 1",   4, 1, false),
+            Brd(11, devices[9].Id, "Pulsantiera 2",   4, 2, false),
+            Brd(11, devices[9].Id, "Pulsantiera 3",   4, 3, false),
+
+            // Eden-BS8 (MC=12)
+            Brd(12, devices[10].Id, "Madre",         19, 1, true),
+            Brd(12, devices[10].Id, "Pulsantiera 1",  4, 1, false),
+            Brd(12, devices[10].Id, "Pulsantiera 2",  4, 2, false),
+            Brd(12, devices[10].Id, "Pulsantiera 3",  4, 3, false),
         };
         context.Boards.AddRange(boards);
-        await context.SaveChangesAsync();
-
-        // === Variables per Standard ===
-        var varDeviceStatus = CreateVariable(dictStandard.Id, "Device Status", 0x00, 0x10, "Bitmapped[2]",
-            "Stato generale dispositivo", accessMode: AccessMode.ReadOnly, unit: null, minValue: null, maxValue: null);
-
-        var standardVars = new[]
-        {
-            CreateVariable(dictStandard.Id, "Firmware Version", 0x00, 0x01, "UInt16",
-                "Versione firmware (major.minor)", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Firmware Build", 0x00, 0x02, "UInt16",
-                "Build number firmware", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Serial Number", 0x00, 0x03, "String[16]",
-                "Numero seriale dispositivo", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Production Date", 0x00, 0x04, "UInt32",
-                "Data produzione (Unix timestamp)", accessMode: AccessMode.ReadOnly),
-            varDeviceStatus,
-            CreateVariable(dictStandard.Id, "Error Code", 0x00, 0x11, "UInt16",
-                "Ultimo codice errore", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Error Count", 0x00, 0x12, "UInt16",
-                "Contatore errori totali", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Uptime", 0x00, 0x20, "UInt32",
-                "Tempo di attività", accessMode: AccessMode.ReadOnly, unit: "s"),
-            CreateVariable(dictStandard.Id, "Boot Count", 0x00, 0x21, "UInt16",
-                "Numero di riavvii", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictStandard.Id, "Debug Mode", 0x00, 0x30, "UInt8",
-                "Modalità debug (0=off, 1=on)", accessMode: AccessMode.ReadWrite),
-        };
-        context.Variables.AddRange(standardVars);
-
-        // === Variables per Optimus XP ===
-        var varRelayStatus = CreateVariable(dictOptimusXp.Id, "Relay Status", 0x80, 0x20, "Bitmapped[1]",
-            "Stato dei relè", accessMode: AccessMode.ReadOnly);
-
-        var optimusVars = new[]
-        {
-            CreateVariable(dictOptimusXp.Id, "Temperature CPU", 0x80, 0x01, "Int16",
-                "Temperatura CPU", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1200),
-            CreateVariable(dictOptimusXp.Id, "Temperature Board", 0x80, 0x02, "Int16",
-                "Temperatura scheda", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -400, maxValue: 1000),
-            CreateVariable(dictOptimusXp.Id, "Fan Speed", 0x80, 0x03, "UInt16",
-                "Velocità ventola", accessMode: AccessMode.ReadOnly, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimusXp.Id, "Fan Target", 0x80, 0x04, "UInt16",
-                "Velocità ventola target", accessMode: AccessMode.ReadWrite, unit: "RPM", minValue: 0, maxValue: 5000),
-            CreateVariable(dictOptimusXp.Id, "Power Mode", 0x80, 0x10, "UInt8",
-                "Modalità alimentazione (0=eco, 1=normal, 2=boost)", accessMode: AccessMode.ReadWrite, minValue: 0, maxValue: 2),
-            CreateVariable(dictOptimusXp.Id, "Supply Voltage", 0x80, 0x11, "UInt16",
-                "Tensione alimentazione", accessMode: AccessMode.ReadOnly, unit: "mV", minValue: 0, maxValue: 30000),
-            varRelayStatus,
-            CreateVariable(dictOptimusXp.Id, "Relay Control", 0x80, 0x21, "Bitmapped[1]",
-                "Controllo relè", accessMode: AccessMode.ReadWrite),
-        };
-        context.Variables.AddRange(optimusVars);
-
-        // === Variables per Eden XP ===
-        var edenVars = new[]
-        {
-            CreateVariable(dictEdenXp.Id, "Lift Position", 0x80, 0x01, "Int32",
-                "Posizione sollevatore", accessMode: AccessMode.ReadOnly, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEdenXp.Id, "Lift Target", 0x80, 0x02, "Int32",
-                "Posizione target sollevatore", accessMode: AccessMode.ReadWrite, unit: "mm", minValue: 0, maxValue: 2000),
-            CreateVariable(dictEdenXp.Id, "Lift Speed", 0x80, 0x03, "UInt16",
-                "Velocità sollevamento", accessMode: AccessMode.ReadWrite, unit: "mm/s", minValue: 1, maxValue: 100),
-            CreateVariable(dictEdenXp.Id, "Weight", 0x80, 0x10, "UInt32",
-                "Peso rilevato", accessMode: AccessMode.ReadOnly, unit: "g", minValue: 0, maxValue: 500000),
-            CreateVariable(dictEdenXp.Id, "Weight Tare", 0x80, 0x11, "UInt32",
-                "Tara peso", accessMode: AccessMode.ReadWrite, unit: "g", minValue: 0, maxValue: 50000),
-            CreateVariable(dictEdenXp.Id, "Sensor Status", 0x80, 0x20, "Bitmapped[2]",
-                "Stato sensori", accessMode: AccessMode.ReadOnly),
-        };
-        context.Variables.AddRange(edenVars);
-
-        // === Variables per Pulsantiere ===
-        var pulsantiereVars = new[]
-        {
-            CreateVariable(dictPulsantiere.Id, "Button State", 0x80, 0x01, "Bitmapped[2]",
-                "Stato pulsanti (1 bit per pulsante)", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictPulsantiere.Id, "Button Event", 0x80, 0x02, "UInt8",
-                "Ultimo evento pulsante", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictPulsantiere.Id, "LED State", 0x80, 0x10, "Bitmapped[2]",
-                "Stato LED (1 bit per LED)", accessMode: AccessMode.ReadWrite),
-            CreateVariable(dictPulsantiere.Id, "LED Blink", 0x80, 0x11, "Bitmapped[2]",
-                "LED in lampeggio", accessMode: AccessMode.ReadWrite),
-            CreateVariable(dictPulsantiere.Id, "Backlight Level", 0x80, 0x20, "UInt8",
-                "Luminosità retroilluminazione", accessMode: AccessMode.ReadWrite, unit: "%", minValue: 0, maxValue: 100),
-            CreateVariable(dictPulsantiere.Id, "Buzzer", 0x80, 0x21, "UInt8",
-                "Controllo buzzer (0=off, 1-255=frequenza)", accessMode: AccessMode.ReadWrite),
-        };
-        context.Variables.AddRange(pulsantiereVars);
-
-        // === Variables per Driver Motore ===
-        var motoreVars = new[]
-        {
-            CreateVariable(dictMotore.Id, "Motor Speed", 0x80, 0x01, "Int16",
-                "Velocità motore", accessMode: AccessMode.ReadOnly, unit: "RPM", minValue: -3000, maxValue: 3000),
-            CreateVariable(dictMotore.Id, "Motor Target", 0x80, 0x02, "Int16",
-                "Velocità target", accessMode: AccessMode.ReadWrite, unit: "RPM", minValue: -3000, maxValue: 3000),
-            CreateVariable(dictMotore.Id, "Motor Current", 0x80, 0x03, "UInt16",
-                "Corrente motore", accessMode: AccessMode.ReadOnly, unit: "mA", minValue: 0, maxValue: 20000),
-            CreateVariable(dictMotore.Id, "Motor Temperature", 0x80, 0x04, "Int16",
-                "Temperatura motore", accessMode: AccessMode.ReadOnly, unit: "°C/10", minValue: -200, maxValue: 1500),
-            CreateVariable(dictMotore.Id, "Motor Status", 0x80, 0x10, "Bitmapped[1]",
-                "Stato motore", accessMode: AccessMode.ReadOnly),
-            CreateVariable(dictMotore.Id, "Motor Enable", 0x80, 0x11, "UInt8",
-                "Abilitazione motore (0=off, 1=on)", accessMode: AccessMode.ReadWrite),
-        };
-        context.Variables.AddRange(motoreVars);
 
         await context.SaveChangesAsync();
 
-        // === Bit Interpretations ===
-        var bitInterpretations = new[]
-        {
-            // Device Status bits (Word 0)
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 0, BitIndex = 0, Meaning = "Power OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 0, BitIndex = 1, Meaning = "Communication OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 0, BitIndex = 2, Meaning = "Sensor OK" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 0, BitIndex = 7, Meaning = "Error Flag" },
-            // Device Status bits (Word 1)
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 1, BitIndex = 0, Meaning = "Overtemp Warning" },
-            new BitInterpretationEntity { VariableId = varDeviceStatus.Id,
-                WordIndex = 1, BitIndex = 1, Meaning = "Low Battery" },
+        // === Dizionario Standard (da dati_standard.CSV) ===
+        var standardVariables = await SeedStandardDictionaryAsync(context);
 
-            // Relay Status bits
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
-                WordIndex = 0, BitIndex = 0, Meaning = "Relay 1 (Main Power)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
-                WordIndex = 0, BitIndex = 1, Meaning = "Relay 2 (Aux Power)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
-                WordIndex = 0, BitIndex = 2, Meaning = "Relay 3 (Heater)" },
-            new BitInterpretationEntity { VariableId = varRelayStatus.Id,
-                WordIndex = 0, BitIndex = 3, Meaning = "Relay 4 (Fan)" },
-        };
-        context.BitInterpretations.AddRange(bitInterpretations);
+        // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
+        await SeedPulsantiereDictionaryAsync(context, boards);
 
-        // === Commands ===
-        // Regola: IsResponse=false → CodeHigh=0x00, IsResponse=true → CodeHigh=0x80
-        var cmdReadVar = new CommandEntity
-        {
-            Name = "Read Variable",
-            CodeHigh = 0x00,
-            CodeLow = 0x01,
-            IsResponse = false,
-            ParametersJson = "[\"address:UInt16\"]"
-        };
-        var cmdReadVarResp = new CommandEntity
-        {
-            Name = "Read Variable Response",
-            CodeHigh = 0x80,
-            CodeLow = 0x01,
-            IsResponse = true,
-            ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
-        };
-        var cmdWriteVar = new CommandEntity
-        {
-            Name = "Write Variable",
-            CodeHigh = 0x00,
-            CodeLow = 0x02,
-            IsResponse = false,
-            ParametersJson = "[\"address:UInt16\",\"value:ByteArray\"]"
-        };
-        var cmdWriteVarResp = new CommandEntity
-        {
-            Name = "Write Variable Response",
-            CodeHigh = 0x80,
-            CodeLow = 0x02,
-            IsResponse = true,
-            ParametersJson = "[\"address:UInt16\",\"result:UInt8\"]"
-        };
-        var cmdGetInfo = new CommandEntity
-        {
-            Name = "Get Device Info",
-            CodeHigh = 0x00,
-            CodeLow = 0x10,
-            IsResponse = false,
-            ParametersJson = "[]"
-        };
-        var cmdGetInfoResp = new CommandEntity
-        {
-            Name = "Get Device Info Response",
-            CodeHigh = 0x80,
-            CodeLow = 0x10,
-            IsResponse = true,
-            ParametersJson = "[\"fwVersion:UInt16\",\"fwBuild:UInt16\",\"serial:String[16]\"]"
-        };
-        var cmdReset = new CommandEntity
-        {
-            Name = "Reset Device",
-            CodeHigh = 0x00,
-            CodeLow = 0x20,
-            IsResponse = false,
-            ParametersJson = "[\"mode:UInt8\"]"
-        };
-        var cmdResetResp = new CommandEntity
-        {
-            Name = "Reset Device Response",
-            CodeHigh = 0x80,
-            CodeLow = 0x20,
-            IsResponse = true,
-            ParametersJson = "[\"result:UInt8\"]"
-        };
-        var cmdSetConfig = new CommandEntity
-        {
-            Name = "Set Configuration",
-            CodeHigh = 0x00,
-            CodeLow = 0x30,
-            IsResponse = false,
-            ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
-        };
-        var cmdGetConfig = new CommandEntity
-        {
-            Name = "Get Configuration",
-            CodeHigh = 0x00,
-            CodeLow = 0x31,
-            IsResponse = false,
-            ParametersJson = "[\"configId:UInt8\"]"
-        };
-        var cmdGetConfigResp = new CommandEntity
-        {
-            Name = "Get Configuration Response",
-            CodeHigh = 0x80,
-            CodeLow = 0x31,
-            IsResponse = true,
-            ParametersJson = "[\"configId:UInt8\",\"value:UInt32\"]"
-        };
-
-        var commands = new[] { cmdReadVar, cmdReadVarResp, cmdWriteVar, cmdWriteVarResp,
-            cmdGetInfo, cmdGetInfoResp, cmdReset, cmdResetResp, cmdSetConfig, cmdGetConfig, cmdGetConfigResp };
-        context.Commands.AddRange(commands);
-        await context.SaveChangesAsync();
-
-        // === Command Device States ===
-        var commandDeviceStates = new[]
-        {
-            new CommandDeviceStateEntity { CommandId = cmdReset.Id, DeviceId = devSherpa.Id, IsEnabled = false },
-            new CommandDeviceStateEntity { CommandId = cmdSetConfig.Id, DeviceId = devGradino.Id, IsEnabled = false },
-        };
-        context.CommandDeviceStates.AddRange(commandDeviceStates);
-
-        // === Variable Device States ===
-        var varDebugMode = standardVars.First(v => v.Name == "Debug Mode");
-        var variableDeviceStates = new[]
-        {
-            new VariableDeviceStateEntity
-            {
-                VariableId = varDebugMode.Id,
-                DeviceId = devSherpa.Id,
-                IsEnabled = false
-            },
-            new VariableDeviceStateEntity
-            {
-                VariableId = varDebugMode.Id,
-                DeviceId = devGradino.Id,
-                IsEnabled = false
-            },
-        };
-        context.VariableDeviceStates.AddRange(variableDeviceStates);
-
-        await context.SaveChangesAsync();
+        // === Override per-device sulle variabili standard ===
+        await SeedSpykeOverridesAsync(context, devices[4], standardVariables);
     }
 
-    private static BoardEntity CreateBoard(int deviceId, int machineCode,
-        string name, int firmwareType, int boardNumber, string? partNumber,
-        bool isPrimary = false, int? dictionaryId = null)
+    /// <summary>
+    /// Crea il dizionario standard con le variabili comuni a tutti i dispositivi STEM.
+    /// Fonte: Docs/Dictionaries/dati_standard.CSV
+    /// AddressHigh = 0x00 per tutte le variabili standard.
+    /// BitInterpretations: vuote nello standard, i device le overridano.
+    /// </summary>
+    private static async Task<VariableEntity[]> SeedStandardDictionaryAsync(AppDbContext context)
     {
-        var protocolAddress = ((uint)machineCode << 16) |
-            (((uint)firmwareType & 0x03FF) << 6) |
-            ((uint)boardNumber & 0x003F);
-
-        return new BoardEntity
+        var dictionary = new DictionaryEntity
         {
-            DeviceId = deviceId,
-            Name = name,
-            FirmwareType = firmwareType,
-            BoardNumber = boardNumber,
-            PartNumber = partNumber,
-            ProtocolAddress = protocolAddress,
-            IsPrimary = isPrimary,
-            DictionaryId = dictionaryId
+            Name = "Standard",
+            Description = "Dizionario variabili standard comune a tutti i dispositivi STEM",
+            IsStandard = true
         };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var variables = new[]
+        {
+            // 0x0000 — Firmware macchina
+            Var(dictionary.Id, "Firmware macchina", 0x00,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware globale della macchina"),
+
+            // 0x0001 — Firmware scheda
+            Var(dictionary.Id, "Firmware scheda", 0x01,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware della singola scheda"),
+
+            // 0x0002 — Modello
+            Var(dictionary.Id, "Modello", 0x02,
+                DataTypeKind.String, "String[20]",
+                AccessMode.ReadOnly, dataTypeParam: 20,
+                description: "Nome modello del dispositivo"),
+
+            // 0x0003 — Matricola
+            Var(dictionary.Id, "Matricola", 0x03,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite, min: 0, max: 4294967295,
+                description: "Numero di serie del dispositivo"),
+
+            // 0x0004 — Tipo scheda (R/W="N" nel CSV, ma attiva)
+            Var(dictionary.Id, "Tipo scheda", 0x04,
+                DataTypeKind.Other, "Enum dipendente dalle macchine",
+                AccessMode.ReadOnly, isEnabled: true,
+                description: "Tipo scheda, enumerazione dipendente dal dispositivo"),
+
+            // 0x0005 — Stato (3*uint32_t → Other)
+            Var(dictionary.Id, "Stato", 0x05,
+                DataTypeKind.Other, "3 * uint32_t",
+                AccessMode.ReadOnly,
+                description: "Stato della macchina a stati in cui si trova il dispositivo. Interpretazioni words/bits definite per-device"),
+
+            // 0x0006 — Allarmi (Bitmapped[2], WordSize=16, bit interpretations vuote)
+            Var(dictionary.Id, "Allarmi", 0x06,
+                DataTypeKind.Bitmapped, "Bitmapped[2]",
+                AccessMode.ReadOnly, dataTypeParam: 2, wordSize: 16,
+                description: "Word 0: allarmi, Word 1: warnings. Interpretazioni bit definite per-device"),
+
+            // 0x0007 — Comandi (R/W="N" nel CSV, disabilitata globalmente)
+            Var(dictionary.Id, "Comandi", 0x07,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Riservata, non utilizzata"),
+
+            // 0x0008 — Temperatura scheda
+            Var(dictionary.Id, "Temperatura scheda", 0x08,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Temperatura del microcontrollore"),
+
+            // 0x0009 — Secondi lavoro motore parziale
+            Var(dictionary.Id, "Secondi lavoro motore parziale", 0x09,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Secondi di lavoro motore, contatore parziale resettabile"),
+
+            // 0x000A — Secondi lavoro motore totale
+            Var(dictionary.Id, "Secondi lavoro motore totale", 0x0A,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Secondi di lavoro motore, contatore totale"),
+
+            // 0x000B — Cicli complessivi parziale
+            Var(dictionary.Id, "Cicli complessivi parziale", 0x0B,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli complessivi, contatore parziale resettabile"),
+
+            // 0x000C — Cicli complessivi totale
+            Var(dictionary.Id, "Cicli complessivi totale", 0x0C,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli complessivi, contatore totale"),
+
+            // 0x000D — Cicli completi eseguiti parziale
+            Var(dictionary.Id, "Cicli completi eseguiti parziale", 0x0D,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli completi eseguiti, contatore parziale resettabile"),
+
+            // 0x000E — Cicli completi eseguiti totale
+            Var(dictionary.Id, "Cicli completi eseguiti totale", 0x0E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "Cicli completi eseguiti, contatore totale"),
+
+            // 0x000F — Livello batteria
+            Var(dictionary.Id, "Livello batteria", 0x0F,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly,
+                description: "Livello di carica della batteria del veicolo"),
+
+            // 0x0010 — Salute batteria (disabilitata globalmente)
+            Var(dictionary.Id, "Salute batteria", 0x10,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Stato di salute (SOH) della batteria"),
+
+            // 0x0011 — Cicli batteria (disabilitata globalmente)
+            Var(dictionary.Id, "Cicli batteria", 0x11,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Numero di cicli di carica/scarica della batteria"),
+
+            // 0x0012 — Temperatura batteria (disabilitata globalmente)
+            Var(dictionary.Id, "Temperatura batteria", 0x12,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Temperatura della batteria in decimi di grado (÷10 per °C)"),
+
+            // 0x0013 — BatteryFirmware (disabilitata globalmente)
+            Var(dictionary.Id, "BatteryFirmware", 0x13,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Versione firmware della batteria"),
+
+            // 0x0014 — BatterySerial (disabilitata globalmente)
+            Var(dictionary.Id, "BatterySerial", 0x14,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Numero seriale della batteria"),
+
+            // 0x0015 — Stato ingressi fisici (Bitmapped[1], WordSize=32)
+            Var(dictionary.Id, "Stato ingressi fisici", 0x15,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 32,
+                description: "Stato degli ingressi fisici della scheda. Interpretazioni bit definite per-device."),
+
+            // 0x0016 — Stato uscite fisiche (Bitmapped[1], WordSize=32)
+            Var(dictionary.Id, "Stato uscite fisiche", 0x16,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 32,
+                description: "Stato delle uscite fisiche della scheda. Interpretazioni bit definite per-device."),
+
+            // 0x0017 — Firmware Bootloader
+            Var(dictionary.Id, "Firmware Bootloader", 0x17,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255", min: 0, max: 255.255,
+                description: "Versione firmware del bootloader"),
+        };
+        context.Variables.AddRange(variables);
+
+        await context.SaveChangesAsync();
+
+        return variables;
     }
 
-    private static VariableEntity CreateVariable(
-        int dictionaryId,
-        string name,
-        byte addressHigh,
-        byte addressLow,
-        string dataType,
-        string? description = null,
-        AccessMode accessMode = AccessMode.ReadWrite,
-        string? unit = null,
-        float? minValue = null,
-        float? maxValue = null)
+    /// <summary>
+    /// Crea il dizionario pulsantiere con le variabili specifiche delle tastiere STEM.
+    /// Fonte: Docs/Dictionaries/pulsantiere.CSV
+    /// AddressHigh = 0x80 per tutte le variabili pulsantiere.
+    /// Aggiorna le BoardEntity pulsantiera per puntare a questo dizionario.
+    /// </summary>
+    private static async Task SeedPulsantiereDictionaryAsync(AppDbContext context, BoardEntity[] boards)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Pulsantiere",
+            Description = "Dizionario variabili logiche per tastiere esterne STEM",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var variables = new[]
+        {
+            // 0x8000 — Foto Tasti
+            Var(dictionary.Id, "Foto Tasti", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "Variabile logica gestita dalla tastiera esterna"),
+
+            // 0x8001 — Stato sistema (non più usato, disabilitata)
+            Var(dictionary.Id, "Stato sistema", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1, isEnabled: false,
+                description: "0 = piano fermo, 1 = piano in movimento. Non più utilizzata."),
+
+            // 0x8002 — Comando Led Verde (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Led Verde", 0x80, 0x02,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern lampeggio LED verde. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione LED, numero di ripetizioni"),
+
+            // 0x8003 — Comando Led Rosso (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Led Rosso", 0x80, 0x03,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern lampeggio LED rosso. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione LED, numero di ripetizioni"),
+
+            // 0x8004 — Comando Buzzer (Bitmapped[4], WordSize=8)
+            Var(dictionary.Id, "Comando Buzzer", 0x80, 0x04,
+                DataTypeKind.Bitmapped, "Bitmapped[4]",
+                AccessMode.ReadWrite, dataTypeParam: 4, wordSize: 8,
+                description: "Pattern suono buzzer. \nWord 0: tempo off tra cicli di lampeggi (4ms). " +
+                            "\nWord 1: tempo OFF tra lampeggi (4ms). \nWord 2: tempo ON tra lampeggi (4ms). \nWord 3: attivazione buzzer, numero di ripetizioni"),
+
+            // 0x8005 — Beep tasti
+            Var(dictionary.Id, "Beep tasti", 0x80, 0x05,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "Abilitazione beep alla pressione dei tasti. 0 = off, 1 = on"),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretations per Comando Led Verde / Rosso / Buzzer ===
+        // Big-endian: Word 3 = BYTE 0 (attivazione, bit interpretati)
+        // Word 0/1/2: valori interi con interpretazione a bit 0
+        var ledVerde = variables[2];
+        var ledRosso = variables[3];
+        var buzzer = variables[4];
+
+        var bitInterpretations = new List<BitInterpretationEntity>();
+
+        foreach (var varId in new[] { ledVerde.Id, ledRosso.Id, buzzer.Id })
+        {
+            bitInterpretations.AddRange(TimingWordBits(varId));
+        }
+
+        // Led Verde — Word 3 (attivazione)
+        bitInterpretations.AddRange(LedBits(ledVerde.Id, 3));
+        // Led Rosso — Word 3 (attivazione)
+        bitInterpretations.AddRange(LedBits(ledRosso.Id, 3));
+        // Buzzer — Word 3 (attivazione, senza bit 2 "single shot")
+        bitInterpretations.AddRange(BuzzerBits(buzzer.Id, 3));
+
+        context.Set<BitInterpretationEntity>().AddRange(bitInterpretations);
+
+        // Aggiorna le board pulsantiera per puntare a questo dizionario.
+        // Tutte le board con FirmwareType=4 sono pulsantiere (FW=4 nel protocollo STEM)
+        // più le pulsantiere TopLift-A2 con FirmwareType=15.
+        foreach (var board in boards)
+        {
+            if (board.FirmwareType is 4 or 15
+                && board.Name.Contains("Pulsantiera", StringComparison.OrdinalIgnoreCase))
+            {
+                board.DictionaryId = dictionary.Id;
+            }
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Override per-device Spyke sulle variabili standard.
+    /// Fonte: Docs/Dictionaries/spyke.CSV
+    /// - Disabilita 0x0008 (Temperatura scheda), 0x0009 (Secondi lavoro parziale), 0x000A (Secondi lavoro totale)
+    /// - BitInterpretations per Allarmi (0x0006): Word 0 = allarmi, Word 1 = avvisi
+    /// </summary>
+    private static async Task SeedSpykeOverridesAsync(
+        AppDbContext context, DeviceEntity spyke, VariableEntity[] standardVariables)
+    {
+        // Disabilita variabili non usate da Spyke HMI
+        var disabledAddresses = new byte[] { 0x08, 0x09, 0x0A };
+        foreach (var v in standardVariables.Where(v => disabledAddresses.Contains(v.AddressLow)))
+        {
+            context.VariableDeviceStates.Add(new VariableDeviceStateEntity
+            {
+                VariableId = v.Id,
+                DeviceId = spyke.Id,
+                IsEnabled = false
+            });
+        }
+
+        // BitInterpretations per Allarmi (0x0006) — DeviceId = Spyke
+        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+
+        context.BitInterpretations.AddRange(
+            // Word 0 — Allarmi
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 0, Meaning = "Errore CAN" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 1, Meaning = "Tensione troppo bassa" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 2, Meaning = "Errore touch" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 3, Meaning = "Errore sensore 10G (Vricarica senza 10G)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 4, Meaning = "Sovraccarico celle (tensione batteria massima con corrente)" },
+
+            // Word 1 — Avvisi
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 0, Meaning = "Tensione bassa" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 1, Meaning = "NFC non presente (barellino agganciato)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 2, Meaning = "NFC non riconosciuto (barellino agganciato)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 3, Meaning = "Barellino non agganciato (NFC presente)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 4, Meaning = "Mancanza di Vricarica con 10G agganciato" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 5, Meaning = "Celle sbilanciate (ricarica senza corrente)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 6, Meaning = "Perdita di stabilità della barella (giroscopio)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 7, Meaning = "Incoerenza leva/pulsante in carico" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 8, Meaning = "Incoerenza leva/pulsante in scarico" }
+        );
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) per LED (Verde/Rosso).
+    /// bit 0: fisso, bit 1: lampeggiante, bit 2: single shot/loop, bit 3-7: ripetizioni per ciclo
+    /// </summary>
+    private static BitInterpretationEntity[] LedBits(int variableId, int wordIndex) =>
+    [
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 0, Meaning = "Led acceso fisso" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 1, Meaning = "Led lampeggiante" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 2, Meaning = "Single shot (1) / Loop (0)" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 3, Meaning = "Bit dal 3 al 7 (inclusi) rappresentano un numero intero, il numero di lampeggi per ciclo" },
+    ];
+
+    /// <summary>
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) per Buzzer.
+    /// bit 0: fisso, bit 1: lampeggiante, bit 2-7: ripetizioni per ciclo
+    /// </summary>
+    private static BitInterpretationEntity[] BuzzerBits(int variableId, int wordIndex) =>
+    [
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 0, Meaning = "Buzzer acceso fisso" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 1, Meaning = "Buzzer lampeggiante" },
+        new() { VariableId = variableId, WordIndex = wordIndex, BitIndex = 2, Meaning = "Bit dal 2 al 7 (inclusi) rappresentano un numero intero, il numero di lampeggi per ciclo" },
+    ];
+
+    /// <summary>
+    /// BitInterpretation per le Word di timing (Word 0/1/2, big-endian).
+    /// Ogni word è un valore intero in unità di 4 ms.
+    /// </summary>
+    private static BitInterpretationEntity[] TimingWordBits(int variableId) =>
+    [
+        new() { VariableId = variableId, WordIndex = 0, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di pausa tra i cicli di lampeggi in unità di 4 ms" },
+        new() { VariableId = variableId, WordIndex = 1, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di OFF tra i singoli lampeggi in unità di 4 ms" },
+        new() { VariableId = variableId, WordIndex = 2, BitIndex = 0, Meaning = "Questa word rappresenta il tempo di ON tra i singoli lampeggi in unità di 4 ms" },
+    ];
+
+    /// <summary>
+    /// Helper per creare una VariableEntity standard (AddressHigh = 0x00).
+    /// </summary>
+    private static VariableEntity Var(int dictionaryId, string name, byte addressLow,
+        DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
+        int? dataTypeParam = null, string? format = null,
+        double? min = null, double? max = null, string? unit = null,
+        string? description = null, bool isEnabled = true, int? wordSize = null)
+    {
+        return Var(dictionaryId, name, 0x00, addressLow,
+            dataTypeKind, dataTypeRaw, accessMode,
+            dataTypeParam, format, min, max, unit, description, isEnabled, wordSize);
+    }
+
+    /// <summary>
+    /// Helper per creare una VariableEntity con AddressHigh esplicito.
+    /// </summary>
+    private static VariableEntity Var(int dictionaryId, string name, byte addressHigh, byte addressLow,
+        DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
+        int? dataTypeParam = null, string? format = null,
+        double? min = null, double? max = null, string? unit = null,
+        string? description = null, bool isEnabled = true, int? wordSize = null)
     {
         return new VariableEntity
         {
@@ -432,51 +694,61 @@ public static class DatabaseSeeder
             Name = name,
             AddressHigh = addressHigh,
             AddressLow = addressLow,
-            DataTypeKind = ParseDataTypeKind(dataType),
-            DataTypeParam = ParseDataTypeParam(dataType),
-            DataTypeRaw = dataType,
-            Description = description,
+            DataTypeKind = dataTypeKind,
+            DataTypeRaw = dataTypeRaw,
+            DataTypeParam = dataTypeParam,
             AccessMode = accessMode,
-            IsEnabled = true,
+            Format = format,
+            MinValue = min,
+            MaxValue = max,
             Unit = unit,
-            MinValue = minValue,
-            MaxValue = maxValue
+            Description = description,
+            IsEnabled = isEnabled,
+            WordSize = wordSize
         };
     }
 
-    private static DataTypeKind ParseDataTypeKind(string dataType)
+    /// <summary>
+    /// Helper per creare un CommandEntity con parametri.
+    /// Formato parametro: "size|description" (es. "1|Stato", "2|IndirizzoHL")
+    /// </summary>
+    private static CommandEntity Cmd(string name, byte codeHigh, byte codeLow, bool isResponse,
+        params string[] parameters)
     {
-        if (dataType.StartsWith("String")) return DataTypeKind.String;
-        if (dataType.StartsWith("Array")) return DataTypeKind.Array;
-        if (dataType.StartsWith("Bitmapped")) return DataTypeKind.Bitmapped;
+        // Serializza i parametri come JSON array
+        var paramsJson = parameters.Length > 0
+            ? "[" + string.Join(",", parameters.Select(p => $"\"{p}\"")) + "]"
+            : "[]";
 
-        return dataType switch
+        return new CommandEntity
         {
-            "UInt8" => DataTypeKind.UInt8,
-            "Int8" => DataTypeKind.Int8,
-            "UInt16" => DataTypeKind.UInt16,
-            "Int16" => DataTypeKind.Int16,
-            "UInt32" => DataTypeKind.UInt32,
-            "Int32" => DataTypeKind.Int32,
-            "Float" => DataTypeKind.Float,
-            "Bool" => DataTypeKind.Bool,
-            _ => DataTypeKind.Other
+            Name = name,
+            CodeHigh = codeHigh,
+            CodeLow = codeLow,
+            IsResponse = isResponse,
+            ParametersJson = paramsJson
         };
     }
 
-    private static int? ParseDataTypeParam(string dataType)
+    /// <summary>
+    /// Helper per creare una BoardEntity con indirizzo calcolato.
+    /// Formula: (machineCode &lt;&lt; 16) | ((fwType &amp; 0x3FF) &lt;&lt; 6) | (boardNumber &amp; 0x3F)
+    /// </summary>
+    private static BoardEntity Brd(int machineCode, int deviceId, string name,
+        int fwType, int boardNumber, bool isPrimary)
     {
-        // Estrae il parametro da tipi come "String[16]" o "Bitmapped[2]"
-        var start = dataType.IndexOf('[');
-        var end = dataType.IndexOf(']');
+        var address = (uint)((machineCode << 16)
+            | ((fwType & 0x3FF) << 6)
+            | (boardNumber & 0x3F));
 
-        if (start > 0 && end > start)
+        return new BoardEntity
         {
-            var param = dataType.Substring(start + 1, end - start - 1);
-            if (int.TryParse(param, out var value))
-                return value;
-        }
-
-        return null;
+            DeviceId = deviceId,
+            Name = name,
+            FirmwareType = fwType,
+            BoardNumber = boardNumber,
+            IsPrimary = isPrimary,
+            ProtocolAddress = address,
+        };
     }
 }

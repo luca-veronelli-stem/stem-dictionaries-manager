@@ -127,7 +127,36 @@ public class VariableService : IVariableService
 
         var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
-        return BitInterpretationMapper.ToDomainList(entities);
+        // Normal mode: ritorna solo le interpretazioni comuni (DeviceId = null)
+        var common = BitInterpretationMapper.ToDomainList(entities)
+            .Where(b => b.DeviceId is null)
+            .ToList();
+
+        return common;
+    }
+
+    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
+        int variableId, int deviceId, CancellationToken ct = default)
+    {
+        var variableExists = await _repository.ExistsAsync(variableId, ct);
+        if (!variableExists)
+            throw new KeyNotFoundException(
+                $"Variable (Id={variableId}) not found.");
+
+        var entities = await _bitInterpretationRepository
+            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
+
+        var allBits = BitInterpretationMapper.ToDomainList(entities);
+
+        // Merge: per ogni (WordIndex, BitIndex), device-specific ha priorità su comune
+        var merged = allBits
+            .GroupBy(b => (b.WordIndex, b.BitIndex))
+            .Select(g => g.FirstOrDefault(b => b.DeviceId is not null) ?? g.First())
+            .OrderBy(b => b.WordIndex)
+            .ThenBy(b => b.BitIndex)
+            .ToList();
+
+        return merged;
     }
 
     public async Task<BitInterpretation> AddBitInterpretationAsync(int variableId, BitInterpretation interpretation,
@@ -154,6 +183,13 @@ public class VariableService : IVariableService
 
     public async Task UpdateBitInterpretationsAsync(int variableId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        await UpdateBitInterpretationsForDeviceAsync(variableId, null, interpretations, ct);
+    }
+
+    public async Task UpdateBitInterpretationsForDeviceAsync(int variableId,
+        int? deviceId, IEnumerable<BitInterpretation> interpretations,
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretations);
 
@@ -185,7 +221,7 @@ public class VariableService : IVariableService
         }
 
         var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
-        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, entities, ct);
+        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, deviceId, entities, ct);
     }
 
     // === DeviceState Management ===

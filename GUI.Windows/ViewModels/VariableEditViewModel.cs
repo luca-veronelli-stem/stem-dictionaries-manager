@@ -26,6 +26,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _isLoading;
     private bool _showValidation;
 
+    /// <summary>
+    /// Se valorizzato, la view è in modalità DeviceContext: campi variabile read-only,
+    /// WordGroups editabili con DeviceId. Null = modalità Normal.
+    /// </summary>
+    private int? _deviceContextId;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -73,6 +79,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [ObservableProperty]
     private int? _dataTypeParam;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasWordSize))]
+    [NotifyPropertyChangedFor(nameof(IsWordSizeInvalid))]
+    [NotifyPropertyChangedFor(nameof(DataTypeForSave))]
+    private int? _selectedWordSize;
+
     /// <summary>
     /// Notifica validazione quando cambia il DataTypeParam (Size per Array/String).
     /// </summary>
@@ -82,7 +94,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Quando cambia il tipo dato: se Bitmapped, crea Word 0 automaticamente.
+    /// Quando cambia il tipo dato: se Bitmapped, attende WordSize prima di creare WordGroups.
     /// </summary>
     partial void OnSelectedDataTypeKindChanged(DataTypeKind value)
     {
@@ -90,13 +102,93 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         if (value == DataTypeKind.Bitmapped)
         {
-            if (WordGroups.Count == 0)
-                CreateInitialWordGroup();
+            SelectedWordSize = null;
+            WordGroups.Clear();
+            OnPropertyChanged(nameof(CanRemoveWord));
         }
         else
         {
+            SelectedWordSize = null;
             WordGroups.Clear();
             OnPropertyChanged(nameof(CanRemoveWord));
+        }
+    }
+
+    /// <summary>
+    /// Quando cambia WordSize: gestisce riduzione con troncamento bit e conferma.
+    /// </summary>
+    partial void OnSelectedWordSizeChanged(int? oldValue, int? newValue)
+    {
+        if (_isLoading) return;
+
+        if (newValue.HasValue && IsBitmapped)
+        {
+            if (WordGroups.Count == 0)
+            {
+                CreateInitialWordGroup();
+                HasChanges = true;
+                return;
+            }
+
+            // Controlla se la riduzione tronca dei bit esistenti
+            var hasOverflowBits = WordGroups.Any(g =>
+                g.Items.Any(i => i.BitIndex >= newValue.Value));
+
+            if (hasOverflowBits)
+            {
+                _ = HandleWordSizeReductionAsync(oldValue, newValue.Value);
+            }
+            else
+            {
+                RegenerateWordGroups(WordGroups.Count);
+                HasChanges = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gestisce la riduzione del WordSize con conferma e troncamento.
+    /// </summary>
+    private async Task HandleWordSizeReductionAsync(int? previousWordSize, int newWordSize)
+    {
+        var hasNonEmptyOverflow = WordGroups.Any(g =>
+            g.Items.Any(i => i.BitIndex >= newWordSize
+                && !string.IsNullOrWhiteSpace(i.Meaning)));
+
+        if (hasNonEmptyOverflow)
+        {
+            var result = await _dialogService.ShowConfirmAsync(
+                "Riduzione Word Size",
+                $"Alcune word contengono bit con indice ? {newWordSize} " +
+                "che hanno definizioni. Questi bit verranno eliminati. Continuare?");
+
+            if (result != DialogResult.Yes)
+            {
+                _isLoading = true;
+                SelectedWordSize = previousWordSize;
+                _isLoading = false;
+                return;
+            }
+        }
+
+        TruncateBitsToWordSize(newWordSize);
+        RegenerateWordGroups(WordGroups.Count);
+        HasChanges = true;
+    }
+
+    /// <summary>
+    /// Rimuove i bit con indice ? wordSize da tutte le word.
+    /// </summary>
+    private void TruncateBitsToWordSize(int wordSize)
+    {
+        foreach (var group in WordGroups)
+        {
+            var toRemove = group.Items
+                .Where(i => i.BitIndex >= wordSize)
+                .ToList();
+
+            foreach (var item in toRemove)
+                group.TryRemoveBit(item);
         }
     }
 
@@ -126,14 +218,30 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Gruppi di bit per word (solo per DataType == Bitmapped).
-    /// Ogni WordBitGroup contiene max 16 BitInterpretationItem.
+    /// Ogni WordBitGroup contiene max WordSize BitInterpretationItem.
     /// </summary>
     public ObservableCollection<WordBitGroup> WordGroups { get; } = [];
 
     // === Computed Properties ===
 
     public bool IsNew => _editingId is null;
-    public string FormTitle => IsNew ? "Nuova Variabile" : "Modifica Variabile";
+
+    /// <summary>
+    /// True se in modalità DeviceContext (campi variabile read-only, solo bit editabili).
+    /// </summary>
+    public bool IsDeviceContext => _deviceContextId.HasValue;
+
+    /// <summary>
+    /// True se i campi variabile sono editabili (modalità Normal).
+    /// </summary>
+    public bool IsNotDeviceContext => !IsDeviceContext;
+
+    public string FormTitle => IsDeviceContext
+        ? "Interpretazione Bit (Device)"
+        : IsNew ? "Nuova Variabile" : "Modifica Variabile";
+
+    public string SaveButtonLabel => IsDeviceContext
+        ? "?? Salva Bit" : "?? Salva";
 
     /// <summary>
     /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
@@ -147,9 +255,22 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
-    /// True se è Bitmapped (mostra Word Count / Word Size).
+    /// True se è Bitmapped (mostra Word Size selector).
     /// </summary>
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
+
+    /// <summary>
+    /// True se è Bitmapped e WordSize è stato selezionato (mostra WordGroups).
+    /// </summary>
+    public bool HasWordSize => IsBitmapped && SelectedWordSize.HasValue;
+
+    /// <summary>
+    /// Validazione: WordSize obbligatorio per Bitmapped.
+    /// </summary>
+    public bool IsWordSizeInvalid => _showValidation && IsBitmapped && !SelectedWordSize.HasValue;
+
+    /// <summary>Opzioni per il ComboBox WordSize.</summary>
+    public IReadOnlyList<int> WordSizeOptions { get; } = Variable.AllowedWordSizes;
 
     /// <summary>
     /// Label per il parametro tipo (con asterisco).
@@ -271,8 +392,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Inizializza il ViewModel.
+    /// deviceId != null ? DeviceContext mode (read-only + bit editabili per device).
     /// </summary>
-    public async Task InitializeAsync(int? variableId, int dictionaryId)
+    public async Task InitializeAsync(int? variableId, int dictionaryId, int? deviceId = null)
     {
         if (_isInitialized) return;
 
@@ -282,12 +404,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isLoading = true;
             _editingId = variableId;
             _dictionaryId = dictionaryId;
+            _deviceContextId = deviceId;
 
             // Carica il dizionario per determinare AddressHigh
             var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
             _isStandardDictionary = dictionary?.IsStandard ?? false;
             OnPropertyChanged(nameof(AddressHighHex));
             OnPropertyChanged(nameof(FullAddressDisplay));
+            OnPropertyChanged(nameof(IsDeviceContext));
+            OnPropertyChanged(nameof(IsNotDeviceContext));
 
             if (variableId.HasValue)
             {
@@ -301,9 +426,24 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 LoadFromVariable(variable);
 
+                // DeviceContext: sovrascrive IsEnabled con lo stato per device
+                if (_deviceContextId.HasValue)
+                {
+                    var deviceState = await _variableService.GetDeviceStateAsync(
+                        variableId.Value, _deviceContextId.Value);
+                    // Se esiste override ? usa quello, altrimenti default = true
+                    IsEnabled = deviceState?.IsEnabled ?? true;
+                }
+
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
                 {
-                    var bits = await _variableService.GetBitInterpretationsAsync(variableId.Value);
+                    // DeviceContext: carica interpretazioni per device (con fallback a comuni)
+                    // Normal: carica tutte le interpretazioni comuni
+                    var bits = _deviceContextId.HasValue
+                        ? await _variableService.GetBitInterpretationsForDeviceAsync(
+                            variableId.Value, _deviceContextId.Value)
+                        : await _variableService.GetBitInterpretationsAsync(variableId.Value);
+
                     var existingItems = bits.Select(b => new BitInterpretationItem
                     {
                         WordIndex = b.WordIndex,
@@ -319,8 +459,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isInitialized = true;
             HasChanges = false;
 
-            // Se nuovo e tipo è Bitmapped (improbabile ma safe), crea Word 0
-            if (IsBitmapped && WordGroups.Count == 0)
+            // Se nuovo e tipo è Bitmapped con WordSize già impostato, crea Word 0
+            if (HasWordSize && WordGroups.Count == 0)
                 CreateInitialWordGroup();
 
             OnPropertyChanged(nameof(IsNew));
@@ -353,6 +493,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         Unit = v.Unit;
         Description = v.Description;
         IsEnabled = v.IsEnabled;
+        SelectedWordSize = v.WordSize;
 
         // Imposta custom type se è Other
         if (v.DataTypeKind == DataTypeKind.Other)
@@ -371,6 +512,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         OnPropertyChanged(nameof(IsDescriptionInvalid));
         OnPropertyChanged(nameof(IsDataTypeParamInvalid));
         OnPropertyChanged(nameof(IsCustomDataTypeInvalid));
+        OnPropertyChanged(nameof(IsWordSizeInvalid));
 
         var missing = new List<string>();
 
@@ -379,6 +521,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         if (string.IsNullOrWhiteSpace(Description)) missing.Add("Descrizione");
         if (RequiresDataTypeParam && !DataTypeParam.HasValue) missing.Add(DataTypeParamLabel.TrimEnd(' ', '*'));
         if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType)) missing.Add("Tipo dato custom");
+        if (IsBitmapped && !SelectedWordSize.HasValue) missing.Add("Word Size (bits)");
         if (!IsAddressLowValid) missing.Add("Indirizzo (formato hex non valido)");
         if (!IsMinMaxValid) missing.Add("Min/Max (Min deve essere ? Max)");
 
@@ -394,74 +537,22 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
-
         try
         {
             IsBusy = true;
 
-            var addressHigh = ParseHexByte(AddressHighHex);
-            var addressLow = ParseHexByte(AddressLowHex);
-
-            // Per Bitmapped, DataTypeParam = numero di word
-            var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
-
-            if (IsNew)
+            if (IsDeviceContext)
             {
-                var variable = new Variable(
-                    name: Name,
-                    addressHigh: addressHigh,
-                    addressLow: addressLow,
-                    dataTypeKind: SelectedDataTypeKind,
-                    accessMode: SelectedAccessMode,
-                    dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: dataTypeParam,
-                    isEnabled: IsEnabled,
-                    format: Format,
-                    minValue: MinValue,
-                    maxValue: MaxValue,
-                    unit: Unit,
-                    usage: null,
-                    description: Description);
-
-                var created = await _variableService.AddAsync(_dictionaryId, variable);
-                _editingId = created.Id; // per il salvataggio dei bit
-                _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
+                // DeviceContext: salva stato variabile per device + bit interpretations
+                await SaveDeviceStateAsync();
+                await SaveBitInterpretationsForDeviceAsync();
             }
             else
             {
-                var existing = Variable.Restore(
-                    id: _editingId!.Value,
-                    name: Name,
-                    addressHigh: addressHigh,
-                    addressLow: addressLow,
-                    dataTypeKind: SelectedDataTypeKind,
-                    dataTypeRaw: DataTypeForSave,
-                    dataTypeParam: dataTypeParam,
-                    accessMode: SelectedAccessMode,
-                    isEnabled: IsEnabled,
-                    format: Format,
-                    minValue: MinValue,
-                    maxValue: MaxValue,
-                    unit: Unit,
-                    usage: null,
-                    description: Description);
-
-                await _variableService.UpdateAsync(existing);
-                _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
-            }
-
-            if (SelectedDataTypeKind == DataTypeKind.Bitmapped)
-            {
-                var bitsToSave = WordGroups
-                    .SelectMany(g => g.Items)
-                    .Select(b => new BitInterpretation(
-                        variableId: _editingId!.Value,
-                        wordIndex: b.WordIndex,
-                        bitIndex: b.BitIndex,
-                        meaning: b.Meaning))
-                    .ToList();
-                await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
+                // Normal: salva variabile + bit comuni
+                if (!Validate()) return;
+                await SaveVariableAsync();
+                await SaveCommonBitInterpretationsAsync();
             }
 
             HasChanges = false;
@@ -475,6 +566,102 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             IsBusy = false;
         }
+    }
+
+    private async Task SaveVariableAsync()
+    {
+        var addressHigh = ParseHexByte(AddressHighHex);
+        var addressLow = ParseHexByte(AddressLowHex);
+        var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
+        var wordSize = IsBitmapped ? SelectedWordSize : null;
+
+        if (IsNew)
+        {
+            var variable = new Variable(
+                name: Name,
+                addressHigh: addressHigh,
+                addressLow: addressLow,
+                dataTypeKind: SelectedDataTypeKind,
+                accessMode: SelectedAccessMode,
+                dataTypeRaw: DataTypeForSave,
+                dataTypeParam: dataTypeParam,
+                isEnabled: IsEnabled,
+                format: Format,
+                minValue: MinValue,
+                maxValue: MaxValue,
+                unit: Unit,
+                usage: null,
+                description: Description,
+                wordSize: wordSize);
+
+            var created = await _variableService.AddAsync(_dictionaryId, variable);
+            _editingId = created.Id;
+            _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
+        }
+        else
+        {
+            var existing = Variable.Restore(
+                id: _editingId!.Value,
+                name: Name,
+                addressHigh: addressHigh,
+                addressLow: addressLow,
+                dataTypeKind: SelectedDataTypeKind,
+                dataTypeRaw: DataTypeForSave,
+                dataTypeParam: dataTypeParam,
+                accessMode: SelectedAccessMode,
+                isEnabled: IsEnabled,
+                format: Format,
+                minValue: MinValue,
+                maxValue: MaxValue,
+                unit: Unit,
+                usage: null,
+                description: Description,
+                wordSize: wordSize);
+
+            await _variableService.UpdateAsync(existing);
+            _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
+        }
+    }
+
+    private async Task SaveCommonBitInterpretationsAsync()
+    {
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+
+        var bitsToSave = WordGroups
+            .SelectMany(g => g.Items)
+            .Select(b => new BitInterpretation(
+                variableId: _editingId!.Value,
+                wordIndex: b.WordIndex,
+                bitIndex: b.BitIndex,
+                meaning: b.Meaning,
+                deviceId: null))
+            .ToList();
+        await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
+    }
+
+    private async Task SaveBitInterpretationsForDeviceAsync()
+    {
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+
+        var bitsToSave = WordGroups
+            .SelectMany(g => g.Items)
+            .Select(b => new BitInterpretation(
+                variableId: _editingId!.Value,
+                wordIndex: b.WordIndex,
+                bitIndex: b.BitIndex,
+                meaning: b.Meaning,
+                deviceId: _deviceContextId))
+            .ToList();
+        await _variableService.UpdateBitInterpretationsForDeviceAsync(
+            _editingId!.Value, _deviceContextId, bitsToSave);
+    }
+
+    private async Task SaveDeviceStateAsync()
+    {
+        if (_deviceContextId is null || _editingId is null) return;
+        await _variableService.SetDeviceStateAsync(
+            _editingId.Value, _deviceContextId.Value, IsEnabled);
+        _messageService.Show("Stato variabile per device salvato", MessageSeverity.Success);
     }
 
     [RelayCommand]
@@ -526,7 +713,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private void AddWord()
     {
-        var newGroup = new WordBitGroup(WordGroups.Count);
+        var newGroup = new WordBitGroup(WordGroups.Count, SelectedWordSize ?? 16);
         newGroup.TryAddBit();
         newGroup.Items[0].PropertyChanged += (_, _) => HasChanges = true;
         WordGroups.Add(newGroup);
@@ -563,7 +750,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     private void CreateInitialWordGroup()
     {
-        var group = new WordBitGroup(0);
+        var group = new WordBitGroup(0, SelectedWordSize ?? 16);
         group.TryAddBit();
         group.Items[0].PropertyChanged += (_, _) => HasChanges = true;
         WordGroups.Add(group);
@@ -596,7 +783,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         for (var w = 0; w < wordCount; w++)
         {
-            var group = new WordBitGroup(w);
+            var group = new WordBitGroup(w, SelectedWordSize ?? 16);
             var wordItems = existingItems
                 .Where(i => i.WordIndex == w)
                 .OrderBy(i => i.BitIndex)

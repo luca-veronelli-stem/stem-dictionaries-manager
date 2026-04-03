@@ -35,6 +35,18 @@ public interface IVariableService
     Task UpdateBitInterpretationsAsync(int variableId, IEnumerable<BitInterpretation> interpretations,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Aggiorna le interpretazioni bit per una variabile e un device specifico (o null per comuni).
+    /// </summary>
+    Task UpdateBitInterpretationsForDeviceAsync(int variableId, int? deviceId,
+        IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene le interpretazioni bit per una variabile e un device (include comuni come fallback).
+    /// </summary>
+    Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(int variableId,
+        int deviceId, CancellationToken ct = default);
+
     // === DeviceState Management ===
 
     Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled,

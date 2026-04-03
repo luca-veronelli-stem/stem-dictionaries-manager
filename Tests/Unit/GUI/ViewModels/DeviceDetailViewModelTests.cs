@@ -16,6 +16,7 @@ public class DeviceDetailViewModelTests
     private readonly MockDictionaryService _dictionaryService;
     private readonly MockBoardService _boardService;
     private readonly MockDeviceService _deviceService;
+    private readonly MockCommandService _commandService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
     private readonly DeviceDetailViewModel _viewModel;
@@ -26,6 +27,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService = new MockDictionaryService();
         _boardService = new MockBoardService();
         _deviceService = new MockDeviceService();
+        _commandService = new MockCommandService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
         _deviceService.SeedDefaultDevices();
@@ -35,6 +37,7 @@ public class DeviceDetailViewModelTests
             _dictionaryService,
             _boardService,
             _deviceService,
+            _commandService,
             _dialogService,
             _messageService);
     }
@@ -306,7 +309,7 @@ public class DeviceDetailViewModelTests
         Assert.True(item.Id > 0);
         Assert.Equal("Optimus XP", item.Name);
         Assert.Equal("Specifico", item.Semantic);
-        Assert.Equal(0, item.VariableCount);
+        Assert.Equal(0, item.ItemCount);
     }
 
     [Fact]

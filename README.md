@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-1563%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~1575%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -35,8 +35,9 @@
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 models + 6 enums (Variable, Dictionary, Board, Device, VariableDeviceState, etc.) |
+| **Modelli dominio** | ✅ | 10 models + 5 enums (Variable, Dictionary, Board, Device, etc.) |
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
+| **Domain v7** | ⚠️ | T-006 pendente: StandardVariableOverride per-dizionario |
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), 1 migration Domain v2 |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
@@ -44,7 +45,7 @@
 | **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 15 Views, dark theme STEM, custom dialogs, status bar |
 | **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
 | **Variabili standard per device** | ✅ | Stato attivo/disattivo variabili standard per DeviceType (BR-009/011) |
-| **Test Suite** | ✅ | ~995 metodi test / 1563 test cases (unit + integration, 2 target framework) |
+| **Test Suite** | ✅ | ~1001 metodi test / ~1575 test cases (unit + integration + E2E, 2 target framework) |
 
 ---
 
@@ -80,9 +81,9 @@ dotnet ef database update -p Infrastructure -s GUI.Windows
 
 ```
 Stem.Dictionaries.Manager/
-├── Core/                  # Modelli dominio, enums (10 models, 6 enum)
-│   ├── Enums/             # DeviceType, AccessMode, DataTypeKind, etc.
-│   └── Models/            # Variable, Dictionary, Board, VariableDeviceState, etc.
+├── Core/                  # Modelli dominio, enums (10 models, 5 enum)
+│   ├── Enums/             # AccessMode, DataTypeKind, AuditEntityType, etc.
+│   └── Models/            # Variable, Dictionary, Board, Device, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
 │   ├── Interfaces/        # Service interfaces (6)
 │   └── Mapping/           # Mapper bidirezionali (9)
@@ -94,11 +95,11 @@ Stem.Dictionaries.Manager/
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
 │   ├── ViewModels/        # 15 ViewModels + helper classes
 │   ├── Views/             # 15 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView, DeviceVariablesView)
-│   ├── Converters/        # 6 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor)
+│   ├── Converters/        # 7 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor, BoolToErrorBrush)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~995 metodi / 1563 cases)
+├── Tests/                 # Unit & integration tests (~995 metodi / ~1575 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
-│   └── Integration/       # Infrastructure, Services, GUI (SQLite in-memory)
+│   ├── Integration/       # Infrastructure, Services, GUI, E2E (SQLite in-memory)
 ├── Docs/                  # Documentazione
 │   ├── Dictionaries/      # CSV originali per riferimento
 │   ├── Standards/         # Template documentazione
@@ -130,14 +131,14 @@ Stem.Dictionaries.Manager/
 
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
-| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 4 | Media |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 6 | Media |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 4 | 7 | Media |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 6 | Media |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 8 | Media |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 1 | 2 | Bassa |
+| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 4 | 4 | **Alta** (CORE-008) |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 3 | 6 | **Alta** (INFRA-009) |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 5 | 7 | **Alta** (SVC-012) |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 3 | 6 | **Alta** (GUI-009) |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 8 | **Alta** (TEST-010) |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 4 | 2 | **Alta** (T-006) |
 
-✅ **0 issue alta priorità aperte**
+⚠️ **1 issue alta priorità aperta: [T-006](./ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7) (Domain v7)**
 
 ---
 
@@ -203,7 +204,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                           Core                              │
-│            Domain Models (10), Enums (6)                    │
+│            Domain Models (10), Enums (5)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 

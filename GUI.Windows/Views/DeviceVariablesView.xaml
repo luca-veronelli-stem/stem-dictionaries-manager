@@ -39,12 +39,15 @@
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
-                  IsReadOnly="False">
+                  IsReadOnly="True">
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" 
+                              Command="{Binding EditBitInterpretationsCommand}" 
+                              CommandParameter="{Binding SelectedVariable}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="*" MinWidth="200"
-                                    IsReadOnly="True"/>
-                <DataGridTextColumn Header="Indirizzo" Binding="{Binding FullAddress}" Width="100" MinWidth="80"
-                                    IsReadOnly="True">
+                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="*" MinWidth="200"/>
+                <DataGridTextColumn Header="Indirizzo" Binding="{Binding FullAddress}" Width="100" MinWidth="80">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -52,40 +55,22 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="2*" MinWidth="200"
-                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="2*" MinWidth="200"/>
                 <DataGridCheckBoxColumn Header="Attivo" 
-                                         Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}"
+                                         Binding="{Binding IsEnabled}"
                                          Width="80" MinWidth="60">
                     <DataGridCheckBoxColumn.ElementStyle>
                         <Style TargetType="CheckBox" BasedOn="{StaticResource DarkDataGridCheckBoxStyle}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsGloballyDisabled}" Value="True">
-                                    <Setter Property="IsEnabled" Value="False"/>
-                                </DataTrigger>
-                            </Style.Triggers>
+                            <Setter Property="IsHitTestVisible" Value="False"/>
+                            <Setter Property="Focusable" Value="False"/>
                         </Style>
                     </DataGridCheckBoxColumn.ElementStyle>
-                    <DataGridCheckBoxColumn.EditingElementStyle>
-                        <Style TargetType="CheckBox">
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsGloballyDisabled}" Value="True">
-                                    <Setter Property="IsEnabled" Value="False"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGridCheckBoxColumn.EditingElementStyle>
                 </DataGridCheckBoxColumn>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Toolbar salvataggio -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="&#x1F4BE; Salva" Command="{Binding SaveCommand}"
-                    Style="{StaticResource AccentButtonStyle}"
-                    Width="120" Margin="0,0,0,0"/>
-        </StackPanel>
+        <!-- Hint doppio click -->
+        <TextBlock Grid.Row="4" Text="Doppio click su una variabile per modificarne lo stato e le interpretazioni bit."
+                   Foreground="#666666" FontSize="11" Margin="0,8,0,0"/>
     </Grid>
 </UserControl>

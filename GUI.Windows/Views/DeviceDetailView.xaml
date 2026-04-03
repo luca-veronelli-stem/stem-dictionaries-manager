@@ -51,7 +51,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
                     <DataGridTextColumn Header="Tipo" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
-                    <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="100" MinWidth="80"/>
+                    <DataGridTextColumn Header="Elementi" Binding="{Binding ItemCount}" Width="100" MinWidth="80"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

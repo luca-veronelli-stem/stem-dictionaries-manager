@@ -4,11 +4,13 @@ using System.Collections.ObjectModel;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Gruppo di BitInterpretationItem per una singola word (max 16 bit).
+/// Gruppo di BitInterpretationItem per una singola word.
+/// La dimensione massima è configurabile (8, 16 o 32 bit).
 /// </summary>
 public partial class WordBitGroup : ObservableObject
 {
-    private const int MaxBitsPerWord = 16;
+    /// <summary>Dimensione massima della word in bit.</summary>
+    public int MaxBitsPerWord { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Label))]
@@ -41,9 +43,10 @@ public partial class WordBitGroup : ObservableObject
     [ObservableProperty]
     private bool _isExpanded = true;
 
-    public WordBitGroup(int wordIndex)
+    public WordBitGroup(int wordIndex, int maxBitsPerWord = 16)
     {
         WordIndex = wordIndex;
+        MaxBitsPerWord = maxBitsPerWord;
     }
 
     /// <summary>
@@ -57,7 +60,7 @@ public partial class WordBitGroup : ObservableObject
             ? Items.Max(i => i.BitIndex) + 1
             : 0;
 
-        if (nextBitIndex > 15) return false;
+        if (nextBitIndex > MaxBitsPerWord - 1) return false;
 
         var item = new BitInterpretationItem
         {

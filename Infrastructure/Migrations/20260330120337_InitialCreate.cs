@@ -205,6 +205,7 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VariableId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DeviceId = table.Column<int>(type: "INTEGER", nullable: true),
                     WordIndex = table.Column<int>(type: "INTEGER", nullable: false),
                     BitIndex = table.Column<int>(type: "INTEGER", nullable: false),
                     Meaning = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
@@ -214,6 +215,12 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BitInterpretations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BitInterpretations_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_BitInterpretations_Variables_VariableId",
                         column: x => x.VariableId,
@@ -261,10 +268,23 @@ namespace Infrastructure.Migrations
                 columns: new[] { "EntityType", "EntityId" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BitInterpretations_DeviceId",
+                table: "BitInterpretations",
+                column: "DeviceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BitInterpretations_VariableId_DeviceId_WordIndex_BitIndex",
+                table: "BitInterpretations",
+                columns: new[] { "VariableId", "DeviceId", "WordIndex", "BitIndex" },
+                unique: true,
+                filter: "[DeviceId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BitInterpretations_VariableId_WordIndex_BitIndex",
                 table: "BitInterpretations",
                 columns: new[] { "VariableId", "WordIndex", "BitIndex" },
-                unique: true);
+                unique: true,
+                filter: "[DeviceId] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Boards_DeviceId",

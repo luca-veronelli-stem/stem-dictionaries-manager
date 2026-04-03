@@ -14,7 +14,8 @@ public class BitInterpretationTests
             variableId: 6,
             wordIndex: 0,
             bitIndex: 0,
-            meaning: "sovracorrente pompa");
+            meaning: "sovracorrente pompa",
+            deviceId: null);
 
         Assert.Equal(6, interpretation.VariableId);
         Assert.Equal(0, interpretation.WordIndex);
@@ -27,7 +28,7 @@ public class BitInterpretationTests
     public void Constructor_NegativeWordIndex_ThrowsArgumentOutOfRangeException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new BitInterpretation(6, -1, 0, "test"));
+            new BitInterpretation(6, -1, 0, "test", null));
     }
 
     [Theory]
@@ -37,7 +38,7 @@ public class BitInterpretationTests
     public void Constructor_InvalidBitIndex_ThrowsArgumentOutOfRangeException(int bitIndex)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new BitInterpretation(6, 0, bitIndex, "test"));
+            new BitInterpretation(6, 0, bitIndex, "test", null));
     }
 
     [Theory]
@@ -45,7 +46,7 @@ public class BitInterpretationTests
     [InlineData(15)]
     public void Constructor_ValidBitIndex_IsAccepted(int bitIndex)
     {
-        var interpretation = new BitInterpretation(6, 0, bitIndex, "test");
+        var interpretation = new BitInterpretation(6, 0, bitIndex, "test", null);
 
         Assert.Equal(bitIndex, interpretation.BitIndex);
     }
@@ -53,7 +54,7 @@ public class BitInterpretationTests
     [Fact]
     public void Constructor_NullMeaning_IsAccepted()
     {
-        var interpretation = new BitInterpretation(6, 0, 0, null);
+        var interpretation = new BitInterpretation(6, 0, 0, null, null);
 
         Assert.Null(interpretation.Meaning);
     }
@@ -66,11 +67,118 @@ public class BitInterpretationTests
             variableId: 6,
             wordIndex: 1,
             bitIndex: 5,
-            meaning: "fusibile aperto");
+            meaning: "fusibile aperto",
+            deviceId: null);
 
         Assert.Equal(99, interpretation.Id);
         Assert.Equal(6, interpretation.VariableId);
         Assert.Equal(1, interpretation.WordIndex);
         Assert.Equal(5, interpretation.BitIndex);
+    }
+
+    // === DeviceId Tests (SESSION_037) ===
+
+    [Fact]
+    public void Constructor_WithNullDeviceId_HasNullDeviceId()
+    {
+        var interpretation = new BitInterpretation(6, 0, 0, "test", deviceId: null);
+
+        Assert.Null(interpretation.DeviceId);
+    }
+
+    [Fact]
+    public void Constructor_WithDeviceId_SetsDeviceId()
+    {
+        var interpretation = new BitInterpretation(6, 0, 0, "test", deviceId: 42);
+
+        Assert.Equal(42, interpretation.DeviceId);
+    }
+
+    [Fact]
+    public void Constructor_WithNullDeviceId_SetsNull()
+    {
+        var interpretation = new BitInterpretation(6, 0, 0, "test", deviceId: null);
+
+        Assert.Null(interpretation.DeviceId);
+    }
+
+    [Fact]
+    public void Restore_WithDeviceId_SetsDeviceId()
+    {
+        var interpretation = BitInterpretation.Restore(
+            id: 1, variableId: 6, wordIndex: 0, bitIndex: 0,
+            meaning: "test", deviceId: 99);
+
+        Assert.Equal(99, interpretation.DeviceId);
+    }
+
+    [Fact]
+    public void Restore_WithNullDeviceId_HasNullDeviceId()
+    {
+        var interpretation = BitInterpretation.Restore(
+            id: 1, variableId: 6, wordIndex: 0, bitIndex: 0,
+            meaning: "test", deviceId: null);
+
+        Assert.Null(interpretation.DeviceId);
+    }
+
+    [Fact]
+    public void Constructor_WithDeviceId_StillValidatesBitIndex()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(6, 0, 16, "test", deviceId: 1));
+    }
+
+    [Fact]
+    public void Constructor_WithDeviceId_StillValidatesWordIndex()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(6, -1, 0, "test", deviceId: 1));
+    }
+
+    // === maxBitIndex parametrico (BR-007 v6) ===
+
+    [Theory]
+    [InlineData(7, 7)]
+    [InlineData(31, 31)]
+    public void Constructor_CustomMaxBitIndex_AcceptsUpToMax(int maxBitIndex, int bitIndex)
+    {
+        var bi = new BitInterpretation(1, 0, bitIndex, "test", null, maxBitIndex);
+
+        Assert.Equal(bitIndex, bi.BitIndex);
+    }
+
+    [Fact]
+    public void Constructor_MaxBitIndex7_RejectsBitIndex8()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(1, 0, 8, "test", null, maxBitIndex: 7));
+    }
+
+    [Fact]
+    public void Constructor_MaxBitIndex31_AcceptsBitIndex31()
+    {
+        var bi = new BitInterpretation(1, 0, 31, "test", null, maxBitIndex: 31);
+
+        Assert.Equal(31, bi.BitIndex);
+    }
+
+    [Fact]
+    public void Constructor_MaxBitIndex31_RejectsBitIndex32()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(1, 0, 32, "test", null, maxBitIndex: 31));
+    }
+
+    [Fact]
+    public void Constructor_DefaultMaxBitIndex_Is15()
+    {
+        // BitIndex 15 accettato (default)
+        var bi = new BitInterpretation(1, 0, 15, "test", null);
+        Assert.Equal(15, bi.BitIndex);
+
+        // BitIndex 16 rifiutato (default)
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(1, 0, 16, "test", null));
     }
 }

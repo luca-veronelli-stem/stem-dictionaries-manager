@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -21,8 +21,8 @@ Questo progetto è **puro dominio**: nessuna dipendenza da framework esterni, da
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, VariableDeviceState, etc.) |
-| **Enumerazioni** | ✅ | 6 enum (DeviceType, AccessMode, DataTypeKind, etc.) |
+| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, Device, etc.) |
+| **Enumerazioni** | ✅ | 5 enum (AccessMode, DataTypeKind, AuditEntityType, etc.) |
 | **Validazione** | ✅ | Logica di validazione nei costruttori |
 | **Immutabilità** | ✅ | Private setters, costruttori con parametri |
 
@@ -65,8 +65,8 @@ optimusXp.AddVariable(variable);
 var board = new Board(DeviceType.OptimusXp, "Madre Master", firmwareType: 17,
     boardNumber: 1, isPrimary: true, dictionaryId: optimusXp.Id);
 
-// Override per-device su variabili (BR-009)
-var state = new VariableDeviceState(variable.Id, DeviceType.SherpaSlim, isEnabled: false);
+// Device entity (ex DeviceType enum, SESSION_035)
+var device = new Device("Optimus XP", machineCode: 10, description: "Unità di trattamento");
 ```
 
 ---
@@ -77,10 +77,9 @@ var state = new VariableDeviceState(variable.Id, DeviceType.SherpaSlim, isEnable
 Core/
 ├── Enums/
 │   ├── AccessMode.cs           # ReadOnly, ReadWrite, WriteOnly
-│   ├── AuditEntityType.cs      # Tipi entità per audit trail
+│   ├── AuditEntityType.cs      # Tipi entità per audit trail (7 valori)
 │   ├── AuditOperation.cs       # Create, Update, Delete
 │   ├── DataTypeKind.cs         # UInt8, Int16, String, Bitmapped, etc.
-│   ├── DeviceType.cs           # SherpaSlim, Optimus, Eden, etc. (11 tipi)
 │   └── VariableCategory.cs     # Standard (0x00xx), DeviceSpecific (0x80xx)
 └── Models/
     ├── AuditEntry.cs              # Traccia modifiche con JSON completo
@@ -92,7 +91,7 @@ Core/
     ├── Dictionary.cs              # Set di variabili, IsStandard flag
     ├── User.cs                    # Utente sistema (audit)
     ├── Variable.cs                # Variabile dizionario con tipo e permessi
-    └── VariableDeviceState.cs     # Override per-device su variabili (BR-009)
+    └── VariableDeviceState.cs     # ⚠️ Override per-device (da rimuovere in T-006 → StandardVariableOverride)
 ```
 
 ---
@@ -103,23 +102,25 @@ Core/
 
 | Enum | Valori | Uso |
 |------|--------|-----|
-| `DeviceType` | 11 valori | Tipo dispositivo STEM (Optimus, Eden, Sherpa, etc.) |
 | `AccessMode` | 3 valori | Permessi variabile (ReadOnly, ReadWrite, WriteOnly) |
 | `DataTypeKind` | 12 valori | Tipo dato (UInt8, Int16, String, Bitmapped, Array, Other, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
-| `AuditEntityType` | 6 valori | Tipo entità per audit trail |
+| `AuditEntityType` | 7 valori | Tipo entità per audit trail (incl. Device, aggiunto SESSION_035) |
+
+> **Nota:** `DeviceType` era un enum rimosso in SESSION_035. Ora è l'entity `Device` in Models/.
 
 ### Modelli Principali
 
 | Modello | Descrizione | Relazioni |
 |---------|-------------|-----------|
 | `Dictionary` | Set di variabili, IsStandard flag | → Variable[] |
-| `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[], VariableDeviceState[] |
-| `Board` | Scheda fisica con FirmwareType, DictionaryId?, IsPrimary, DictionaryName | → DeviceType, Dictionary? |
+| `Variable` | Variabile con indirizzo, tipo, permessi, formato | → Dictionary, BitInterpretation[] |
+| `Board` | Scheda fisica con FirmwareType, DictionaryId?, IsPrimary, DictionaryName | → Device, Dictionary? |
 | `Command` | Comando protocollo universale | → CommandDeviceState[] |
-| `CommandDeviceState` | Stato comando per device specifico | → Command, DeviceType |
-| `VariableDeviceState` | Override per-device su variabili (BR-009/010/011) | → Variable, DeviceType |
+| `CommandDeviceState` | Stato comando per device specifico | → Command, Device |
+| `Device` | Dispositivo STEM (Name, MachineCode, Description) | → Board[] |
+| `VariableDeviceState` | ⚠️ Override per-device (da rimuovere in T-006) | → Variable, Device |
 | `BitInterpretation` | Significato bit per variabili bitmapped | → Variable |
 | `User` | Utente sistema (audit) | — |
 | `AuditEntry` | Traccia modifiche | previousValue/newValue JSON |
@@ -153,7 +154,7 @@ uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNu
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 4 risolte
+→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte (incl. CORE-008 per T-006), 4 risolte
 
 ---
 

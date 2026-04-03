@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Core.Enums;
 
 namespace GUI.Windows.ViewModels;
 
@@ -12,6 +13,16 @@ public partial class VariableDeviceItem : ObservableObject
     public string Name { get; init; } = string.Empty;
     public string FullAddress { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Tipo dato della variabile (per sapere se è Bitmapped → doppio click apre DeviceContext).
+    /// </summary>
+    public DataTypeKind DataTypeKind { get; init; }
+
+    /// <summary>
+    /// True se la variabile è Bitmapped (supporta interpretazioni bit per device).
+    /// </summary>
+    public bool IsBitmapped => DataTypeKind == DataTypeKind.Bitmapped;
 
     /// <summary>
     /// True se Variable.IsEnabled = false (deprecata globalmente).

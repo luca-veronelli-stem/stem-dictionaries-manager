@@ -216,4 +216,76 @@ public class VariableTests
         Assert.False(variable.IsEnabled);
         Assert.Equal("255.255", variable.Format);
     }
+
+    // === WordSize (BR-019) ===
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(16)]
+    [InlineData(32)]
+    public void Constructor_ValidWordSize_SetsProperty(int wordSize)
+    {
+        var variable = new Variable("Allarmi", 0x00, 0x06,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",
+            dataTypeParam: 2, wordSize: wordSize);
+
+        Assert.Equal(wordSize, variable.WordSize);
+    }
+
+    [Fact]
+    public void Constructor_NullWordSize_DefaultsToNull()
+    {
+        var variable = new Variable("Test", 0x00, 0x00,
+            DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t");
+
+        Assert.Null(variable.WordSize);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(10)]
+    [InlineData(15)]
+    [InlineData(24)]
+    [InlineData(64)]
+    public void Constructor_InvalidWordSize_ThrowsArgumentOutOfRangeException(int wordSize)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new Variable("Allarmi", 0x00, 0x06,
+                DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",
+                dataTypeParam: 2, wordSize: wordSize));
+    }
+
+    [Fact]
+    public void Restore_WithWordSize_SetsProperty()
+    {
+        var variable = Variable.Restore(
+            id: 10, name: "Allarmi", addressHigh: 0x00, addressLow: 0x06,
+            dataTypeKind: DataTypeKind.Bitmapped, dataTypeRaw: "Bitmapped[2]",
+            dataTypeParam: 2, accessMode: AccessMode.ReadOnly, isEnabled: true,
+            format: null, minValue: null, maxValue: null, unit: null,
+            usage: null, description: "Allarmi bitmapped", wordSize: 16);
+
+        Assert.Equal(16, variable.WordSize);
+    }
+
+    [Fact]
+    public void Restore_WithoutWordSize_DefaultsToNull()
+    {
+        var variable = Variable.Restore(
+            id: 10, name: "Test", addressHigh: 0x00, addressLow: 0x00,
+            dataTypeKind: DataTypeKind.UInt16, dataTypeRaw: "uint16_t",
+            dataTypeParam: null, accessMode: AccessMode.ReadOnly, isEnabled: true,
+            format: null, minValue: null, maxValue: null, unit: null,
+            usage: null, description: null);
+
+        Assert.Null(variable.WordSize);
+    }
+
+    [Fact]
+    public void AllowedWordSizes_Contains_8_16_32()
+    {
+        Assert.Equal([8, 16, 32], Variable.AllowedWordSizes);
+    }
 }

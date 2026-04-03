@@ -229,7 +229,7 @@ public partial class MainViewModel : ObservableObject
                 break;
 
             case VariableEditViewModel vm when parameter?.ParentId is int dictionaryId:
-                await vm.InitializeAsync(parameter?.EntityId, dictionaryId);
+                await vm.InitializeAsync(parameter?.EntityId, dictionaryId, parameter?.DeviceId);
                 break;
 
             case CommandEditViewModel vm:

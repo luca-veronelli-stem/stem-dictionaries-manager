@@ -47,6 +47,7 @@ public class BitInterpretationFlowTests
 
         // Act
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
 
         // Assert
         Assert.Single(_viewModel.WordGroups);
@@ -59,6 +60,7 @@ public class BitInterpretationFlowTests
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
 
         // Act
@@ -75,6 +77,7 @@ public class BitInterpretationFlowTests
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         Assert.Single(_viewModel.WordGroups);
 
         // Act - tenta di rimuovere l'unica word
@@ -91,6 +94,7 @@ public class BitInterpretationFlowTests
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var word0 = _viewModel.WordGroups[0];
         var initialCount = word0.Items.Count;
 
@@ -107,6 +111,7 @@ public class BitInterpretationFlowTests
         // Arrange
         await _viewModel.InitializeAsync(null, dictionaryId: 1);
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         var word0 = _viewModel.WordGroups[0];
         word0.TryAddBit();
         word0.TryAddBit();
@@ -132,6 +137,7 @@ public class BitInterpretationFlowTests
         _viewModel.AddressLowHex = "10";
         _viewModel.Description = "Status flags";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
 
         // Aggiungi una word
         _viewModel.AddWordCommand.Execute(null);
@@ -173,9 +179,9 @@ public class BitInterpretationFlowTests
         _variableService.SeedData(bitmappedVar);
         _variableService.SeedBitInterpretations(1,
         [
-            BitInterpretation.Restore(1, 1, 0, 0, "Bit 0 Word 0"),
-            BitInterpretation.Restore(2, 1, 0, 1, "Bit 1 Word 0"),
-            BitInterpretation.Restore(3, 1, 1, 0, "Bit 0 Word 1"),
+            BitInterpretation.Restore(1, 1, 0, 0, "Bit 0 Word 0", null),
+            BitInterpretation.Restore(2, 1, 0, 1, "Bit 1 Word 0", null),
+            BitInterpretation.Restore(3, 1, 1, 0, "Bit 0 Word 1", null),
         ]);
 
         // Act
@@ -185,6 +191,38 @@ public class BitInterpretationFlowTests
         Assert.Equal(2, _viewModel.WordGroups.Count);
         Assert.Equal(2, _viewModel.WordGroups[0].Items.Count); // Word 0: 2 bit
         Assert.Single(_viewModel.WordGroups[1].Items); // Word 1: 1 bit
+    }
+
+    // === WordSize Reduction Flow ===
+
+    [Fact]
+    public async Task ReduceWordSize_TruncatesAndRegenerates()
+    {
+        // Arrange — crea Bitmapped con 16 bit, aggiungi 12 bit alla Word 0
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
+
+        var group = _viewModel.WordGroups[0];
+        for (var i = 0; i < 11; i++)
+            group.TryAddBit();
+        Assert.Equal(12, group.Items.Count);
+
+        // Metti un meaning su bit 10 (verrà troncato)
+        group.Items[10].Meaning = "Overflow bit";
+        _dialogService.ConfirmResult = DialogResult.Yes;
+
+        // Act — riduci wordSize a 8
+        _viewModel.SelectedWordSize = 8;
+
+        // Serve un piccolo delay per l'async fire-and-forget
+        await Task.Delay(50);
+
+        // Assert — bit troncati a 8, MaxBitsPerWord aggiornato
+        Assert.Equal(8, _viewModel.WordGroups[0].Items.Count);
+        Assert.Equal(8, _viewModel.WordGroups[0].MaxBitsPerWord);
+        Assert.True(_viewModel.WordGroups[0].Items.All(i => i.BitIndex < 8));
+        Assert.True(_dialogService.ShowConfirmCalled);
     }
 }
 #endif

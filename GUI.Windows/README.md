@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -108,10 +108,9 @@ GUI.Windows/
 │   ├── DictionaryEditViewModel.cs # Form dizionario + lista variabili integrata
 │   ├── VariableEditViewModel.cs   # Crea/modifica variabile (AddressHigh computed da Dictionary.IsStandard)
 │   ├── DeviceCommandsViewModel.cs # Stato comandi per device (checkbox Attivo, salvataggio bulk)
-│   ├── DeviceVariablesViewModel.cs # Stato variabili standard per device (BR-009/011)
+│   ├── DeviceVariablesViewModel.cs # ⚠️ Stato variabili standard per device (da rimuovere in T-006)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
 │   ├── CommandEditViewModel.cs    # Crea/modifica comando + delete (CodeHigh computed)
-│   ├── BoardListViewModel.cs      # Lista schede con DictionaryName
 │   ├── BoardEditViewModel.cs      # Crea/modifica scheda (FirmwareType, DictionaryId?)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   ├── SettingsViewModel.cs       # Impostazioni app (stub)
@@ -119,20 +118,19 @@ GUI.Windows/
 │   ├── BitInterpretationItem.cs   # Item singolo bit (WordIndex, BitIndex, Meaning)
 │   ├── CommandParameterItem.cs    # Item parametro comando (Size, Description)
 │   ├── CommandDeviceItem.cs       # Item stato comando per device
-│   └── VariableDeviceItem.cs      # Item stato variabile per device
+│   └── VariableDeviceItem.cs      # ⚠️ Item stato variabile per device (da rimuovere in T-006)
 ├── Views/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
 │   ├── DeviceListView.xaml        # UI lista dispositivi
 │   ├── DeviceDetailView.xaml      # UI dettaglio device
 │   ├── DeviceEditView.xaml        # UI form dispositivo (nuovo/modifica)
 │   ├── DeviceCommandsView.xaml    # UI stato comandi per device
-│   ├── DeviceVariablesView.xaml   # UI stato variabili standard per device
+│   ├── DeviceVariablesView.xaml   # ⚠️ UI stato variabili standard per device (da rimuovere in T-006)
 │   ├── DictionaryListView.xaml    # UI lista dizionari (double-click → edit)
 │   ├── DictionaryEditView.xaml    # UI form dizionario + lista variabili integrata
 │   ├── VariableEditView.xaml      # UI edit variabile + DeviceStates
 │   ├── CommandListView.xaml       # UI lista comandi (double-click → edit)
 │   ├── CommandEditView.xaml       # UI edit comando + delete
-│   ├── BoardListView.xaml         # UI lista schede
 │   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, Dizionario, IsPrimary)
 │   ├── UserListView.xaml          # UI lista utenti
 │   ├── SettingsView.xaml          # UI impostazioni
@@ -187,13 +185,12 @@ _navigationService.GoBack();
 | `DeviceEdit` | DeviceEditViewModel | Crea/modifica dispositivo |
 | `DeviceDetail` | DeviceDetailViewModel | Dettaglio device: dizionari associati |
 | `DeviceCommands` | DeviceCommandsViewModel | Stato comandi per device |
-| `DeviceVariables` | DeviceVariablesViewModel | Stato variabili standard per device |
+| `DeviceVariables` | DeviceVariablesViewModel | ⚠️ Stato variabili standard per device (T-006) |
 | `DictionaryList` | DictionaryListViewModel | Lista dizionari |
 | `DictionaryEdit` | DictionaryEditViewModel | Form dizionario + lista variabili integrata |
 | `VariableEdit` | VariableEditViewModel | Crea/modifica variabile |
 | `CommandList` | CommandListViewModel | Lista comandi |
 | `CommandEdit` | CommandEditViewModel | Crea/modifica comando + delete |
-| `BoardList` | BoardListViewModel | Lista schede |
 | `BoardEdit` | BoardEditViewModel | Crea/modifica scheda |
 | `UserList` | UserListViewModel | Lista utenti |
 | `Settings` | SettingsViewModel | Impostazioni app (stub) |
@@ -286,7 +283,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 6 risolte
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 3 issue aperte (incl. GUI-009 per T-006), 6 risolte
 
 ---
 

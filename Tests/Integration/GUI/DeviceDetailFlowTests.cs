@@ -15,6 +15,7 @@ public class DeviceDetailFlowTests
     private readonly MockDeviceService _deviceService;
     private readonly MockBoardService _boardService;
     private readonly MockDictionaryService _dictionaryService;
+    private readonly MockCommandService _commandService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -25,6 +26,7 @@ public class DeviceDetailFlowTests
         _deviceService = new MockDeviceService();
         _boardService = new MockBoardService();
         _dictionaryService = new MockDictionaryService();
+        _commandService = new MockCommandService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
@@ -34,6 +36,7 @@ public class DeviceDetailFlowTests
             _dictionaryService,
             _boardService,
             _deviceService,
+            _commandService,
             _dialogService,
             _messageService);
     }

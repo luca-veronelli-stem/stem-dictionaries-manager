@@ -263,7 +263,8 @@ public class MockVariableService : IVariableService
             variable.MaxValue,
             variable.Unit,
             variable.Usage,
-            variable.Description);
+            variable.Description,
+            variable.WordSize);
         _variables.Add(restored);
         return Task.FromResult(restored);
     }
@@ -329,6 +330,24 @@ public class MockVariableService : IVariableService
         return Task.CompletedTask;
     }
 
+    public Task UpdateBitInterpretationsForDeviceAsync(int variableId, int? deviceId,
+        IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"UpdateBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
+        int variableId, int deviceId, CancellationToken ct = default)
+    {
+        MethodCalls.Add($"GetBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        if (_bitInterpretations.TryGetValue(variableId, out var bits))
+            return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
+        return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
+    }
+
     public Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled, CancellationToken ct = default)
     {
         MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceId}:{isEnabled}");
@@ -390,10 +409,14 @@ public class MockVariableService : IVariableService
                 v.MaxValue,
                 v.Unit,
                 v.Usage,
-                v.Description);
+                v.Description,
+                v.WordSize);
             _variables.Add(restored);
         }
     }
+
+    /// <summary>Ritorna l'ultima variabile salvata (per verifiche nei test).</summary>
+    public Variable? GetSavedVariable() => _variables.LastOrDefault();
 
     public void SeedBitInterpretations(int variableId, List<BitInterpretation> bits)
     {

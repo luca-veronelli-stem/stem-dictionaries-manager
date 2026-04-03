@@ -99,93 +99,47 @@ public class DeviceVariablesFlowTests
 
     #endregion
 
-    #region Toggle Tests
+    #region Navigation Tests (doppio click → VariableEdit DeviceContext)
 
     [Fact]
-    public async Task ToggleVariable_SetsHasChanges()
-    {
-        // Arrange
-        await _viewModel.LoadAsync(deviceId: 1);
-        Assert.False(_viewModel.HasChanges);
-
-        // Act - toggle una variabile non deprecata
-        var fwVersion = _viewModel.Variables.First(v => v.Name == "FirmwareVersion");
-        fwVersion.IsEnabled = false;
-
-        // Assert
-        Assert.True(_viewModel.HasChanges);
-    }
-
-    [Fact]
-    public async Task ToggleVariable_BackToOriginal_ClearsHasChanges()
+    public async Task DoubleClickVariable_NavigatesToVariableEditWithDeviceContext()
     {
         // Arrange
         await _viewModel.LoadAsync(deviceId: 1);
         var fwVersion = _viewModel.Variables.First(v => v.Name == "FirmwareVersion");
-        var original = fwVersion.IsEnabled;
-        fwVersion.IsEnabled = !original;
-        Assert.True(_viewModel.HasChanges);
 
         // Act
-        fwVersion.IsEnabled = original;
+        _viewModel.EditBitInterpretationsCommand.Execute(fwVersion);
 
         // Assert
-        Assert.False(_viewModel.HasChanges);
-    }
-
-    #endregion
-
-    #region Save Tests
-
-    [Fact]
-    public async Task SaveChanges_OnlyUpdatesModifiedVariables()
-    {
-        // Arrange
-        await _viewModel.LoadAsync(deviceId: 1);
-        var fwVersion = _viewModel.Variables.First(v => v.Name == "FirmwareVersion");
-        fwVersion.IsEnabled = false;
-
-        // Act
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        // Assert
-        var setCalls = _variableService.MethodCalls.Where(m => m.StartsWith("SetDeviceStateAsync")).ToList();
-        Assert.Single(setCalls);
-        Assert.Contains("SetDeviceStateAsync:1:1:False", setCalls);
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+        var param = _navigationService.LastParameter!;
+        Assert.Equal(fwVersion.VariableId, param.EntityId);
+        Assert.Equal(1, param.ParentId);   // Standard dictionary ID
+        Assert.Equal(1, param.DeviceId);   // Device ID
     }
 
     [Fact]
-    public async Task SaveChanges_SkipsGloballyDisabledVariables()
+    public async Task DoubleClickDeprecated_StillNavigates()
     {
-        // Arrange
+        // Arrange - anche variabili deprecate possono essere aperte (read-only ma visibili)
         await _viewModel.LoadAsync(deviceId: 1);
-
-        // La variabile deprecata non dovrebbe essere modificabile,
-        // ma verifichiamo che il save non la processi comunque
         var deprecated = _viewModel.Variables.First(v => v.Name == "DeprecatedVar");
-        Assert.True(deprecated.IsGloballyDisabled);
 
         // Act
-        await _viewModel.SaveCommand.ExecuteAsync(null);
+        _viewModel.EditBitInterpretationsCommand.Execute(deprecated);
 
-        // Assert - nessuna chiamata per la variabile deprecata
-        Assert.DoesNotContain(_variableService.MethodCalls, m => m.Contains(":3:")); // Id=3
+        // Assert
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
     }
 
     [Fact]
-    public async Task SaveChanges_DisableOnDeprecated_Allowed()
+    public async Task HasChanges_AlwaysFalse_ReadOnlyList()
     {
-        // Arrange - variabile disabilitata con override già esistente
-        _variableService.SeedDeviceStates(
-            VariableDeviceState.Restore(1, 3, 1, isEnabled: false)
-        );
         await _viewModel.LoadAsync(deviceId: 1);
 
-        // Act - già disabilitata, niente da fare
-        await _viewModel.SaveCommand.ExecuteAsync(null);
-
-        // Assert - nessun errore
-        Assert.DoesNotContain(_messageService.Messages, m => m.Severity == MessageSeverity.Error);
+        // La lista è sempre read-only, HasChanges è false
+        Assert.False(_viewModel.HasChanges);
     }
 
     #endregion

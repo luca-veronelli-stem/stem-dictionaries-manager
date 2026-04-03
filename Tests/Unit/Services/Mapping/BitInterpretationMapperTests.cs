@@ -40,7 +40,7 @@ public class BitInterpretationMapperTests
     [Fact]
     public void ToEntity_ValidDomain_ReturnsEntity()
     {
-        var domain = BitInterpretation.Restore(1, 10, 1, 3, "Error Flag");
+        var domain = BitInterpretation.Restore(1, 10, 1, 3, "Error Flag", null);
 
         var result = BitInterpretationMapper.ToEntity(domain);
 
@@ -69,7 +69,7 @@ public class BitInterpretationMapperTests
             BitIndex = 0,
             Meaning = "Original"
         };
-        var domain = BitInterpretation.Restore(1, 20, 1, 7, "Updated");
+        var domain = BitInterpretation.Restore(1, 20, 1, 7, "Updated", null);
 
         BitInterpretationMapper.UpdateEntity(entity, domain);
 
@@ -82,7 +82,7 @@ public class BitInterpretationMapperTests
     [Fact]
     public void UpdateEntity_NullEntity_ThrowsArgumentNullException()
     {
-        var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test");
+        var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test", null);
 
         Assert.Throws<ArgumentNullException>(() =>
             BitInterpretationMapper.UpdateEntity(null!, domain));
@@ -143,5 +143,100 @@ public class BitInterpretationMapperTests
         Assert.Equal(original.WordIndex, roundTrip.WordIndex);
         Assert.Equal(original.BitIndex, roundTrip.BitIndex);
         Assert.Equal(original.Meaning, roundTrip.Meaning);
+    }
+
+    // === DeviceId Mapping Tests (SESSION_037) ===
+
+    [Fact]
+    public void ToDomain_WithDeviceId_MapsDeviceId()
+    {
+        var entity = new BitInterpretationEntity
+        {
+            Id = 1, VariableId = 10, DeviceId = 5,
+            WordIndex = 0, BitIndex = 0, Meaning = "Test"
+        };
+
+        var result = BitInterpretationMapper.ToDomain(entity);
+
+        Assert.Equal(5, result.DeviceId);
+    }
+
+    [Fact]
+    public void ToDomain_WithNullDeviceId_MapsNull()
+    {
+        var entity = new BitInterpretationEntity
+        {
+            Id = 1, VariableId = 10, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Test"
+        };
+
+        var result = BitInterpretationMapper.ToDomain(entity);
+
+        Assert.Null(result.DeviceId);
+    }
+
+    [Fact]
+    public void ToEntity_WithDeviceId_MapsDeviceId()
+    {
+        var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test", deviceId: 7);
+
+        var result = BitInterpretationMapper.ToEntity(domain);
+
+        Assert.Equal(7, result.DeviceId);
+    }
+
+    [Fact]
+    public void ToEntity_WithNullDeviceId_MapsNull()
+    {
+        var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test", deviceId: null);
+
+        var result = BitInterpretationMapper.ToEntity(domain);
+
+        Assert.Null(result.DeviceId);
+    }
+
+    [Fact]
+    public void UpdateEntity_WithDeviceId_UpdatesDeviceId()
+    {
+        var entity = new BitInterpretationEntity
+        {
+            Id = 1, VariableId = 10, DeviceId = null,
+            WordIndex = 0, BitIndex = 0, Meaning = "Old"
+        };
+        var domain = BitInterpretation.Restore(1, 10, 0, 0, "New", deviceId: 3);
+
+        BitInterpretationMapper.UpdateEntity(entity, domain);
+
+        Assert.Equal(3, entity.DeviceId);
+    }
+
+    [Fact]
+    public void RoundTrip_WithDeviceId_PreservesDeviceId()
+    {
+        var original = new BitInterpretationEntity
+        {
+            Id = 42, VariableId = 100, DeviceId = 7,
+            WordIndex = 2, BitIndex = 15, Meaning = "Device Override"
+        };
+
+        var domain = BitInterpretationMapper.ToDomain(original);
+        var roundTrip = BitInterpretationMapper.ToEntity(domain);
+
+        Assert.Equal(7, roundTrip.DeviceId);
+    }
+
+    [Fact]
+    public void RoundTrip_WithNullDeviceId_PreservesNull()
+    {
+        var original = new BitInterpretationEntity
+        {
+            Id = 42, VariableId = 100, DeviceId = null,
+            WordIndex = 2, BitIndex = 15, Meaning = "Common"
+        };
+
+        var domain = BitInterpretationMapper.ToDomain(original);
+        var roundTrip = BitInterpretationMapper.ToEntity(domain);
+
+        Assert.Null(roundTrip.DeviceId);
     }
 }

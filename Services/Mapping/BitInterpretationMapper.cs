@@ -20,7 +20,8 @@ public static class BitInterpretationMapper
             entity.VariableId,
             entity.WordIndex,
             entity.BitIndex,
-            entity.Meaning);
+            entity.Meaning,
+            entity.DeviceId);
     }
 
     /// <summary>
@@ -34,6 +35,7 @@ public static class BitInterpretationMapper
         {
             Id = domain.Id,
             VariableId = domain.VariableId,
+            DeviceId = domain.DeviceId,
             WordIndex = domain.WordIndex,
             BitIndex = domain.BitIndex,
             Meaning = domain.Meaning
@@ -49,6 +51,7 @@ public static class BitInterpretationMapper
         ArgumentNullException.ThrowIfNull(domain);
 
         entity.VariableId = domain.VariableId;
+        entity.DeviceId = domain.DeviceId;
         entity.WordIndex = domain.WordIndex;
         entity.BitIndex = domain.BitIndex;
         entity.Meaning = domain.Meaning;

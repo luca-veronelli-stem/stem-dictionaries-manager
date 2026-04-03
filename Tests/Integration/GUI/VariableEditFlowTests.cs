@@ -73,6 +73,7 @@ public class VariableEditFlowTests
         _viewModel.AddressLowHex = "20";
         _viewModel.Description = "Status flags";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
 
         // Assert - Word 0 creata automaticamente
         Assert.Single(_viewModel.WordGroups);
@@ -299,6 +300,7 @@ public class VariableEditFlowTests
         _viewModel.AddressLowHex = "40";
         _viewModel.Description = "Status flags bitmapped";
         _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 16;
         _viewModel.DataTypeParam = 1;
 
         // Modifica il meaning della riga iniziale
@@ -341,9 +343,9 @@ public class VariableEditFlowTests
         // Seed bit interpretations nel mock (ID 1, coerente con SeedData)
         _variableService.SeedBitInterpretations(1,
         [
-            new BitInterpretation(1, 0, 0, "Motor"),
-            new BitInterpretation(1, 0, 3, "Pump"),
-            new BitInterpretation(1, 1, 0, "Alarm")
+            new BitInterpretation(1, 0, 0, "Motor", null),
+            new BitInterpretation(1, 0, 3, "Pump", null),
+            new BitInterpretation(1, 1, 0, "Alarm", null)
         ]);
 
         // Act
@@ -358,6 +360,70 @@ public class VariableEditFlowTests
         // Word 1: 1 item (BitIndex 0)
         Assert.Single(_viewModel.WordGroups[1].Items);
         Assert.Equal("Alarm", _viewModel.WordGroups[1].Items[0].Meaning);
+    }
+
+    // === WordSize Integration Flow Tests ===
+
+    [Fact]
+    public async Task CreateBitmappedVariable_WithWordSize8_LimitsBitsTo8()
+    {
+        // Arrange
+        await _viewModel.InitializeAsync(null, dictionaryId: 1);
+
+        _viewModel.Name = "Compact8";
+        _viewModel.AddressLowHex = "60";
+        _viewModel.Description = "8-bit bitmapped";
+        _viewModel.SelectedDataTypeKind = DataTypeKind.Bitmapped;
+        _viewModel.SelectedWordSize = 8;
+
+        // Assert — WordGroup usa maxBitsPerWord=8
+        Assert.Single(_viewModel.WordGroups);
+        Assert.Equal(8, _viewModel.WordGroups[0].MaxBitsPerWord);
+
+        // Aggiungi 7 bit (totale 8)
+        for (var i = 0; i < 7; i++)
+            _viewModel.WordGroups[0].TryAddBit();
+        Assert.Equal(8, _viewModel.WordGroups[0].Items.Count);
+
+        // Bit 9 non aggiungibile
+        Assert.False(_viewModel.WordGroups[0].TryAddBit());
+
+        // Save — wordSize=8 nel domain
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        var saved = _variableService.GetSavedVariable();
+        Assert.NotNull(saved);
+        Assert.Equal(8, saved.WordSize);
+    }
+
+    [Fact]
+    public async Task EditBitmapped_LoadsWordSizeFromExisting()
+    {
+        // Arrange — variabile bitmapped con wordSize=32
+        var bitmappedVar = Variable.Restore(
+            id: 1, name: "Wide32", addressHigh: 0x80, addressLow: 0x70,
+            dataTypeKind: DataTypeKind.Bitmapped, dataTypeRaw: "Bitmapped[1]",
+            dataTypeParam: 1, accessMode: AccessMode.ReadOnly, isEnabled: true,
+            format: null, minValue: null, maxValue: null, unit: null,
+            usage: null, description: "32-bit bitmapped", wordSize: 32);
+        _variableService.SeedData(bitmappedVar);
+
+        _variableService.SeedBitInterpretations(1,
+        [
+            new BitInterpretation(1, 0, 0, "Bit0", null, maxBitIndex: 31),
+            new BitInterpretation(1, 0, 20, "Bit20", null, maxBitIndex: 31),
+        ]);
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1);
+
+        // Assert — WordSize caricato e WordGroups usano 32
+        Assert.Equal(32, _viewModel.SelectedWordSize);
+        Assert.True(_viewModel.HasWordSize);
+        Assert.Single(_viewModel.WordGroups);
+        Assert.Equal(32, _viewModel.WordGroups[0].MaxBitsPerWord);
+        Assert.Equal(2, _viewModel.WordGroups[0].Items.Count);
+        Assert.Equal(20, _viewModel.WordGroups[0].Items[1].BitIndex);
     }
 }
 #endif

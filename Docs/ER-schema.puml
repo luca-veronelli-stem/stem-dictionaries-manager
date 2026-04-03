@@ -1,7 +1,8 @@
 @startuml database-schema
 ' =============================================================================
-' Stem.Dictionaries.Manager - Database Schema
-' Generato da: SESSION_005
+' Stem.Dictionaries.Manager - Database Schema (Domain v3)
+' Aggiornato: SESSION_039 (2026-04-03)
+' Nota: VariableDeviceStates sarà rimosso in T-006 (Domain v7)
 ' =============================================================================
 
 !define TABLE(name) entity name << (T,#FFAAAA) >>
@@ -28,10 +29,10 @@ TABLE(Users) {
 TABLE(AuditEntries) {
     PK(Id) : int
     --
-    EntityType : int (enum)
+    EntityType : int (AuditEntityType enum)
     EntityId : int
-    Operation : int (enum)
-    FK(ChangedById) : int
+    Operation : int (AuditOperation enum)
+    FK(ChangedById) : int → Users
     ChangedAt : datetime
     PreviousValue : text?
     NewValue : text?
@@ -40,31 +41,36 @@ TABLE(AuditEntries) {
 
 Users ||--o{ AuditEntries : "ChangedById"
 
-' === BOARD TYPES E BOARDS ===
+' === DISPOSITIVI ===
 
-TABLE(BoardTypes) {
+TABLE(Devices) {
     PK(Id) : int
     --
     Name : string(50) <<unique>>
-    FirmwareType : int
+    Description : string(500)?
+    MachineCode : int
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
+
+' === SCHEDE ===
 
 TABLE(Boards) {
     PK(Id) : int
     --
-    DeviceType : int (enum)
-    FK(BoardTypeId) : int
+    FK(DeviceId) : int → Devices
     Name : string(50)
+    FirmwareType : int
     BoardNumber : int
     PartNumber : string(20)?
     ProtocolAddress : uint <<unique>>
+    IsPrimary : bool
+    FK(DictionaryId) : int? → Dictionaries
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
 
-BoardTypes ||--o{ Boards : "BoardTypeId"
+Devices ||--o{ Boards : "DeviceId"
 
 ' === DIZIONARI E VARIABILI ===
 
@@ -73,7 +79,7 @@ TABLE(Dictionaries) {
     --
     Name : string(50) <<unique>>
     Description : string(500)?
-    FK(BoardTypeId) : int? (null=Standard)
+    IsStandard : bool
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
@@ -81,7 +87,7 @@ TABLE(Dictionaries) {
 TABLE(Variables) {
     PK(Id) : int
     --
-    FK(DictionaryId) : int
+    FK(DictionaryId) : int → Dictionaries
     Name : string(100)
     AddressHigh : byte
     AddressLow : byte
@@ -96,6 +102,7 @@ TABLE(Variables) {
     Usage : string(200)?
     Description : string(2000)?
     IsEnabled : bool
+    WordSize : int? (8, 16, 32)
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
@@ -103,25 +110,26 @@ TABLE(Variables) {
 TABLE(BitInterpretations) {
     PK(Id) : int
     --
-    FK(VariableId) : int
-    DeviceType : int (enum)
+    FK(VariableId) : int → Variables
+    FK(DeviceId) : int? → Devices
     WordIndex : int
     BitIndex : int
-    Meaning : string(200)
+    Meaning : string(200)?
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
 
-BoardTypes ||--o{ Dictionaries : "BoardTypeId"
 Dictionaries ||--o{ Variables : "DictionaryId"
+Dictionaries ||--o{ Boards : "DictionaryId"
 Variables ||--o{ BitInterpretations : "VariableId"
+Devices ||--o{ BitInterpretations : "DeviceId"
 
 ' === COMANDI ===
 
 TABLE(Commands) {
     PK(Id) : int
     --
-    Name : string(100)
+    Name : string(100) <<unique>>
     CodeHigh : byte
     CodeLow : byte
     IsResponse : bool
@@ -133,45 +141,97 @@ TABLE(Commands) {
 TABLE(CommandDeviceStates) {
     PK(Id) : int
     --
-    FK(CommandId) : int
-    DeviceType : int (enum)
+    FK(CommandId) : int → Commands
+    FK(DeviceId) : int → Devices
     IsEnabled : bool
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
 
 Commands ||--o{ CommandDeviceStates : "CommandId"
+Devices ||--o{ CommandDeviceStates : "DeviceId"
+
+' === OVERRIDE VARIABILI PER DEVICE ===
+' ⚠️ Da rimuovere in T-006 → StandardVariableOverride (per-dizionario)
+
+TABLE(VariableDeviceStates) {
+    PK(Id) : int
+    --
+    FK(VariableId) : int → Variables
+    FK(DeviceId) : int → Devices
+    IsEnabled : bool
+    CreatedAt : datetime
+    UpdatedAt : datetime?
+}
+
+Variables ||--o{ VariableDeviceStates : "VariableId"
+Devices ||--o{ VariableDeviceStates : "DeviceId"
 
 ' === NOTE ===
 
 note bottom of Variables
   **Unique constraint:**
   (DictionaryId, AddressHigh, AddressLow)
-  
+
   **Category derivata:**
   AddressHigh = 0x00 → Standard
   AddressHigh = 0x80 → DeviceSpecific
+
+  **WordSize (BR-019):**
+  Solo per Bitmapped: 8, 16 o 32
 end note
 
 note bottom of BitInterpretations
   **Unique constraint:**
-  (VariableId, DeviceType, WordIndex, BitIndex)
+  (VariableId, DeviceId, WordIndex, BitIndex)
+
+  DeviceId = NULL → interpretazione
+  comune (template)
 end note
 
 note bottom of Commands
   **Unique constraint:**
   (CodeHigh, CodeLow, IsResponse)
+
+  Name è anche unique
 end note
 
 note bottom of CommandDeviceStates
   **Unique constraint:**
-  (CommandId, DeviceType)
+  (CommandId, DeviceId)
+end note
+
+note bottom of VariableDeviceStates
+  **Unique constraint:**
+  (VariableId, DeviceId)
+
+  ⚠️ T-006: sarà sostituito da
+  StandardVariableOverride
+  (per-dizionario, non per-device)
 end note
 
 note bottom of Dictionaries
-  BoardTypeId = NULL
-  significa dizionario "Standard"
-  condiviso da tutti i device
+  IsStandard = true → dizionario
+  delle variabili comuni 0x00xx.
+  Max 1 nel sistema (BR-004).
+
+  **Semantica derivata (runtime):**
+  · Dedicated: 1 solo DeviceType
+  · Shared: 2+ DeviceType diversi
+  · Orphan: nessun Board associato
+end note
+
+note bottom of Boards
+  **BR-005:** Max 1 IsPrimary=true
+  per Device (partial unique index)
+
+  DictionaryId = NULL →
+  board senza dizionario proprio
+end note
+
+note bottom of Devices
+  **BR-014:** MachineCode > 0
+  **BR-015:** MachineCode ≠ 6 (BLE)
 end note
 
 @enduml

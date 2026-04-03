@@ -504,7 +504,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 5,
-            meaning: "Pump Active");
+            meaning: "Pump Active", deviceId: null);
 
         // Act
         var result = await _service.AddBitInterpretationAsync(variable.Id, interpretation);
@@ -520,7 +520,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var interpretation = new BitInterpretation(variableId: 999, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test");
+            meaning: "Test", deviceId: null);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddBitInterpretationAsync(999, interpretation));
@@ -545,7 +545,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test");
+            meaning: "Test", deviceId: null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -610,8 +610,8 @@ public class VariableServiceTests : IntegrationTestBase
         // Nuove interpretazioni (0 modificata, 1 eliminata, 2 nuova)
         var newInterpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Updated Motor"),
-            new(variable.Id, 0, 2, "New Error")
+            new(variable.Id, 0, 0, "Updated Motor", null),
+            new(variable.Id, 0, 2, "New Error", null)
         };
 
         // Act
@@ -630,7 +630,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var interpretations = new List<BitInterpretation>
         {
-            new(999, 0, 0, "Test")
+            new(999, 0, 0, "Test", null)
         };
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -656,7 +656,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Test")
+            new(variable.Id, 0, 0, "Test", null)
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -683,8 +683,8 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretations = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "First"),
-            new(variable.Id, 0, 0, "Duplicate")
+            new(variable.Id, 0, 0, "First", null),
+            new(variable.Id, 0, 0, "Duplicate", null)
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -729,7 +729,7 @@ public class VariableServiceTests : IntegrationTestBase
         // Act - aggiorna meaning, stessa chiave
         var updated = new List<BitInterpretation>
         {
-            new(variable.Id, 0, 0, "Motor Updated")
+            new(variable.Id, 0, 0, "Motor Updated", null)
         };
         await _service.UpdateBitInterpretationsAsync(variable.Id, updated);
 
@@ -896,5 +896,220 @@ public class VariableServiceTests : IntegrationTestBase
             DataTypeKind.UInt16, AccessMode.ReadWrite, "UInt16",
             isEnabled: isEnabled);
         return await _service.AddAsync(_testDictionary.Id, variable);
+    }
+
+    // === GetBitInterpretationsAsync (normal mode — solo comuni) ===
+
+    [Fact]
+    public async Task GetBitInterpretationsAsync_ExcludesDeviceSpecific()
+    {
+        // Arrange — bit comuni + device-specific
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "MixedBits", 0x00, 0x73,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
+            Meaning = "Common bit 1", DeviceId = null
+        });
+
+        // Act — normal mode (no device)
+        var result = await _service.GetBitInterpretationsAsync(created.Id);
+
+        // Assert — solo le comuni, nessuna device-specific
+        Assert.Equal(2, result.Count);
+        Assert.All(result, b => Assert.Null(b.DeviceId));
+        Assert.Contains(result, b => b.BitIndex == 0 && b.Meaning == "Common bit 0");
+        Assert.Contains(result, b => b.BitIndex == 1 && b.Meaning == "Common bit 1");
+    }
+
+    // === GetBitInterpretationsForDeviceAsync merge/override ===
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_MergesDeviceOverCommon()
+    {
+        // Arrange — variabile bitmapped con bit comuni + device-specific
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "StatusBits", 0x00, 0x70,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        // Bit comuni (DeviceId = null)
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
+            Meaning = "Common bit 1", DeviceId = null
+        });
+        // Override per device: solo bit 0
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+
+        // Assert — 2 bit: bit 0 = device override, bit 1 = common fallback
+        Assert.Equal(2, result.Count);
+        Assert.Equal("Device bit 0", result.First(b => b.BitIndex == 0).Meaning);
+        Assert.Equal("Common bit 1", result.First(b => b.BitIndex == 1).Meaning);
+    }
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_NoOverride_ReturnsCommon()
+    {
+        // Arrange — solo bit comuni, nessun override per device 99
+        var variable = new Variable(
+            "StatusBits2", 0x00, 0x71,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common only", DeviceId = null
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, 99);
+
+        // Assert — fallback alle comuni
+        Assert.Single(result);
+        Assert.Equal("Common only", result[0].Meaning);
+        Assert.Null(result[0].DeviceId);
+    }
+
+    [Fact]
+    public async Task GetBitInterpretationsForDeviceAsync_AllOverridden_ReturnsOnlyDevice()
+    {
+        // Arrange — tutti i bit hanno override per device
+        await SeedTestDevicesAsync();
+        var device = Context.Devices.First();
+
+        var variable = new Variable(
+            "StatusBits3", 0x00, 0x72,
+            DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
+            dataTypeParam: 1, isEnabled: true);
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Common bit 0", DeviceId = null
+        });
+        await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
+        {
+            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
+            Meaning = "Device bit 0", DeviceId = device.Id
+        });
+
+        // Act
+        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+
+        // Assert — solo 1 bit (device override, non duplicato)
+        Assert.Single(result);
+        Assert.Equal("Device bit 0", result[0].Meaning);
+        Assert.Equal(device.Id, result[0].DeviceId);
+    }
+
+    // === WordSize Persistence Tests ===
+
+    [Fact]
+    public async Task AddAsync_Bitmapped_WithWordSize_PersistsWordSize()
+    {
+        // Arrange
+        var variable = new Variable(
+            name: "StatusFlags",
+            addressHigh: 0x00,
+            addressLow: 0xA0,
+            dataTypeKind: DataTypeKind.Bitmapped,
+            accessMode: AccessMode.ReadOnly,
+            dataTypeRaw: "Bitmapped[2]",
+            dataTypeParam: 2,
+            description: "Bitmapped with wordSize",
+            wordSize: 8);
+
+        // Act
+        var created = await _service.AddAsync(_testDictionary.Id, variable);
+
+        // Assert — round-trip: reload from DB
+        var loaded = await _service.GetByIdAsync(created.Id);
+        Assert.NotNull(loaded);
+        Assert.Equal(8, loaded.WordSize);
+        Assert.Equal(DataTypeKind.Bitmapped, loaded.DataTypeKind);
+        Assert.Equal(2, loaded.DataTypeParam);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Bitmapped_WordSize_UpdatesInDb()
+    {
+        // Arrange — crea con wordSize=16
+        var entity = new VariableEntity
+        {
+            DictionaryId = _testDictionary.Id,
+            Name = "AlarmFlags",
+            AddressHigh = 0x00,
+            AddressLow = 0xA1,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeRaw = "Bitmapped[1]",
+            DataTypeParam = 1,
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            WordSize = 16
+        };
+        await _variableRepo.AddAsync(entity);
+
+        // Act — aggiorna wordSize a 32
+        var updated = Variable.Restore(
+            id: entity.Id,
+            name: "AlarmFlags",
+            addressHigh: 0x00,
+            addressLow: 0xA1,
+            dataTypeKind: DataTypeKind.Bitmapped,
+            dataTypeRaw: "Bitmapped[1]",
+            dataTypeParam: 1,
+            accessMode: AccessMode.ReadOnly,
+            isEnabled: true,
+            format: null,
+            minValue: null,
+            maxValue: null,
+            unit: null,
+            usage: null,
+            description: null,
+            wordSize: 32);
+
+        await _service.UpdateAsync(updated);
+
+        // Assert
+        var loaded = await _service.GetByIdAsync(entity.Id);
+        Assert.NotNull(loaded);
+        Assert.Equal(32, loaded.WordSize);
     }
 }
