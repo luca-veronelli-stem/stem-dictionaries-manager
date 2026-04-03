@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -92,7 +92,7 @@ Infrastructure/
 │   ├── CommandEntity.cs               # Comando protocollo (ParametersJson)
 │   ├── CommandDeviceStateEntity.cs    # Stato comando per device
 │   ├── DeviceEntity.cs                # Dispositivo STEM
-│   ├── VariableDeviceStateEntity.cs   # Override variabile per device (BR-009)
+│   ├── VariableDeviceStateEntity.cs   # ⚠️ Override variabile per device (da rimuovere in T-006)
 │   └── AuditEntryEntity.cs            # Audit trail (no IAuditable)
 ├── Interfaces/
 │   ├── IAuditable.cs                  # Interface per audit fields
@@ -207,7 +207,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 6 risolte
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 3 issue aperte (incl. INFRA-009 per T-006), 6 risolte
 
 ---
 

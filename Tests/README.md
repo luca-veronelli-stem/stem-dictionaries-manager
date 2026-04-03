@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -20,7 +20,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~721 test per Core + Services/Mapping + GUI (16 ViewModels) |
+| **Unit Tests** | ✅ | ~721 test per Core + Services/Mapping + GUI (15 ViewModels) |
 | **Integration Tests** | ✅ | ~274 test per Infrastructure + Services + GUI |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
@@ -85,7 +85,6 @@ Tests/
 │   │   ├── AuditEntityTypeTests.cs   # 3 test
 │   │   ├── AuditOperationTests.cs    # 3 test
 │   │   ├── DataTypeKindTests.cs      # 4 test
-│   │   ├── DeviceTypeTests.cs        # 5 test
 │   │   └── VariableCategoryTests.cs  # 3 test
 │   ├── Models/
 │   │   ├── AuditEntryTests.cs        # 6 test
@@ -97,7 +96,7 @@ Tests/
 │   │   ├── DictionaryTests.cs        # 16 test (IsStandard, Restore validation)
 │   │   ├── UserTests.cs              # 7 test
 │   │   ├── VariableTests.cs          # 15 test
-│   │   └── VariableDeviceStateTests.cs # 7 test (BR-009/010/011)
+│   │   └── VariableDeviceStateTests.cs # ⚠️ 7 test (da rimuovere in T-006)
 │   ├── Infrastructure/
 │   │   └── DependencyInjectionTests.cs    # 14 test
 │   ├── GUI/                               # Test GUI (solo Windows)
@@ -105,7 +104,7 @@ Tests/
 │   │   │   ├── MockServices.cs            # Mock per GUI services
 │   │   │   └── MockDataServices.cs        # Mock per data services
 │   │   ├── ViewModels/
-│   │   ├── MainViewModelTests.cs             # 32 test (login/logout, nav, status bar, unsaved changes guard)
+│   │   │   ├── MainViewModelTests.cs             # 32 test (login/logout, nav, status bar, unsaved changes guard)
 │   │   │   ├── LoginViewModelTests.cs            # 8 test
 │   │   │   ├── DeviceListViewModelTests.cs       # 12 test
 │   │   │   ├── DeviceEditViewModelTests.cs       # 27 test (Name, MachineCode, Cancel+HasChanges, Delete)
@@ -117,10 +116,9 @@ Tests/
 │   │   │   ├── CommandListViewModelTests.cs      # 13 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 52 test (CodeHigh + Delete + Cancel + Params)
 │   │   │   ├── CommandParameterItemTests.cs      # 7 test
-│   │   │   ├── BoardListViewModelTests.cs        # 29 test
 │   │   │   ├── BoardEditViewModelTests.cs        # 29 test (FirmwareType, DictionaryId?, Cancel, Delete)
 │   │   │   ├── DeviceCommandsViewModelTests.cs   # 19 test (load, save, HasChanges)
-│   │   │   ├── DeviceVariablesViewModelTests.cs  # 22 test (load, save, deprecate warning)
+│   │   │   ├── DeviceVariablesViewModelTests.cs  # ⚠️ 22 test (da rimuovere in T-006)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Converters/
@@ -156,7 +154,7 @@ Tests/
     │   ├── UserRepositoryTests.cs             # 9 test
     │   ├── BitInterpretationRepositoryTests.cs    # 13 test
     │   ├── CommandDeviceStateRepositoryTests.cs   # 13 test
-    │   └── VariableDeviceStateRepositoryTests.cs  # 13 test
+    │   └── VariableDeviceStateRepositoryTests.cs  # ⚠️ 13 test (da rimuovere in T-006)
     ├── Services/
     │   ├── UserServiceTests.cs            # 15 test
     │   ├── DictionaryServiceTests.cs      # 20 test (IsStandard uniqueness)
@@ -164,9 +162,24 @@ Tests/
     │   ├── CommandServiceTests.cs         # 22 test
     │   ├── DeviceServiceTests.cs          # 16 test
     │   └── VariableServiceTests.cs        # 41 test (DeviceStates BR-009/010/011)
+    ├── E2E/                               # End-to-end workflow tests
+    │   ├── AuditTrailTests.cs             # Audit trail workflow
+    │   ├── CommandWorkflowTests.cs        # Comandi workflow completo
+    │   ├── DatabaseSeederTests.cs         # Verifica dati seed
+    │   ├── DeviceWorkflowTests.cs         # Dispositivi workflow
+    │   ├── DictionaryWorkflowTests.cs     # Dizionari workflow
+    │   └── VariableWorkflowTests.cs       # Variabili workflow
     └── GUI/                               # Solo Windows
-        ├── CommandEditFlowTests.cs       # 8 test (flow completo save/load comandi con parametri)
-        └── VariableEditFlowTests.cs       # 12 test (flow completo + bitmapped + AddressHigh)
+        ├── LoginFlowTests.cs             # Login/logout flow
+        ├── DeviceFlowTests.cs            # CRUD dispositivi flow
+        ├── DeviceDetailFlowTests.cs      # Dettaglio device flow
+        ├── DeviceCommandsFlowTests.cs    # Stato comandi per device flow
+        ├── DeviceVariablesFlowTests.cs   # ⚠️ Stato variabili per device flow (T-006)
+        ├── DictionaryEditFlowTests.cs    # Dizionario + variabili flow
+        ├── BoardEditFlowTests.cs         # Board edit flow
+        ├── BitInterpretationFlowTests.cs # Bitmapped flow
+        ├── CommandEditFlowTests.cs       # Flow completo save/load comandi con parametri
+        └── VariableEditFlowTests.cs      # Flow completo + bitmapped + AddressHigh
 ```
 
 ---
@@ -278,7 +291,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 8 risolte
+→ [Tests/ISSUES.md](./ISSUES.md) — 2 issue aperte (incl. TEST-010 per T-006), 8 risolte
 
 ---
 

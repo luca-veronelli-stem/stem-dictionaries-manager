@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -97,7 +97,7 @@ Services/
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
 │   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
 │   ├── DeviceMapper.cs                # Device Entity ↔ Domain
-│   ├── VariableDeviceStateMapper.cs   # VariableDeviceState Entity ↔ Domain
+│   ├── VariableDeviceStateMapper.cs   # ⚠️ VariableDeviceState Entity ↔ Domain (da rimuovere in T-006)
 │   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain
 ├── DictionaryService.cs           # Aggregate root (IsStandard uniqueness)
 ├── VariableService.cs             # Implementazione + DeviceState (BR-009/010/011)
@@ -320,12 +320,13 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 7 risolte
+→ [Services/ISSUES.md](./ISSUES.md) — 5 issue aperte (incl. SVC-012 per T-006), 7 risolte
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
+| SVC-012 | Alta | Mapper + Service per StandardVariableOverride (T-006) |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 
 ---
