@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
-> **Ultimo aggiornamento:** 2026-03-30
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -154,18 +154,17 @@ public void RemoveVariable(Variable variable)
 
 #### Descrizione
 
-I modelli `BoardType`, `User`, `Dictionary`, `Command` non hanno metodi per aggiornare le proprietà. Solo `Variable` e `CommandDeviceState` hanno `Enable()`/`Disable()`.
+I modelli `User`, `Dictionary`, `Command` non hanno metodi per aggiornare le proprietà. Solo `Variable` e `CommandDeviceState` hanno `Enable()`/`Disable()`.
 
 #### File Coinvolti
 
-- `Core/Models/BoardType.cs`
 - `Core/Models/User.cs`
 - `Core/Models/Dictionary.cs`
 - `Core/Models/Command.cs`
 
 #### Problema Specifico
 
-- Per aggiornare un `BoardType.Name` bisognerebbe creare una nuova istanza
+- Per aggiornare un `User.DisplayName` bisognerebbe creare una nuova istanza
 - Il pattern immutabile è buono, ma mancano metodi `With*` o `Update*`
 - Il Services layer dovrà gestire mapping complessi per update
 
@@ -174,13 +173,6 @@ I modelli `BoardType`, `User`, `Dictionary`, `Command` non hanno metodi per aggi
 **Opzione A: Metodi Update specifici (raccomandata)**
 
 ```csharp
-// In BoardType.cs
-public void UpdateName(string newName)
-{
-    ArgumentException.ThrowIfNullOrWhiteSpace(newName);
-    Name = newName;
-}
-
 // In User.cs
 public void UpdateDisplayName(string newDisplayName)
 {
@@ -192,8 +184,8 @@ public void UpdateDisplayName(string newDisplayName)
 **Opzione B: Pattern With (immutabile puro)**
 
 ```csharp
-public BoardType WithName(string newName) => 
-    new(newName, FirmwareType) { Id = Id };
+public Dictionary WithName(string newName) => 
+    new(newName, IsStandard) { Id = Id };
 ```
 
 #### Benefici Attesi

@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-03-30
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-03-30
+> **Ultimo aggiornamento:** 2026-04-03
 
 ---
 
@@ -155,7 +155,7 @@ Diversi constructor e factory method `Restore` nei domain models hanno parametri
 **Data Apertura:** 2026-03-30
 
 **Precedente:**  
-`BitInterpretation(deviceId = null)` → reso obbligatorio in SESSION_037. Il default nascondeva "interpretazione comune a tutti i device".
+`BitInterpretation(deviceId = null)` → reso obbligatorio in SESSION_037. Il default nascondeva "interpretazione comune a tutti i device". In v7, `DeviceId` → `DictionaryId` (T-006).
 
 **Parametri da valutare:**
 
@@ -164,7 +164,7 @@ Diversi constructor e factory method `Restore` nei domain models hanno parametri
 | 1 | Board | `machineCode` | `= 0` | Medio | 0 è illegale per BR-014. In Restore (da DB) potrebbe mascherare un mapper incompleto |
 | 2 | Board.Restore | `machineCode` | `= 0` | Medio | Stesso problema — dato denormalizzato da Device |
 | 3 | CommandDeviceState | `isEnabled` | `= true` | Basso | Restore esplicito, constructor usato solo nei test |
-| 4 | VariableDeviceState | `isEnabled` | `= true` | Basso | Idem |
+| ~~4~~ | ~~VariableDeviceState~~ | ~~`isEnabled`~~ | ~~`= true`~~ | ~~Basso~~ | ~~Risolto da T-006 (entity rimossa)~~ |
 | 5 | Command | `isResponse` | `= false` | Basso | Restore esplicito, mapper passa il valore |
 | 6 | Dictionary | `isStandard` | `= false` | Basso | Restore esplicito, GUI passa esplicitamente |
 | 7 | Variable | `isEnabled` | `= true` | Basso | Restore completamente esplicito |
@@ -202,14 +202,15 @@ Diverse regole di business sono attualmente protette solo a livello codice (Core
 | 2 | BR-005: Max 1 primary board per device | Partial unique index `(DeviceId) WHERE IsPrimary = 1` | `HasIndex().IsUnique().HasFilter()` | Board |
 | 3 | BR-014: MachineCode > 0 | CHECK constraint | `HasCheckConstraint()` | Device |
 | 4 | BR-016: Command.Name univoco | Unique index (**oggi manca!**) | `HasIndex().IsUnique()` | Command |
-| 5 | BitIndex 0-15 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
+| 5 | BitIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
 | 6 | WordIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
+| 7 | BR-010: Unicità override standard | Unique index `(DictionaryId, StandardVariableId)` | `HasIndex().IsUnique()` | StandardVariableOverride |
 
 **Esclusi (restano solo nel codice):**
 
 | Regola | Motivazione |
 |--------|-------------|
-| BR-011: Override coerenza (Variable.IsEnabled + State) | Cross-entity, servirebbe trigger SQL — troppo complesso |
+| BR-011: Override coerenza (Variable.IsEnabled + Override) | Cross-entity, servirebbe trigger SQL — troppo complesso |
 | BR-015: MachineCode ≠ 6 (BLE reserved) | Regola business che potrebbe cambiare — meglio flessibile |
 
 **Effort stimato:** S (1-2h) — solo configurazione EF Core + migration
@@ -492,14 +493,14 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Aspetto | Stato | Note |
 |---------|-------|------|
-| **Architecture** | ✅ 98% | Domain v2 completo, VariableDeviceState aggiunto |
+| **Architecture** | ⚠️ 85% | Domain v7 formalizzato, T-006 aperta (refactoring pendente) |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
-| **Input Validation** | ✅ 85% | BR-011 (VariableDeviceState), CORE-006, CORE-005 residui |
+| **Input Validation** | ✅ 85% | BR-011 (StandardVariableOverride v7), CORE-006, CORE-005 residui |
 | **Data Integrity** | ✅ 95% | SVC-009 risolta |
 | **Performance** | ✅ 100% | INFRA-002 + SVC-003 (Wontfix, coperto da INFRA-002) |
 | **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
-| **Code Consistency** | ✅ 90% | INFRA-006, GUI-006, SVC-010 residui |
-| **Test Coverage** | ✅ 95% | 1254 test, TEST-008 risolta |
+| **Code Consistency** | ✅ 90% | INFRA-006 residuo |
+| **Test Coverage** | ✅ 95% | ~1575 test cases, TEST-008 risolta |
 
 ---
 
@@ -507,9 +508,10 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
+| **Refactoring** | 5 | CORE-008, INFRA-009, SVC-012, GUI-009, TEST-010 (T-006) |
 | **Bug** | 1 | INFRA-006 |
-| **Design** | 4 | SVC-005, SVC-006, INFRA-005, GUI-002 |
-| **UX** | 1 | GUI-003 |
+| **Design** | 3 | SVC-005, SVC-006, INFRA-005 |
+| **UX** | 1 | GUI-002 |
 | **Performance** | 0 | - |
 | **Copertura** | 0 | - |
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
@@ -517,6 +519,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Code Smell** | 0 | - |
 | **Feature** | 1 | SVC-002 |
 | **Robustezza** | 1 | SVC-007 |
+| **Trasversale** | 4 | T-003, T-004, T-005, T-006 |
 
 ---
 
