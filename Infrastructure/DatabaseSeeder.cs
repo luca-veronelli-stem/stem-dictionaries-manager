@@ -306,10 +306,13 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === Dizionario Standard (da dati_standard.CSV) ===
-        await SeedStandardDictionaryAsync(context);
+        var standardVariables = await SeedStandardDictionaryAsync(context);
 
         // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
         await SeedPulsantiereDictionaryAsync(context, boards);
+
+        // === Override per-device sulle variabili standard ===
+        await SeedSpykeOverridesAsync(context, devices[4], standardVariables);
     }
 
     /// <summary>
@@ -318,7 +321,7 @@ public static class DatabaseSeeder
     /// AddressHigh = 0x00 per tutte le variabili standard.
     /// BitInterpretations: vuote nello standard, i device le overridano.
     /// </summary>
-    private static async Task SeedStandardDictionaryAsync(AppDbContext context)
+    private static async Task<VariableEntity[]> SeedStandardDictionaryAsync(AppDbContext context)
     {
         var dictionary = new DictionaryEntity
         {
@@ -427,34 +430,34 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly,
                 description: "Livello di carica della batteria del veicolo"),
 
-            // 0x0010 — Salute batteria
+            // 0x0010 — Salute batteria (disabilitata globalmente)
             Var(dictionary.Id, "Salute batteria", 0x10,
                 DataTypeKind.UInt16, "UInt16",
-                AccessMode.ReadOnly,
+                AccessMode.ReadOnly, isEnabled: false,
                 description: "Stato di salute (SOH) della batteria"),
 
-            // 0x0011 — Cicli batteria
+            // 0x0011 — Cicli batteria (disabilitata globalmente)
             Var(dictionary.Id, "Cicli batteria", 0x11,
                 DataTypeKind.UInt16, "UInt16",
-                AccessMode.ReadOnly,
+                AccessMode.ReadOnly, isEnabled: false,
                 description: "Numero di cicli di carica/scarica della batteria"),
 
-            // 0x0012 — Temperatura batteria
+            // 0x0012 — Temperatura batteria (disabilitata globalmente)
             Var(dictionary.Id, "Temperatura batteria", 0x12,
                 DataTypeKind.Int16, "Int16",
-                AccessMode.ReadOnly,
+                AccessMode.ReadOnly, isEnabled: false,
                 description: "Temperatura della batteria in decimi di grado (÷10 per °C)"),
 
-            // 0x0013 — BatteryFirmware
+            // 0x0013 — BatteryFirmware (disabilitata globalmente)
             Var(dictionary.Id, "BatteryFirmware", 0x13,
                 DataTypeKind.UInt32, "UInt32",
-                AccessMode.ReadOnly,
+                AccessMode.ReadOnly, isEnabled: false,
                 description: "Versione firmware della batteria"),
 
-            // 0x0014 — BatterySerial
+            // 0x0014 — BatterySerial (disabilitata globalmente)
             Var(dictionary.Id, "BatterySerial", 0x14,
                 DataTypeKind.UInt32, "UInt32",
-                AccessMode.ReadOnly,
+                AccessMode.ReadOnly, isEnabled: false,
                 description: "Numero seriale della batteria"),
 
             // 0x0015 — Stato ingressi fisici (Bitmapped[1], WordSize=32)
@@ -478,6 +481,8 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
 
         await context.SaveChangesAsync();
+
+        return variables;
     }
 
     /// <summary>
@@ -575,6 +580,53 @@ public static class DatabaseSeeder
                 board.DictionaryId = dictionary.Id;
             }
         }
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Override per-device Spyke sulle variabili standard.
+    /// Fonte: Docs/Dictionaries/spyke.CSV
+    /// - Disabilita 0x0008 (Temperatura scheda), 0x0009 (Secondi lavoro parziale), 0x000A (Secondi lavoro totale)
+    /// - BitInterpretations per Allarmi (0x0006): Word 0 = allarmi, Word 1 = avvisi
+    /// </summary>
+    private static async Task SeedSpykeOverridesAsync(
+        AppDbContext context, DeviceEntity spyke, VariableEntity[] standardVariables)
+    {
+        // Disabilita variabili non usate da Spyke HMI
+        var disabledAddresses = new byte[] { 0x08, 0x09, 0x0A };
+        foreach (var v in standardVariables.Where(v => disabledAddresses.Contains(v.AddressLow)))
+        {
+            context.VariableDeviceStates.Add(new VariableDeviceStateEntity
+            {
+                VariableId = v.Id,
+                DeviceId = spyke.Id,
+                IsEnabled = false
+            });
+        }
+
+        // BitInterpretations per Allarmi (0x0006) — DeviceId = Spyke
+        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+
+        context.BitInterpretations.AddRange(
+            // Word 0 — Allarmi
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 0, Meaning = "Errore CAN" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 1, Meaning = "Tensione troppo bassa" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 2, Meaning = "Errore touch" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 3, Meaning = "Errore sensore 10G (Vricarica senza 10G)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 4, Meaning = "Sovraccarico celle (tensione batteria massima con corrente)" },
+
+            // Word 1 — Avvisi
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 0, Meaning = "Tensione bassa" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 1, Meaning = "NFC non presente (barellino agganciato)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 2, Meaning = "NFC non riconosciuto (barellino agganciato)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 3, Meaning = "Barellino non agganciato (NFC presente)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 4, Meaning = "Mancanza di Vricarica con 10G agganciato" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 5, Meaning = "Celle sbilanciate (ricarica senza corrente)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 6, Meaning = "Perdita di stabilità della barella (giroscopio)" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 7, Meaning = "Incoerenza leva/pulsante in carico" },
+            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 8, Meaning = "Incoerenza leva/pulsante in scarico" }
+        );
 
         await context.SaveChangesAsync();
     }

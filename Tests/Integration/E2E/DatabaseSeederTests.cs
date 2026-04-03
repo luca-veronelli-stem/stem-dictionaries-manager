@@ -105,7 +105,7 @@ public class DatabaseSeederTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SeedAsync_Allarmi_NoBitInterpretations()
+    public async Task SeedAsync_Allarmi_NoCommonBitInterpretations()
     {
         await DatabaseSeeder.SeedAsync(Context);
 
@@ -113,7 +113,9 @@ public class DatabaseSeederTests : IntegrationTestBase
             .Include(v => v.BitInterpretations)
             .FirstAsync(v => v.AddressLow == 0x06);
 
-        Assert.Empty(allarmi.BitInterpretations);
+        // Nessuna interpretazione comune (DeviceId=null), solo per-device
+        var common = allarmi.BitInterpretations.Where(bi => bi.DeviceId == null).ToList();
+        Assert.Empty(common);
     }
 
     [Fact]
@@ -337,5 +339,83 @@ public class DatabaseSeederTests : IntegrationTestBase
         var unlinked = allPulsBoards.Where(b => b.DictionaryId == null).ToList();
         Assert.Equal(17, linked.Count);
         Assert.Single(unlinked); // Sherpa Pulsantiera (FW=2)
+    }
+
+    // === Override per-device Spyke ===
+
+    [Fact]
+    public async Task SeedAsync_Spyke_DisablesTemperaturaScheda()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var spyke = await Context.Devices.FirstAsync(d => d.Name == "Spyke");
+        var state = await Context.VariableDeviceStates
+            .FirstOrDefaultAsync(s => s.DeviceId == spyke.Id
+                && s.Variable.AddressLow == 0x08);
+
+        Assert.NotNull(state);
+        Assert.False(state.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_Spyke_Disables3Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var spyke = await Context.Devices.FirstAsync(d => d.Name == "Spyke");
+        var disabledStates = await Context.VariableDeviceStates
+            .Where(s => s.DeviceId == spyke.Id && !s.IsEnabled)
+            .Include(s => s.Variable)
+            .ToListAsync();
+
+        Assert.Equal(3, disabledStates.Count);
+        var addresses = disabledStates.Select(s => s.Variable.AddressLow).OrderBy(a => a).ToArray();
+        Assert.Equal([0x08, 0x09, 0x0A], addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_Spyke_AllarmiHas5Word0BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var spyke = await Context.Devices.FirstAsync(d => d.Name == "Spyke");
+        var allarmi = await Context.Variables.FirstAsync(v => v.AddressLow == 0x06);
+        var word0Bits = await Context.BitInterpretations
+            .Where(bi => bi.VariableId == allarmi.Id && bi.DeviceId == spyke.Id && bi.WordIndex == 0)
+            .ToListAsync();
+
+        Assert.Equal(5, word0Bits.Count);
+        Assert.Contains(word0Bits, bi => bi.BitIndex == 0 && bi.Meaning == "Errore CAN");
+        Assert.Contains(word0Bits, bi => bi.BitIndex == 4 && bi.Meaning!.Contains("Sovraccarico"));
+    }
+
+    [Fact]
+    public async Task SeedAsync_Spyke_AllarmiHas9Word1BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var spyke = await Context.Devices.FirstAsync(d => d.Name == "Spyke");
+        var allarmi = await Context.Variables.FirstAsync(v => v.AddressLow == 0x06);
+        var word1Bits = await Context.BitInterpretations
+            .Where(bi => bi.VariableId == allarmi.Id && bi.DeviceId == spyke.Id && bi.WordIndex == 1)
+            .ToListAsync();
+
+        Assert.Equal(9, word1Bits.Count);
+        Assert.Contains(word1Bits, bi => bi.BitIndex == 0 && bi.Meaning == "Tensione bassa");
+        Assert.Contains(word1Bits, bi => bi.BitIndex == 8 && bi.Meaning!.Contains("scarico"));
+    }
+
+    [Fact]
+    public async Task SeedAsync_Spyke_AllarmiTotal14BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var spyke = await Context.Devices.FirstAsync(d => d.Name == "Spyke");
+        var allarmi = await Context.Variables.FirstAsync(v => v.AddressLow == 0x06);
+        var allBits = await Context.BitInterpretations
+            .Where(bi => bi.VariableId == allarmi.Id && bi.DeviceId == spyke.Id)
+            .ToListAsync();
+
+        Assert.Equal(14, allBits.Count);
     }
 }
