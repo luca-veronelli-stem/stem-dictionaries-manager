@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-30
 
 ---
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 2 |
+| **Alta** | 1 | 2 |
 | **Media** | 0 | 4 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 1  
+**Totale aperte:** 2  
 **Totale risolte:** 8
 
 ---
 
 ## Indice Issue Aperte
 
+- [TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)](#test-010--aggiornareriscitura-test-per-domain-v7-t-006)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
@@ -42,18 +43,88 @@
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
 | Core/Enums (6) | ✅ 14 | - | 100% |
-| Core/Models (9) | ✅ 82 | - | 100% |
-| Services/Mapping (8) | ✅ 84 | - | ~100% |
+| Core/Models (10) | ✅ 82 | - | 100% |
+| Services/Mapping (9) | ✅ 84 | - | ~100% |
 | Infrastructure/DI | ✅ 13 | - | 100% |
 | Services/DI | ✅ 10 | - | 100% |
-| Infrastructure/Repositories (9) | - | ✅ 107 | ~98% |
+| Infrastructure/Repositories (10) | - | ✅ 107 | ~98% |
 | Services (5) | - | ✅ 106 | ~95% |
-| GUI.Windows/ViewModels (15) | ✅ 254 | ✅ 11 | ~90% |
+| GUI.Windows/ViewModels (16) | ✅ 254 | ✅ 11 | ~90% |
 | GUI.Windows/Services (3) | ✅ 15 | - | ~70% |
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
 > **Nota:** I conteggi sono metodi test `[Fact]`/`[Theory]`. I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit.
+
+---
+
+## Priorità Alta
+
+### TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)
+
+**Categoria:** Copertura  
+**Priorità:** Alta  
+**Impatto:** Alto — test rossi dopo refactoring  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-30  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Descrizione
+
+Aggiornare la suite di test per Domain v7. I test esistenti per VariableDeviceState vanno convertiti a StandardVariableOverride, i test BitInterpretation devono usare DictionaryId invece di DeviceId.
+
+#### Azioni
+
+1. **Eliminare** test VariableDeviceState:
+   - `Tests/Unit/Models/VariableDeviceStateTests.cs`
+   - `Tests/Integration/Infrastructure/VariableDeviceStateRepositoryTests.cs`
+   - `Tests/Unit/Services/VariableDeviceStateMapperTests.cs`
+
+2. **Creare** test StandardVariableOverride:
+   - `Tests/Unit/Models/StandardVariableOverrideTests.cs`
+   - `Tests/Integration/Infrastructure/StandardVariableOverrideRepositoryTests.cs`
+   - `Tests/Unit/Services/StandardVariableOverrideMapperTests.cs`
+
+3. **Aggiornare** test BitInterpretation:
+   - Rinominare `DeviceId` → `DictionaryId` in tutti i test
+   - `Tests/Unit/Models/BitInterpretationTests.cs`
+   - `Tests/Integration/Infrastructure/BitInterpretationRepositoryTests.cs`
+   - `Tests/Unit/Services/BitInterpretationMapperTests.cs`
+
+4. **Eliminare** test DeviceVariablesViewModel:
+   - `Tests/Unit/GUI/ViewModels/DeviceVariablesViewModelTests.cs`
+   - `Tests/Unit/GUI/ViewModels/VariableDeviceItemTests.cs`
+
+5. **Aggiornare** test DictionaryEditViewModel:
+   - Aggiungere test per sezione variabili standard
+   - Test per SaveOverridesAsync
+   - Test per interazione override
+
+6. **Aggiornare** mock services:
+   - `Tests/Unit/GUI/Mocks/MockDataServices.cs`
+
+7. **Aggiornare** test DI:
+   - Verificare registrazione `IStandardVariableOverrideRepository`
+   - Verificare rimozione `IVariableDeviceStateRepository`
+
+#### File Coinvolti
+
+- `Tests/Unit/Models/VariableDeviceStateTests.cs` (ELIMINARE)
+- `Tests/Unit/Models/StandardVariableOverrideTests.cs` (NUOVO)
+- `Tests/Integration/Infrastructure/VariableDeviceStateRepositoryTests.cs` (ELIMINARE)
+- `Tests/Integration/Infrastructure/StandardVariableOverrideRepositoryTests.cs` (NUOVO)
+- `Tests/Unit/Services/VariableDeviceStateMapperTests.cs` (ELIMINARE)
+- `Tests/Unit/Services/StandardVariableOverrideMapperTests.cs` (NUOVO)
+- `Tests/Unit/Models/BitInterpretationTests.cs`
+- `Tests/Integration/Infrastructure/BitInterpretationRepositoryTests.cs`
+- `Tests/Unit/GUI/ViewModels/DeviceVariablesViewModelTests.cs` (ELIMINARE)
+- `Tests/Unit/GUI/ViewModels/DictionaryEditViewModelTests.cs`
+- `Tests/Unit/GUI/Mocks/MockDataServices.cs`
+- `Tests/Unit/Infrastructure/DependencyInjectionTests.cs`
+
+#### Effort Stimato
+
+M (4-8h)
 
 ---
 

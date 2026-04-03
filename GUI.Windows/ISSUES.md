@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-30
 
 ---
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 2 |
+| **Alta** | 1 | 2 |
 | **Media** | 0 | 4 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 2  
+**Totale aperte:** 3  
 **Totale risolte:** 6
 
 ---
 
 ## Indice Issue Aperte
 
+- [GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)](#gui-009--rimuovere-devicevariables-aggiornare-dictionaryedit-t-006)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
@@ -38,7 +39,75 @@
 
 ## Priorità Alta
 
-*(Nessuna issue alta priorità aperta)*
+### GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-30  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Descrizione
+
+Refactoring del layer GUI per Domain v7. La vista DeviceVariables viene eliminata — l'override delle variabili standard avviene direttamente dentro DictionaryEditView.
+
+#### Azioni
+
+1. **Eliminare** ViewModels:
+   - `GUI.Windows/ViewModels/DeviceVariablesViewModel.cs`
+   - `GUI.Windows/ViewModels/VariableDeviceItem.cs`
+
+2. **Eliminare** Views:
+   - `GUI.Windows/Views/DeviceVariablesView.xaml`
+   - `GUI.Windows/Views/DeviceVariablesView.xaml.cs`
+
+3. **Modificare** `GUI.Windows/Abstractions/INavigationService.cs`:
+   - Rimuovere `DeviceVariables` da `ViewType` enum
+
+4. **Modificare** `GUI.Windows/ViewModels/MainViewModel.cs`:
+   - Rimuovere case `DeviceVariables` da `CreateViewModel`
+   - Rimuovere case `DeviceVariables` da `InitializeViewModelAsync`
+   - Rimuovere case `DeviceVariables` da `UpdateTitle`
+
+5. **Modificare** `GUI.Windows/MainWindow.xaml`:
+   - Rimuovere `DataTemplate` per `DeviceVariablesView`
+
+6. **Modificare** `GUI.Windows/ViewModels/DictionaryEditViewModel.cs`:
+   - Aggiungere sezione "Variabili Standard ereditate" (0x00xx) con:
+     - Lista `ResolvedStandardVariables` (readonly, dal template)
+     - Per ogni variabile: `IsEnabled` editabile, `Description` editabile
+     - `SaveOverridesAsync()` per salvare gli override
+   - Sezione esistente per variabili specifiche (0x80xx) resta invariata
+
+7. **Modificare** `GUI.Windows/Views/DictionaryEditView.xaml`:
+   - Aggiungere sezione superiore con DataGrid variabili standard
+   - Checkbox IsEnabled, TextBox Description editabili
+   - Sezione inferiore: variabili specifiche (già presente)
+
+8. **Modificare** `GUI.Windows/ViewModels/DeviceDetailViewModel.cs`:
+   - Rimuovere navigazione verso `DeviceVariables`
+   - Click su dizionario Standard → `DictionaryEdit` (come gli altri)
+
+9. **Aggiornare** `GUI.Windows/DependencyInjection.cs`:
+   - Rimuovere registrazione `DeviceVariablesViewModel`
+
+#### File Coinvolti
+
+- `GUI.Windows/ViewModels/DeviceVariablesViewModel.cs` (ELIMINARE)
+- `GUI.Windows/ViewModels/VariableDeviceItem.cs` (ELIMINARE)
+- `GUI.Windows/Views/DeviceVariablesView.xaml(.cs)` (ELIMINARE)
+- `GUI.Windows/Abstractions/INavigationService.cs`
+- `GUI.Windows/ViewModels/MainViewModel.cs`
+- `GUI.Windows/MainWindow.xaml`
+- `GUI.Windows/ViewModels/DictionaryEditViewModel.cs`
+- `GUI.Windows/Views/DictionaryEditView.xaml`
+- `GUI.Windows/ViewModels/DeviceDetailViewModel.cs`
+- `GUI.Windows/DependencyInjection.cs`
+
+#### Effort Stimato
+
+M (4-8h)
 
 ---
 
@@ -56,7 +125,7 @@
 **Priorità:** Bassa  
 **Impatto:** Basso  
 **Status:** Aperto  
-**Data Apertura:** 2026-03-19  
+**Data Apertura:** 2026-03-19
 
 #### Descrizione
 

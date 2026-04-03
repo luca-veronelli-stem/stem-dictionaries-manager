@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-03-25
+> **Ultimo aggiornamento:** 2026-03-30
 
 ---
 
@@ -11,17 +11,18 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 2 |
+| **Alta** | 1 | 2 |
 | **Media** | 1 | 3 |
 | **Bassa** | 3 | 2 |
 
-**Totale aperte:** 4  
+**Totale aperte:** 5  
 **Totale risolte:** 7
 
 ---
 
 ## Indice Issue Aperte
 
+- [SVC-012 - Mapper + Service per StandardVariableOverride (T-006)](#svc-012--mapper--service-per-standardvariableoverride-t-006)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
@@ -36,6 +37,63 @@
 - [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
 - [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext-risolto)
+
+---
+
+## Priorità Alta
+
+### SVC-012 - Mapper + Service per StandardVariableOverride (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-30  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Descrizione
+
+Refactoring del layer Services per Domain v7.
+
+#### Azioni
+
+1. **Creare** `Services/Mapping/StandardVariableOverrideMapper.cs`:
+   - `ToDomain(entity)` / `ToEntity(domain)` / `UpdateEntity(entity, domain)`
+
+2. **Eliminare** `Services/Mapping/VariableDeviceStateMapper.cs`
+
+3. **Modificare** `Services/Interfaces/IVariableService.cs`:
+   - Rimuovere metodi `*DeviceState*`
+   - Aggiungere metodi `*StandardVariableOverride*`:
+     - `GetOverridesForDictionaryAsync(int dictionaryId)`
+     - `SaveOverrideAsync(StandardVariableOverride override)`
+     - `GetBitInterpretationsForDictionaryAsync(int variableId, int dictionaryId)` (risolve con fallback)
+
+4. **Modificare** `Services/VariableService.cs`:
+   - Implementare nuovi metodi
+   - Rimuovere metodi DeviceState
+   - Aggiornare risoluzione BitInterpretation (DictionaryId vs DeviceId)
+
+5. **Aggiornare** `Services/DependencyInjection.cs` (se necessario)
+
+#### Business Rules
+
+- BR-009 (v7): effectiveIsEnabled per-dizionario
+- BR-011 (v7): override coerenza per-dizionario
+- BR-018 (v7): risoluzione BitInterpretation per-dizionario > template
+- BR-020 (v7): effectiveDescription per-dizionario
+
+#### File Coinvolti
+
+- `Services/Mapping/StandardVariableOverrideMapper.cs` (NUOVO)
+- `Services/Mapping/VariableDeviceStateMapper.cs` (ELIMINARE)
+- `Services/Interfaces/IVariableService.cs`
+- `Services/VariableService.cs`
+- `Services/Mapping/BitInterpretationMapper.cs` (DeviceId → DictionaryId)
+
+#### Effort Stimato
+
+M (4-8h)
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Infrastructure**.
 
-> **Ultimo aggiornamento:** 2026-03-27
+> **Ultimo aggiornamento:** 2026-03-30
 
 ---
 
@@ -11,11 +11,11 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 0 | 3 |
+| **Alta** | 1 | 3 |
 | **Media** | 0 | 2 |
 | **Bassa** | 2 | 1 |
 
-**Totale aperte:** 2  
+**Totale aperte:** 3  
 **Totale risolte:** 6
 
 ---
@@ -24,7 +24,8 @@
 
 | ID | Titolo | Status | Impatto su Infrastructure |
 |----|--------|--------|---------------------------|
-| **T-004** | Aggiungere DB constraints per regole di business | Aperto | AppDbContext.OnModelCreating: 6 constraint da aggiungere (partial indexes, CHECK, unique) + nuova migration |
+| **T-006** | StandardVariableOverride per-dizionario (Domain v7) | **Aperto** | **INFRA-009**: Entity + Repository + Migration |
+| **T-004** | Aggiungere DB constraints per regole di business | Aperto | AppDbContext.OnModelCreating: 6 constraint da aggiungere |
 | **T-003** | Aggiungere logging infrastructure | Aperto | ILogger<T> in RepositoryBase e services |
 
 → [ISSUES_TRACKER.md](../ISSUES_TRACKER.md) per dettagli completi.
@@ -33,6 +34,7 @@
 
 ## Indice Issue Aperte
 
+- [INFRA-009 - Entity + Repository + Migration per Domain v7 (T-006)](#infra-009--entity--repository--migration-per-domain-v7-t-006)
 - [INFRA-005 - CommandEntity.ParametersJson non ha conversione JSON tipizzata](#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata)
 - [INFRA-006 - DictionaryRepository.GetByNameAsync non normalizza input](#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input)
 
@@ -44,6 +46,77 @@
 - [INFRA-007 - DatabaseSeeder.CreateBoard usa boardTypeId invece di FirmwareType](#infra-007--databaseseedercreateboard-usa-boardtypeid-invece-di-firmwaretype)
 - [INFRA-001 - RepositoryBase.DeleteAsync non solleva eccezione se entity non trovata](#infra-001--repositorybasedeleteasync-non-solleva-eccezione-se-entity-non-trovata)
 - [INFRA-004 - Mancano repository per BitInterpretation e CommandDeviceState](#infra-004--mancano-repository-per-bitinterpretation-e-commanddevicestate-risolto)
+
+---
+
+## Priorità Alta
+
+### INFRA-009 - Entity + Repository + Migration per Domain v7 (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** Aperto  
+**Data Apertura:** 2026-03-30  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Descrizione
+
+Refactoring del layer Infrastructure per Domain v7.
+
+#### Azioni
+
+1. **Creare** `Infrastructure/Entities/StandardVariableOverrideEntity.cs`:
+   - `Id`, `DictionaryId` (FK), `StandardVariableId` (FK), `IsEnabled`, `Description?`
+   - Navigation properties: `Dictionary`, `StandardVariable`
+
+2. **Creare** `Infrastructure/Interfaces/IStandardVariableOverrideRepository.cs`:
+   - `GetByDictionaryAsync(int dictionaryId)`
+   - `GetByVariableAsync(int standardVariableId)`
+   - CRUD standard
+
+3. **Creare** `Infrastructure/Repositories/StandardVariableOverrideRepository.cs`
+
+4. **Eliminare**:
+   - `Infrastructure/Entities/VariableDeviceStateEntity.cs`
+   - `Infrastructure/Interfaces/IVariableDeviceStateRepository.cs`
+   - `Infrastructure/Repositories/VariableDeviceStateRepository.cs`
+
+5. **Modificare** `Infrastructure/Entities/BitInterpretationEntity.cs`:
+   - `DeviceId` → `DictionaryId` (FK nullable verso Dictionary)
+
+6. **Modificare** `Infrastructure/AppDbContext.cs`:
+   - Rimuovere `DbSet<VariableDeviceStateEntity>`
+   - Aggiungere `DbSet<StandardVariableOverrideEntity>`
+   - Aggiornare OnModelCreating con constraint BR-010 (unicità)
+
+7. **Creare nuova migration** (reset o incrementale)
+
+8. **Aggiornare** `Infrastructure/DatabaseSeeder.cs`:
+   - Rimuovere seed VariableDeviceState
+   - Aggiungere seed StandardVariableOverride
+
+9. **Aggiornare** `Infrastructure/DependencyInjection.cs`:
+   - Rimuovere `IVariableDeviceStateRepository`
+   - Aggiungere `IStandardVariableOverrideRepository`
+
+#### File Coinvolti
+
+- `Infrastructure/Entities/StandardVariableOverrideEntity.cs` (NUOVO)
+- `Infrastructure/Interfaces/IStandardVariableOverrideRepository.cs` (NUOVO)
+- `Infrastructure/Repositories/StandardVariableOverrideRepository.cs` (NUOVO)
+- `Infrastructure/Entities/VariableDeviceStateEntity.cs` (ELIMINARE)
+- `Infrastructure/Interfaces/IVariableDeviceStateRepository.cs` (ELIMINARE)
+- `Infrastructure/Repositories/VariableDeviceStateRepository.cs` (ELIMINARE)
+- `Infrastructure/Entities/BitInterpretationEntity.cs`
+- `Infrastructure/AppDbContext.cs`
+- `Infrastructure/DatabaseSeeder.cs`
+- `Infrastructure/DependencyInjection.cs`
+- `Infrastructure/Migrations/` (nuova migration)
+
+#### Effort Stimato
+
+M (4-8h)
 
 ---
 
