@@ -20,6 +20,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     private int? _editingId;
     private int? _existingDictionaryId;
+    private string? _existingDictionaryName;
     private bool _isInitialized;
     private bool _showValidation;
 
@@ -145,6 +146,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         PartNumber = b.PartNumber;
         IsPrimary = b.IsPrimary;
         _existingDictionaryId = b.DictionaryId;
+        _existingDictionaryName = b.DictionaryName;
     }
 
     private bool Validate()
@@ -228,9 +230,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     {
         if (_editingId is null) return;
 
+        var message = _existingDictionaryName is not null
+            ? $"Eliminare la scheda '{Name}'?\n" +
+              $"Il dizionario '{_existingDictionaryName}' associato potrebbe essere eliminato."
+            : $"Eliminare la scheda '{Name}'?";
+
         var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare la scheda '{Name}'?");
+            "Conferma eliminazione", message);
 
         if (result != DialogResult.Yes) return;
 

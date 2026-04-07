@@ -83,7 +83,7 @@ public partial class DeviceListViewModel : ObservableObject
             foreach (var device in devices)
             {
                 var boards = await _boardService.GetByDeviceIdAsync(device.Id);
-                boardsByDevice[device.Id] = boards.ToList();
+                boardsByDevice[device.Id] = [.. boards];
             }
 
             _allDevices = [.. devices

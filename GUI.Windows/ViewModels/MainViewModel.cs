@@ -119,8 +119,8 @@ public partial class MainViewModel : ObservableObject
             {
                 if (cached is DictionaryEditViewModel dictEditVm)
                     await dictEditVm.ReloadVariablesAsync();
-                if (cached is DeviceDetailViewModel deviceDetailVm)
-                    await deviceDetailVm.ReloadBoardsAsync();
+                if (cached is DeviceDetailViewModel deviceDetailVm && deviceDetailVm.DeviceId.HasValue)
+                    await deviceDetailVm.LoadAsync(deviceDetailVm.DeviceId.Value);
                 if (cached is CommandListViewModel cmdListVm)
                     await cmdListVm.LoadAsync();
                 if (cached is DictionaryListViewModel dictListVm)
@@ -220,7 +220,7 @@ public partial class MainViewModel : ObservableObject
 
             // Edit ViewModels - caricano entità esistente o preparano per nuova
             case DictionaryEditViewModel vm:
-                await vm.InitializeAsync(parameter?.EntityId);
+                await vm.InitializeAsync(parameter?.EntityId, parameter?.DeviceId);
                 break;
 
             case VariableEditViewModel vm when parameter?.ParentId is int dictionaryId:

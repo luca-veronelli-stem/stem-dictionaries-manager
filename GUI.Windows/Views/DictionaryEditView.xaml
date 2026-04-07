@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -30,6 +31,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"/>
@@ -42,9 +44,15 @@
                      Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione opzionale"
                      MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap" Height="60" Margin="0,0,0,10"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Standard" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Scheda *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"
+                       Visibility="{Binding ShowBoardSelector, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding AvailableBoards}" SelectedItem="{Binding SelectedBoard}"
+                      DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,10"
+                      Visibility="{Binding ShowBoardSelector, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Standard" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,10"
                        Visibility="{Binding CanSetStandard, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding IsStandard}" 
+            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding IsStandard}" 
                       Content="Dizionario delle variabili comuni (0x00xx)" Foreground="White" Margin="0,0,0,10"
                       Visibility="{Binding CanSetStandard, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </Grid>
@@ -55,8 +63,8 @@
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Separatore + toolbar variabili (solo per dizionari esistenti) -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,10"
+        <!-- Titoletto "Variabili" + toolbar (solo per dizionari esistenti) -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,4"
                     Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
             <TextBlock Text="Variabili" Foreground="#CCCCCC" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
             <Button Content="➕ Nuova" Command="{Binding AddVariableCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
@@ -64,17 +72,50 @@
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Sezione collapsible variabili standard (solo per dizionari non-standard) -->
-        <Expander Grid.Row="3" IsExpanded="{Binding IsStandardExpanded}" Margin="0,0,0,8"
+        <!-- Sezione collapsible: variabili standard ereditate (override IsEnabled + Description) -->
+        <Expander Grid.Row="3" IsExpanded="{Binding IsStandardExpanded}" Margin="0,12,0,8"
                   Visibility="{Binding ShowStandardSection, Converter={StaticResource BoolToVisibilityConverter}}">
             <Expander.Header>
-                <TextBlock Text="📋 Variabili Standard (ereditate)" Foreground="#AAAAAA" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="📋 Variabili standard ereditate" Foreground="#AAAAAA" FontSize="13" FontWeight="SemiBold"/>
             </Expander.Header>
-            <DataGrid ItemsSource="{Binding StandardVariables}" IsReadOnly="True" MaxHeight="250"
+            <DataGrid ItemsSource="{Binding StandardVariables}" SelectedItem="{Binding SelectedStandardVariable}"
+                      MaxHeight="300" IsReadOnly="True"
+                      Margin="0,8,0,0"
                       Style="{StaticResource DarkDataGridStyle}"
                       ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                       RowStyle="{StaticResource DarkDataGridRowStyle}"
                       CellStyle="{StaticResource DarkDataGridCellStyle}">
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditStandardVariableCommand}"
+                                  CommandParameter="{Binding SelectedStandardVariable}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                    <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
+                    <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
+                    <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50"
+                                            ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
+                    <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Expander>
+
+        <!-- Sezione collapsible: variabili specifiche del dizionario (0x80xx) -->
+        <Expander Grid.Row="4" IsExpanded="{Binding IsSpecificExpanded}" Margin="0,4,0,4"
+                  Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+            <Expander.Header>
+                <TextBlock Text="📝 Variabili specifiche" Foreground="#AAAAAA" FontSize="13" FontWeight="SemiBold"/>
+            </Expander.Header>
+            <DataGrid ItemsSource="{Binding Variables}" SelectedItem="{Binding SelectedVariable}"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                      Margin="0,8,0,0"
+                      Style="{StaticResource DarkDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                      RowStyle="{StaticResource DarkDataGridRowStyle}"
+                      CellStyle="{StaticResource DarkDataGridCellStyle}">
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditVariableCommand}" CommandParameter="{Binding SelectedVariable}"/>
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
                     <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
@@ -87,38 +128,20 @@
             </DataGrid>
         </Expander>
 
-        <!-- Lista variabili specifiche del dizionario -->
-        <DataGrid Grid.Row="4" ItemsSource="{Binding Variables}" SelectedItem="{Binding SelectedVariable}"
-                  Style="{StaticResource DarkDataGridStyle}"
-                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
-                  RowStyle="{StaticResource DarkDataGridRowStyle}"
-                  CellStyle="{StaticResource DarkDataGridCellStyle}"
-                             Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
-                      <DataGrid.InputBindings>
-                          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditVariableCommand}" CommandParameter="{Binding SelectedVariable}"/>
-                      </DataGrid.InputBindings>
-                      <DataGrid.Columns>
-                          <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
-                          <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
-                          <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
-                          <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
-                          <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50" IsReadOnly="True"
-                                                                                      ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
-                          <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
-                      </DataGrid.Columns>
-                  </DataGrid>
+        <!-- Spazio filler (per spingere i bottoni in basso) -->
+        <Border Grid.Row="5"/>
 
-                  <!-- Bottoni -->
-                  <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-                      <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
-                              Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
-                      <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-                      <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
-                              Background="#004682" FontWeight="SemiBold"/>
-                  </StackPanel>
+        <!-- Bottoni -->
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
+                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                    Background="#004682" FontWeight="SemiBold"/>
+        </StackPanel>
 
-                  <!-- Loading -->
-                  <Border Grid.Row="0" Grid.RowSpan="6" Background="#80000000"
+        <!-- Loading -->
+        <Border Grid.Row="0" Grid.RowSpan="7" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
             <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>
