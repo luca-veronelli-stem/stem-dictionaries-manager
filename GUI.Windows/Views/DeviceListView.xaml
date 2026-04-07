@@ -48,7 +48,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:DeviceItem}">
                         <Border Style="{StaticResource DeviceCardStyle}" Margin="0,0,0,6"
-                                Width="500" HorizontalAlignment="Left"
+                                HorizontalAlignment="Stretch"
                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" 
@@ -56,16 +56,32 @@
                                               CommandParameter="{Binding}"/>
                             </Border.InputBindings>
                             <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                
-                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
+
+                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
                                            Foreground="#FFFFFF"/>
-                                <TextBlock Grid.Row="1" Text="{Binding Description}" 
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Description}" 
                                            FontSize="12" Foreground="#999999" Margin="0,4,0,0"
                                            TextWrapping="Wrap"/>
+
+                                <!-- Conteggi a destra -->
+                                <StackPanel Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center" Margin="20,0,0,0">
+                                    <TextBlock Foreground="#AAAAAA" FontSize="12" HorizontalAlignment="Right">
+                                        <Run Text="{Binding BoardCount, Mode=OneWay}"/>
+                                        <Run Text=" schede"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#AAAAAA" FontSize="12" HorizontalAlignment="Right" Margin="0,2,0,0">
+                                        <Run Text="{Binding DictionaryCount, Mode=OneWay}"/>
+                                        <Run Text=" dizionari"/>
+                                    </TextBlock>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>

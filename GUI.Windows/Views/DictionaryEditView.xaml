@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -63,38 +64,61 @@
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Lista variabili -->
-        <DataGrid Grid.Row="3" ItemsSource="{Binding Variables}" SelectedItem="{Binding SelectedVariable}"
+        <!-- Sezione collapsible variabili standard (solo per dizionari non-standard) -->
+        <Expander Grid.Row="3" IsExpanded="{Binding IsStandardExpanded}" Margin="0,0,0,8"
+                  Visibility="{Binding ShowStandardSection, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Expander.Header>
+                <TextBlock Text="📋 Variabili Standard (ereditate)" Foreground="#AAAAAA" FontSize="13" FontWeight="SemiBold"/>
+            </Expander.Header>
+            <DataGrid ItemsSource="{Binding StandardVariables}" IsReadOnly="True" MaxHeight="250"
+                      Style="{StaticResource DarkDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
+                      RowStyle="{StaticResource DarkDataGridRowStyle}"
+                      CellStyle="{StaticResource DarkDataGridCellStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                    <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
+                    <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
+                    <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
+                    <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50" IsReadOnly="True"
+                                            ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
+                    <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Expander>
+
+        <!-- Lista variabili specifiche del dizionario -->
+        <DataGrid Grid.Row="4" ItemsSource="{Binding Variables}" SelectedItem="{Binding SelectedVariable}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}"
-                  Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
-            <DataGrid.InputBindings>
-                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditVariableCommand}" CommandParameter="{Binding SelectedVariable}"/>
-            </DataGrid.InputBindings>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
-                <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
-                <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
-                <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50" IsReadOnly="True"
-                                                                            ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                             Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                      <DataGrid.InputBindings>
+                          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditVariableCommand}" CommandParameter="{Binding SelectedVariable}"/>
+                      </DataGrid.InputBindings>
+                      <DataGrid.Columns>
+                          <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                          <DataGridTextColumn Header="Indirizzo" Binding="{Binding Address}" Width="90" MinWidth="70"/>
+                          <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="110" MinWidth="80"/>
+                          <DataGridTextColumn Header="Accesso" Binding="{Binding AccessMode}" Width="90" MinWidth="70"/>
+                          <DataGridCheckBoxColumn Header="Attiva" Binding="{Binding IsEnabled}" Width="60" MinWidth="50" IsReadOnly="True"
+                                                                                      ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
+                          <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="80"/>
+                      </DataGrid.Columns>
+                  </DataGrid>
 
-        <!-- Bottoni -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
-                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
-            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
-                    Background="#004682" FontWeight="SemiBold"/>
-        </StackPanel>
+                  <!-- Bottoni -->
+                  <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                      <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
+                              Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                      <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+                      <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+                              Background="#004682" FontWeight="SemiBold"/>
+                  </StackPanel>
 
-        <!-- Loading -->
-        <Border Grid.Row="0" Grid.RowSpan="5" Background="#80000000"
+                  <!-- Loading -->
+                  <Border Grid.Row="0" Grid.RowSpan="6" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
             <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>

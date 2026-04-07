@@ -37,8 +37,12 @@
 
         <!-- ── DIZIONARI ── -->
         <DockPanel Grid.Row="3">
-            <TextBlock DockPanel.Dock="Top" Text="Dizionari" FontSize="13" FontWeight="SemiBold"
-                       Foreground="White" Margin="0,0,0,8"/>
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                <TextBlock Text="Dizionari" FontSize="13" FontWeight="SemiBold"
+                           Foreground="White" VerticalAlignment="Center"/>
+                <Button Content="➕ Nuovo dizionario" Command="{Binding AddDictionaryCommand}"
+                        Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Right"/>
+            </DockPanel>
             <DataGrid ItemsSource="{Binding Dictionaries}" 
                       SelectedItem="{Binding SelectedDictionary}"
                       Style="{StaticResource DarkDataGridStyle}"
