@@ -262,9 +262,9 @@ public static class DatabaseSeeder
             Brd(4, devices[3].Id, "Azionamento",     6, 1, true),
 
             // Spyke (MC=5)
-            Brd(5, devices[4].Id, "HMI",             9, 1, true),
-            Brd(5, devices[4].Id, "Display",         8, 1, false),
+            Brd(5, devices[4].Id, "Display",         8, 1, true),
             Brd(5, devices[4].Id, "Gateway",         7, 1, false),
+            Brd(5, devices[4].Id, "HMI",             9, 1, false),
 
             // Spark (MC=7)
             Brd(7, devices[5].Id, "HMI",            11, 1, true),
@@ -315,13 +315,13 @@ public static class DatabaseSeeder
         await SeedPulsantiereStandardOverridesAsync(
             context, pulsantiereDictionary, standardVariables);
 
-        // === Dizionario HMI Spyke (da hmi_spyke.CSV) ===
-        var hmiSpykeDictionary = await SeedHmiSpykeDictionaryAsync(
+        // === Dizionario Display Spyke (da hmi_spyke.CSV) ===
+        var displaySpykeDictionary = await SeedDisplaySpykeDictionaryAsync(
             context, boards, devices[4]);
 
-        // === Override variabili standard per HMI Spyke ===
-        await SeedHmiSpykeOverridesAsync(
-            context, hmiSpykeDictionary, standardVariables);
+        // === Override variabili standard per Display Spyke ===
+        await SeedDisplaySpykeOverridesAsync(
+            context, displaySpykeDictionary, standardVariables);
     }
 
     /// <summary>
@@ -621,18 +621,18 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario HMI Spyke con le variabili specifiche della scheda HMI.
+    /// Crea il dizionario Display Spyke con le variabili specifiche della scheda Display.
     /// Fonte: Docs/Dictionaries/hmi_spyke.CSV
-    /// Board: Spyke "HMI" (FW=9, MC=5, BoardNumber=1).
+    /// Board: Spyke "Display" (FW=8, MC=5, BoardNumber=1).
     /// 34 variabili device-specific (0x80xx).
     /// </summary>
-    private static async Task<DictionaryEntity> SeedHmiSpykeDictionaryAsync(
+    private static async Task<DictionaryEntity> SeedDisplaySpykeDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity spykeDevice)
     {
         var dictionary = new DictionaryEntity
         {
-            Name = "HMI Spyke",
-            Description = "Dizionario variabili logiche scheda HMI Spyke",
+            Name = "Display Spyke",
+            Description = "Dizionario variabili logiche scheda Display Spyke",
             IsStandard = false
         };
         context.Dictionaries.Add(dictionary);
@@ -806,10 +806,10 @@ public static class DatabaseSeeder
         };
         context.Variables.AddRange(variables);
 
-        // Link board HMI (FW=9) di Spyke
+        // Link board Display (FW=8) di Spyke
         foreach (var board in boards)
         {
-            if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 9)
+            if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 8)
                 board.DictionaryId = dictionary.Id;
         }
 
@@ -819,17 +819,17 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario HMI Spyke.
+    /// Override variabili standard per il dizionario Display Spyke.
     /// - Disabilita: Temperatura scheda (0x08), Secondi motore parziale (0x09), totale (0x0A).
     /// - Descrizione: Cicli 0x0B-0x0E con testo specifico dal CSV.
     /// - BitInterpretation per-dizionario: Allarmi (0x06) Word 0 + Word 1.
     /// </summary>
-    private static async Task SeedHmiSpykeOverridesAsync(
+    private static async Task SeedDisplaySpykeOverridesAsync(
         AppDbContext context,
-        DictionaryEntity hmiSpykeDictionary,
+        DictionaryEntity displaySpykeDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = hmiSpykeDictionary.Id;
+        var dictId = displaySpykeDictionary.Id;
 
         // === Override IsEnabled ===
         // Disabilita Temperatura scheda (0x08), Secondi motore parziale/totale (0x09, 0x0A)
