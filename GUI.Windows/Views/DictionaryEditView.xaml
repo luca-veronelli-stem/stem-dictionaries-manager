@@ -14,9 +14,22 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition>
+                <RowDefinition.Height>
+                    <MultiBinding Converter="{StaticResource ExpandedRowHeightConverter}">
+                        <Binding Path="ShowStandardSection"/>
+                        <Binding Path="IsStandardExpanded"/>
+                    </MultiBinding>
+                </RowDefinition.Height>
+            </RowDefinition>
+            <RowDefinition>
+                <RowDefinition.Height>
+                    <MultiBinding Converter="{StaticResource ExpandedRowHeightConverter}">
+                        <Binding Path="IsNew" Converter="{StaticResource InverseBoolConverter}"/>
+                        <Binding Path="IsSpecificExpanded"/>
+                    </MultiBinding>
+                </RowDefinition.Height>
+            </RowDefinition>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -79,7 +92,7 @@
                 <TextBlock Text="📋 Variabili standard ereditate" Foreground="#AAAAAA" FontSize="13" FontWeight="SemiBold"/>
             </Expander.Header>
             <DataGrid ItemsSource="{Binding StandardVariables}" SelectedItem="{Binding SelectedStandardVariable}"
-                      MaxHeight="300" IsReadOnly="True"
+                      IsReadOnly="True"
                       Margin="0,8,0,0"
                       Style="{StaticResource DarkDataGridStyle}"
                       ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -128,11 +141,8 @@
             </DataGrid>
         </Expander>
 
-        <!-- Spazio filler (per spingere i bottoni in basso) -->
-        <Border Grid.Row="5"/>
-
         <!-- Bottoni -->
-        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="🗑️ Elimina dizionario" Command="{Binding DeleteDictionaryCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
                     Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
             <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
@@ -141,7 +151,7 @@
         </StackPanel>
 
         <!-- Loading -->
-        <Border Grid.Row="0" Grid.RowSpan="7" Background="#80000000"
+        <Border Grid.Row="0" Grid.RowSpan="6" Background="#80000000"
                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
             <ProgressBar IsIndeterminate="True" Width="200" Height="4" VerticalAlignment="Top"/>
         </Border>

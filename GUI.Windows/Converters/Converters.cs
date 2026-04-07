@@ -90,3 +90,24 @@ public class BoolToErrorBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Converte (isVisible, isExpanded) in GridLength per righe con Expander.
+/// Visibile + espanso → Star (riempie lo spazio disponibile),
+/// visibile + collassato → Auto (solo header),
+/// non visibile → Auto (0 effettivo con Expander Collapsed).
+/// </summary>
+public class ExpandedRowHeightConverter : IMultiValueConverter
+{
+    private static readonly GridLength Star = new(1, GridUnitType.Star);
+
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Length >= 2 && values[0] is bool isVisible && values[1] is bool isExpanded)
+            return isVisible && isExpanded ? Star : GridLength.Auto;
+        return GridLength.Auto;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
