@@ -10,28 +10,29 @@ namespace Services;
 /// <summary>
 /// Implementazione service per gestione variabili.
 /// Per operazioni aggregate su Dictionary, usare DictionaryService.
+/// v7: DeviceState → StandardVariableOverride (per-dizionario).
 /// </summary>
 public class VariableService : IVariableService
 {
     private readonly IVariableRepository _repository;
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IBitInterpretationRepository _bitInterpretationRepository;
-    private readonly IVariableDeviceStateRepository _deviceStateRepository;
+    private readonly IStandardVariableOverrideRepository _overrideRepository;
 
     public VariableService(
         IVariableRepository repository,
         IDictionaryRepository dictionaryRepository,
         IBitInterpretationRepository bitInterpretationRepository,
-        IVariableDeviceStateRepository deviceStateRepository)
+        IStandardVariableOverrideRepository overrideRepository)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(bitInterpretationRepository);
-        ArgumentNullException.ThrowIfNull(deviceStateRepository);
+        ArgumentNullException.ThrowIfNull(overrideRepository);
         _repository = repository;
         _dictionaryRepository = dictionaryRepository;
         _bitInterpretationRepository = bitInterpretationRepository;
-        _deviceStateRepository = deviceStateRepository;
+        _overrideRepository = overrideRepository;
     }
 
     // === CRUD Base ===
@@ -127,16 +128,16 @@ public class VariableService : IVariableService
 
         var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
-        // Normal mode: ritorna solo le interpretazioni comuni (DeviceId = null)
-        var common = BitInterpretationMapper.ToDomainList(entities)
-            .Where(b => b.DeviceId is null)
+        // Ritorna solo le interpretazioni template (DictionaryId = null)
+        var template = BitInterpretationMapper.ToDomainList(entities)
+            .Where(b => b.DictionaryId is null)
             .ToList();
 
-        return common;
+        return template;
     }
 
-    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
-        int variableId, int deviceId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDictionaryAsync(
+        int variableId, int dictionaryId, CancellationToken ct = default)
     {
         var variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
@@ -144,14 +145,14 @@ public class VariableService : IVariableService
                 $"Variable (Id={variableId}) not found.");
 
         var entities = await _bitInterpretationRepository
-            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
+            .GetByVariableAndDictionaryAsync(variableId, dictionaryId, ct);
 
         var allBits = BitInterpretationMapper.ToDomainList(entities);
 
-        // Merge: per ogni (WordIndex, BitIndex), device-specific ha priorità su comune
+        // BR-018: per ogni (WordIndex, BitIndex), per-dizionario ha priorità su template
         var merged = allBits
             .GroupBy(b => (b.WordIndex, b.BitIndex))
-            .Select(g => g.FirstOrDefault(b => b.DeviceId is not null) ?? g.First())
+            .Select(g => g.FirstOrDefault(b => b.DictionaryId is not null) ?? g.First())
             .OrderBy(b => b.WordIndex)
             .ThenBy(b => b.BitIndex)
             .ToList();
@@ -184,11 +185,11 @@ public class VariableService : IVariableService
     public async Task UpdateBitInterpretationsAsync(int variableId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
     {
-        await UpdateBitInterpretationsForDeviceAsync(variableId, null, interpretations, ct);
+        await UpdateBitInterpretationsForDictionaryAsync(variableId, null, interpretations, ct);
     }
 
-    public async Task UpdateBitInterpretationsForDeviceAsync(int variableId,
-        int? deviceId, IEnumerable<BitInterpretation> interpretations,
+    public async Task UpdateBitInterpretationsForDictionaryAsync(int variableId,
+        int? dictionaryId, IEnumerable<BitInterpretation> interpretations,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(interpretations);
@@ -221,66 +222,68 @@ public class VariableService : IVariableService
         }
 
         var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
-        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, deviceId, entities, ct);
+        await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, dictionaryId, entities, ct);
     }
 
-    // === DeviceState Management ===
+    // === StandardVariableOverride Management ===
 
-    public async Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled,
-        CancellationToken ct = default)
+    public async Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
+        string? description = null, CancellationToken ct = default)
     {
-        // Verifica che la variabile esista
-        var variable = await _repository.GetByIdAsync(variableId, ct)
+        // Verifica che la variabile standard esista
+        var variable = await _repository.GetByIdAsync(standardVariableId, ct)
             ?? throw new KeyNotFoundException(
-                $"Variable (Id={variableId}) not found.");
+                $"Variable (Id={standardVariableId}) not found.");
 
         // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
         if (!variable.IsEnabled && isEnabled)
             throw new InvalidOperationException(
-                $"Cannot enable variable '{variable.Name}' for device {deviceId}: " +
+                $"Cannot enable variable '{variable.Name}' for dictionary {dictionaryId}: " +
                 "variable is deprecated globally (IsEnabled=false).");
 
-        // Cerca stato esistente
-        var existingState = await _deviceStateRepository
-            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
+        // Cerca override esistente
+        var existing = await _overrideRepository
+            .GetByDictionaryAndVariableAsync(dictionaryId, standardVariableId, ct);
 
-        if (existingState is not null)
+        if (existing is not null)
         {
-            existingState.IsEnabled = isEnabled;
-            await _deviceStateRepository.UpdateAsync(existingState, ct);
+            existing.IsEnabled = isEnabled;
+            existing.Description = description;
+            await _overrideRepository.UpdateAsync(existing, ct);
         }
         else
         {
-            var newState = new VariableDeviceStateEntity
+            var newOverride = new StandardVariableOverrideEntity
             {
-                VariableId = variableId,
-                DeviceId = deviceId,
-                IsEnabled = isEnabled
+                DictionaryId = dictionaryId,
+                StandardVariableId = standardVariableId,
+                IsEnabled = isEnabled,
+                Description = description
             };
-            await _deviceStateRepository.AddAsync(newState, ct);
+            await _overrideRepository.AddAsync(newOverride, ct);
         }
     }
 
-    public async Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, int deviceId,
-        CancellationToken ct = default)
+    public async Task<StandardVariableOverride?> GetOverrideAsync(int dictionaryId,
+        int standardVariableId, CancellationToken ct = default)
     {
-        var entity = await _deviceStateRepository
-            .GetByVariableAndDeviceAsync(variableId, deviceId, ct);
+        var entity = await _overrideRepository
+            .GetByDictionaryAndVariableAsync(dictionaryId, standardVariableId, ct);
 
-        return entity is null ? null : VariableDeviceStateMapper.ToDomain(entity);
+        return entity is null ? null : StandardVariableOverrideMapper.ToDomain(entity);
     }
 
-    public async Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId,
-        CancellationToken ct = default)
+    public async Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByDictionaryAsync(
+        int dictionaryId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByVariableIdAsync(variableId, ct);
-        return VariableDeviceStateMapper.ToDomainList(entities);
+        var entities = await _overrideRepository.GetByDictionaryIdAsync(dictionaryId, ct);
+        return StandardVariableOverrideMapper.ToDomainList(entities);
     }
 
-    public async Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
-        int deviceId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByVariableAsync(
+        int standardVariableId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
-        return [.. entities.Select(VariableDeviceStateMapper.ToDomain)];
+        var entities = await _overrideRepository.GetByVariableIdAsync(standardVariableId, ct);
+        return StandardVariableOverrideMapper.ToDomainList(entities);
     }
 }
