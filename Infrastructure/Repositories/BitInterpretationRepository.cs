@@ -15,30 +15,30 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
     {
         return await DbSet
             .Where(bi => bi.VariableId == variableId)
-            .OrderBy(bi => bi.DeviceId)
+            .OrderBy(bi => bi.DictionaryId)
             .ThenBy(bi => bi.WordIndex)
             .ThenBy(bi => bi.BitIndex)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableAndDeviceAsync(int variableId,
-        int deviceId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BitInterpretationEntity>> GetByVariableAndDictionaryAsync(
+        int variableId, int dictionaryId, CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Where(bi => bi.VariableId == variableId
-                && (bi.DeviceId == deviceId || bi.DeviceId == null))
-            .OrderBy(bi => bi.DeviceId)
+                && (bi.DictionaryId == dictionaryId || bi.DictionaryId == null))
+            .OrderBy(bi => bi.DictionaryId)
             .ThenBy(bi => bi.WordIndex)
             .ThenBy(bi => bi.BitIndex)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task SyncByVariableIdAsync(int variableId, int? deviceId,
+    public async Task SyncByVariableIdAsync(int variableId, int? dictionaryId,
         IReadOnlyList<BitInterpretationEntity> incoming,
         CancellationToken cancellationToken = default)
     {
         var existing = await DbSet
-            .Where(bi => bi.VariableId == variableId && bi.DeviceId == deviceId)
+            .Where(bi => bi.VariableId == variableId && bi.DictionaryId == dictionaryId)
             .ToListAsync(cancellationToken);
 
         var existingByKey = existing.ToDictionary(e => (e.WordIndex, e.BitIndex));
@@ -67,7 +67,7 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
                 await DbSet.AddAsync(new BitInterpretationEntity
                 {
                     VariableId = variableId,
-                    DeviceId = deviceId,
+                    DictionaryId = dictionaryId,
                     WordIndex = i.WordIndex,
                     BitIndex = i.BitIndex,
                     Meaning = i.Meaning
