@@ -1074,7 +1074,7 @@ public class VariableEditViewModelTests
 
         await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        Assert.Equal("Interpretazione Bit (Dizionario)", _viewModel.FormTitle);
+        Assert.Equal("Override Variabile Standard", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -1084,7 +1084,7 @@ public class VariableEditViewModelTests
 
         await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        Assert.Contains("Salva Bit", _viewModel.SaveButtonLabel);
+        Assert.Contains("Salva Override", _viewModel.SaveButtonLabel);
     }
 
     [Fact]
@@ -1206,7 +1206,7 @@ public class VariableEditViewModelTests
 
         // Assert — deve salvare l'override per dizionario
         Assert.Contains(_variableService.MethodCalls,
-            m => m == "SetOverrideAsync:42:1:False");
+            m => m == "SetOverrideAsync:42:1:False:Status flags");
     }
 
     [Fact]
@@ -1235,6 +1235,52 @@ public class VariableEditViewModelTests
 
         // Assert — default = true
         Assert.True(_viewModel.IsEnabled);
+    }
+
+    [Fact]
+    public async Task DictionaryContext_LoadsOverride_WithDescription()
+    {
+        // Arrange — override con description personalizzata
+        SeedBitmappedVariable();
+        _variableService.SeedOverrides(
+            StandardVariableOverride.Restore(1, 42, 1, isEnabled: false, description: "Override desc"));
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
+
+        // Assert
+        Assert.False(_viewModel.IsEnabled);
+        Assert.Equal("Override desc", _viewModel.Description);
+    }
+
+    [Fact]
+    public async Task DictionaryContext_NoOverride_KeepsTemplateDescription()
+    {
+        // Arrange — nessun override: Description resta quella del template
+        SeedBitmappedVariable(); // template ha "Status flags"
+
+        // Act
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
+
+        // Assert
+        Assert.Equal("Status flags", _viewModel.Description);
+    }
+
+    [Fact]
+    public async Task DictionaryContext_Save_PassesDescriptionToSetOverride()
+    {
+        // Arrange
+        SeedBitmappedVariable();
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
+        _viewModel.Description = "Nuova descrizione dizionario";
+        _viewModel.IsEnabled = true;
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert — verifica che description venga passata
+        Assert.Contains(_variableService.MethodCalls,
+            m => m == "SetOverrideAsync:42:1:True:Nuova descrizione dizionario");
     }
 
     private void SeedBitmappedVariable()

@@ -226,4 +226,86 @@ public class BoardServiceTests : IntegrationTestBase
 
         Assert.False(peripheral.IsPrimary);
     }
+
+    // === Auto-assign Dictionary Tests (BR-021) ===
+
+    [Fact]
+    public async Task AddAsync_SameFirmwareType_AutoAssignsDictionary()
+    {
+        // Arrange: crea dizionario e board con FW=4 che lo referenzia
+        var dict = new DictionaryEntity { Name = "Pulsantiere" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        await _service.AddAsync(new Board(3, "Pulsantiera 1", 4, 1,
+            dictionaryId: dict.Id, machineCode: 3));
+
+        // Act: nuova board FW=4 SENZA dizionario
+        var newBoard = await _service.AddAsync(
+            new Board(3, "Pulsantiera 2", 4, 2, machineCode: 3));
+
+        // Assert: eredita il dizionario
+        Assert.Equal(dict.Id, newBoard.DictionaryId);
+    }
+
+    [Fact]
+    public async Task AddAsync_DifferentFirmwareType_DoesNotAutoAssign()
+    {
+        // Arrange: crea dizionario e board con FW=4
+        var dict = new DictionaryEntity { Name = "Pulsantiere" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        await _service.AddAsync(new Board(3, "Pulsantiera", 4, 1,
+            dictionaryId: dict.Id, machineCode: 3));
+
+        // Act: nuova board FW=5 (diverso) senza dizionario
+        var newBoard = await _service.AddAsync(
+            new Board(3, "Madre", 5, 2, machineCode: 3));
+
+        // Assert: NON eredita il dizionario
+        Assert.Null(newBoard.DictionaryId);
+    }
+
+    // === Cascade Delete Dictionary Tests (BR-022) ===
+
+    [Fact]
+    public async Task DeleteAsync_DedicatedDictionary_DeletesDictionary()
+    {
+        // Arrange: dizionario usato da 1 sola board
+        var dict = new DictionaryEntity { Name = "Eden-XP" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        var board = await _service.AddAsync(new Board(3, "Madre", 5, 1,
+            dictionaryId: dict.Id, machineCode: 3));
+
+        // Act
+        await _service.DeleteAsync(board.Id);
+
+        // Assert: dizionario eliminato
+        var dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
+        Assert.Null(dictAfter);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_SharedDictionary_KeepsDictionary()
+    {
+        // Arrange: dizionario condiviso da 2 board
+        var dict = new DictionaryEntity { Name = "Pulsantiere" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        var board1 = await _service.AddAsync(new Board(3, "Pulsantiera 1", 4, 1,
+            dictionaryId: dict.Id, machineCode: 3));
+        await _service.AddAsync(new Board(3, "Pulsantiera 2", 4, 2,
+            dictionaryId: dict.Id, machineCode: 3));
+
+        // Act: elimina solo la prima
+        await _service.DeleteAsync(board1.Id);
+
+        // Assert: dizionario ancora presente
+        var dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
+        Assert.NotNull(dictAfter);
+    }
 }

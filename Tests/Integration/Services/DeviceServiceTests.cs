@@ -15,7 +15,9 @@ public class DeviceServiceTests : IntegrationTestBase
     public DeviceServiceTests()
     {
         var repository = new DeviceRepository(Context);
-        _service = new DeviceService(repository);
+        var boardRepository = new BoardRepository(Context);
+        var dictionaryRepository = new DictionaryRepository(Context);
+        _service = new DeviceService(repository, boardRepository, dictionaryRepository);
     }
 
     [Fact]
@@ -181,5 +183,68 @@ public class DeviceServiceTests : IntegrationTestBase
     public async Task GetByNameAsync_NotFound_ReturnsNull()
     {
         Assert.Null(await _service.GetByNameAsync("NonExistent"));
+    }
+
+    // === Cascade Delete Tests (BR-023) ===
+
+    [Fact]
+    public async Task DeleteAsync_WithBoardsAndDedicatedDict_DeletesDictionary()
+    {
+        // Arrange: device con 1 board che ha un dizionario dedicato
+        var device = await _service.AddAsync(new Device("TestDevice", 77));
+        var dict = new DictionaryEntity { Name = "TestDict" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        Context.Boards.Add(new BoardEntity
+        {
+            DeviceId = device.Id,
+            Name = "Madre",
+            FirmwareType = 5,
+            BoardNumber = 1,
+            DictionaryId = dict.Id,
+            ProtocolAddress = Board.CalculateAddress(77, 5, 1)
+        });
+        await Context.SaveChangesAsync();
+
+        // Act
+        await _service.DeleteAsync(device.Id);
+
+        // Assert: device, board e dizionario eliminati
+        Assert.Null(await _service.GetByIdAsync(device.Id));
+        Assert.Null(await Context.Dictionaries.FindAsync(dict.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithSharedDict_KeepsDictionary()
+    {
+        // Arrange: 2 device, dizionario condiviso
+        var device1 = await _service.AddAsync(new Device("Device1", 77));
+        var device2 = await _service.AddAsync(new Device("Device2", 78));
+        var dict = new DictionaryEntity { Name = "Pulsantiere" };
+        Context.Dictionaries.Add(dict);
+        await Context.SaveChangesAsync();
+
+        Context.Boards.AddRange(
+            new BoardEntity
+            {
+                DeviceId = device1.Id, Name = "Puls 1", FirmwareType = 4,
+                BoardNumber = 1, DictionaryId = dict.Id,
+                ProtocolAddress = Board.CalculateAddress(77, 4, 1)
+            },
+            new BoardEntity
+            {
+                DeviceId = device2.Id, Name = "Puls 1", FirmwareType = 4,
+                BoardNumber = 1, DictionaryId = dict.Id,
+                ProtocolAddress = Board.CalculateAddress(78, 4, 1)
+            });
+        await Context.SaveChangesAsync();
+
+        // Act: elimina solo device1
+        await _service.DeleteAsync(device1.Id);
+
+        // Assert: dizionario condiviso sopravvive
+        Assert.Null(await _service.GetByIdAsync(device1.Id));
+        Assert.NotNull(await Context.Dictionaries.FindAsync(dict.Id));
     }
 }

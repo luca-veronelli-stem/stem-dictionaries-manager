@@ -41,6 +41,7 @@ public class MainViewModelTests
         services.AddTransient(sp => new DeviceListViewModel(
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<MockDeviceService>(),
+            sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));
 
@@ -53,6 +54,7 @@ public class MainViewModelTests
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<MockVariableService>(),
+            sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
             sp.GetRequiredService<IMessageService>()));

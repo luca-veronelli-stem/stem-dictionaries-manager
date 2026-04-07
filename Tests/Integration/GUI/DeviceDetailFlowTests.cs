@@ -64,7 +64,7 @@ public class DeviceDetailFlowTests
     }
 
     [Fact]
-    public async Task LoadDeviceDetail_ShowsStandardDictionary()
+    public async Task LoadDeviceDetail_ExcludesStandardDictionary()
     {
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
@@ -75,8 +75,8 @@ public class DeviceDetailFlowTests
         // Act
         await _viewModel.LoadAsync(deviceId: 1);
 
-        // Assert
-        Assert.Contains(_viewModel.Dictionaries, d => d.IsStandard);
+        // Assert — Standard non appare più (accessibile solo dalla sidebar)
+        Assert.DoesNotContain(_viewModel.Dictionaries, d => d.IsStandard);
     }
 
     [Fact]
@@ -101,22 +101,19 @@ public class DeviceDetailFlowTests
     #region Navigation Tests
 
     [Fact]
-    public async Task OpenDictionary_Standard_NavigatesToDeviceVariables()
+    public async Task AddDictionary_NavigatesToDictionaryEdit_WithDeviceId()
     {
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
-        _dictionaryService.SeedData(Dictionary.Restore(1, "Standard", null, true, []));
         await _viewModel.LoadAsync(deviceId: 1);
 
-        var standardDict = _viewModel.Dictionaries.FirstOrDefault(d => d.IsStandard);
-        Assert.NotNull(standardDict);
-
         // Act
-        _viewModel.SelectedDictionary = standardDict;
-        _viewModel.OpenDictionaryCommand.Execute(null);
+        _viewModel.AddDictionaryCommand.Execute(null);
 
         // Assert
         Assert.Equal(ViewType.DictionaryEdit, _navigationService.LastNavigatedView);
+        Assert.Null(_navigationService.LastParameter?.EntityId);
+        Assert.Equal(1, _navigationService.LastParameter?.DeviceId);
     }
 
     [Fact]

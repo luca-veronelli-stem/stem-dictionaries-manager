@@ -17,12 +17,14 @@ public class DictionaryEditFlowTests
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
+    private readonly MockBoardService _boardService;
     private readonly DictionaryEditViewModel _viewModel;
 
     public DictionaryEditFlowTests()
     {
         _dictionaryService = new MockDictionaryService();
         _variableService = new MockVariableService();
+        _boardService = new MockBoardService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
@@ -30,6 +32,7 @@ public class DictionaryEditFlowTests
         _viewModel = new DictionaryEditViewModel(
             _dictionaryService,
             _variableService,
+            _boardService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -56,14 +59,16 @@ public class DictionaryEditFlowTests
     }
 
     [Fact]
-    public async Task CreateDictionary_NonStandard_SetsIsStandardFalse()
+    public async Task CreateDictionary_NonStandard_WithBoard_SetsIsStandardFalse()
     {
-        // Arrange
-        await _viewModel.InitializeAsync(null);
+        // Arrange — serve una board per dizionari non-standard
+        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, null));
+        await _viewModel.InitializeAsync(null, deviceId: 1);
 
         _viewModel.Name = "Eden-XP";
         _viewModel.Description = "Dizionario dedicato Eden-XP";
         _viewModel.IsStandard = false;
+        _viewModel.SelectedBoard = _viewModel.AvailableBoards.First();
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);

@@ -18,12 +18,14 @@ public class DictionaryEditViewModelTests
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
+    private readonly MockBoardService _boardService;
     private readonly DictionaryEditViewModel _viewModel;
 
     public DictionaryEditViewModelTests()
     {
         _dictionaryService = new MockDictionaryService();
         _variableService = new MockVariableService();
+        _boardService = new MockBoardService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
@@ -31,6 +33,7 @@ public class DictionaryEditViewModelTests
         _viewModel = new DictionaryEditViewModel(
             _dictionaryService,
             _variableService,
+            _boardService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -116,6 +119,7 @@ public class DictionaryEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "Test";
+        _viewModel.IsStandard = true;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -129,6 +133,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
         _viewModel.Description = "NewDesc";
+        _viewModel.IsStandard = true;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -138,7 +143,7 @@ public class DictionaryEditViewModelTests
     [Fact]
     public async Task SaveCommand_WhenEditing_CallsUpdateAsync()
     {
-        var dict = new Dictionary("Existing");
+        var dict = new Dictionary("Existing", isStandard: true);
         _dictionaryService.SeedData(dict);
         await _viewModel.InitializeAsync(1);
         _viewModel.Name = "Updated";
@@ -153,6 +158,7 @@ public class DictionaryEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
+        _viewModel.IsStandard = true;
         _navigationService.NavigateTo(ViewType.DictionaryEdit);
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -166,6 +172,7 @@ public class DictionaryEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
+        _viewModel.IsStandard = true;
         _dictionaryService.ExceptionToThrow = new Exception("Save failed");
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -225,6 +232,7 @@ public class DictionaryEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "NewDict";
+        _viewModel.IsStandard = true;
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -235,7 +243,7 @@ public class DictionaryEditViewModelTests
     [Fact]
     public async Task SaveCommand_WhenEditing_StaysOnPage()
     {
-        var dict = new Dictionary("Existing");
+        var dict = new Dictionary("Existing", isStandard: true);
         _dictionaryService.SeedData(dict);
         await _viewModel.InitializeAsync(1);
         _viewModel.Name = "Updated";
@@ -252,6 +260,7 @@ public class DictionaryEditViewModelTests
         Assert.True(_viewModel.IsNew);
 
         _viewModel.Name = "NewDict";
+        _viewModel.IsStandard = true;
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Dopo il primo salvataggio, IsNew diventa false
@@ -278,18 +287,24 @@ public class DictionaryEditViewModelTests
     }
 
     [Fact]
-    public async Task ReloadVariablesAsync_ReloadsOnlyVariables()
+    public async Task ReloadVariablesAsync_ReloadsSpecificAndStandardVariables()
     {
-        var dict = new Dictionary("Test");
-        _dictionaryService.SeedData(dict);
-        await _viewModel.InitializeAsync(1);
+        // Arrange: dizionario non-standard con standard dict
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+        await _viewModel.InitializeAsync(2);
         _variableService.MethodCalls.Clear();
         _dictionaryService.MethodCalls.Clear();
 
+        // Act
         await _viewModel.ReloadVariablesAsync();
 
-        Assert.Contains($"GetByDictionaryIdAsync:1", _variableService.MethodCalls);
-        // Non ricarica il dizionario
+        // Assert: ricarica sia specifiche che standard
+        Assert.Contains("GetByDictionaryIdAsync:2", _variableService.MethodCalls);
+        Assert.Contains("GetStandardDictionaryAsync", _dictionaryService.MethodCalls);
+        // Non ricarica il dizionario corrente
         Assert.DoesNotContain(_dictionaryService.MethodCalls, m => m.StartsWith("GetByIdAsync"));
     }
 
@@ -571,6 +586,219 @@ public class DictionaryEditViewModelTests
 
         var warning = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
         Assert.Contains("Nome", warning.Message);
+    }
+
+    // === StandardVariableOverride Tests ===
+
+    /// <summary>Helper per creare variabili standard minimali per i test.</summary>
+    private static Variable MakeStdVar(int id, string name, byte addrLow, bool isEnabled = true,
+        string? description = null) =>
+        Variable.Restore(id, name, 0x00, addrLow, DataTypeKind.UInt16, "UInt16", null,
+            Core.Enums.AccessMode.ReadOnly, isEnabled, null, null, null, null, null, description);
+
+    [Fact]
+    public async Task InitializeAsync_NonStandard_LoadsStandardVariablesWithOverrides()
+    {
+        // Arrange: standard dict con 2 variabili
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01), MakeStdVar(11, "Stato", 0x02)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        _variableService.SeedOverrides(
+            StandardVariableOverride.Restore(1, 2, 10, false, "Override descrizione"));
+
+        // Act
+        await _viewModel.InitializeAsync(2);
+
+        // Assert
+        Assert.Equal(2, _viewModel.StandardVariables.Count);
+
+        var allarmi = _viewModel.StandardVariables.First(s => s.Name == "Allarmi");
+        Assert.False(allarmi.IsEnabled); // overridden to false
+        Assert.Equal("Override descrizione", allarmi.Description);
+
+        var stato = _viewModel.StandardVariables.First(s => s.Name == "Stato");
+        Assert.True(stato.IsEnabled); // template default
+    }
+
+    [Fact]
+    public async Task StandardVariable_IsGloballyDisabled_SetCorrectly()
+    {
+        // Arrange: variabile deprecata (IsEnabled=false nel template)
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Deprecata", 0x01, isEnabled: false)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        // Act
+        await _viewModel.InitializeAsync(2);
+
+        // Assert
+        var item = _viewModel.StandardVariables[0];
+        Assert.True(item.IsGloballyDisabled);
+        Assert.False(item.IsEnabled);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Standard_DoesNotLoadStandardVariables()
+    {
+        // Arrange: dizionario Standard → non mostra sezione override
+        var standardDict = Dictionary.Restore(1, "Standard", null, true, []);
+        _dictionaryService.SeedData(standardDict);
+
+        // Act
+        await _viewModel.InitializeAsync(1);
+
+        // Assert
+        Assert.Empty(_viewModel.StandardVariables);
+        Assert.False(_viewModel.ShowStandardSection);
+    }
+
+    [Fact]
+    public async Task EditStandardVariableCommand_NavigatesToVariableEdit_WithDictionaryContext()
+    {
+        // Arrange
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        await _viewModel.InitializeAsync(2);
+
+        // Act
+        var item = _viewModel.StandardVariables[0];
+        _viewModel.EditStandardVariableCommand.Execute(item);
+
+        // Assert: naviga a VariableEdit con ParentId=standard(1), DeviceId=current dict(2) per override mode
+        Assert.Equal(ViewType.VariableEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(10, _navigationService.LastParameter?.EntityId);
+        Assert.Equal(1, _navigationService.LastParameter?.ParentId);
+        Assert.Equal(2, _navigationService.LastParameter?.DeviceId);
+    }
+
+    [Fact]
+    public async Task EditStandardVariableCommand_WithNull_DoesNotNavigate()
+    {
+        // Arrange
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+        await _viewModel.InitializeAsync(2);
+
+        // Act
+        _viewModel.EditStandardVariableCommand.Execute(null);
+
+        // Assert
+        Assert.Empty(_navigationService.NavigationHistory);
+    }
+
+    [Fact]
+    public async Task SaveCommand_NewNonStandard_LoadsStandardVariablesAfterCreate()
+    {
+        // Arrange: standard dict con variabili template
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        _dictionaryService.SeedData(standardDict);
+
+        // Nuovo dizionario non-standard con board
+        _boardService.SeedBoards(
+            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: null));
+
+        await _viewModel.InitializeAsync(null, deviceId: 5);
+        _viewModel.Name = "NuovoDizionario";
+        _viewModel.SelectedBoard = _viewModel.AvailableBoards[0];
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert: dopo la creazione, le variabili standard sono caricate
+        Assert.NotEmpty(_viewModel.StandardVariables);
+        Assert.True(_viewModel.ShowStandardSection);
+    }
+
+    [Fact]
+    public async Task SaveCommand_NoInlineOverrideSave_DoesNotCallSetOverride()
+    {
+        // Arrange: save di dizionario esistente non deve salvare override inline
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+        _boardService.SeedBoards(
+            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: 2));
+
+        await _viewModel.InitializeAsync(2, deviceId: 5);
+        _viewModel.Name = "Eden-XP";
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert: nessun SetOverrideAsync — gli override si salvano dalla VariableEdit
+        Assert.DoesNotContain(_variableService.MethodCalls,
+            c => c.StartsWith("SetOverrideAsync"));
+    }
+
+    [Fact]
+    public async Task ReloadVariablesAsync_RefreshesStandardOverrides()
+    {
+        // Arrange: dizionario non-standard, simula ritorno da VariableEdit con override modificato
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+        await _viewModel.InitializeAsync(2);
+
+        // Simula override aggiunto dalla VariableEdit
+        _variableService.SeedOverrides(
+            StandardVariableOverride.Restore(1, 2, 10, false, "Override dopo edit"));
+
+        // Act: GoBack chiama ReloadVariablesAsync
+        await _viewModel.ReloadVariablesAsync();
+
+        // Assert: la lista standard riflette il nuovo override
+        var item = _viewModel.StandardVariables.First(s => s.Name == "Allarmi");
+        Assert.False(item.IsEnabled);
+        Assert.Equal("Override dopo edit", item.Description);
+    }
+
+    [Fact]
+    public async Task SaveCommand_NewStandard_DoesNotLoadStandardSection()
+    {
+        // Arrange: nessun standard dict preesistente
+        await _viewModel.InitializeAsync(null);
+        _viewModel.Name = "Standard";
+        _viewModel.IsStandard = true;
+
+        // Act
+        await _viewModel.SaveCommand.ExecuteAsync(null);
+
+        // Assert: un dizionario standard non mostra la sezione standard
+        Assert.Empty(_viewModel.StandardVariables);
+        Assert.False(_viewModel.ShowStandardSection);
+    }
+
+    [Fact]
+    public async Task ReloadVariablesAsync_StandardDict_DoesNotReloadStandardVars()
+    {
+        // Arrange: dizionario standard
+        var standardDict = Dictionary.Restore(1, "Standard", null, true, []);
+        _dictionaryService.SeedData(standardDict);
+        await _viewModel.InitializeAsync(1);
+        _dictionaryService.MethodCalls.Clear();
+
+        // Act
+        await _viewModel.ReloadVariablesAsync();
+
+        // Assert: non chiama GetStandardDictionaryAsync
+        Assert.DoesNotContain(_dictionaryService.MethodCalls, m => m == "GetStandardDictionaryAsync");
+    }
+
+    [Fact]
+    public void IsSpecificExpanded_DefaultsToTrue()
+    {
+        Assert.True(_viewModel.IsSpecificExpanded);
     }
 }
 #endif
