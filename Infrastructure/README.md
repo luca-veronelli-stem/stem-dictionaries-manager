@@ -24,7 +24,7 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 |---------|-------|-------------|
 | **Entities** | ✅ | 10 entity classes con IAuditable |
 | **Repositories** | ✅ | 10 repository + base generica |
-| **Migrations** | ✅ | 1 migration (InitialCreate_DomainV2) |
+| **Migrations** | ✅ | 1 migration (InitialCreate Domain v7) |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
 | **Database Seeder** | ✅ | Dati demo per sviluppo ✨ |
@@ -88,11 +88,11 @@ Infrastructure/
 │   ├── BoardEntity.cs                 # Scheda con FirmwareType, DictionaryId?, IsPrimary
 │   ├── VariableEntity.cs              # Variabile dizionario (incl. Format)
 │   ├── DictionaryEntity.cs            # Dizionario con IsStandard flag
-│   ├── BitInterpretationEntity.cs     # Interpretazione bit bitmapped
+│   ├── BitInterpretationEntity.cs     # Interpretazione bit bitmapped (v7: DictionaryId?)
 │   ├── CommandEntity.cs               # Comando protocollo (ParametersJson)
 │   ├── CommandDeviceStateEntity.cs    # Stato comando per device
 │   ├── DeviceEntity.cs                # Dispositivo STEM
-│   ├── VariableDeviceStateEntity.cs   # ⚠️ Override variabile per device (da rimuovere in T-006)
+│   ├── StandardVariableOverrideEntity.cs # Override per-dizionario variabile standard (v7)
 │   └── AuditEntryEntity.cs            # Audit trail (no IAuditable)
 ├── Interfaces/
 │   ├── IAuditable.cs                  # Interface per audit fields
@@ -105,7 +105,7 @@ Infrastructure/
 │   ├── IBitInterpretationRepository.cs
 │   ├── ICommandDeviceStateRepository.cs
 │   ├── IDeviceRepository.cs
-│   ├── IVariableDeviceStateRepository.cs
+│   ├── IStandardVariableOverrideRepository.cs
 │   └── IAuditEntryRepository.cs
 ├── Repositories/
 │   ├── RepositoryBase.cs              # Implementazione CRUD comune
@@ -117,10 +117,10 @@ Infrastructure/
 │   ├── BitInterpretationRepository.cs
 │   ├── CommandDeviceStateRepository.cs
 │   ├── DeviceRepository.cs
-│   ├── VariableDeviceStateRepository.cs
+│   ├── StandardVariableOverrideRepository.cs
 │   └── AuditEntryRepository.cs
 ├── Migrations/
-│   └── InitialCreate_DomainV2             # Schema completo Domain v2
+│   └── InitialCreate                  # Schema completo Domain v7
 ├── AppDbContext.cs                    # DbContext con audit automatico (10 DbSet)
 ├── DatabaseSeeder.cs                  # Dati demo per sviluppo
 ├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI
@@ -139,11 +139,11 @@ Infrastructure/
 | `BoardEntity` | Boards | ✅ | FirmwareType, DictionaryId?, IsPrimary, ProtocolAddress |
 | `VariableEntity` | Variables | ✅ | FK → Dictionary, Format, unique (DictionaryId, AddressHigh, AddressLow) |
 | `DictionaryEntity` | Dictionaries | ✅ | IsStandard flag, Name univoco |
-| `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable |
+| `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable, Dictionary? (v7: DictionaryId?) |
 | `CommandEntity` | Commands | ✅ | ParametersJson, unique (CodeHigh, CodeLow, IsResponse) |
 | `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType, unique (CommandId, DeviceType) |
 | `DeviceEntity` | Devices | ✅ | Name, MachineCode, Description |
-| `VariableDeviceStateEntity` | VariableDeviceStates | ✅ | FK → Variable, DeviceType, unique (VariableId, DeviceType) |
+| `StandardVariableOverrideEntity` | StandardVariableOverrides | ✅ | FK → Dictionary, Variable, unique (DictionaryId, StandardVariableId) BR-010 |
 | `AuditEntryEntity` | AuditEntries | ❌ | Immutabile, FK → User |
 
 ### Repository Interfaces
@@ -156,10 +156,10 @@ Infrastructure/
 | `IDictionaryRepository` | GetByNameAsync, GetWithVariablesAsync, GetStandardDictionaryAsync, ExistsAsync |
 | `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
 | `ICommandRepository` | GetByCodeAsync, GetWithDeviceStatesAsync |
-| `IBitInterpretationRepository` | GetByVariableIdAsync, SyncByVariableIdAsync |
+| `IBitInterpretationRepository` | GetByVariableIdAsync, GetByVariableAndDictionaryAsync, SyncByVariableIdAsync |
 | `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
 | `IDeviceRepository` | GetByNameAsync, GetByMachineCodeAsync |
-| `IVariableDeviceStateRepository` | GetByVariableAndDeviceAsync, GetByVariableIdAsync |
+| `IStandardVariableOverrideRepository` | GetByDictionaryIdAsync, GetByDictionaryAndVariableAsync, GetByVariableIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync |
 
 ### Audit Automatico
@@ -207,7 +207,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 3 issue aperte (incl. INFRA-009 per T-006), 6 risolte
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 7 risolte
 
 ---
 
