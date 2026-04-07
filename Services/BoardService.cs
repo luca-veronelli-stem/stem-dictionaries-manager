@@ -41,22 +41,18 @@ public class BoardService : IBoardService
         // Verifica che il dizionario esista (se specificato)
         if (board.DictionaryId.HasValue)
         {
-            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
-            if (dict is null)
-                throw new InvalidOperationException(
+            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
                     $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
         else
         {
-            // Auto-assign: se altre board con lo stesso FirmwareType hanno un dizionario
-            // condiviso (es. Pulsantiere), lo eredita automaticamente.
+            // Auto-assign: se altre board con lo stesso FirmwareType hanno un dizionario,
+            // lo eredita automaticamente (es. Pulsantiere condiviso per FW=4).
             var allBoards = await _boardRepository.GetAllAsync(ct);
             var sharedDictId = allBoards
                 .Where(b => b.FirmwareType == board.FirmwareType && b.DictionaryId.HasValue)
                 .Select(b => b.DictionaryId!.Value)
-                .GroupBy(id => id)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
+                .Distinct()
                 .FirstOrDefault();
 
             if (sharedDictId > 0)
@@ -88,9 +84,7 @@ public class BoardService : IBoardService
         // Verifica dizionario se specificato
         if (board.DictionaryId.HasValue)
         {
-            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct);
-            if (dict is null)
-                throw new InvalidOperationException(
+            _ = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
                     $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
