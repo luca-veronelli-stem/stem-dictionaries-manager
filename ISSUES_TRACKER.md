@@ -11,10 +11,10 @@
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 4 | 8 | 12 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 6 | 9 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
 | [Tests](./Tests/ISSUES.md) | 2 | 8 | 10 |
 | **Trasversali** | **4** | **2** | **6** |
-| **Totale** | **18** | **36** | **54** |
+| **Totale** | **17** | **37** | **54** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 1 | 5% |
 | **Media** | 1 | 5% |
-| **Bassa** | 16 | 89% |
-| **Totale** | **18** | 100% |
+| **Bassa** | 15 | 88% |
+| **Totale** | **17** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        █░░░░░░░░░░░░░░░░░░░  1  (T-006)
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ████████████████░░░░ 16
+Bassa:       ███████████████░░░░░ 15
 ```
 
 ---
@@ -395,11 +395,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### GUI.Windows (3 issue aperte, 6 risolte)
+### GUI.Windows (2 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **GUI-009** | **Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)** | **Alta** | **Refactoring** |
+| ~~GUI-009~~ | ~~Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~GUI-008~~ | ~~Refactoring GUI per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
@@ -433,7 +433,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | 1 | CORE-008 | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ✅ Risolto |
 | 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | ✅ Risolto |
 | 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | ✅ Risolto |
-| 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ⬜ Da fare |
+| 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ✅ Risolto |
 | 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | ⬜ Da fare |
 
 **Branch proposto:** `domain/domain-v7`  
@@ -546,7 +546,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-04-07 | ✅ **SVC-012 risolta** — StandardVariableOverrideMapper creato, VariableDeviceStateMapper eliminato, BitInterpretationMapper aggiornato (DictionaryId), VariableService con override per-dizionario. 18 aperte, 36 risolte. |
+| 2026-04-07 | ✅ **GUI-009 risolta** — DeviceVariablesView eliminata, DeviceVariables rimosso da ViewType/MainViewModel/DI, VariableEditViewModel DeviceContext→DictionaryContext. 17 aperte, 37 risolte. |
+| 2026-04-07 | ✅ **SVC-012 risolta**
 | 2026-04-07 | ✅ **CORE-008 + INFRA-009 risolte**
 | 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)**
 | 2026-03-25 | ✅ **SVC-010 risolta** — Eliminato Class1.cs placeholder. 13 aperte, 33 risolte. |

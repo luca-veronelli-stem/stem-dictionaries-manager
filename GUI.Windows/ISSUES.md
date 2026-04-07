@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -11,103 +11,29 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 2 |
+| **Alta** | 0 | 3 |
 | **Media** | 0 | 4 |
 | **Bassa** | 2 | 0 |
 
-**Totale aperte:** 3  
-**Totale risolte:** 6
+**Totale aperte:** 2  
+**Totale risolte:** 7
 
 ---
 
 ## Indice Issue Aperte
 
-- [GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)](#gui-009--rimuovere-devicevariables-aggiornare-dictionaryedit-t-006)
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
 
 ## Indice Issue Risolte
 
+- [GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)](#gui-009--rimuovere-devicevariables-aggiornare-dictionaryedit-t-006)
 - [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
 - [GUI-008 - Refactoring GUI per Domain v2](#gui-008--refactoring-gui-per-domain-v2)
 - [GUI-007 - DictionaryListItem non mostra DeviceType (semantica Dedicato)](#gui-007--dictionarylistitem-non-mostra-devicetype-semantica-dedicato)
 - [GUI-001 - Mancano ViewModels per tutte le ViewType dichiarate](#gui-001--mancano-viewmodels-per-tutte-le-viewtype-dichiarate)
 - [GUI-004 - Refactoring grafico completo e migrazione login](#gui-004--refactoring-grafico-completo-e-migrazione-login)
-
----
-
-## Priorità Alta
-
-### GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto — cambiamento di dominio fondamentale  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-30  
-**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
-
-#### Descrizione
-
-Refactoring del layer GUI per Domain v7. La vista DeviceVariables viene eliminata — l'override delle variabili standard avviene direttamente dentro DictionaryEditView.
-
-#### Azioni
-
-1. **Eliminare** ViewModels:
-   - `GUI.Windows/ViewModels/DeviceVariablesViewModel.cs`
-   - `GUI.Windows/ViewModels/VariableDeviceItem.cs`
-
-2. **Eliminare** Views:
-   - `GUI.Windows/Views/DeviceVariablesView.xaml`
-   - `GUI.Windows/Views/DeviceVariablesView.xaml.cs`
-
-3. **Modificare** `GUI.Windows/Abstractions/INavigationService.cs`:
-   - Rimuovere `DeviceVariables` da `ViewType` enum
-
-4. **Modificare** `GUI.Windows/ViewModels/MainViewModel.cs`:
-   - Rimuovere case `DeviceVariables` da `CreateViewModel`
-   - Rimuovere case `DeviceVariables` da `InitializeViewModelAsync`
-   - Rimuovere case `DeviceVariables` da `UpdateTitle`
-
-5. **Modificare** `GUI.Windows/MainWindow.xaml`:
-   - Rimuovere `DataTemplate` per `DeviceVariablesView`
-
-6. **Modificare** `GUI.Windows/ViewModels/DictionaryEditViewModel.cs`:
-   - Aggiungere sezione "Variabili Standard ereditate" (0x00xx) con:
-     - Lista `ResolvedStandardVariables` (readonly, dal template)
-     - Per ogni variabile: `IsEnabled` editabile, `Description` editabile
-     - `SaveOverridesAsync()` per salvare gli override
-   - Sezione esistente per variabili specifiche (0x80xx) resta invariata
-
-7. **Modificare** `GUI.Windows/Views/DictionaryEditView.xaml`:
-   - Aggiungere sezione superiore con DataGrid variabili standard
-   - Checkbox IsEnabled, TextBox Description editabili
-   - Sezione inferiore: variabili specifiche (già presente)
-
-8. **Modificare** `GUI.Windows/ViewModels/DeviceDetailViewModel.cs`:
-   - Rimuovere navigazione verso `DeviceVariables`
-   - Click su dizionario Standard → `DictionaryEdit` (come gli altri)
-
-9. **Aggiornare** `GUI.Windows/DependencyInjection.cs`:
-   - Rimuovere registrazione `DeviceVariablesViewModel`
-
-#### File Coinvolti
-
-- `GUI.Windows/ViewModels/DeviceVariablesViewModel.cs` (ELIMINARE)
-- `GUI.Windows/ViewModels/VariableDeviceItem.cs` (ELIMINARE)
-- `GUI.Windows/Views/DeviceVariablesView.xaml(.cs)` (ELIMINARE)
-- `GUI.Windows/Abstractions/INavigationService.cs`
-- `GUI.Windows/ViewModels/MainViewModel.cs`
-- `GUI.Windows/MainWindow.xaml`
-- `GUI.Windows/ViewModels/DictionaryEditViewModel.cs`
-- `GUI.Windows/Views/DictionaryEditView.xaml`
-- `GUI.Windows/ViewModels/DeviceDetailViewModel.cs`
-- `GUI.Windows/DependencyInjection.cs`
-
-#### Effort Stimato
-
-M (4-8h)
 
 ---
 
@@ -272,6 +198,37 @@ public async Task<bool> ConfirmAsync(string message, string title)
 ---
 
 ## Issue Risolte
+
+### GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-07  
+**Branch:** fix/t-006  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Soluzione Implementata
+
+1. **Eliminati** `DeviceVariablesViewModel.cs`, `VariableDeviceItem.cs`, `DeviceVariablesView.xaml(.cs)`
+2. **Rimosso** `DeviceVariables` da `ViewType` enum
+3. **Rimossi** 3 case `DeviceVariables` da `MainViewModel` (CreateViewModel, InitializeViewModelAsync, UpdateTitle)
+4. **Rimosso** DataTemplate `DeviceVariablesView` da `MainWindow.xaml`
+5. **Modificato** `DeviceDetailViewModel`: Standard → DictionaryEdit (non più DeviceVariables)
+6. **Rimossa** registrazione `DeviceVariablesViewModel` da DI
+7. **Rinominato** `VariableEditViewModel`: DeviceContext → DictionaryContext, `_deviceContextId` → `_dictionaryContextId`, API `*ForDevice*` → `*ForDictionary*`, `SaveDeviceStateAsync` → `SaveOverrideAsync`
+8. **Aggiornato** `VariableEditView.xaml`: binding `IsDeviceContext` → `IsDictionaryContext`
+
+#### Benefici Ottenuti
+
+- DeviceVariablesView eliminata (vista non più necessaria) ✅
+- Standard dizionario → DictionaryEdit (come tutti gli altri dizionari) ✅
+- VariableEdit DictionaryContext per-dizionario (non per-device) ✅
+- Build verde ✅
+
+---
 
 ### GUI-006 - LoginViewModel registrato due volte nel DI container
 
