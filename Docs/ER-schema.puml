@@ -1,8 +1,7 @@
 @startuml database-schema
 ' =============================================================================
-' Stem.Dictionaries.Manager - Database Schema (Domain v3)
-' Aggiornato: SESSION_039 (2026-04-03)
-' Nota: VariableDeviceStates sarà rimosso in T-006 (Domain v7)
+' Stem.Dictionaries.Manager - Database Schema (Domain v7)
+' Aggiornato: SESSION_040 (2026-04-07)
 ' =============================================================================
 
 !define TABLE(name) entity name << (T,#FFAAAA) >>
@@ -111,7 +110,7 @@ TABLE(BitInterpretations) {
     PK(Id) : int
     --
     FK(VariableId) : int → Variables
-    FK(DeviceId) : int? → Devices
+    FK(DictionaryId) : int? → Dictionaries
     WordIndex : int
     BitIndex : int
     Meaning : string(200)?
@@ -122,7 +121,7 @@ TABLE(BitInterpretations) {
 Dictionaries ||--o{ Variables : "DictionaryId"
 Dictionaries ||--o{ Boards : "DictionaryId"
 Variables ||--o{ BitInterpretations : "VariableId"
-Devices ||--o{ BitInterpretations : "DeviceId"
+Dictionaries ||--o{ BitInterpretations : "DictionaryId"
 
 ' === COMANDI ===
 
@@ -151,21 +150,21 @@ TABLE(CommandDeviceStates) {
 Commands ||--o{ CommandDeviceStates : "CommandId"
 Devices ||--o{ CommandDeviceStates : "DeviceId"
 
-' === OVERRIDE VARIABILI PER DEVICE ===
-' ⚠️ Da rimuovere in T-006 → StandardVariableOverride (per-dizionario)
+' === OVERRIDE VARIABILI STANDARD PER-DIZIONARIO (v7) ===
 
-TABLE(VariableDeviceStates) {
+TABLE(StandardVariableOverrides) {
     PK(Id) : int
     --
-    FK(VariableId) : int → Variables
-    FK(DeviceId) : int → Devices
+    FK(DictionaryId) : int → Dictionaries
+    FK(StandardVariableId) : int → Variables
     IsEnabled : bool
+    Description : string(2000)?
     CreatedAt : datetime
     UpdatedAt : datetime?
 }
 
-Variables ||--o{ VariableDeviceStates : "VariableId"
-Devices ||--o{ VariableDeviceStates : "DeviceId"
+Dictionaries ||--o{ StandardVariableOverrides : "DictionaryId"
+Variables ||--o{ StandardVariableOverrides : "StandardVariableId"
 
 ' === NOTE ===
 
@@ -182,11 +181,13 @@ note bottom of Variables
 end note
 
 note bottom of BitInterpretations
-  **Unique constraint:**
-  (VariableId, DeviceId, WordIndex, BitIndex)
+  **Unique constraint (BR-017):**
+  (VariableId, DictionaryId, WordIndex, BitIndex)
+  2 partial indexes (NULL / NOT NULL)
 
-  DeviceId = NULL → interpretazione
-  comune (template)
+  DictionaryId = NULL → template
+  DictionaryId = N → per-dizionario
+  **BR-018:** per-dizionario > template
 end note
 
 note bottom of Commands
@@ -201,13 +202,15 @@ note bottom of CommandDeviceStates
   (CommandId, DeviceId)
 end note
 
-note bottom of VariableDeviceStates
-  **Unique constraint:**
-  (VariableId, DeviceId)
+note bottom of StandardVariableOverrides
+  **Unique constraint (BR-010):**
+  (DictionaryId, StandardVariableId)
 
-  ⚠️ T-006: sarà sostituito da
-  StandardVariableOverride
-  (per-dizionario, non per-device)
+  Override per-dizionario di una
+  variabile standard (0x00xx).
+  **BR-009:** stato effettivo
+  **BR-011:** coerenza IsEnabled
+  **BR-020:** descrizione effettiva
 end note
 
 note bottom of Dictionaries
@@ -215,9 +218,13 @@ note bottom of Dictionaries
   delle variabili comuni 0x00xx.
   Max 1 nel sistema (BR-004).
 
+  Non-standard **eredita** tutte
+  le variabili standard (v7).
+  Override via StandardVariableOverrides.
+
   **Semantica derivata (runtime):**
-  · Dedicated: 1 solo DeviceType
-  · Shared: 2+ DeviceType diversi
+  · Dedicated: 1 solo Device
+  · Shared: 2+ Device diversi
   · Orphan: nessun Board associato
 end note
 
