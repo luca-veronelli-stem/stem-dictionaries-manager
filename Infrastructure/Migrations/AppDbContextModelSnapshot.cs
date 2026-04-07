@@ -71,7 +71,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("DeviceId")
+                    b.Property<int?>("DictionaryId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Meaning")
@@ -89,15 +89,15 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeviceId");
+                    b.HasIndex("DictionaryId");
 
                     b.HasIndex("VariableId", "WordIndex", "BitIndex")
                         .IsUnique()
-                        .HasFilter("[DeviceId] IS NULL");
+                        .HasFilter("[DictionaryId] IS NULL");
 
-                    b.HasIndex("VariableId", "DeviceId", "WordIndex", "BitIndex")
+                    b.HasIndex("VariableId", "DictionaryId", "WordIndex", "BitIndex")
                         .IsUnique()
-                        .HasFilter("[DeviceId] IS NOT NULL");
+                        .HasFilter("[DictionaryId] IS NOT NULL");
 
                     b.ToTable("BitInterpretations");
                 });
@@ -288,6 +288,41 @@ namespace Infrastructure.Migrations
                     b.ToTable("Dictionaries");
                 });
 
+            modelBuilder.Entity("Infrastructure.Entities.StandardVariableOverrideEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DictionaryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StandardVariableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StandardVariableId");
+
+                    b.HasIndex("DictionaryId", "StandardVariableId")
+                        .IsUnique();
+
+                    b.ToTable("StandardVariableOverrides");
+                });
+
             modelBuilder.Entity("Infrastructure.Entities.UserEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -316,35 +351,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Infrastructure.Entities.VariableDeviceStateEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("DeviceId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("VariableId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VariableId", "DeviceId")
-                        .IsUnique();
-
-                    b.ToTable("VariableDeviceStates");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
@@ -436,9 +442,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.BitInterpretationEntity", b =>
                 {
-                    b.HasOne("Infrastructure.Entities.DeviceEntity", "Device")
-                        .WithMany()
-                        .HasForeignKey("DeviceId")
+                    b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
+                        .WithMany("BitInterpretations")
+                        .HasForeignKey("DictionaryId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
@@ -447,7 +453,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Device");
+                    b.Navigation("Dictionary");
 
                     b.Navigation("Variable");
                 });
@@ -481,15 +487,23 @@ namespace Infrastructure.Migrations
                     b.Navigation("Command");
                 });
 
-            modelBuilder.Entity("Infrastructure.Entities.VariableDeviceStateEntity", b =>
+            modelBuilder.Entity("Infrastructure.Entities.StandardVariableOverrideEntity", b =>
                 {
-                    b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
-                        .WithMany("DeviceStates")
-                        .HasForeignKey("VariableId")
+                    b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
+                        .WithMany("StandardVariableOverrides")
+                        .HasForeignKey("DictionaryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Variable");
+                    b.HasOne("Infrastructure.Entities.VariableEntity", "StandardVariable")
+                        .WithMany()
+                        .HasForeignKey("StandardVariableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dictionary");
+
+                    b.Navigation("StandardVariable");
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
@@ -515,7 +529,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Entities.DictionaryEntity", b =>
                 {
+                    b.Navigation("BitInterpretations");
+
                     b.Navigation("Boards");
+
+                    b.Navigation("StandardVariableOverrides");
 
                     b.Navigation("Variables");
                 });
@@ -528,8 +546,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Entities.VariableEntity", b =>
                 {
                     b.Navigation("BitInterpretations");
-
-                    b.Navigation("DeviceStates");
                 });
 #pragma warning restore 612, 618
         }
