@@ -165,7 +165,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => _serviceProvider.GetService(typeof(DeviceDetailViewModel)),
             ViewType.DeviceEdit => _serviceProvider.GetService(typeof(DeviceEditViewModel)),
             ViewType.DeviceCommands => _serviceProvider.GetService(typeof(DeviceCommandsViewModel)),
-            ViewType.DeviceVariables => _serviceProvider.GetService(typeof(DeviceVariablesViewModel)),
             ViewType.DictionaryList => _serviceProvider.GetService(typeof(DictionaryListViewModel)),
             ViewType.DictionaryEdit => _serviceProvider.GetService(typeof(DictionaryEditViewModel)),
             ViewType.VariableEdit => _serviceProvider.GetService(typeof(VariableEditViewModel)),
@@ -218,11 +217,6 @@ public partial class MainViewModel : ObservableObject
                 await vm.LoadAsync(parameter.DeviceId.Value);
                 break;
 
-            // Device Variables - carica variabili standard con stato per device
-            case DeviceVariablesViewModel vm when parameter?.DeviceId is not null:
-                await vm.LoadAsync(parameter.DeviceId.Value);
-                break;
-
             // Edit ViewModels - caricano entità esistente o preparano per nuova
             case DictionaryEditViewModel vm:
                 await vm.InitializeAsync(parameter?.EntityId);
@@ -250,7 +244,6 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceDetail => "Dettaglio Dispositivo",
             ViewType.DeviceEdit => "Modifica Dispositivo",
             ViewType.DeviceCommands => "Comandi Dispositivo",
-            ViewType.DeviceVariables => "Variabili Standard",
             ViewType.DictionaryList => "Dizionari",
             ViewType.DictionaryEdit => "Modifica Dizionario",
             ViewType.VariableEdit => "Modifica Variabile",
