@@ -345,6 +345,68 @@ public class DatabaseSeederTests : IntegrationTestBase
         Assert.Equal(2, unlinked[0].FirmwareType); // FW=2 = Sherpa Slim
     }
 
-    // === Override per-dizionario (v7) ===
-    // TODO: Aggiungere test quando DatabaseSeeder implementa StandardVariableOverride seeding
+    // === Override variabili standard per-dizionario (v7) ===
+
+    [Fact]
+    public async Task SeedAsync_PulsantiereOverrides_DisablesAllStandardExcept0x00And0x01()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var pulsDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Pulsantiere");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == pulsDict.Id)
+            .ToListAsync();
+
+        // 24 variabili standard, 2 attive (0x00, 0x01) → 22 override
+        Assert.Equal(22, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+    }
+
+    [Fact]
+    public async Task SeedAsync_PulsantiereOverrides_DoNotOverrideFirmwareMacchina()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var pulsDict = await Context.Dictionaries.FirstAsync(d => d.Name == "Pulsantiere");
+
+        var fwMacchina = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x00);
+        var fwScheda = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x01);
+
+        var overrideIds = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == pulsDict.Id)
+            .Select(o => o.StandardVariableId)
+            .ToListAsync();
+
+        Assert.DoesNotContain(fwMacchina.Id, overrideIds);
+        Assert.DoesNotContain(fwScheda.Id, overrideIds);
+    }
+
+    [Fact]
+    public async Task SeedAsync_PulsantiereOverrides_IncludesModelloAndMatricola()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var pulsDict = await Context.Dictionaries.FirstAsync(d => d.Name == "Pulsantiere");
+
+        // Modello (0x02) e Matricola (0x03) devono essere disattivate
+        var modello = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x02);
+        var matricola = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x03);
+
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == pulsDict.Id)
+            .ToListAsync();
+
+        var modelloOverride = overrides.First(o => o.StandardVariableId == modello.Id);
+        var matricolaOverride = overrides.First(o => o.StandardVariableId == matricola.Id);
+
+        Assert.False(modelloOverride.IsEnabled);
+        Assert.False(matricolaOverride.IsEnabled);
+    }
 }

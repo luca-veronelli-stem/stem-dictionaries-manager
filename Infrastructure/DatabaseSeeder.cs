@@ -309,11 +309,11 @@ public static class DatabaseSeeder
         var standardVariables = await SeedStandardDictionaryAsync(context);
 
         // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
-        await SeedPulsantiereDictionaryAsync(context, boards);
+        var pulsantiereDictionary = await SeedPulsantiereDictionaryAsync(context, boards);
 
-        // === Override per-device sulle variabili standard ===
-        // TODO: riscrivere per Domain v7 (StandardVariableOverride per-dizionario)
-        // await SeedSpykeOverridesAsync(context, devices[4], standardVariables);
+        // === Override variabili standard per-dizionario ===
+        await SeedPulsantiereStandardOverridesAsync(
+            context, pulsantiereDictionary, standardVariables);
     }
 
     /// <summary>
@@ -492,7 +492,8 @@ public static class DatabaseSeeder
     /// AddressHigh = 0x80 per tutte le variabili pulsantiere.
     /// Aggiorna le BoardEntity pulsantiera per puntare a questo dizionario.
     /// </summary>
-    private static async Task SeedPulsantiereDictionaryAsync(AppDbContext context, BoardEntity[] boards)
+    private static async Task<DictionaryEntity> SeedPulsantiereDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards)
     {
         var dictionary = new DictionaryEntity
         {
@@ -583,12 +584,33 @@ public static class DatabaseSeeder
         }
 
         await context.SaveChangesAsync();
+
+        return dictionary;
     }
 
-    // TODO: riscrivere per Domain v7 (StandardVariableOverride per-dizionario + BitInterpretation.DictionaryId)
-    // private static async Task SeedSpykeOverridesAsync(
-    //     AppDbContext context, DeviceEntity spyke, VariableEntity[] standardVariables)
-    // { ... }
+    /// <summary>
+    /// Override variabili standard per il dizionario Pulsantiere.
+    /// Le pulsantiere usano solo Firmware macchina (0x0000) e Firmware scheda (0x0001).
+    /// Tutte le altre variabili standard vengono disattivate.
+    /// </summary>
+    private static async Task SeedPulsantiereStandardOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity pulsantiereDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var overrides = standardVariables
+            .Where(v => v.AddressLow is not 0x00 and not 0x01)
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = pulsantiereDictionary.Id,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            })
+            .ToArray();
+
+        context.StandardVariableOverrides.AddRange(overrides);
+        await context.SaveChangesAsync();
+    }
 
     /// <summary>
     /// BitInterpretation Word 3 (BYTE 0, big-endian) per LED (Verde/Rosso).
