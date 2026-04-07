@@ -33,7 +33,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
@@ -41,10 +40,9 @@
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome scheda" MaxLength="100" Margin="0,0,0,12"
                          BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding DeviceTypes}" SelectedItem="{Binding SelectedDeviceType}"
-                          IsEnabled="{Binding CanEditDeviceType}"
-                          Padding="8,6" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceId, Mode=OneWay}" 
+                         IsEnabled="False" Padding="8,6" Margin="0,0,0,12"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FirmwareType}" 
@@ -58,17 +56,13 @@
                          Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"
                          BorderBrush="{Binding IsBoardNumberInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Dizionario" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding AvailableDictionaries}" SelectedItem="{Binding SelectedDictionary}" 
-                          DisplayMemberPath="Name" Padding="8,6" Margin="0,0,0,12"/>
-
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PartNumber}" 
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}" 
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: DIS0020477"
                          MaxLength="50" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
                           Content="Scheda principale del dispositivo" Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>

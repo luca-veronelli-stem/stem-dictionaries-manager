@@ -294,6 +294,7 @@ public class DatabaseSeederTests : IntegrationTestBase
         var dict = await Context.Dictionaries.FirstAsync(d => d.Name == "Pulsantiere");
 
         // Board pulsantiera con FW=4 o FW=15 devono puntare al dizionario
+        // Sherpa Slim (FW=2) non usa il dizionario Pulsantiere
         var linkedBoards = await Context.Boards
             .Where(b => b.DictionaryId == dict.Id)
             .ToListAsync();
@@ -309,20 +310,22 @@ public class DatabaseSeederTests : IntegrationTestBase
     {
         await DatabaseSeeder.SeedAsync(Context);
 
-        // Board senza dizionario: non-pulsantiera + Sherpa Pulsantiera (FW=2, non nel CSV)
+        // Board senza dizionario: schede non-pulsantiera + Sherpa Slim pulsantiera (FW=2)
         var unlinkedBoards = await Context.Boards
             .Where(b => b.DictionaryId == null)
             .ToListAsync();
 
         Assert.True(unlinkedBoards.Count > 0);
-        // Sherpa Pulsantiera (FW=2) non è nel CSV pulsantiere, resta senza dizionario
-        var sherpaPuls = unlinkedBoards.FirstOrDefault(b =>
-            b.Name.Contains("Pulsantiera", StringComparison.OrdinalIgnoreCase));
-        Assert.NotNull(sherpaPuls);
+        // Solo la pulsantiera Sherpa Slim (FW=2) può restare senza dizionario
+        var pulsWithoutDict = unlinkedBoards
+            .Where(b => b.Name.Contains("Pulsantiera", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        Assert.Single(pulsWithoutDict);
+        Assert.Equal(2, pulsWithoutDict[0].FirmwareType); // FW=2 = Sherpa Slim
     }
 
     [Fact]
-    public async Task SeedAsync_PulsantiereBoards_Total18_Linked17()
+    public async Task SeedAsync_PulsantiereBoards_Total18_AllLinked()
     {
         await DatabaseSeeder.SeedAsync(Context);
 
@@ -334,11 +337,12 @@ public class DatabaseSeederTests : IntegrationTestBase
             .ToListAsync();
         Assert.Equal(18, allPulsBoards.Count);
 
-        // 17 linkate (FW=4 o FW=15), 1 non linkata (Sherpa FW=2)
+        // 17 linkate (FW=4 e FW=15), 1 non linkata (Sherpa FW=2)
         var linked = allPulsBoards.Where(b => b.DictionaryId == dict.Id).ToList();
         var unlinked = allPulsBoards.Where(b => b.DictionaryId == null).ToList();
         Assert.Equal(17, linked.Count);
-        Assert.Single(unlinked); // Sherpa Pulsantiera (FW=2)
+        Assert.Single(unlinked);
+        Assert.Equal(2, unlinked[0].FirmwareType); // FW=2 = Sherpa Slim
     }
 
     // === Override per-dizionario (v7) ===

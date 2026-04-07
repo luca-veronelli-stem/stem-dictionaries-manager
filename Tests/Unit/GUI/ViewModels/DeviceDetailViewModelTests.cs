@@ -173,7 +173,7 @@ public class DeviceDetailViewModelTests
     // === Test semantiche filtro dizionari ===
 
     [Fact]
-    public async Task LoadAsync_StandardDictionary_VisibleForAnyDevice()
+    public async Task LoadAsync_StandardDictionary_NotVisibleInDeviceDetail()
     {
         // Arrange — dizionario Standard (IsStandard=true)
         var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
@@ -182,10 +182,9 @@ public class DeviceDetailViewModelTests
         // Act — device senza board
         await _viewModel.LoadAsync(5);
 
-        // Assert — Standard è sempre visibile (+ entry Comandi)
+        // Assert — Standard NON appare più (solo entry Comandi)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
-        Assert.Single(realDicts);
-        Assert.Equal("Standard", realDicts[0].Name);
+        Assert.Empty(realDicts);
         Assert.Single(_viewModel.Dictionaries, d => d.IsCommandsEntry);
     }
 
@@ -248,11 +247,11 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(10);
 
-        // Assert — Standard + Optimus XP + Pulsantiere 4x4 + Comandi, NOT Eden XP
+        // Assert — Optimus XP + Pulsantiere 4x4 + Comandi, NOT Standard, NOT Eden XP
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
-        Assert.Equal(3, realDicts.Count);
+        Assert.Equal(2, realDicts.Count);
         var names = realDicts.Select(d => d.Name).ToList();
-        Assert.Contains("Standard", names);
+        Assert.DoesNotContain("Standard", names);
         Assert.Contains("Optimus XP", names);
         Assert.Contains("Pulsantiere 4x4", names);
         Assert.DoesNotContain("Eden XP", names);
@@ -313,7 +312,7 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
-    public async Task LoadAsync_StandardDictionary_HasStandardSemantic()
+    public async Task LoadAsync_StandardDictionary_NotInDeviceList()
     {
         // Arrange
         var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
@@ -322,14 +321,13 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(4);
 
-        // Assert (+ entry Comandi)
+        // Assert — Standard non appare nella lista device-specific
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
-        var item = Assert.Single(realDicts);
-        Assert.Equal("Standard", item.Semantic);
+        Assert.Empty(realDicts);
     }
 
     [Fact]
-    public async Task LoadAsync_StandardDictionary_HasIsStandardTrue()
+    public async Task LoadAsync_StandardDictionary_ExcludedFromList()
     {
         // Arrange
         var dictStandard = new Dictionary("Standard", "Variabili comuni", true);
@@ -338,10 +336,10 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(4);
 
-        // Assert
+        // Assert — Standard è ora accessibile solo dalla sidebar
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
-        var item = Assert.Single(realDicts);
-        Assert.True(item.IsStandard);
+        Assert.Empty(realDicts);
+        Assert.DoesNotContain(_viewModel.Dictionaries, d => d.IsStandard);
     }
 
     [Fact]

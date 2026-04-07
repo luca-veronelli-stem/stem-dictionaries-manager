@@ -14,6 +14,7 @@ namespace Tests.Unit.GUI.ViewModels;
 public class DeviceEditViewModelTests
 {
     private readonly MockDeviceService _deviceService = new();
+    private readonly MockBoardService _boardService = new();
     private readonly MockNavigationService _navigationService = new();
     private readonly MockDialogService _dialogService = new();
     private readonly MockMessageService _messageService = new();
@@ -23,7 +24,7 @@ public class DeviceEditViewModelTests
     {
         _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceEditViewModel(
-            _deviceService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
     }
 
     // === Defaults ===
@@ -291,6 +292,26 @@ public class DeviceEditViewModelTests
         Assert.Contains(_deviceService.MethodCalls,
             c => c.StartsWith("DeleteAsync:"));
         Assert.True(_navigationService.GoBackCalled);
+    }
+
+    [Fact]
+    public async Task DeleteDeviceCommand_DialogMessage_IncludesBoardCount()
+    {
+        // Arrange: device con 2 board, 1 dizionario
+        _boardService.SeedBoards(
+            Board.Restore(1, 3, "Madre", 5, 1, null, true, dictionaryId: 10),
+            Board.Restore(2, 3, "Puls", 4, 2, null, false, dictionaryId: 20));
+        _dialogService.ConfirmResult = DialogResult.No;
+        await _viewModel.InitializeAsync(3);
+
+        // Act
+        _viewModel.DeleteDeviceCommand.Execute(null);
+        await Task.Delay(50);
+
+        // Assert: il messaggio contiene "2 schede"
+        var confirm = _dialogService.Calls.First(c => c.Type == "Confirm");
+        Assert.Contains("2", confirm.Message);
+        Assert.Contains("schede", confirm.Message);
     }
 
     [Fact]

@@ -23,10 +23,12 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Services** | ✅ | 6 services con interface |
-| **Mappers** | ✅ | 9 mapper bidirezionali |
+| **Mappers** | ✅ | 8 mapper bidirezionali |
 | **DI Extension** | ✅ | AddServices() per registrazione |
 | **Aggregate Pattern** | ✅ | Dictionary gestisce Variables |
 | **Validation** | ✅ | Unicità, esistenza, business rules |
+| **StandardVariableOverride** | ✅ | Override IsEnabled/Description per-dizionario (v7) |
+| **BitInterpretation per-dizionario** | ✅ | Template + override con fallback BR-018 |
 
 ---
 
@@ -227,9 +229,11 @@ public static class UserMapper
 | **BR-004** | DictionaryService | Al massimo UN dizionario con IsStandard = true |
 | **BR-005** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
 | **BR-006** | UserService | Username univoco |
-| **BR-009** | VariableService | StandardVariableOverride: override per-dizionario su variabili standard |
+| **BR-009** | VariableService | Stato effettivo variabile standard per dizionario |
 | **BR-010** | VariableService | StandardVariableOverride: unique (DictionaryId, StandardVariableId) |
 | **BR-011** | VariableService | Non si può abilitare una variabile deprecated per un dizionario |
+| **BR-018** | VariableService | BitInterpretation: per-dizionario > template (fallback) |
+| **BR-020** | VariableService | Descrizione effettiva: override > template |
 
 ---
 
@@ -301,15 +305,15 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Unit/Mapping | `DeviceMapperTests.cs` | 12 |
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
-| Unit/Mapping | `VariableDeviceStateMapperTests.cs` | 9 → ⚠️ da aggiornare (T-006/TEST-010) |
+| Unit/Mapping | `StandardVariableOverrideMapperTests.cs` | 8 |
 | Unit/DI | `DependencyInjectionTests.cs` | 11 |
 | Integration | `UserServiceTests.cs` | 15 |
 | Integration | `DictionaryServiceTests.cs` | 20 |
 | Integration | `BoardServiceTests.cs` | 18 |
-| Integration | `CommandServiceTests.cs` | 22 |
+| Integration | `CommandServiceTests.cs` | 25 |
 | Integration | `DeviceServiceTests.cs` | 16 |
-| Integration | `VariableServiceTests.cs` | 41 |
-| **Totale** | | **~238** |
+| Integration | `VariableServiceTests.cs` | 45 |
+| **Totale** | | **~244** |
 
 ```bash
 # Eseguire test Services
@@ -320,13 +324,12 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 8 risolte
+→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 12 risolte
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
-| SVC-012 | Alta | Mapper + Service per StandardVariableOverride (T-006) |
 | SVC-002 | Media | Manca IAuditService per gestione audit trail |
 
 ---

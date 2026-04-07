@@ -21,7 +21,7 @@
             <TextBlock Text="Compila i campi per creare o modificare una variabile." 
                        Foreground="#888888" FontSize="13"
                        Visibility="{Binding IsNotDictionaryContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <TextBlock Text="Modifica le interpretazioni bit per questo dizionario. I campi variabile sono in sola lettura." 
+            <TextBlock Text="Override per dizionario: puoi modificare stato, descrizione e interpretazioni bit. Gli altri campi sono in sola lettura." 
                        Foreground="#FFC04A" FontSize="13"
                        Visibility="{Binding IsDictionaryContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
@@ -193,14 +193,13 @@
                             Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- Campi rimanenti a larghezza fissa -->
+                <!-- Campi rimanenti a larghezza fissa (read-only in DictionaryContext) -->
                 <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDictionaryContext}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -231,23 +230,27 @@
                             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Format}" 
                                      Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: %.2f"
                                      Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
-
-                            <!-- Descrizione -->
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
-                                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
-                                     AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
-                                     BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                         </Grid>
 
-                <!-- Stato variabile — sempre editabile (anche in DictionaryContext) -->
+                <!-- Descrizione e Stato — sempre editabili (anche in DictionaryContext/override mode) -->
                 <Grid HorizontalAlignment="Left" Width="750">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
+                             BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
                               Foreground="White" Margin="0,0,0,12"/>
                 </Grid>
                     </StackPanel>

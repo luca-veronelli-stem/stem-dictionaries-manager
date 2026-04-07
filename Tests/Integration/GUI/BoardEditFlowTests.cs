@@ -13,7 +13,6 @@ namespace Tests.Integration.GUI;
 public class BoardEditFlowTests
 {
     private readonly MockBoardService _boardService;
-    private readonly MockDictionaryService _dictionaryService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -22,17 +21,12 @@ public class BoardEditFlowTests
     public BoardEditFlowTests()
     {
         _boardService = new MockBoardService();
-        _dictionaryService = new MockDictionaryService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
-        // Seed dati base
-        _dictionaryService.SeedData(new Dictionary("TestDict", null, isStandard: false));
-
         _viewModel = new BoardEditViewModel(
             _boardService,
-            _dictionaryService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -50,7 +44,6 @@ public class BoardEditFlowTests
         _viewModel.FirmwareType = 17;
         _viewModel.BoardNumber = 1;
         _viewModel.PartNumber = "DIS0020477";
-        _viewModel.SelectedDictionary = _viewModel.AvailableDictionaries.First();
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -108,20 +101,19 @@ public class BoardEditFlowTests
     }
 
     [Fact]
-    public async Task CreateBoard_WithDictionary_LinksSucessfully()
+    public async Task CreateBoard_WithValidData_NoDict_Succeeds()
     {
-        // Arrange
+        // Arrange — board senza dizionario (il link avviene dal DictionaryEdit)
         await _viewModel.InitializeAsync(null, presetDeviceId: 1);
 
         _viewModel.Name = "Madre";
         _viewModel.FirmwareType = 17;
         _viewModel.BoardNumber = 1;
-        _viewModel.SelectedDictionary = _viewModel.AvailableDictionaries.FirstOrDefault(d => d.Name == "TestDict");
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert - verifica che AddAsync sia stato chiamato
+        // Assert
         Assert.Contains(_boardService.MethodCalls, m => m.StartsWith("AddAsync:Madre"));
     }
 
@@ -134,7 +126,6 @@ public class BoardEditFlowTests
         _viewModel.Name = "Motore DX";
         _viewModel.FirmwareType = 21;
         _viewModel.BoardNumber = 2;
-        _viewModel.SelectedDictionary = null;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);

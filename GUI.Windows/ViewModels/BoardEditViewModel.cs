@@ -14,12 +14,13 @@ namespace GUI.Windows.ViewModels;
 public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IBoardService _boardService;
-    private readonly IDictionaryService _dictionaryService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
     private int? _editingId;
+    private int? _existingDictionaryId;
+    private string? _existingDictionaryName;
     private bool _isInitialized;
     private bool _showValidation;
 
@@ -61,12 +62,6 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _isPrimary;
 
-    [ObservableProperty]
-    private DictionarySelectItem? _selectedDictionary;
-
-    [ObservableProperty]
-    private List<DictionarySelectItem> _availableDictionaries = [];
-
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
 
@@ -83,17 +78,14 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     partial void OnBoardNumberChanged(int value) => HasChanges = true;
     partial void OnPartNumberChanged(string? value) => HasChanges = true;
     partial void OnIsPrimaryChanged(bool value) => HasChanges = true;
-    partial void OnSelectedDictionaryChanged(DictionarySelectItem? value) => HasChanges = true;
 
     public BoardEditViewModel(
         IBoardService boardService,
-        IDictionaryService dictionaryService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _boardService = boardService;
-        _dictionaryService = dictionaryService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
@@ -114,11 +106,6 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 DeviceId = presetDeviceId.Value;
                 IsDeviceIdLocked = true;
             }
-
-            // Carica i dizionari disponibili per il dropdown
-            var dictionaries = await _dictionaryService.GetAllAsync();
-            AvailableDictionaries = [.. dictionaries
-                .Select(d => new DictionarySelectItem { Id = d.Id, Name = d.Name })];
 
             if (boardId.HasValue)
             {
@@ -158,9 +145,8 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         BoardNumber = b.BoardNumber;
         PartNumber = b.PartNumber;
         IsPrimary = b.IsPrimary;
-        SelectedDictionary = b.DictionaryId.HasValue
-            ? AvailableDictionaries.FirstOrDefault(d => d.Id == b.DictionaryId.Value)
-            : null;
+        _existingDictionaryId = b.DictionaryId;
+        _existingDictionaryName = b.DictionaryName;
     }
 
     private bool Validate()
@@ -205,8 +191,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     firmwareType: FirmwareType,
                     boardNumber: BoardNumber,
                     partNumber: PartNumber,
-                    isPrimary: IsPrimary,
-                    dictionaryId: SelectedDictionary?.Id);
+                    isPrimary: IsPrimary);
 
                 await _boardService.AddAsync(board);
                 _messageService.Show($"Scheda '{Name}' creata", MessageSeverity.Success);
@@ -221,7 +206,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     boardNumber: BoardNumber,
                     partNumber: PartNumber,
                     isPrimary: IsPrimary,
-                    dictionaryId: SelectedDictionary?.Id);
+                    dictionaryId: _existingDictionaryId);
 
                 await _boardService.UpdateAsync(existing);
                 _messageService.Show($"Scheda '{Name}' aggiornata", MessageSeverity.Success);
@@ -245,9 +230,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     {
         if (_editingId is null) return;
 
+        var message = _existingDictionaryName is not null
+            ? $"Eliminare la scheda '{Name}'?\n" +
+              $"Il dizionario '{_existingDictionaryName}' associato potrebbe essere eliminato."
+            : $"Eliminare la scheda '{Name}'?";
+
         var result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare la scheda '{Name}'?");
+            "Conferma eliminazione", message);
 
         if (result != DialogResult.Yes) return;
 
@@ -283,15 +272,4 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
         _navigationService.GoBack();
     }
-}
-
-/// <summary>
-/// Item per il dropdown di selezione dizionario.
-/// </summary>
-public class DictionarySelectItem
-{
-    public int Id { get; init; }
-    public required string Name { get; init; }
-
-    public override string ToString() => Name;
 }

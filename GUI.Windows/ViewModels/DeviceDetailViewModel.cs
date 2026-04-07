@@ -156,14 +156,12 @@ public partial class DeviceDetailViewModel : ObservableObject
 
             var allDicts = await _dictionaryService.GetAllAsync();
             var relevantDicts = allDicts
-                .Where(d => d.IsStandard || linkedDictIds.Contains(d.Id))
+                .Where(d => !d.IsStandard && linkedDictIds.Contains(d.Id))
                 .ToList();
 
             var items = relevantDicts.Select(d =>
             {
-                var semantic = d.IsStandard ? "Standard" : "Specifico";
-                return new DictionaryItem(d.Id, d.Name, semantic, d.Variables.Count)
-                    { IsStandard = d.IsStandard };
+                return new DictionaryItem(d.Id, d.Name, "Specifico", d.Variables.Count);
             });
 
             var sortedItems = items.OrderBy(d => d.Name).ToList();
@@ -235,19 +233,21 @@ public partial class DeviceDetailViewModel : ObservableObject
             return;
         }
 
-        if (SelectedDictionary.IsStandard)
-        {
-            // v7: Standard → DictionaryEdit (override variabili standard dentro la vista dizionario)
-            _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
-            {
-                EntityId = SelectedDictionary.Id
-            });
-            return;
-        }
-
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {
             EntityId = SelectedDictionary.Id
+        });
+    }
+
+    [RelayCommand]
+    private void AddDictionary()
+    {
+        if (DeviceId is null) return;
+
+        _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
+        {
+            EntityId = null,
+            DeviceId = DeviceId.Value
         });
     }
 

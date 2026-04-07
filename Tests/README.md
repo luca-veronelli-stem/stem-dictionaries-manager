@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~721 test per Core + Services/Mapping + GUI (14 ViewModels) |
-| **Integration Tests** | ✅ | ~274 test per Infrastructure + Services + GUI |
+| **Unit Tests** | ✅ | ~750 test per Core + Services/Mapping + GUI (14 ViewModels) |
+| **Integration Tests** | ✅ | ~410 test per Infrastructure + Services + GUI + E2E |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
@@ -109,8 +109,8 @@ Tests/
 │   │   │   ├── DeviceEditViewModelTests.cs       # 27 test (Name, MachineCode, Cancel+HasChanges, Delete)
 │   │   │   ├── DeviceDetailViewModelTests.cs     # 32 test
 │   │   │   ├── DictionaryListViewModelTests.cs   # 14 test
-│   │   │   ├── DictionaryEditViewModelTests.cs   # 40 test (form + variabili integrate + CanSetStandard + Cancel)
-│   │   │   ├── VariableEditViewModelTests.cs     # 74 test (Bitmapped + AddressHigh computed)
+│   │   │   ├── DictionaryEditViewModelTests.cs   # 54 test (form + variabili + standard section + CanSetStandard)
+│   │   │   ├── VariableEditViewModelTests.cs     # 106 test (Bitmapped + AddressHigh + DictionaryContext override)
 │   │   │   ├── WordBitGroupTests.cs              # 20 test
 │   │   │   ├── CommandListViewModelTests.cs      # 13 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 52 test (CodeHigh + Delete + Cancel + Params)
@@ -136,7 +136,8 @@ Tests/
 │           ├── DictionaryMapperTests.cs       # 12 test
 │           ├── DeviceMapperTests.cs               # 12 test
 │           ├── BitInterpretationMapperTests.cs    # 10 test
-│           └── CommandDeviceStateMapperTests.cs   # 11 test
+│           ├── CommandDeviceStateMapperTests.cs   # 11 test
+│           └── StandardVariableOverrideMapperTests.cs # 8 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
@@ -157,11 +158,11 @@ Tests/
     │   ├── BoardServiceTests.cs           # 18 test
     │   ├── CommandServiceTests.cs         # 22 test
     │   ├── DeviceServiceTests.cs          # 16 test
-    │   └── VariableServiceTests.cs        # 47 test (StandardVariableOverride BR-009/010/011)
+    │   └── VariableServiceTests.cs        # 50 test (StandardVariableOverride BR-009/010/011/018/020)
     ├── E2E/                               # End-to-end workflow tests
     │   ├── AuditTrailTests.cs             # Audit trail workflow
     │   ├── CommandWorkflowTests.cs        # Comandi workflow completo
-    │   ├── DatabaseSeederTests.cs         # Verifica dati seed
+    │   ├── DatabaseSeederTests.cs         # 21 test — verifica dati seed (Standard + Pulsantiere)
     │   ├── DeviceWorkflowTests.cs         # Dispositivi workflow
     │   ├── DictionaryWorkflowTests.cs     # Dizionari workflow
     │   └── VariableWorkflowTests.cs       # Variabili workflow
@@ -235,19 +236,20 @@ public class MyRepositoryTests : IntegrationTestBase
 |------|-------------|-------------|
 | Unit/Enums | 11 | Valori, count, casting |
 | Unit/Models | 90 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DictionaryName, Device) |
-| Unit/Services/Mapping | 86 | Mapper Entity ↔ Domain (8 mapper incl. DeviceMapper) |
+| Unit/Services/Mapping | 94 | Mapper Entity ↔ Domain (9 mapper incl. StandardVariableOverrideMapper) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 11 | Registrazione DI services |
-| Unit/GUI/ViewModels | 400 | 14 ViewModels (incl. DeviceEdit, DeviceCommands, status bar, unsaved changes) |
+| Unit/GUI/ViewModels | 450 | 14 ViewModels (incl. DictionaryContext override, status bar, unsaved changes) |
 | Unit/GUI/Converters | 25 | NullableInt/Double + SeverityToColor + BoolToErrorBrush converters |
 | Unit/GUI/Services | 23 | NavigationService (incl. ViewModel caching) |
 | Unit/GUI/DI | 23 | Registrazione ViewModels + UI services |
-| Integration/Infrastructure | 109 | Repository, audit, DB, CRUD scenarios, SyncByVariableId, DeviceRepository |
-| Integration/Services | 132 | Business logic, IsStandard, StandardVariableOverride, DeviceService, smart update |
-| Integration/GUI | 20 | VariableEdit + CommandEdit flow completo |
-| **Totale metodi test** | **~944** | Tutti i target combinati |
+| Integration/Infrastructure | 115 | Repository, audit, DB, CRUD scenarios, SyncByVariableId, DeviceRepository |
+| Integration/Services | 140 | Business logic, IsStandard, StandardVariableOverride, DeviceService, smart update |
+| Integration/GUI | 25 | VariableEdit + CommandEdit + DictionaryEdit flow completo |
+| Integration/E2E | 45 | Workflow completi + DatabaseSeeder tests |
+| **Totale metodi test** | **~1160** | Tutti i target combinati |
 
-> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai metodi elencati.
+> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è **~1812 test cases** (multi-target).
 
 ---
 
@@ -258,7 +260,7 @@ Il progetto supporta due target framework:
 | Target | Piattaforma | Include | Uso |
 |--------|-------------|---------|-----|
 | `net10.0` | Cross-platform | Core, Infrastructure, Services | CI/CD (Linux) |
-| `net10.0-windows` | Windows | + GUI.Windows (~493 metodi test) | Test locali + GUI |
+| `net10.0-windows` | Windows | + GUI.Windows (~560 metodi test) | Test locali + GUI |
 
 ```xml
 <!-- Tests.csproj -->
@@ -286,7 +288,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 9 risolte
+→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 10 risolte
 
 ---
 

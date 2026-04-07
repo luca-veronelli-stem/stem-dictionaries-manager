@@ -237,11 +237,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsNotDictionaryContext => !IsDictionaryContext;
 
     public string FormTitle => IsDictionaryContext
-        ? "Interpretazione Bit (Dizionario)"
+        ? "Override Variabile Standard"
         : IsNew ? "Nuova Variabile" : "Modifica Variabile";
 
     public string SaveButtonLabel => IsDictionaryContext
-        ? "? Salva Bit" : "? Salva";
+        ? "?? Salva Override" : "?? Salva";
 
     /// <summary>
     /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
@@ -426,13 +426,17 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 LoadFromVariable(variable);
 
-                // DictionaryContext: sovrascrive IsEnabled con l'override per dizionario
+                // DictionaryContext: sovrascrive IsEnabled e Description con l'override per dizionario
                 if (_dictionaryContextId.HasValue)
                 {
                     var overrideState = await _variableService.GetOverrideAsync(
                         _dictionaryContextId.Value, variableId.Value);
-                    // Se esiste override ? usa quello, altrimenti default = true
-                    IsEnabled = overrideState?.IsEnabled ?? true;
+                    if (overrideState is not null)
+                    {
+                        IsEnabled = overrideState.IsEnabled;
+                        if (overrideState.Description is not null)
+                            Description = overrideState.Description;
+                    }
                 }
 
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
@@ -660,7 +664,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     {
         if (_dictionaryContextId is null || _editingId is null) return;
         await _variableService.SetOverrideAsync(
-            _dictionaryContextId.Value, _editingId.Value, IsEnabled);
+            _dictionaryContextId.Value, _editingId.Value, IsEnabled, Description);
         _messageService.Show("Override variabile per dizionario salvato", MessageSeverity.Success);
     }
 

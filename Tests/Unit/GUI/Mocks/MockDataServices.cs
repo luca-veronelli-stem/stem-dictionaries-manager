@@ -351,7 +351,7 @@ public class MockVariableService : IVariableService
     public Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
         string? description = null, CancellationToken ct = default)
     {
-        MethodCalls.Add($"SetOverrideAsync:{dictionaryId}:{standardVariableId}:{isEnabled}");
+        MethodCalls.Add($"SetOverrideAsync:{dictionaryId}:{standardVariableId}:{isEnabled}:{description}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.CompletedTask;
     }

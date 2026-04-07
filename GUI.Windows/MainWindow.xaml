@@ -26,9 +26,6 @@
         <DataTemplate DataType="{x:Type vm:DeviceCommandsViewModel}">
             <views:DeviceCommandsView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:DictionaryListViewModel}">
-            <views:DictionaryListView />
-        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:DictionaryEditViewModel}">
             <views:DictionaryEditView />
         </DataTemplate>
@@ -80,8 +77,8 @@
                     <Button Content="📱  Dispositivi"
                             Command="{Binding NavigateToDevicesCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
-                    <Button Content="📚  Dizionari"
-                            Command="{Binding NavigateToDictionariesCommand}"
+                    <Button Content="📋  Variabili Standard"
+                            Command="{Binding NavigateToStandardCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
                     <Button Content="⚡  Comandi"
                             Command="{Binding NavigateToCommandsCommand}"

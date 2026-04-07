@@ -1,4 +1,5 @@
 #if WINDOWS
+using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Tests.Unit.GUI.Mocks;
@@ -13,6 +14,7 @@ public class DeviceListViewModelTests
 {
     private readonly MockNavigationService _navigationService;
     private readonly MockDeviceService _deviceService;
+    private readonly MockBoardService _boardService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
     private readonly DeviceListViewModel _viewModel;
@@ -21,11 +23,12 @@ public class DeviceListViewModelTests
     {
         _navigationService = new MockNavigationService();
         _deviceService = new MockDeviceService();
+        _boardService = new MockBoardService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
         _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
     }
 
     [Fact]
@@ -154,6 +157,30 @@ public class DeviceListViewModelTests
 
         Assert.Equal(ViewType.DeviceEdit, _navigationService.LastNavigatedView);
         Assert.Null(_navigationService.LastParameter?.EntityId);
+    }
+
+    [Fact]
+    public async Task LoadAsync_BoardAndDictionaryCounts_Correct()
+    {
+        // Arrange: device con 3 board, 2 dizionari distinti
+        var deviceService = new MockDeviceService();
+        var boardService = new MockBoardService();
+        deviceService.SeedData(Device.Restore(1, "TestDevice", 1, null));
+        boardService.SeedBoards(
+            Board.Restore(1, 1, "Madre", 5, 1, null, true, dictionaryId: 10),
+            Board.Restore(2, 1, "Puls 1", 4, 2, null, false, dictionaryId: 20),
+            Board.Restore(3, 1, "Puls 2", 4, 3, null, false, dictionaryId: 20));
+
+        var vm = new DeviceListViewModel(
+            _navigationService, deviceService, boardService, _dialogService, _messageService);
+
+        // Act
+        await vm.LoadAsync();
+
+        // Assert
+        var item = vm.Devices.Single();
+        Assert.Equal(3, item.BoardCount);
+        Assert.Equal(2, item.DictionaryCount); // dict 10 e 20
     }
 }
 #endif

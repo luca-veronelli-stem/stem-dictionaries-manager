@@ -13,11 +13,20 @@ namespace Services;
 public class DeviceService : IDeviceService
 {
     private readonly IDeviceRepository _repository;
+    private readonly IBoardRepository _boardRepository;
+    private readonly IDictionaryRepository _dictionaryRepository;
 
-    public DeviceService(IDeviceRepository repository)
+    public DeviceService(
+        IDeviceRepository repository,
+        IBoardRepository boardRepository,
+        IDictionaryRepository dictionaryRepository)
     {
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(boardRepository);
+        ArgumentNullException.ThrowIfNull(dictionaryRepository);
         _repository = repository;
+        _boardRepository = boardRepository;
+        _dictionaryRepository = dictionaryRepository;
     }
 
     public async Task<Device?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -79,6 +88,22 @@ public class DeviceService : IDeviceService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
+        // Cascade delete: elimina dizionari dedicati delle board del device
+        var boards = await _boardRepository.GetByDeviceIdAsync(id, ct);
+        var allBoards = await _boardRepository.GetAllAsync(ct);
+
+        foreach (var board in boards)
+        {
+            if (board.DictionaryId is not int dictId) continue;
+
+            // Se il dizionario è referenziato solo da board di questo device, eliminalo
+            var refCount = allBoards.Count(b => b.DictionaryId == dictId);
+            var refsInThisDevice = boards.Count(b => b.DictionaryId == dictId);
+            if (refCount == refsInThisDevice)
+                await _dictionaryRepository.DeleteAsync(dictId, ct);
+        }
+
+        // EF cascade elimina le board rimanenti
         await _repository.DeleteAsync(id, ct);
     }
 

@@ -13,6 +13,7 @@ namespace GUI.Windows.ViewModels;
 public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IDeviceService _deviceService;
+    private readonly IBoardService _boardService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
@@ -51,11 +52,13 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 
     public DeviceEditViewModel(
         IDeviceService deviceService,
+        IBoardService boardService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _deviceService = deviceService;
+        _boardService = boardService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
@@ -148,10 +151,23 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     {
         if (_editingId is null) return;
 
+        // Calcola conteggi per il warning
+        var boards = await _boardService.GetByDeviceIdAsync(_editingId.Value);
+        var boardCount = boards.Count;
+        var dictCount = boards
+            .Where(b => b.DictionaryId.HasValue)
+            .Select(b => b.DictionaryId!.Value)
+            .Distinct()
+            .Count();
+
+        var message = $"Eliminare il dispositivo '{Name}'?\n" +
+            $"Verranno eliminate {boardCount} schede";
+        if (dictCount > 0)
+            message += $" e i dizionari dedicati associati";
+        message += ".";
+
         var result = await _dialogService.ShowConfirmAsync(
-            "Elimina dispositivo",
-            $"Eliminare il dispositivo '{Name}'?\n" +
-            "Verranno eliminati anche le schede associate.");
+            "Elimina dispositivo", message);
 
         if (result != Abstractions.DialogResult.Yes) return;
 
