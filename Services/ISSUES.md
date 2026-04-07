@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -11,18 +11,17 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 2 |
+| **Alta** | 0 | 3 |
 | **Media** | 1 | 3 |
 | **Bassa** | 3 | 2 |
 
-**Totale aperte:** 5  
-**Totale risolte:** 7
+**Totale aperte:** 4  
+**Totale risolte:** 8
 
 ---
 
 ## Indice Issue Aperte
 
-- [SVC-012 - Mapper + Service per StandardVariableOverride (T-006)](#svc-012--mapper--service-per-standardvariableoverride-t-006)
 - [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
@@ -30,6 +29,7 @@
 
 ## Indice Issue Risolte
 
+- [SVC-012 - Mapper + Service per StandardVariableOverride (T-006)](#svc-012--mapper--service-per-standardvariableoverride-t-006)
 - [SVC-010 - Class1.cs placeholder non rimosso](#svc-010--class1cs-placeholder-non-rimosso)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services) (Wontfix)
 - [SVC-009 - VariableMapper.ToDomain non mappa Format](#svc-009--variablemappertodomain-non-mappa-format)
@@ -37,63 +37,6 @@
 - [SVC-008 - DictionaryService.AddAsync blocca Shared Peripheral se Standard esiste](#svc-008--dictionaryserviceaddasync-blocca-shared-peripheral-se-standard-esiste)
 - [SVC-004 - Mancano mapper per BoardMapper con overload](#svc-004--mancano-mapper-per-boardmapper-con-overload)
 - [SVC-001 - Services dipendono direttamente da AppDbContext](#svc-001--services-dipendono-direttamente-da-appdbcontext-risolto)
-
----
-
-## Priorità Alta
-
-### SVC-012 - Mapper + Service per StandardVariableOverride (T-006)
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto — cambiamento di dominio fondamentale  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-30  
-**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
-
-#### Descrizione
-
-Refactoring del layer Services per Domain v7.
-
-#### Azioni
-
-1. **Creare** `Services/Mapping/StandardVariableOverrideMapper.cs`:
-   - `ToDomain(entity)` / `ToEntity(domain)` / `UpdateEntity(entity, domain)`
-
-2. **Eliminare** `Services/Mapping/VariableDeviceStateMapper.cs`
-
-3. **Modificare** `Services/Interfaces/IVariableService.cs`:
-   - Rimuovere metodi `*DeviceState*`
-   - Aggiungere metodi `*StandardVariableOverride*`:
-     - `GetOverridesForDictionaryAsync(int dictionaryId)`
-     - `SaveOverrideAsync(StandardVariableOverride override)`
-     - `GetBitInterpretationsForDictionaryAsync(int variableId, int dictionaryId)` (risolve con fallback)
-
-4. **Modificare** `Services/VariableService.cs`:
-   - Implementare nuovi metodi
-   - Rimuovere metodi DeviceState
-   - Aggiornare risoluzione BitInterpretation (DictionaryId vs DeviceId)
-
-5. **Aggiornare** `Services/DependencyInjection.cs` (se necessario)
-
-#### Business Rules
-
-- BR-009 (v7): effectiveIsEnabled per-dizionario
-- BR-011 (v7): override coerenza per-dizionario
-- BR-018 (v7): risoluzione BitInterpretation per-dizionario > template
-- BR-020 (v7): effectiveDescription per-dizionario
-
-#### File Coinvolti
-
-- `Services/Mapping/StandardVariableOverrideMapper.cs` (NUOVO)
-- `Services/Mapping/VariableDeviceStateMapper.cs` (ELIMINARE)
-- `Services/Interfaces/IVariableService.cs`
-- `Services/VariableService.cs`
-- `Services/Mapping/BitInterpretationMapper.cs` (DeviceId → DictionaryId)
-
-#### Effort Stimato
-
-M (4-8h)
 
 ---
 
@@ -323,6 +266,34 @@ public static IServiceCollection AddServices(this IServiceCollection services)
 ---
 
 ## Issue Risolte
+
+### SVC-012 - Mapper + Service per StandardVariableOverride (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-07  
+**Branch:** fix/t-006  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Soluzione Implementata
+
+1. **Creato** `StandardVariableOverrideMapper.cs`: ToDomain, ToEntity, UpdateEntity, ToDomainList
+2. **Eliminato** `VariableDeviceStateMapper.cs`
+3. **Modificato** `BitInterpretationMapper.cs`: `DeviceId` → `DictionaryId` in tutti i metodi
+4. **Modificato** `IVariableService.cs`: rimossi `*DeviceState*`, aggiunti `SetOverrideAsync`, `GetOverrideAsync`, `GetOverridesByDictionaryAsync`, `GetOverridesByVariableAsync`, `*ForDictionary*`
+5. **Modificato** `VariableService.cs`: `IVariableDeviceStateRepository` → `IStandardVariableOverrideRepository`, implementazione completa con BR-011 (v7)
+
+#### Benefici Ottenuti
+
+- Override per-dizionario con BR-011 enforced ✅
+- BitInterpretation risoluzione per-dizionario > template (BR-018) ✅
+- API semanticamente corretta (dizionario, non device) ✅
+- Mapper completo con ToDomainList ✅
+
+---
 
 ### SVC-010 - Class1.cs placeholder non rimosso
 

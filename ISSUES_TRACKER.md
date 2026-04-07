@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
-| [Services](./Services/ISSUES.md) | 5 | 7 | 12 |
+| [Services](./Services/ISSUES.md) | 4 | 8 | 12 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 6 | 9 |
 | [Tests](./Tests/ISSUES.md) | 2 | 8 | 10 |
 | **Trasversali** | **4** | **2** | **6** |
-| **Totale** | **19** | **35** | **54** |
+| **Totale** | **18** | **36** | **54** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 1 | 5% |
 | **Media** | 1 | 5% |
-| **Bassa** | 17 | 89% |
-| **Totale** | **19** | 100% |
+| **Bassa** | 16 | 89% |
+| **Totale** | **18** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        █░░░░░░░░░░░░░░░░░░░  1  (T-006)
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       █████████████████░░░ 17
+Bassa:       ████████████████░░░░ 16
 ```
 
 ---
@@ -378,11 +378,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Services (5 issue aperte, 7 risolte)
+### Services (4 issue aperte, 8 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **SVC-012** | **Mapper + Service per StandardVariableOverride (T-006)** | **Alta** | **Refactoring** |
+| ~~SVC-012~~ | ~~Mapper + Service per StandardVariableOverride (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~SVC-001~~ | ~~Services dipendono da AppDbContext~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~SVC-011~~ | ~~Refactoring Services per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~SVC-008~~ | ~~DictionaryService.AddAsync blocca Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
@@ -432,7 +432,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 |---|-----|------------|--------|--------|
 | 1 | CORE-008 | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ✅ Risolto |
 | 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | ✅ Risolto |
-| 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | ⬜ Da fare |
+| 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | ✅ Risolto |
 | 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ⬜ Da fare |
 | 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | ⬜ Da fare |
 
@@ -546,7 +546,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-04-07 | ✅ **CORE-008 + INFRA-009 risolte** — StandardVariableOverride entity+repository+migration creati. VariableDeviceState eliminato. BitInterpretation.DeviceId→DictionaryId. Migration reset. 19 aperte, 35 risolte. |
+| 2026-04-07 | ✅ **SVC-012 risolta** — StandardVariableOverrideMapper creato, VariableDeviceStateMapper eliminato, BitInterpretationMapper aggiornato (DictionaryId), VariableService con override per-dizionario. 18 aperte, 36 risolte. |
+| 2026-04-07 | ✅ **CORE-008 + INFRA-009 risolte**
 | 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)**
 | 2026-03-25 | ✅ **SVC-010 risolta** — Eliminato Class1.cs placeholder. 13 aperte, 33 risolte. |
 | 2026-03-25 | ⚪ **SVC-003 Wontfix**

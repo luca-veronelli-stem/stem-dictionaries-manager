@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -84,7 +84,7 @@ public class MyController
 Services/
 ├── Interfaces/
 │   ├── IDictionaryService.cs      # Aggregate root (Dictionary + Variables)
-│   ├── IVariableService.cs        # Variabili singole + BitInterpretation + DeviceState
+│   ├── IVariableService.cs        # Variabili singole + BitInterpretation + StandardVariableOverride
 │   ├── ICommandService.cs         # Comandi + DeviceState
 │   ├── IBoardService.cs           # Board (FirmwareType diretto, DictionaryId?)
 │   ├── IDeviceService.cs          # Dispositivi CRUD
@@ -97,10 +97,10 @@ Services/
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
 │   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
 │   ├── DeviceMapper.cs                # Device Entity ↔ Domain
-│   ├── VariableDeviceStateMapper.cs   # ⚠️ VariableDeviceState Entity ↔ Domain (da rimuovere in T-006)
-│   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain
+│   ├── StandardVariableOverrideMapper.cs  # StandardVariableOverride Entity ↔ Domain (v7)
+│   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain (v7: DictionaryId)
 ├── DictionaryService.cs           # Aggregate root (IsStandard uniqueness)
-├── VariableService.cs             # Implementazione + DeviceState (BR-009/010/011)
+├── VariableService.cs             # Implementazione + StandardVariableOverride (BR-009/010/011 v7)
 ├── CommandService.cs              # Implementazione
 ├── BoardService.cs                # Implementazione
 ├── DeviceService.cs               # Implementazione CRUD dispositivi
@@ -119,7 +119,7 @@ Services/
 | Interface | Metodi Principali | Aggregate |
 |-----------|-------------------|:---------:|
 | `IDictionaryService` | GetWithVariablesAsync, GetStandardDictionaryAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
-| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, SetDeviceStateAsync, GetDeviceStateAsync, GetDeviceStatesAsync | - |
+| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, SetOverrideAsync, GetOverrideAsync, GetOverridesByDictionaryAsync | - |
 | `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync | - |
 | `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync | - |
 | `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync | - |
@@ -227,9 +227,9 @@ public static class UserMapper
 | **BR-004** | DictionaryService | Al massimo UN dizionario con IsStandard = true |
 | **BR-005** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
 | **BR-006** | UserService | Username univoco |
-| **BR-009** | VariableService | VariableDeviceState: override per-device su variabili |
-| **BR-010** | VariableService | VariableDeviceState: unique (VariableId, DeviceType) |
-| **BR-011** | VariableService | Non si può abilitare una variabile deprecated per un device |
+| **BR-009** | VariableService | StandardVariableOverride: override per-dizionario su variabili standard |
+| **BR-010** | VariableService | StandardVariableOverride: unique (DictionaryId, StandardVariableId) |
+| **BR-011** | VariableService | Non si può abilitare una variabile deprecated per un dizionario |
 
 ---
 
@@ -301,7 +301,7 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Unit/Mapping | `DeviceMapperTests.cs` | 12 |
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
-| Unit/Mapping | `VariableDeviceStateMapperTests.cs` | 9 |
+| Unit/Mapping | `VariableDeviceStateMapperTests.cs` | 9 → ⚠️ da aggiornare (T-006/TEST-010) |
 | Unit/DI | `DependencyInjectionTests.cs` | 11 |
 | Integration | `UserServiceTests.cs` | 15 |
 | Integration | `DictionaryServiceTests.cs` | 20 |
@@ -320,7 +320,7 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 5 issue aperte (incl. SVC-012 per T-006), 7 risolte
+→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 8 risolte
 
 ### Top Issue
 
