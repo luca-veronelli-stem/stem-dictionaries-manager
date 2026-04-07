@@ -170,7 +170,7 @@ public class DependencyInjectionTests
         var provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IVariableDeviceStateRepository>();
+        var repository = provider.GetService<IStandardVariableOverrideRepository>();
         Assert.NotNull(repository);
     }
 

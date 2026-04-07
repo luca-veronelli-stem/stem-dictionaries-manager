@@ -15,7 +15,7 @@ public class VariableServiceTests : IntegrationTestBase
     private readonly VariableRepository _variableRepo;
     private readonly DictionaryRepository _dictionaryRepo;
     private readonly BitInterpretationRepository _bitInterpretationRepo;
-    private readonly VariableDeviceStateRepository _deviceStateRepo;
+    private readonly StandardVariableOverrideRepository _overrideRepo;
     private DictionaryEntity _testDictionary = null!;
 
     public VariableServiceTests()
@@ -23,13 +23,13 @@ public class VariableServiceTests : IntegrationTestBase
         _dictionaryRepo = new DictionaryRepository(Context);
         _variableRepo = new VariableRepository(Context);
         _bitInterpretationRepo = new BitInterpretationRepository(Context);
-        _deviceStateRepo = new VariableDeviceStateRepository(Context);
+        _overrideRepo = new StandardVariableOverrideRepository(Context);
 
         _service = new VariableService(
             _variableRepo,
             _dictionaryRepo,
             _bitInterpretationRepo,
-            _deviceStateRepo);
+            _overrideRepo);
     }
 
     public override async Task InitializeAsync()
@@ -504,7 +504,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 5,
-            meaning: "Pump Active", deviceId: null);
+            meaning: "Pump Active", dictionaryId: null);
 
         // Act
         var result = await _service.AddBitInterpretationAsync(variable.Id, interpretation);
@@ -520,7 +520,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         var interpretation = new BitInterpretation(variableId: 999, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test", deviceId: null);
+            meaning: "Test", dictionaryId: null);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddBitInterpretationAsync(999, interpretation));
@@ -545,7 +545,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         var interpretation = new BitInterpretation(variableId: variable.Id, wordIndex: 0,
             bitIndex: 0,
-            meaning: "Test", deviceId: null);
+            meaning: "Test", dictionaryId: null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -741,150 +741,159 @@ public class VariableServiceTests : IntegrationTestBase
         Assert.Equal("Motor Updated", result[0].Meaning);
     }
 
-    // === DeviceState Tests ===
+    // === StandardVariableOverride Tests (v7) ===
 
     [Fact]
-    public async Task SetDeviceStateAsync_CreatesNewState()
+    public async Task SetOverrideAsync_CreatesNewOverride()
     {
         var variable = await CreateTestVariable();
 
-        await _service.SetDeviceStateAsync(variable.Id, 1, false);
+        await _service.SetOverrideAsync(dictionaryId: 1, variable.Id, isEnabled: false);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, 1);
-        Assert.NotNull(state);
-        Assert.False(state.IsEnabled);
+        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        Assert.NotNull(overrideState);
+        Assert.False(overrideState.IsEnabled);
     }
 
     [Fact]
-    public async Task SetDeviceStateAsync_UpdatesExistingState()
+    public async Task SetOverrideAsync_UpdatesExistingOverride()
     {
         var variable = await CreateTestVariable();
-        await _service.SetDeviceStateAsync(variable.Id, 1, false);
+        await _service.SetOverrideAsync(1, variable.Id, false);
 
-        await _service.SetDeviceStateAsync(variable.Id, 1, true);
+        await _service.SetOverrideAsync(1, variable.Id, true);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, 1);
-        Assert.NotNull(state);
-        Assert.True(state.IsEnabled);
+        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        Assert.NotNull(overrideState);
+        Assert.True(overrideState.IsEnabled);
     }
 
     [Fact]
-    public async Task SetDeviceStateAsync_VariableNotFound_ThrowsKeyNotFoundException()
+    public async Task SetOverrideAsync_VariableNotFound_ThrowsKeyNotFoundException()
     {
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => _service.SetDeviceStateAsync(999, 7, false));
+            () => _service.SetOverrideAsync(1, 999, false));
     }
 
     [Fact]
-    public async Task SetDeviceStateAsync_BR011_EnableOnDeprecated_ThrowsInvalidOperationException()
+    public async Task SetOverrideAsync_BR011_EnableOnDeprecated_ThrowsInvalidOperationException()
     {
         // Crea variabile disabilitata (deprecata)
         var variable = await CreateTestVariable(isEnabled: false);
 
-        // BR-011: tentativo di abilitare per un device → errore
+        // BR-011: tentativo di abilitare override → errore
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.SetDeviceStateAsync(variable.Id, 10, true));
+            () => _service.SetOverrideAsync(1, variable.Id, true));
 
         Assert.Contains("deprecated globally", ex.Message);
     }
 
     [Fact]
-    public async Task SetDeviceStateAsync_BR011_DisableOnDeprecated_Allowed()
+    public async Task SetOverrideAsync_BR011_DisableOnDeprecated_Allowed()
     {
         var variable = await CreateTestVariable(isEnabled: false);
 
-        // Disabilitare per device su variabile deprecata è consentito (no-op logico ma valido)
-        await _service.SetDeviceStateAsync(variable.Id, 10, false);
+        // Disabilitare override su variabile deprecata è consentito
+        await _service.SetOverrideAsync(1, variable.Id, false);
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, 10);
-        Assert.NotNull(state);
-        Assert.False(state.IsEnabled);
+        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        Assert.NotNull(overrideState);
+        Assert.False(overrideState.IsEnabled);
     }
 
     [Fact]
-    public async Task GetDeviceStateAsync_NotExists_ReturnsNull()
+    public async Task GetOverrideAsync_NotExists_ReturnsNull()
     {
         var variable = await CreateTestVariable();
 
-        var state = await _service.GetDeviceStateAsync(variable.Id, 7);
+        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
 
-        Assert.Null(state);
+        Assert.Null(overrideState);
     }
 
     [Fact]
-    public async Task GetDeviceStatesAsync_ReturnsAllOverrides()
+    public async Task GetOverridesByVariableAsync_ReturnsAllOverrides()
     {
         var variable = await CreateTestVariable();
-        await _service.SetDeviceStateAsync(variable.Id, 1, false);
-        await _service.SetDeviceStateAsync(variable.Id, 4, false);
+        var dict2 = new DictionaryEntity { Name = "override-dict-2" };
+        await _dictionaryRepo.AddAsync(dict2);
 
-        var states = await _service.GetDeviceStatesAsync(variable.Id);
+        await _service.SetOverrideAsync(_testDictionary.Id, variable.Id, false);
+        await _service.SetOverrideAsync(dict2.Id, variable.Id, false);
 
-        Assert.Equal(2, states.Count);
+        var overrides = await _service.GetOverridesByVariableAsync(variable.Id);
+
+        Assert.Equal(2, overrides.Count);
     }
 
     [Fact]
-    public async Task GetDeviceStatesAsync_NoOverrides_ReturnsEmpty()
+    public async Task GetOverridesByVariableAsync_NoOverrides_ReturnsEmpty()
     {
         var variable = await CreateTestVariable();
 
-        var states = await _service.GetDeviceStatesAsync(variable.Id);
+        var overrides = await _service.GetOverridesByVariableAsync(variable.Id);
 
-        Assert.Empty(states);
+        Assert.Empty(overrides);
     }
 
-    // === GetDeviceStatesForDeviceAsync ===
+    // === GetOverridesByDictionaryAsync ===
 
     [Fact]
-    public async Task GetDeviceStatesForDeviceAsync_ReturnsStatesForDevice()
+    public async Task GetOverridesByDictionaryAsync_ReturnsOverridesForDictionary()
     {
         var var1 = await CreateTestVariable(addressLow: 0x60);
         var var2 = await CreateTestVariable(addressLow: 0x61);
-        await _service.SetDeviceStateAsync(var1.Id, 7, false);
-        await _service.SetDeviceStateAsync(var2.Id, 7, true);
+        await _service.SetOverrideAsync(_testDictionary.Id, var1.Id, false);
+        await _service.SetOverrideAsync(_testDictionary.Id, var2.Id, true);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(7);
+        var result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
 
         Assert.Equal(2, result.Count);
-        Assert.All(result, s => Assert.Equal(7, s.DeviceId));
+        Assert.All(result, o => Assert.Equal(_testDictionary.Id, o.DictionaryId));
     }
 
     [Fact]
-    public async Task GetDeviceStatesForDeviceAsync_ExcludesOtherDevices()
+    public async Task GetOverridesByDictionaryAsync_ExcludesOtherDictionaries()
     {
         var variable = await CreateTestVariable(addressLow: 0x62);
-        await _service.SetDeviceStateAsync(variable.Id, 7, false);
-        await _service.SetDeviceStateAsync(variable.Id, 3, true);
+        var dict2 = new DictionaryEntity { Name = "override-dict-other" };
+        await _dictionaryRepo.AddAsync(dict2);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(7);
+        await _service.SetOverrideAsync(_testDictionary.Id, variable.Id, false);
+        await _service.SetOverrideAsync(dict2.Id, variable.Id, true);
+
+        var result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
 
         Assert.Single(result);
-        Assert.Equal(variable.Id, result[0].VariableId);
+        Assert.Equal(variable.Id, result[0].StandardVariableId);
         Assert.False(result[0].IsEnabled);
     }
 
     [Fact]
-    public async Task GetDeviceStatesForDeviceAsync_NoStates_ReturnsEmptyList()
+    public async Task GetOverridesByDictionaryAsync_NoOverrides_ReturnsEmptyList()
     {
         await CreateTestVariable(addressLow: 0x63);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(11);
+        var result = await _service.GetOverridesByDictionaryAsync(99);
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public async Task GetDeviceStatesForDeviceAsync_MapsToDomainCorrectly()
+    public async Task GetOverridesByDictionaryAsync_MapsToDomainCorrectly()
     {
         var variable = await CreateTestVariable(addressLow: 0x64);
-        await _service.SetDeviceStateAsync(variable.Id, 4, false);
+        var dictForOverride = new DictionaryEntity { Name = "override-dict-map" };
+        await _dictionaryRepo.AddAsync(dictForOverride);
 
-        var result = await _service.GetDeviceStatesForDeviceAsync(4);
+        await _service.SetOverrideAsync(dictForOverride.Id, variable.Id, false);
 
-        var state = Assert.Single(result);
-        Assert.Equal(variable.Id, state.VariableId);
-        Assert.Equal(4, state.DeviceId);
-        Assert.False(state.IsEnabled);
+        var result = await _service.GetOverridesByDictionaryAsync(dictForOverride.Id);
+
+        var overrideState = Assert.Single(result);
+        Assert.Equal(variable.Id, overrideState.StandardVariableId);
+        Assert.Equal(dictForOverride.Id, overrideState.DictionaryId);
+        Assert.False(overrideState.IsEnabled);
     }
 
     private async Task<Variable> CreateTestVariable(
@@ -901,11 +910,12 @@ public class VariableServiceTests : IntegrationTestBase
     // === GetBitInterpretationsAsync (normal mode — solo comuni) ===
 
     [Fact]
-    public async Task GetBitInterpretationsAsync_ExcludesDeviceSpecific()
+    public async Task GetBitInterpretationsAsync_ExcludesDictionarySpecific()
     {
-        // Arrange — bit comuni + device-specific
-        await SeedTestDevicesAsync();
-        var device = Context.Devices.First();
+        // Arrange — bit comuni + dictionary-specific
+        var nonStdDict = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(nonStdDict);
+        await Context.SaveChangesAsync();
 
         var variable = new Variable(
             "MixedBits", 0x00, 0x73,
@@ -916,37 +926,38 @@ public class VariableServiceTests : IntegrationTestBase
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DeviceId = null
+            Meaning = "Common bit 0", DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Device bit 0", DeviceId = device.Id
+            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 1,
-            Meaning = "Common bit 1", DeviceId = null
+            Meaning = "Common bit 1", DictionaryId = null
         });
 
-        // Act — normal mode (no device)
+        // Act — normal mode (no dictionary)
         var result = await _service.GetBitInterpretationsAsync(created.Id);
 
-        // Assert — solo le comuni, nessuna device-specific
+        // Assert — solo le comuni, nessuna dictionary-specific
         Assert.Equal(2, result.Count);
-        Assert.All(result, b => Assert.Null(b.DeviceId));
+        Assert.All(result, b => Assert.Null(b.DictionaryId));
         Assert.Contains(result, b => b.BitIndex == 0 && b.Meaning == "Common bit 0");
         Assert.Contains(result, b => b.BitIndex == 1 && b.Meaning == "Common bit 1");
     }
 
-    // === GetBitInterpretationsForDeviceAsync merge/override ===
+    // === GetBitInterpretationsForDictionaryAsync merge/override (v7) ===
 
     [Fact]
-    public async Task GetBitInterpretationsForDeviceAsync_MergesDeviceOverCommon()
+    public async Task GetBitInterpretationsForDictionaryAsync_MergesDictionaryOverCommon()
     {
-        // Arrange — variabile bitmapped con bit comuni + device-specific
-        await SeedTestDevicesAsync();
-        var device = Context.Devices.First();
+        // Arrange — variabile bitmapped con bit comuni + dictionary-specific
+        var nonStdDict = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(nonStdDict);
+        await Context.SaveChangesAsync();
 
         var variable = new Variable(
             "StatusBits", 0x00, 0x70,
@@ -954,37 +965,37 @@ public class VariableServiceTests : IntegrationTestBase
             dataTypeParam: 1, isEnabled: true);
         var created = await _service.AddAsync(_testDictionary.Id, variable);
 
-        // Bit comuni (DeviceId = null)
+        // Bit comuni (DictionaryId = null)
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DeviceId = null
+            Meaning = "Common bit 0", DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 1,
-            Meaning = "Common bit 1", DeviceId = null
+            Meaning = "Common bit 1", DictionaryId = null
         });
-        // Override per device: solo bit 0
+        // Override per dizionario: solo bit 0
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Device bit 0", DeviceId = device.Id
+            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
 
-        // Assert — 2 bit: bit 0 = device override, bit 1 = common fallback
+        // Assert — 2 bit: bit 0 = dictionary override, bit 1 = common fallback
         Assert.Equal(2, result.Count);
-        Assert.Equal("Device bit 0", result.First(b => b.BitIndex == 0).Meaning);
+        Assert.Equal("Dictionary bit 0", result.First(b => b.BitIndex == 0).Meaning);
         Assert.Equal("Common bit 1", result.First(b => b.BitIndex == 1).Meaning);
     }
 
     [Fact]
-    public async Task GetBitInterpretationsForDeviceAsync_NoOverride_ReturnsCommon()
+    public async Task GetBitInterpretationsForDictionaryAsync_NoOverride_ReturnsCommon()
     {
-        // Arrange — solo bit comuni, nessun override per device 99
+        // Arrange — solo bit comuni, nessun override per dizionario 99
         var variable = new Variable(
             "StatusBits2", 0x00, 0x71,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
@@ -994,24 +1005,25 @@ public class VariableServiceTests : IntegrationTestBase
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common only", DeviceId = null
+            Meaning = "Common only", DictionaryId = null
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, 99);
+        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, 99);
 
         // Assert — fallback alle comuni
         Assert.Single(result);
         Assert.Equal("Common only", result[0].Meaning);
-        Assert.Null(result[0].DeviceId);
+        Assert.Null(result[0].DictionaryId);
     }
 
     [Fact]
-    public async Task GetBitInterpretationsForDeviceAsync_AllOverridden_ReturnsOnlyDevice()
+    public async Task GetBitInterpretationsForDictionaryAsync_AllOverridden_ReturnsOnlyDictionary()
     {
-        // Arrange — tutti i bit hanno override per device
-        await SeedTestDevicesAsync();
-        var device = Context.Devices.First();
+        // Arrange — tutti i bit hanno override per dizionario
+        var nonStdDict = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(nonStdDict);
+        await Context.SaveChangesAsync();
 
         var variable = new Variable(
             "StatusBits3", 0x00, 0x72,
@@ -1022,21 +1034,21 @@ public class VariableServiceTests : IntegrationTestBase
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DeviceId = null
+            Meaning = "Common bit 0", DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
             VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Device bit 0", DeviceId = device.Id
+            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDeviceAsync(created.Id, device.Id);
+        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
 
-        // Assert — solo 1 bit (device override, non duplicato)
+        // Assert — solo 1 bit (dictionary override, non duplicato)
         Assert.Single(result);
-        Assert.Equal("Device bit 0", result[0].Meaning);
-        Assert.Equal(device.Id, result[0].DeviceId);
+        Assert.Equal("Dictionary bit 0", result[0].Meaning);
+        Assert.Equal(nonStdDict.Id, result[0].DictionaryId);
     }
 
     // === WordSize Persistence Tests ===

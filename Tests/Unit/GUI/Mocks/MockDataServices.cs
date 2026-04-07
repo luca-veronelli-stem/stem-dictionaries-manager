@@ -237,7 +237,7 @@ public class MockVariableService : IVariableService
 {
     private readonly List<Variable> _variables = [];
     private readonly Dictionary<int, List<BitInterpretation>> _bitInterpretations = [];
-    private readonly List<VariableDeviceState> _deviceStates = [];
+    private readonly List<StandardVariableOverride> _overrides = [];
     private int _nextId = 1;
 
     public Exception? ExceptionToThrow { get; set; }
@@ -330,54 +330,57 @@ public class MockVariableService : IVariableService
         return Task.CompletedTask;
     }
 
-    public Task UpdateBitInterpretationsForDeviceAsync(int variableId, int? deviceId,
+    public Task UpdateBitInterpretationsForDictionaryAsync(int variableId, int? dictionaryId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default)
     {
-        MethodCalls.Add($"UpdateBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        MethodCalls.Add($"UpdateBitInterpretationsForDictionaryAsync:{variableId}:{dictionaryId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(
-        int variableId, int deviceId, CancellationToken ct = default)
+    public Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDictionaryAsync(
+        int variableId, int dictionaryId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetBitInterpretationsForDeviceAsync:{variableId}:{deviceId}");
+        MethodCalls.Add($"GetBitInterpretationsForDictionaryAsync:{variableId}:{dictionaryId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         if (_bitInterpretations.TryGetValue(variableId, out var bits))
             return Task.FromResult<IReadOnlyList<BitInterpretation>>(bits);
         return Task.FromResult<IReadOnlyList<BitInterpretation>>([]);
     }
 
-    public Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled, CancellationToken ct = default)
+    public Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
+        string? description = null, CancellationToken ct = default)
     {
-        MethodCalls.Add($"SetDeviceStateAsync:{variableId}:{deviceId}:{isEnabled}");
+        MethodCalls.Add($"SetOverrideAsync:{dictionaryId}:{standardVariableId}:{isEnabled}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         return Task.CompletedTask;
     }
 
-    public Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, int deviceId, CancellationToken ct = default)
+    public Task<StandardVariableOverride?> GetOverrideAsync(int dictionaryId, int standardVariableId,
+        CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStateAsync:{variableId}:{deviceId}");
+        MethodCalls.Add($"GetOverrideAsync:{dictionaryId}:{standardVariableId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult(_deviceStates.FirstOrDefault(
-            s => s.VariableId == variableId && s.DeviceId == deviceId));
+        return Task.FromResult(_overrides.FirstOrDefault(
+            o => o.DictionaryId == dictionaryId && o.StandardVariableId == standardVariableId));
     }
 
-    public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId, CancellationToken ct = default)
+    public Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByDictionaryAsync(
+        int dictionaryId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStatesAsync:{variableId}");
+        MethodCalls.Add($"GetOverridesByDictionaryAsync:{dictionaryId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<VariableDeviceState>>(
-            [.. _deviceStates.Where(s => s.VariableId == variableId)]);
+        return Task.FromResult<IReadOnlyList<StandardVariableOverride>>(
+            [.. _overrides.Where(o => o.DictionaryId == dictionaryId)]);
     }
 
-    public Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
-        int deviceId, CancellationToken ct = default)
+    public Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByVariableAsync(
+        int standardVariableId, CancellationToken ct = default)
     {
-        MethodCalls.Add($"GetDeviceStatesForDeviceAsync:{deviceId}");
+        MethodCalls.Add($"GetOverridesByVariableAsync:{standardVariableId}");
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
-        return Task.FromResult<IReadOnlyList<VariableDeviceState>>(
-            [.. _deviceStates.Where(s => s.DeviceId == deviceId)]);
+        return Task.FromResult<IReadOnlyList<StandardVariableOverride>>(
+            [.. _overrides.Where(o => o.StandardVariableId == standardVariableId)]);
     }
 
     public Task UpdateAsync(Variable variable, CancellationToken ct = default)
@@ -423,16 +426,16 @@ public class MockVariableService : IVariableService
         _bitInterpretations[variableId] = bits;
     }
 
-    public void SeedDeviceStates(params VariableDeviceState[] states)
+    public void SeedOverrides(params StandardVariableOverride[] overrides)
     {
-        _deviceStates.AddRange(states);
+        _overrides.AddRange(overrides);
     }
 
     public void Reset()
     {
         _variables.Clear();
         _bitInterpretations.Clear();
-        _deviceStates.Clear();
+        _overrides.Clear();
         _nextId = 1;
         ExceptionToThrow = null;
         MethodCalls.Clear();

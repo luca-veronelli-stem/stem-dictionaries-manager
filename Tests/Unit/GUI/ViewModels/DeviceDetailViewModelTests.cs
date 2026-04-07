@@ -139,7 +139,7 @@ public class DeviceDetailViewModelTests
     }
 
     [Fact]
-    public void OpenDictionaryCommand_StandardDictionary_NavigatesToDeviceVariables()
+    public void OpenDictionaryCommand_StandardDictionary_NavigatesToDictionaryEdit()
     {
         _viewModel.DeviceId = 3;
         _viewModel.SelectedDictionary = new DictionaryItem(1, "Standard", "Standard", 10)
@@ -147,8 +147,8 @@ public class DeviceDetailViewModelTests
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
-        Assert.Equal(ViewType.DeviceVariables, _navigationService.LastNavigatedView);
-        Assert.Equal(3, _navigationService.LastParameter?.DeviceId);
+        Assert.Equal(ViewType.DictionaryEdit, _navigationService.LastNavigatedView);
+        Assert.Equal(1, _navigationService.LastParameter?.EntityId);
     }
 
     [Theory]

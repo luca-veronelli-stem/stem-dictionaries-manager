@@ -1042,47 +1042,47 @@ public class VariableEditViewModelTests
 
     #endregion
 
-    #region DeviceContext Mode Tests
+    #region DictionaryContext Mode Tests (v7)
 
     [Fact]
-    public async Task InitializeAsync_WithDeviceId_SetsDeviceContextMode()
+    public async Task InitializeAsync_WithDictionaryContextId_SetsDictionaryContextMode()
     {
         // Arrange
         SeedBitmappedVariable();
 
         // Act
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Assert
-        Assert.True(_viewModel.IsDeviceContext);
-        Assert.False(_viewModel.IsNotDeviceContext);
+        Assert.True(_viewModel.IsDictionaryContext);
+        Assert.False(_viewModel.IsNotDictionaryContext);
     }
 
     [Fact]
-    public async Task InitializeAsync_WithoutDeviceId_SetsNormalMode()
+    public async Task InitializeAsync_WithoutDictionaryContextId_SetsNormalMode()
     {
         await _viewModel.InitializeAsync(variableId: null, dictionaryId: 1);
 
-        Assert.False(_viewModel.IsDeviceContext);
-        Assert.True(_viewModel.IsNotDeviceContext);
+        Assert.False(_viewModel.IsDictionaryContext);
+        Assert.True(_viewModel.IsNotDictionaryContext);
     }
 
     [Fact]
-    public async Task FormTitle_InDeviceContext_ReturnsDeviceTitle()
+    public async Task FormTitle_InDictionaryContext_ReturnsDictionaryTitle()
     {
         SeedBitmappedVariable();
 
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        Assert.Equal("Interpretazione Bit (Device)", _viewModel.FormTitle);
+        Assert.Equal("Interpretazione Bit (Dizionario)", _viewModel.FormTitle);
     }
 
     [Fact]
-    public async Task SaveButtonLabel_InDeviceContext_ReturnsSalvaBit()
+    public async Task SaveButtonLabel_InDictionaryContext_ReturnsSalvaBit()
     {
         SeedBitmappedVariable();
 
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         Assert.Contains("Salva Bit", _viewModel.SaveButtonLabel);
     }
@@ -1097,29 +1097,29 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public async Task DeviceContext_Save_CallsUpdateBitInterpretationsForDeviceAsync()
+    public async Task DictionaryContext_Save_CallsUpdateBitInterpretationsForDictionaryAsync()
     {
         // Arrange
         SeedBitmappedVariable();
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Modifica un bit
-        _viewModel.WordGroups[0].Items[0].Meaning = "Device override";
+        _viewModel.WordGroups[0].Items[0].Meaning = "Dictionary override";
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert — deve usare il metodo per-device
+        // Assert — deve usare il metodo per-dizionario
         Assert.Contains(_variableService.MethodCalls,
-            m => m.StartsWith("UpdateBitInterpretationsForDeviceAsync:1:42"));
+            m => m.StartsWith("UpdateBitInterpretationsForDictionaryAsync:1:42"));
     }
 
     [Fact]
-    public async Task DeviceContext_Save_DoesNotCallUpdateAsync()
+    public async Task DictionaryContext_Save_DoesNotCallUpdateAsync()
     {
         // Arrange
         SeedBitmappedVariable();
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -1132,13 +1132,13 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public async Task DeviceContext_Save_DoesNotValidateVariableFields()
+    public async Task DictionaryContext_Save_DoesNotValidateVariableFields()
     {
         // Arrange — variabile bitmapped caricata, campi nome/desc sono vuoti (read-only in GUI)
         SeedBitmappedVariable();
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        // Act — salva senza errori (campi variabile non validati in DeviceContext)
+        // Act — salva senza errori (campi variabile non validati in DictionaryContext)
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Assert — navigazione GoBack avvenuta (salvataggio riuscito)
@@ -1146,22 +1146,22 @@ public class VariableEditViewModelTests
     }
 
     [Fact]
-    public async Task DeviceContext_LoadsBitsForDevice()
+    public async Task DictionaryContext_LoadsBitsForDictionary()
     {
         // Arrange
         SeedBitmappedVariable();
         _variableService.SeedBitInterpretations(1,
         [
-            new BitInterpretation(1, 0, 0, "Device bit 0", deviceId: 42),
-            new BitInterpretation(1, 0, 1, "Common bit 1", deviceId: null),
+            new BitInterpretation(1, 0, 0, "Dictionary bit 0", dictionaryId: 42),
+            new BitInterpretation(1, 0, 1, "Common bit 1", dictionaryId: null),
         ]);
 
         // Act
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        // Assert — deve chiamare GetBitInterpretationsForDeviceAsync
+        // Assert — deve chiamare GetBitInterpretationsForDictionaryAsync
         Assert.Contains(_variableService.MethodCalls,
-            m => m == "GetBitInterpretationsForDeviceAsync:1:42");
+            m => m == "GetBitInterpretationsForDictionaryAsync:1:42");
     }
 
     [Fact]
@@ -1173,65 +1173,65 @@ public class VariableEditViewModelTests
         // Act
         await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1);
 
-        // Assert — deve usare il metodo classico (senza device)
+        // Assert — deve usare il metodo classico (senza dizionario)
         Assert.Contains(_variableService.MethodCalls,
             m => m == "GetBitInterpretationsAsync:1");
     }
 
     [Fact]
-    public async Task DeviceContext_Save_ShowsSuccessMessage()
+    public async Task DictionaryContext_Save_ShowsSuccessMessage()
     {
         // Arrange
         SeedBitmappedVariable();
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert — salva stato device, mostra messaggio successo
-        Assert.Contains("device", _messageService.CurrentMessage ?? "",
+        // Assert — salva override dizionario, mostra messaggio successo
+        Assert.Contains("dizionario", _messageService.CurrentMessage ?? "",
             StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task DeviceContext_Save_CallsSetDeviceStateAsync()
+    public async Task DictionaryContext_Save_CallsSetOverrideAsync()
     {
         // Arrange
         SeedBitmappedVariable();
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
         _viewModel.IsEnabled = false;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        // Assert — deve salvare lo stato device
+        // Assert — deve salvare l'override per dizionario
         Assert.Contains(_variableService.MethodCalls,
-            m => m == "SetDeviceStateAsync:1:42:False");
+            m => m == "SetOverrideAsync:42:1:False");
     }
 
     [Fact]
-    public async Task DeviceContext_LoadsDeviceState()
+    public async Task DictionaryContext_LoadsOverride()
     {
-        // Arrange — override esistente: disabilitata per device 42
+        // Arrange — override esistente: disabilitata per dizionario 42
         SeedBitmappedVariable();
-        _variableService.SeedDeviceStates(
-            VariableDeviceState.Restore(1, 1, 42, isEnabled: false));
+        _variableService.SeedOverrides(
+            StandardVariableOverride.Restore(1, 42, 1, isEnabled: false, description: null));
 
         // Act
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Assert
         Assert.False(_viewModel.IsEnabled);
     }
 
     [Fact]
-    public async Task DeviceContext_NoDeviceState_DefaultsToEnabled()
+    public async Task DictionaryContext_NoOverride_DefaultsToEnabled()
     {
-        // Arrange — nessun override per device 42
+        // Arrange — nessun override per dizionario 42
         SeedBitmappedVariable();
 
         // Act
-        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, deviceId: 42);
+        await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
         // Assert — default = true
         Assert.True(_viewModel.IsEnabled);

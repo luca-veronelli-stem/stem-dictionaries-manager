@@ -184,21 +184,20 @@ public class DeviceWorkflowTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task FullWorkflow_DeviceVariables_OverridesArePerDevice()
+    public async Task FullWorkflow_StandardVariableOverrides_ArePerDictionary()
     {
-        // Setup: 2 device, 1 variabile standard, override diversi
-        var deviceRepo = new DeviceRepository(Context);
+        // Setup: 2 dizionari non-standard, 1 variabile standard, override diversi
         var dictRepo = new DictionaryRepository(Context);
         var varRepo = new VariableRepository(Context);
-        var stateRepo = new VariableDeviceStateRepository(Context);
-
-        var device1 = new DeviceEntity { Name = "Eden-XP", MachineCode = 3 };
-        var device2 = new DeviceEntity { Name = "Spark", MachineCode = 7 };
-        await deviceRepo.AddAsync(device1);
-        await deviceRepo.AddAsync(device2);
+        var overrideRepo = new StandardVariableOverrideRepository(Context);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
+
+        var edenDict = new DictionaryEntity { Name = "Eden-XP", IsStandard = false };
+        var sparkDict = new DictionaryEntity { Name = "Spark HMI", IsStandard = false };
+        await dictRepo.AddAsync(edenDict);
+        await dictRepo.AddAsync(sparkDict);
 
         var variable = new VariableEntity
         {
@@ -214,21 +213,21 @@ public class DeviceWorkflowTests : IntegrationTestBase
         await varRepo.AddAsync(variable);
 
         // Override: disabilitato per Eden-XP, default (null) per Spark
-        await stateRepo.AddAsync(new VariableDeviceStateEntity
+        await overrideRepo.AddAsync(new StandardVariableOverrideEntity
         {
-            VariableId = variable.Id,
-            DeviceId = device1.Id,
+            StandardVariableId = variable.Id,
+            DictionaryId = edenDict.Id,
             IsEnabled = false
         });
 
         // Verify
-        var state1 = await stateRepo.GetByVariableAndDeviceAsync(variable.Id, device1.Id);
-        var state2 = await stateRepo.GetByVariableAndDeviceAsync(variable.Id, device2.Id);
+        var override1 = await overrideRepo.GetByDictionaryAndVariableAsync(edenDict.Id, variable.Id);
+        var override2 = await overrideRepo.GetByDictionaryAndVariableAsync(sparkDict.Id, variable.Id);
 
-        Assert.NotNull(state1);
-        Assert.False(state1.IsEnabled);
+        Assert.NotNull(override1);
+        Assert.False(override1.IsEnabled);
 
-        Assert.Null(state2); // Nessun override = segue default
+        Assert.Null(override2); // Nessun override = segue default
     }
 
     [Fact]

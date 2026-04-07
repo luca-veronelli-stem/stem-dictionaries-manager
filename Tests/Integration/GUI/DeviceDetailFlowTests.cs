@@ -116,7 +116,7 @@ public class DeviceDetailFlowTests
         _viewModel.OpenDictionaryCommand.Execute(null);
 
         // Assert
-        Assert.Equal(ViewType.DeviceVariables, _navigationService.LastNavigatedView);
+        Assert.Equal(ViewType.DictionaryEdit, _navigationService.LastNavigatedView);
     }
 
     [Fact]

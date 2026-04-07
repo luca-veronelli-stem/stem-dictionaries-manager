@@ -288,36 +288,36 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         Assert.Empty(result);
     }
 
-    // === DeviceId Tests (SESSION_037) ===
+    // === DictionaryId Tests (v7) ===
 
     [Fact]
-    public async Task AddAsync_WithDeviceId_PersistsDeviceId()
+    public async Task AddAsync_WithDictionaryId_PersistsDictionaryId()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = device.Id,
+            DictionaryId = dictionary.Id,
             WordIndex = 0,
             BitIndex = 0,
-            Meaning = "Device-specific bit"
+            Meaning = "Dictionary-specific bit"
         };
 
         var result = await _repository.AddAsync(interpretation);
 
-        Assert.Equal(device.Id, result.DeviceId);
+        Assert.Equal(dictionary.Id, result.DictionaryId);
     }
 
     [Fact]
-    public async Task AddAsync_WithNullDeviceId_PersistsNull()
+    public async Task AddAsync_WithNullDictionaryId_PersistsNull()
     {
         var interpretation = new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = null,
+            DictionaryId = null,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Common bit"
@@ -325,95 +325,95 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         var result = await _repository.AddAsync(interpretation);
 
-        Assert.Null(result.DeviceId);
+        Assert.Null(result.DictionaryId);
     }
 
     [Fact]
-    public async Task GetByVariableAndDeviceAsync_ReturnsBothCommonAndDeviceSpecific()
+    public async Task GetByVariableAndDictionaryAsync_ReturnsBothCommonAndDictionarySpecific()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
-        // Common interpretation (DeviceId = null)
+        // Common interpretation (DictionaryId = null)
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = null,
+            DictionaryId = null,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Common bit 0"
         });
 
-        // Device-specific interpretation
+        // Dictionary-specific interpretation
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = device.Id,
+            DictionaryId = dictionary.Id,
             WordIndex = 0,
             BitIndex = 1,
-            Meaning = "Device bit 1"
+            Meaning = "Dictionary bit 1"
         });
 
-        // Another device's interpretation (should NOT appear)
-        var otherDevice = new DeviceEntity { Name = "OtherDevice", MachineCode = 51 };
-        Context.Devices.Add(otherDevice);
+        // Another dictionary's interpretation (should NOT appear)
+        var otherDict = new DictionaryEntity { Name = "OtherDict", IsStandard = false };
+        Context.Dictionaries.Add(otherDict);
         await Context.SaveChangesAsync();
 
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = otherDevice.Id,
+            DictionaryId = otherDict.Id,
             WordIndex = 0,
             BitIndex = 2,
-            Meaning = "Other device bit"
+            Meaning = "Other dictionary bit"
         });
 
-        var result = await _repository.GetByVariableAndDeviceAsync(_testVariable.Id, device.Id);
+        var result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
 
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.Meaning == "Common bit 0" && r.DeviceId == null);
-        Assert.Contains(result, r => r.Meaning == "Device bit 1" && r.DeviceId == device.Id);
+        Assert.Contains(result, r => r.Meaning == "Common bit 0" && r.DictionaryId == null);
+        Assert.Contains(result, r => r.Meaning == "Dictionary bit 1" && r.DictionaryId == dictionary.Id);
     }
 
     [Fact]
-    public async Task GetByVariableAndDeviceAsync_NoDeviceOverrides_ReturnsOnlyCommon()
+    public async Task GetByVariableAndDictionaryAsync_NoDictionaryOverrides_ReturnsOnlyCommon()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
         await _repository.AddAsync(new BitInterpretationEntity
         {
             VariableId = _testVariable.Id,
-            DeviceId = null,
+            DictionaryId = null,
             WordIndex = 0,
             BitIndex = 0,
             Meaning = "Common only"
         });
 
-        var result = await _repository.GetByVariableAndDeviceAsync(_testVariable.Id, device.Id);
+        var result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
 
         Assert.Single(result);
-        Assert.Null(result[0].DeviceId);
+        Assert.Null(result[0].DictionaryId);
     }
 
     [Fact]
-    public async Task GetByVariableIdAsync_ReturnsAllDevices()
+    public async Task GetByVariableIdAsync_ReturnsAllDictionaries()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = null,
+            VariableId = _testVariable.Id, DictionaryId = null,
             WordIndex = 0, BitIndex = 0, Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = device.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Device override"
+            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Dictionary override"
         });
 
         var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
@@ -422,62 +422,62 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SyncByVariableIdAsync_WithDeviceId_OnlySyncsForThatDevice()
+    public async Task SyncByVariableIdAsync_WithDictionaryId_OnlySyncsForThatDictionary()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
-        // Pre-existing: common + device-specific
+        // Pre-existing: common + dictionary-specific
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = null,
+            VariableId = _testVariable.Id, DictionaryId = null,
             WordIndex = 0, BitIndex = 0, Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = device.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Old device"
+            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Old dictionary"
         });
 
-        // Sync only device-specific: replace with new interpretation
+        // Sync only dictionary-specific: replace with new interpretation
         var incoming = new List<BitInterpretationEntity>
         {
-            new() { WordIndex = 0, BitIndex = 0, Meaning = "New device" },
-            new() { WordIndex = 0, BitIndex = 1, Meaning = "New device bit 1" }
+            new() { WordIndex = 0, BitIndex = 0, Meaning = "New dictionary" },
+            new() { WordIndex = 0, BitIndex = 1, Meaning = "New dictionary bit 1" }
         };
 
-        await _repository.SyncByVariableIdAsync(_testVariable.Id, device.Id, incoming);
+        await _repository.SyncByVariableIdAsync(_testVariable.Id, dictionary.Id, incoming);
 
         // Common should be untouched
         var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
-        var common = all.Where(r => r.DeviceId == null).ToList();
-        var deviceSpecific = all.Where(r => r.DeviceId == device.Id).ToList();
+        var common = all.Where(r => r.DictionaryId == null).ToList();
+        var dictSpecific = all.Where(r => r.DictionaryId == dictionary.Id).ToList();
 
         Assert.Single(common);
         Assert.Equal("Common", common[0].Meaning);
-        Assert.Equal(2, deviceSpecific.Count);
-        Assert.Contains(deviceSpecific, r => r.Meaning == "New device");
-        Assert.Contains(deviceSpecific, r => r.Meaning == "New device bit 1");
+        Assert.Equal(2, dictSpecific.Count);
+        Assert.Contains(dictSpecific, r => r.Meaning == "New dictionary");
+        Assert.Contains(dictSpecific, r => r.Meaning == "New dictionary bit 1");
     }
 
     [Fact]
-    public async Task SyncByVariableIdAsync_NullDeviceId_OnlySyncsCommon()
+    public async Task SyncByVariableIdAsync_NullDictionaryId_OnlySyncsCommon()
     {
-        var device = new DeviceEntity { Name = "TestDevice", MachineCode = 50 };
-        Context.Devices.Add(device);
+        var dictionary = new DictionaryEntity { Name = "TestDict", IsStandard = false };
+        Context.Dictionaries.Add(dictionary);
         await Context.SaveChangesAsync();
 
-        // Pre-existing: common + device-specific
+        // Pre-existing: common + dictionary-specific
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = null,
+            VariableId = _testVariable.Id, DictionaryId = null,
             WordIndex = 0, BitIndex = 0, Meaning = "Old common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = device.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Device specific"
+            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Dictionary specific"
         });
 
         // Sync common: replace
@@ -488,47 +488,47 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
 
-        // Device-specific should be untouched
+        // Dictionary-specific should be untouched
         var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
-        var common = all.Where(r => r.DeviceId == null).ToList();
-        var deviceSpecific = all.Where(r => r.DeviceId == device.Id).ToList();
+        var common = all.Where(r => r.DictionaryId == null).ToList();
+        var dictSpecific = all.Where(r => r.DictionaryId == dictionary.Id).ToList();
 
         Assert.Single(common);
         Assert.Equal("New common", common[0].Meaning);
-        Assert.Single(deviceSpecific);
-        Assert.Equal("Device specific", deviceSpecific[0].Meaning);
+        Assert.Single(dictSpecific);
+        Assert.Equal("Dictionary specific", dictSpecific[0].Meaning);
     }
 
     [Fact]
-    public async Task SameVariableSameBit_DifferentDevices_BothPersist()
+    public async Task SameVariableSameBit_DifferentDictionaries_BothPersist()
     {
-        var device1 = new DeviceEntity { Name = "Device1", MachineCode = 50 };
-        var device2 = new DeviceEntity { Name = "Device2", MachineCode = 51 };
-        Context.Devices.AddRange(device1, device2);
+        var dict1 = new DictionaryEntity { Name = "Dict1", IsStandard = false };
+        var dict2 = new DictionaryEntity { Name = "Dict2", IsStandard = false };
+        Context.Dictionaries.AddRange(dict1, dict2);
         await Context.SaveChangesAsync();
 
-        // Common, Device1, Device2 — all word0 bit0 but different DeviceId
+        // Common, Dict1, Dict2 — all word0 bit0 but different DictionaryId
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = null,
+            VariableId = _testVariable.Id, DictionaryId = null,
             WordIndex = 0, BitIndex = 0, Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = device1.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Device1 override"
+            VariableId = _testVariable.Id, DictionaryId = dict1.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Dict1 override"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DeviceId = device2.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Device2 override"
+            VariableId = _testVariable.Id, DictionaryId = dict2.Id,
+            WordIndex = 0, BitIndex = 0, Meaning = "Dict2 override"
         });
 
         var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         Assert.Equal(3, all.Count);
-        Assert.Contains(all, r => r.Meaning == "Common" && r.DeviceId == null);
-        Assert.Contains(all, r => r.Meaning == "Device1 override" && r.DeviceId == device1.Id);
-        Assert.Contains(all, r => r.Meaning == "Device2 override" && r.DeviceId == device2.Id);
+        Assert.Contains(all, r => r.Meaning == "Common" && r.DictionaryId == null);
+        Assert.Contains(all, r => r.Meaning == "Dict1 override" && r.DictionaryId == dict1.Id);
+        Assert.Contains(all, r => r.Meaning == "Dict2 override" && r.DictionaryId == dict2.Id);
     }
 }

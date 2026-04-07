@@ -272,17 +272,6 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddGUI_RegistersDeviceVariablesViewModel()
-    {
-        // Act
-        var provider = _services.BuildServiceProvider();
-        var viewModel = provider.GetService<DeviceVariablesViewModel>();
-
-        // Assert
-        Assert.NotNull(viewModel);
-    }
-
-    [Fact]
     public void AddGUI_RegistersDeviceEditViewModel()
     {
         var provider = _services.BuildServiceProvider();
