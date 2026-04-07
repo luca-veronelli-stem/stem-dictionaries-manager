@@ -8,13 +8,13 @@
 
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
-| [Core](./Core/ISSUES.md) | 4 | 4 | 8 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 3 | 6 | 9 |
+| [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 5 | 7 | 12 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 6 | 9 |
 | [Tests](./Tests/ISSUES.md) | 2 | 8 | 10 |
 | **Trasversali** | **4** | **2** | **6** |
-| **Totale** | **21** | **33** | **54** |
+| **Totale** | **19** | **35** | **54** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 1 | 5% |
 | **Media** | 1 | 5% |
-| **Bassa** | 19 | 90% |
-| **Totale** | **21** | 100% |
+| **Bassa** | 17 | 89% |
+| **Totale** | **19** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        █░░░░░░░░░░░░░░░░░░░  1  (T-006)
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ███████████████████░ 19
+Bassa:       █████████████████░░░ 17
 ```
 
 ---
@@ -351,11 +351,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 ## Issue per Componente
 
-### Core (4 issue aperte, 4 risolte)
+### Core (3 issue aperte, 5 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **CORE-008** | **Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)** | **Alta** | **Refactoring** |
+| ~~CORE-008~~ | ~~Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~CORE-001~~ | ~~AuditEntityType contiene "Device" non esistente~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-007~~ | ~~Refactoring Core models per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
@@ -364,11 +364,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
-### Infrastructure (3 issue aperte, 6 risolte)
+### Infrastructure (2 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **INFRA-009** | **Entity + Repository + Migration per Domain v7 (T-006)** | **Alta** | **Refactoring** |
+| ~~INFRA-009~~ | ~~Entity + Repository + Migration per Domain v7 (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-008~~ | ~~Refactoring Infrastructure per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-007~~ | ~~DatabaseSeeder.CreateBoard usa boardTypeId~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
@@ -430,8 +430,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Status |
 |---|-----|------------|--------|--------|
-| 1 | CORE-008 | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ⬜ Da fare |
-| 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | ⬜ Da fare |
+| 1 | CORE-008 | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ✅ Risolto |
+| 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | ✅ Risolto |
 | 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | ⬜ Da fare |
 | 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ⬜ Da fare |
 | 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | ⬜ Da fare |
@@ -546,7 +546,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)** — StandardVariableOverride per-dizionario. Rimozione VariableDeviceState, BitInterpretation.DeviceId→DictionaryId, eredità automatica variabili standard. Sub-issue: CORE-008, INFRA-009, SVC-012, GUI-009, TEST-010. 21 aperte, 33 risolte. |
+| 2026-04-07 | ✅ **CORE-008 + INFRA-009 risolte** — StandardVariableOverride entity+repository+migration creati. VariableDeviceState eliminato. BitInterpretation.DeviceId→DictionaryId. Migration reset. 19 aperte, 35 risolte. |
+| 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)**
 | 2026-03-25 | ✅ **SVC-010 risolta** — Eliminato Class1.cs placeholder. 13 aperte, 33 risolte. |
 | 2026-03-25 | ⚪ **SVC-003 Wontfix**
 | 2026-03-25 | ✅ **INFRA-003 risolta**
