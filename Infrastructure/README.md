@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
