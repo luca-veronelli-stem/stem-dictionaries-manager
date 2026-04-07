@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -13,11 +13,12 @@ Il progetto **GUI.Windows** è l'interfaccia utente desktop per Stem.Dictionarie
 - **Dependency Injection** - Microsoft.Extensions.Hosting per DI/configurazione
 - **Navigation Service** - Navigazione tra view con history, parametri e ViewModel caching
 - **Clean Architecture** - UI disaccoppiata da business logic e persistence
-- **Stili Riutilizzabili** - Dark theme VS Code-style con stili globali
+- **Stili Riutilizzabili** - Dark theme STEM con stili globali e palette colori corporate
 - **Input Validation** - Filtri hex/numerico con converter nullable
 - **Ricerca Client-Side** - Filtro istantaneo in tutte le liste (case-insensitive)
 - **Status Bar Globale** - Feedback visivo colorato per ogni operazione (salvataggio, errori, etc.)
 - **Unsaved Changes Guard** - Warning su navigazione indietro con modifiche non salvate
+- **Override Variabili Standard** - Override IsEnabled/Description per-dizionario via VariableEdit
 
 L'applicazione si avvia con login integrato nella MainWindow, poi applica migrations e popola dati demo se DB vuoto.
 
@@ -28,20 +29,23 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Login Integrato** | ✅ | LoginView nella MainWindow, eventi LoginConfirmed/LoggedOut |
-| **Dark Theme** | ✅ | VS Code-style con sidebar, header, DataGrid dark |
-| **MVVM Pattern** | ✅ | 15 ViewModels con CommunityToolkit.Mvvm |
-| **Views** | ✅ | 15 Views XAML complete (incl. LoginView, DarkDialog, DeviceEditView) |
+| **Dark Theme STEM** | ✅ | Palette corporate (#004682 accent, #98D801 success, #E40032 error) |
+| **MVVM Pattern** | ✅ | 14 ViewModels con CommunityToolkit.Mvvm |
+| **Views** | ✅ | 14 Views XAML complete (incl. LoginView, DarkDialog, DeviceEditView) |
 | **Converters** | ✅ | 7 converter (Bool, Inverse, Null, NullableInt, NullableDouble, SeverityToColor, BoolToErrorBrush) |
 | **Stili Globali** | ✅ | Sidebar, Toolbar, Watermark, DataGrid, Accent, HexAddress |
 | **Navigation Service** | ✅ | History, parametri, ViewModel caching, eventi |
-| **Dialog Service** | ✅ | Conferme, messaggi, errori |
+| **Dialog Service** | ✅ | Conferme, messaggi, errori (DarkDialog custom) |
 | **Message Service** | ✅ | Status bar globale con colori per severity e auto-hide |
 | **IEditableViewModel** | ✅ | Guard per unsaved changes su Indietro e Annulla |
 | **DI Container** | ✅ | Generic Host pattern |
 | **Auto-Migration** | ✅ | EF Core migrations all'avvio |
-| **Database Seeder** | ✅ | Dati demo per sviluppo |
-| **BitInterpretations** | ✅ | Gestione bit per variabili Bitmapped (WordGroups, max 16 bit/word) |
+| **Database Seeder** | ✅ | Dati demo (Standard + Pulsantiere + 11 device + board) |
+| **BitInterpretations** | ✅ | Gestione bit per variabili Bitmapped (WordGroups, WordSize 8/16/32) |
 | **CRUD Dispositivi** | ✅ | DeviceEditView per creazione/modifica dispositivi (nome, MachineCode, descrizione) |
+| **Standard Variables** | ✅ | Sezione variabili standard ereditate in DictionaryEdit (read-only) |
+| **Override Mode** | ✅ | VariableEdit in modalità override: IsEnabled + Description + BitInterp editabili |
+| **Comandi per Device** | ✅ | DeviceCommandsView per stato attivo/disattivo comandi per device |
 
 ---
 
@@ -101,36 +105,37 @@ GUI.Windows/
 ├── ViewModels/
 │   ├── MainViewModel.cs           # Shell, navigazione, status bar, unsaved changes guard
 │   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
-│   ├── DeviceListViewModel.cs     # Lista dispositivi
-│   ├── DeviceEditViewModel.cs     # Crea/modifica dispositivo (Name, MachineCode, Description)
-│   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari associati
+│   ├── DeviceListViewModel.cs     # Lista dispositivi con ricerca
+│   ├── DeviceEditViewModel.cs     # Crea/modifica/elimina dispositivo
+│   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari + schede associate
 │   ├── DictionaryListViewModel.cs # Lista dizionari (double-click per edit)
-│   ├── DictionaryEditViewModel.cs # Form dizionario + lista variabili integrata
-│   ├── VariableEditViewModel.cs   # Crea/modifica variabile (AddressHigh computed da Dictionary.IsStandard)
+│   ├── DictionaryEditViewModel.cs # Form dizionario + variabili specifiche + variabili standard
+│   ├── VariableEditViewModel.cs   # Crea/modifica variabile o override standard
 │   ├── DeviceCommandsViewModel.cs # Stato comandi per device (checkbox Attivo, salvataggio bulk)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
 │   ├── CommandEditViewModel.cs    # Crea/modifica comando + delete (CodeHigh computed)
-│   ├── BoardEditViewModel.cs      # Crea/modifica scheda (FirmwareType, DictionaryId?)
+│   ├── BoardEditViewModel.cs      # Crea/modifica/elimina scheda (FirmwareType, DictionaryId?)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
-│   ├── SettingsViewModel.cs       # Impostazioni app (stub)
-│   ├── WordBitGroup.cs            # Gruppo bit per word (max 16, Bitmapped)
+│   ├── SettingsViewModel.cs       # Impostazioni app (stub, non in sidebar v1)
+│   ├── WordBitGroup.cs            # Gruppo bit per word (max WordSize bit, Bitmapped)
 │   ├── BitInterpretationItem.cs   # Item singolo bit (WordIndex, BitIndex, Meaning)
 │   ├── CommandParameterItem.cs    # Item parametro comando (Size, Description)
-│   └── CommandDeviceItem.cs       # Item stato comando per device
+│   ├── CommandDeviceItem.cs       # Item stato comando per device
+│   └── StandardVariableItem.cs    # Item variabile standard ereditata (record read-only)
 ├── Views/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
-│   ├── DeviceListView.xaml        # UI lista dispositivi
-│   ├── DeviceDetailView.xaml      # UI dettaglio device
-│   ├── DeviceEditView.xaml        # UI form dispositivo (nuovo/modifica)
+│   ├── DeviceListView.xaml        # UI lista dispositivi con ricerca
+│   ├── DeviceDetailView.xaml      # UI dettaglio device: dizionari + schede
+│   ├── DeviceEditView.xaml        # UI form dispositivo (nuovo/modifica/elimina)
 │   ├── DeviceCommandsView.xaml    # UI stato comandi per device
 │   ├── DictionaryListView.xaml    # UI lista dizionari (double-click → edit)
-│   ├── DictionaryEditView.xaml    # UI form dizionario + lista variabili integrata
-│   ├── VariableEditView.xaml      # UI edit variabile + DeviceStates
+│   ├── DictionaryEditView.xaml    # UI form dizionario + 2 sezioni variabili (standard + specifiche)
+│   ├── VariableEditView.xaml      # UI edit variabile o override standard (IsEnabled+Description+Bit)
 │   ├── CommandListView.xaml       # UI lista comandi (double-click → edit)
 │   ├── CommandEditView.xaml       # UI edit comando + delete
-│   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, Dizionario, IsPrimary)
-│   ├── UserListView.xaml          # UI lista utenti
-│   ├── SettingsView.xaml          # UI impostazioni
+│   ├── BoardEditView.xaml         # UI edit scheda (FirmwareType, Dizionario, IsPrimary, elimina)
+│   ├── UserListView.xaml          # UI lista utenti (non in sidebar v1)
+│   ├── SettingsView.xaml          # UI impostazioni (non in sidebar v1)
 │   └── DarkDialog.xaml            # Dialog modale dark theme custom
 ├── Converters/
 │   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
@@ -279,7 +284,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 7 risolte
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 9 risolte
 
 ---
 
