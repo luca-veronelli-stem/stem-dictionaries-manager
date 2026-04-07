@@ -46,6 +46,25 @@ public class BoardService : IBoardService
                 throw new InvalidOperationException(
                     $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
+        else
+        {
+            // Auto-assign: se altre board con lo stesso FirmwareType hanno un dizionario
+            // condiviso (es. Pulsantiere), lo eredita automaticamente.
+            var allBoards = await _boardRepository.GetAllAsync(ct);
+            var sharedDictId = allBoards
+                .Where(b => b.FirmwareType == board.FirmwareType && b.DictionaryId.HasValue)
+                .Select(b => b.DictionaryId!.Value)
+                .GroupBy(id => id)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            if (sharedDictId > 0)
+                board = new Board(
+                    board.DeviceId, board.Name, board.FirmwareType, board.BoardNumber,
+                    board.PartNumber, board.IsPrimary, dictionaryId: sharedDictId,
+                    board.MachineCode);
+        }
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
