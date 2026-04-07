@@ -1,5 +1,6 @@
 using Core.Enums;
 using Infrastructure;
+using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Tests.Integration.E2E;
@@ -408,5 +409,289 @@ public class DatabaseSeederTests : IntegrationTestBase
 
         Assert.False(modelloOverride.IsEnabled);
         Assert.False(matricolaOverride.IsEnabled);
+    }
+
+    // === Dizionario HMI Spyke ===
+
+    [Fact]
+    public async Task SeedAsync_CreatesHmiSpykeDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "HMI Spyke");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeDictionary_Has34Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var variables = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(34, variables.Count);
+        Assert.All(variables, v => Assert.Equal(0x80, v.AddressHigh));
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_BoardHmiLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var spyke = await Context.Devices
+            .FirstAsync(d => d.Name == "Spyke");
+
+        // Board "HMI" (FW=9) di Spyke deve puntare al dizionario
+        var hmiBoard = await Context.Boards
+            .FirstAsync(b => b.DeviceId == spyke.Id && b.FirmwareType == 9);
+
+        Assert.Equal(dict.Id, hmiBoard.DictionaryId);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_StatoPulsanti_IsReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var stato = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x00);
+
+        Assert.Equal("Stato pulsanti", stato.Name);
+        Assert.Equal(AccessMode.ReadWrite, stato.AccessMode);
+        Assert.Equal(DataTypeKind.UInt16, stato.DataTypeKind);
+        Assert.Equal(0, stato.MinValue);
+        Assert.Equal(3, stato.MaxValue);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_FloatVariables_AreReadOnly()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+
+        // Angoli X/Y/Z (0x02-0x04) + Accelerazioni (0x05-0x07) + Touch (0x08-0x09)
+        var floatVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x02 && v.AddressLow <= 0x09)
+            .ToListAsync();
+
+        Assert.Equal(8, floatVars.Count);
+        Assert.All(floatVars, v =>
+        {
+            Assert.Equal(DataTypeKind.Float, v.DataTypeKind);
+            Assert.Equal(AccessMode.ReadOnly, v.AccessMode);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_OffsetAngles_AreReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+
+        // Angolo X/Y/Z offset (0x1D-0x1F)
+        var offsets = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x1D && v.AddressLow <= 0x1F)
+            .ToListAsync();
+
+        Assert.Equal(3, offsets.Count);
+        Assert.All(offsets, v =>
+        {
+            Assert.Equal(DataTypeKind.Float, v.DataTypeKind);
+            Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_FirmwareHmi_HasFormat()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var fwHmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x17);
+
+        Assert.Equal("Firmware HMI", fwHmi.Name);
+        Assert.Equal(DataTypeKind.UInt16, fwHmi.DataTypeKind);
+        Assert.Equal("255.255", fwHmi.Format);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_SensoreSherpa_ReadOnlyWithDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var sherpa = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x0C);
+
+        Assert.Equal("Sensore Sherpa", sherpa.Name);
+        Assert.Equal(DataTypeKind.Bool, sherpa.DataTypeKind);
+        Assert.Equal(AccessMode.ReadOnly, sherpa.AccessMode);
+        Assert.Equal("1 = Agganciato", sherpa.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpyke_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => new { v.AddressHigh, v.AddressLow })
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    // === Override HMI Spyke ===
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeOverrides_Disables3Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == hmiDict.Id && !o.IsEnabled)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x08 Temperatura, 0x09 Secondi parziale, 0x0A Secondi totale
+        Assert.Equal(3, overrides.Count);
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow).OrderBy(a => a).ToList();
+        Assert.Equal([0x08, 0x09, 0x0A], addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeOverrides_CicliHaveDescriptions()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == hmiDict.Id && o.Description != null)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 4 cicli (0x0B-0x0E) con descrizione specifica
+        Assert.Equal(4, overrides.Count);
+
+        var cicliParziale = overrides
+            .First(o => o.StandardVariable.AddressLow == 0x0B);
+        Assert.True(cicliParziale.IsEnabled);
+        Assert.Contains("agganci al 10G resettabile", cicliParziale.Description);
+
+        var cicliTotale = overrides
+            .First(o => o.StandardVariable.AddressLow == 0x0C);
+        Assert.Contains("non resettabile", cicliTotale.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeOverrides_TotalCount7()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == hmiDict.Id)
+            .ToListAsync();
+
+        // 3 disabilitati + 4 con descrizione = 7
+        Assert.Equal(7, overrides.Count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeAllarmi_Word0_Has5Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x06);
+
+        var word0 = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == allarmi.Id
+                && bi.DictionaryId == hmiDict.Id
+                && bi.WordIndex == 0)
+            .OrderBy(bi => bi.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(5, word0.Count);
+        Assert.Equal("Errore CAN", word0[0].Meaning);
+        Assert.Equal("Tensione troppo bassa", word0[1].Meaning);
+        Assert.Equal("Errore touch", word0[2].Meaning);
+        Assert.Contains("10G", word0[3].Meaning);
+        Assert.Contains("Sovraccarico celle", word0[4].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeAllarmi_Word1_Has9Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x06);
+
+        var word1 = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == allarmi.Id
+                && bi.DictionaryId == hmiDict.Id
+                && bi.WordIndex == 1)
+            .OrderBy(bi => bi.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(9, word1.Count);
+        Assert.Equal("Tensione bassa", word1[0].Meaning);
+        Assert.Contains("NFC non presente", word1[1].Meaning);
+        Assert.Contains("Incoerenza leva/pulsante in scarico", word1[8].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpykeAllarmi_ArePerDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var hmiDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spyke");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x06);
+
+        var allBits = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == allarmi.Id
+                && bi.DictionaryId == hmiDict.Id)
+            .ToListAsync();
+
+        // 5 word0 + 9 word1 = 14 total, tutti per-dizionario
+        Assert.Equal(14, allBits.Count);
+        Assert.All(allBits, bi => Assert.Equal(hmiDict.Id, bi.DictionaryId));
     }
 }

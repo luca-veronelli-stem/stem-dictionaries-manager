@@ -262,9 +262,9 @@ public static class DatabaseSeeder
             Brd(4, devices[3].Id, "Azionamento",     6, 1, true),
 
             // Spyke (MC=5)
-            Brd(5, devices[4].Id, "Display",         8, 1, true),
+            Brd(5, devices[4].Id, "HMI",             9, 1, true),
+            Brd(5, devices[4].Id, "Display",         8, 1, false),
             Brd(5, devices[4].Id, "Gateway",         7, 1, false),
-            Brd(5, devices[4].Id, "HMI",             9, 1, false),
 
             // Spark (MC=7)
             Brd(7, devices[5].Id, "HMI",            11, 1, true),
@@ -314,6 +314,14 @@ public static class DatabaseSeeder
         // === Override variabili standard per-dizionario ===
         await SeedPulsantiereStandardOverridesAsync(
             context, pulsantiereDictionary, standardVariables);
+
+        // === Dizionario HMI Spyke (da hmi_spyke.CSV) ===
+        var hmiSpykeDictionary = await SeedHmiSpykeDictionaryAsync(
+            context, boards, devices[4]);
+
+        // === Override variabili standard per HMI Spyke ===
+        await SeedHmiSpykeOverridesAsync(
+            context, hmiSpykeDictionary, standardVariables);
     }
 
     /// <summary>
@@ -609,6 +617,306 @@ public static class DatabaseSeeder
             .ToArray();
 
         context.StandardVariableOverrides.AddRange(overrides);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario HMI Spyke con le variabili specifiche della scheda HMI.
+    /// Fonte: Docs/Dictionaries/hmi_spyke.CSV
+    /// Board: Spyke "HMI" (FW=9, MC=5, BoardNumber=1).
+    /// 34 variabili device-specific (0x80xx).
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedHmiSpykeDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards, DeviceEntity spykeDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "HMI Spyke",
+            Description = "Dizionario variabili logiche scheda HMI Spyke",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 — Stato pulsanti
+            Var(id, "Stato pulsanti", 0x80, 0x00,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 3,
+                description: "0 = Nessun pulsante\n1 = Pulsante UP\n"
+                    + "2 = Pulsante DOWN\n3 = Entrambi"),
+
+            // 0x8001 — Sensore leva
+            Var(id, "Sensore leva", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Leva tirata"),
+
+            // 0x8002 — Angolo X
+            Var(id, "Angolo X", 0x80, 0x02,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8003 — Angolo Y
+            Var(id, "Angolo Y", 0x80, 0x03,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8004 — Angolo Z
+            Var(id, "Angolo Z", 0x80, 0x04,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8005 — Accelerazione X
+            Var(id, "Accelerazione X", 0x80, 0x05,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8006 — Accelerazione Y
+            Var(id, "Accelerazione Y", 0x80, 0x06,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8007 — Accelerazione Z
+            Var(id, "Accelerazione Z", 0x80, 0x07,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8008 — Coordinata X touch
+            Var(id, "Coordinata X touch", 0x80, 0x08,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8009 — Coordinata Y touch
+            Var(id, "Coordinata Y touch", 0x80, 0x09,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x800A — Gancio 10g
+            Var(id, "Gancio 10g", 0x80, 0x0A,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800B — Gancio Barella
+            Var(id, "Gancio Barella", 0x80, 0x0B,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800C — Sensore Sherpa
+            Var(id, "Sensore Sherpa", 0x80, 0x0C,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800D — Tipo Barella
+            Var(id, "Tipo Barella", 0x80, 0x0D,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = Emergency stretcher\n1 = Bio stretcher\n"
+                    + "2 = Bariatric stretcher\n3 = Incubator"),
+
+            // 0x800E — Stato gateway
+            Var(id, "Stato gateway", 0x80, 0x0E,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = not connected\n1 = connected"),
+
+            // 0x800F — RSSI LTE
+            Var(id, "RSSI LTE", 0x80, 0x0F,
+                DataTypeKind.Int8, "Int8", AccessMode.ReadOnly),
+
+            // 0x8010 — RSSI BLE
+            Var(id, "RSSI BLE", 0x80, 0x10,
+                DataTypeKind.Int8, "Int8", AccessMode.ReadOnly),
+
+            // 0x8011 — Stato connessione Sherpa
+            Var(id, "Stato connessione Sherpa", 0x80, 0x11,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x8012 — Stato automa principale
+            Var(id, "Stato automa principale", 0x80, 0x12,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = hooked 10g\n1 = unhooked 10g\n"
+                    + "2 = idle out\n3 = ongoing out\n"
+                    + "4 = idle mode in\n5 = ongoing in\n6 = extracted"),
+
+            // 0x8013 — Tensione batteria mV
+            Var(id, "Tensione batteria mV", 0x80, 0x13,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadOnly),
+
+            // 0x8014 — Stato ricarica
+            Var(id, "Stato ricarica", 0x80, 0x14,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly,
+                description: "1 = in ricarica"),
+
+            // 0x8015 — Livello batteria soglie
+            Var(id, "Livello batteria soglie", 0x80, 0x15,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0=100%\n1=80%\n2=60%\n3=40%\n"
+                    + "4=20%\n5=warning\n6=alarm"),
+
+            // 0x8016 — Tempo unix
+            Var(id, "Tempo unix", 0x80, 0x16,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadOnly),
+
+            // 0x8017 — Firmware HMI
+            Var(id, "Firmware HMI", 0x80, 0x17,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255"),
+
+            // 0x8018 — Abilitazione programmazione Sherpa
+            Var(id, "Abilitazione programmazione Sherpa", 0x80, 0x18,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x8019 — Gateway loading file
+            Var(id, "Gateway loading file", 0x80, 0x19,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x801A — Gateway loading file size
+            Var(id, "Gateway loading file size", 0x80, 0x1A,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadOnly),
+
+            // 0x801B — Gateway loading file transfered
+            Var(id, "Gateway loading file transfered", 0x80, 0x1B,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadOnly),
+
+            // 0x801C — Gateway firmware version
+            Var(id, "Gateway firmware version", 0x80, 0x1C,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, format: "255.255"),
+
+            // 0x801D — Angolo X offset
+            Var(id, "Angolo X offset", 0x80, 0x1D,
+                DataTypeKind.Float, "Float", AccessMode.ReadWrite),
+
+            // 0x801E — Angolo Y offset
+            Var(id, "Angolo Y offset", 0x80, 0x1E,
+                DataTypeKind.Float, "Float", AccessMode.ReadWrite),
+
+            // 0x801F — Angolo Z offset
+            Var(id, "Angolo Z offset", 0x80, 0x1F,
+                DataTypeKind.Float, "Float", AccessMode.ReadWrite),
+
+            // 0x8020 — Angolo theta
+            Var(id, "Angolo theta", 0x80, 0x20,
+                DataTypeKind.Float, "Float", AccessMode.ReadOnly),
+
+            // 0x8021 — Azzeramento posizione angoli
+            Var(id, "Azzeramento posizione angoli", 0x80, 0x21,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadWrite),
+        };
+        context.Variables.AddRange(variables);
+
+        // Link board HMI (FW=9) di Spyke
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 9)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per il dizionario HMI Spyke.
+    /// - Disabilita: Temperatura scheda (0x08), Secondi motore parziale (0x09), totale (0x0A).
+    /// - Descrizione: Cicli 0x0B-0x0E con testo specifico dal CSV.
+    /// - BitInterpretation per-dizionario: Allarmi (0x06) Word 0 + Word 1.
+    /// </summary>
+    private static async Task SeedHmiSpykeOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity hmiSpykeDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = hmiSpykeDictionary.Id;
+
+        // === Override IsEnabled ===
+        // Disabilita Temperatura scheda (0x08), Secondi motore parziale/totale (0x09, 0x0A)
+        var disabledOverrides = standardVariables
+            .Where(v => v.AddressLow is 0x08 or 0x09 or 0x0A)
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+
+        // === Override Descrizione Cicli ===
+        var cicliDescriptions = new Dictionary<byte, string>
+        {
+            [0x0B] = "Numero agganci al 10G resettabile "
+                + "(il segnale arriva dal Gateway ma l'elaborazione "
+                + "come significato e funzione avviene qui)",
+            [0x0C] = "Numero agganci al 10G non resettabile",
+            [0x0D] = "Numero agganci al 10G resettabile "
+                + "dopo ciclo Sherpa?",
+            [0x0E] = "Numero agganci al 10G non resettabile "
+                + "dopo ciclo Sherpa?",
+        };
+        var cicliOverrides = standardVariables
+            .Where(v => cicliDescriptions.ContainsKey(v.AddressLow))
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = true,
+                Description = cicliDescriptions[v.AddressLow],
+            });
+
+        context.StandardVariableOverrides.AddRange(
+            disabledOverrides.Concat(cicliOverrides));
+        await context.SaveChangesAsync();
+
+        // === BitInterpretation per-dizionario per Allarmi (0x06) ===
+        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+        var bits = new BitInterpretationEntity[]
+        {
+            // Word 0: Allarmi
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0, Meaning = "Errore CAN" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1, Meaning = "Tensione troppo bassa" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2, Meaning = "Errore touch" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Errore sensore 10G (se vedo Vricarica senza vedere 10G)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Sovraccarico celle (quando sono a tensione batteria "
+                    + "massima ma ho ancora corrente)" },
+
+            // Word 1: Avvisi
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 0, Meaning = "Tensione bassa" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 1,
+                Meaning = "NFC non presente (se barellino agganciato)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 2,
+                Meaning = "NFC non riconosciuto (se barellino agganciato)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 3,
+                Meaning = "Barellino non agganciato (se NFC presente)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 4,
+                Meaning = "Mancanza di Vricarica con 10G agganciato" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 5,
+                Meaning = "Celle sbilanciate (quando sono in ricarica "
+                    + "ma non ho corrente di ricarica)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 6,
+                Meaning = "Perdita di stabilità della barella (da giroscopio)" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 7,
+                Meaning = "Incoerenza leva/pulsante in carico" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 8,
+                Meaning = "Incoerenza leva/pulsante in scarico" },
+        };
+        context.Set<BitInterpretationEntity>().AddRange(bits);
         await context.SaveChangesAsync();
     }
 
