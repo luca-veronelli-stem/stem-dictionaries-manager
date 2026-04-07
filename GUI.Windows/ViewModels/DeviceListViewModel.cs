@@ -16,13 +16,18 @@ public partial class DeviceItem : ObservableObject
     public string Name { get; }
     public string Description { get; }
     public int MachineCode { get; }
+    public int BoardCount { get; }
+    public int DictionaryCount { get; }
 
-    public DeviceItem(int deviceId, string name, string description, int machineCode)
+    public DeviceItem(int deviceId, string name, string description, int machineCode,
+        int boardCount = 0, int dictionaryCount = 0)
     {
         DeviceId = deviceId;
         Name = name;
         Description = description;
         MachineCode = machineCode;
+        BoardCount = boardCount;
+        DictionaryCount = dictionaryCount;
     }
 }
 
@@ -34,6 +39,7 @@ public partial class DeviceListViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
     private readonly IDeviceService _deviceService;
+    private readonly IBoardService _boardService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
 
@@ -54,11 +60,13 @@ public partial class DeviceListViewModel : ObservableObject
     public DeviceListViewModel(
         INavigationService navigationService,
         IDeviceService deviceService,
+        IBoardService boardService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _navigationService = navigationService;
         _deviceService = deviceService;
+        _boardService = boardService;
         _dialogService = dialogService;
         _messageService = messageService;
     }
@@ -69,10 +77,30 @@ public partial class DeviceListViewModel : ObservableObject
         {
             IsLoading = true;
             var devices = await _deviceService.GetAllAsync();
+
+            // Carica tutte le board per derivare conteggi per device
+            var boardsByDevice = new Dictionary<int, List<Core.Models.Board>>();
+            foreach (var device in devices)
+            {
+                var boards = await _boardService.GetByDeviceIdAsync(device.Id);
+                boardsByDevice[device.Id] = boards.ToList();
+            }
+
             _allDevices = [.. devices
                 .OrderBy(d => d.MachineCode)
-                .Select(d => new DeviceItem(
-                    d.Id, d.Name, d.Description ?? string.Empty, d.MachineCode))];
+                .Select(d =>
+                {
+                    var boards = boardsByDevice.GetValueOrDefault(d.Id, []);
+                    var boardCount = boards.Count;
+                    var dictionaryCount = boards
+                        .Where(b => b.DictionaryId.HasValue)
+                        .Select(b => b.DictionaryId!.Value)
+                        .Distinct()
+                        .Count();
+                    return new DeviceItem(
+                        d.Id, d.Name, d.Description ?? string.Empty, d.MachineCode,
+                        boardCount, dictionaryCount);
+                })];
             ApplyFilter();
         }
         catch (Exception ex)

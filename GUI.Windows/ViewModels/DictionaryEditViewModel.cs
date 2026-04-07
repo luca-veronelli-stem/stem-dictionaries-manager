@@ -83,6 +83,20 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [ObservableProperty]
     private string _variableSearchText = string.Empty;
 
+    // === Sezione variabili standard (collapsible, read-only v1) ===
+
+    [ObservableProperty]
+    private List<VariableListItem> _standardVariables = [];
+
+    [ObservableProperty]
+    private bool _isStandardExpanded;
+
+    /// <summary>
+    /// True se la sezione standard collapsible deve essere visibile.
+    /// Visibile solo per dizionari non-standard già esistenti.
+    /// </summary>
+    public bool ShowStandardSection => !IsStandard && !IsNew;
+
     partial void OnVariableSearchTextChanged(string value) => ApplyVariableFilter();
 
     public DictionaryEditViewModel(
@@ -127,6 +141,10 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 IsStandard = dictionary.IsStandard;
 
                 await LoadVariablesAsync();
+
+                // Per dizionari non-standard, carica le variabili standard come sezione collapsible
+                if (!dictionary.IsStandard)
+                    await LoadStandardVariablesAsync();
             }
 
             // Determina se la checkbox Standard è visibile:
@@ -139,6 +157,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
             OnPropertyChanged(nameof(IsNew));
             OnPropertyChanged(nameof(FormTitle));
+            OnPropertyChanged(nameof(ShowStandardSection));
         }
         catch (Exception ex)
         {
@@ -186,6 +205,35 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         catch (Exception ex)
         {
             _messageService.Show($"Errore caricamento variabili: {ex.Message}", MessageSeverity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Carica le variabili del dizionario standard per la sezione collapsible.
+    /// </summary>
+    private async Task LoadStandardVariablesAsync()
+    {
+        try
+        {
+            var standardDict = await _dictionaryService.GetStandardDictionaryAsync();
+            if (standardDict is null) return;
+
+            StandardVariables = [.. standardDict.Variables
+                .Select(v => new VariableListItem
+                {
+                    Id = v.Id,
+                    Name = v.Name,
+                    Address = $"0x{v.FullAddress:X4}",
+                    DataType = v.DataTypeRaw,
+                    AccessMode = v.AccessMode.ToString(),
+                    IsEnabled = v.IsEnabled,
+                    Description = v.Description
+                })
+                .OrderBy(v => v.Address)];
+        }
+        catch (Exception ex)
+        {
+            _messageService.Show($"Errore caricamento variabili standard: {ex.Message}", MessageSeverity.Error);
         }
     }
 

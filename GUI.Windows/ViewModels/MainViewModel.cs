@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
 
@@ -245,7 +246,7 @@ public partial class MainViewModel : ObservableObject
             ViewType.DeviceEdit => "Modifica Dispositivo",
             ViewType.DeviceCommands => "Comandi Dispositivo",
             ViewType.DictionaryList => "Dizionari",
-            ViewType.DictionaryEdit => "Modifica Dizionario",
+            ViewType.DictionaryEdit => "Dizionario",
             ViewType.VariableEdit => "Modifica Variabile",
             ViewType.CommandList => "Comandi",
             ViewType.CommandEdit => "Modifica Comando",
@@ -263,8 +264,33 @@ public partial class MainViewModel : ObservableObject
         _navigationService.NavigateTo(ViewType.DeviceList);
 
     [RelayCommand]
-    private void NavigateToDictionaries() =>
-        _navigationService.NavigateTo(ViewType.DictionaryList);
+    private async Task NavigateToStandardAsync()
+    {
+        try
+        {
+            var dictionaryService = _serviceProvider.GetService(typeof(IDictionaryService))
+                as IDictionaryService;
+            var standard = await dictionaryService!.GetStandardDictionaryAsync();
+            if (standard is null)
+            {
+                _messageService.Show(
+                    "Nessun dizionario standard configurato.",
+                    MessageSeverity.Warning, autoHideSeconds: 0);
+                return;
+            }
+
+            _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
+            {
+                EntityId = standard.Id
+            });
+        }
+        catch (Exception ex)
+        {
+            _messageService.Show(
+                $"Errore: {ex.Message}",
+                MessageSeverity.Error, autoHideSeconds: 0);
+        }
+    }
 
     [RelayCommand]
     private void NavigateToCommands() =>
