@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -20,7 +20,7 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~721 test per Core + Services/Mapping + GUI (15 ViewModels) |
+| **Unit Tests** | ✅ | ~721 test per Core + Services/Mapping + GUI (14 ViewModels) |
 | **Integration Tests** | ✅ | ~274 test per Infrastructure + Services + GUI |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
@@ -95,8 +95,7 @@ Tests/
 │   │   ├── DeviceTests.cs            # 10 test (Name, MachineCode, Description)
 │   │   ├── DictionaryTests.cs        # 16 test (IsStandard, Restore validation)
 │   │   ├── UserTests.cs              # 7 test
-│   │   ├── VariableTests.cs          # 15 test
-│   │   └── VariableDeviceStateTests.cs # ⚠️ 7 test (da rimuovere in T-006)
+│   │   └── VariableTests.cs          # 15 test
 │   ├── Infrastructure/
 │   │   └── DependencyInjectionTests.cs    # 14 test
 │   ├── GUI/                               # Test GUI (solo Windows)
@@ -118,7 +117,6 @@ Tests/
 │   │   │   ├── CommandParameterItemTests.cs      # 7 test
 │   │   │   ├── BoardEditViewModelTests.cs        # 29 test (FirmwareType, DictionaryId?, Cancel, Delete)
 │   │   │   ├── DeviceCommandsViewModelTests.cs   # 19 test (load, save, HasChanges)
-│   │   │   ├── DeviceVariablesViewModelTests.cs  # ⚠️ 22 test (da rimuovere in T-006)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
 │   │   ├── Converters/
@@ -138,8 +136,7 @@ Tests/
 │           ├── DictionaryMapperTests.cs       # 12 test
 │           ├── DeviceMapperTests.cs               # 12 test
 │           ├── BitInterpretationMapperTests.cs    # 10 test
-│           ├── CommandDeviceStateMapperTests.cs   # 11 test
-│           └── VariableDeviceStateMapperTests.cs  # 9 test
+│           └── CommandDeviceStateMapperTests.cs   # 11 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
@@ -153,15 +150,14 @@ Tests/
     │   ├── DictionaryRepositoryTests.cs       # 14 test
     │   ├── UserRepositoryTests.cs             # 9 test
     │   ├── BitInterpretationRepositoryTests.cs    # 13 test
-    │   ├── CommandDeviceStateRepositoryTests.cs   # 13 test
-    │   └── VariableDeviceStateRepositoryTests.cs  # ⚠️ 13 test (da rimuovere in T-006)
+    │   └── CommandDeviceStateRepositoryTests.cs   # 13 test
     ├── Services/
     │   ├── UserServiceTests.cs            # 15 test
     │   ├── DictionaryServiceTests.cs      # 20 test (IsStandard uniqueness)
     │   ├── BoardServiceTests.cs           # 18 test
     │   ├── CommandServiceTests.cs         # 22 test
     │   ├── DeviceServiceTests.cs          # 16 test
-    │   └── VariableServiceTests.cs        # 41 test (DeviceStates BR-009/010/011)
+    │   └── VariableServiceTests.cs        # 47 test (StandardVariableOverride BR-009/010/011)
     ├── E2E/                               # End-to-end workflow tests
     │   ├── AuditTrailTests.cs             # Audit trail workflow
     │   ├── CommandWorkflowTests.cs        # Comandi workflow completo
@@ -174,7 +170,6 @@ Tests/
         ├── DeviceFlowTests.cs            # CRUD dispositivi flow
         ├── DeviceDetailFlowTests.cs      # Dettaglio device flow
         ├── DeviceCommandsFlowTests.cs    # Stato comandi per device flow
-        ├── DeviceVariablesFlowTests.cs   # ⚠️ Stato variabili per device flow (T-006)
         ├── DictionaryEditFlowTests.cs    # Dizionario + variabili flow
         ├── BoardEditFlowTests.cs         # Board edit flow
         ├── BitInterpretationFlowTests.cs # Bitmapped flow
@@ -239,18 +234,18 @@ public class MyRepositoryTests : IntegrationTestBase
 | Area | Metodi Test | Descrizione |
 |------|-------------|-------------|
 | Unit/Enums | 11 | Valori, count, casting |
-| Unit/Models | 97 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DictionaryName, Device, DeviceStates) |
-| Unit/Services/Mapping | 95 | Mapper Entity ↔ Domain (9 mapper incl. DeviceMapper) |
+| Unit/Models | 90 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DictionaryName, Device) |
+| Unit/Services/Mapping | 86 | Mapper Entity ↔ Domain (8 mapper incl. DeviceMapper) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 11 | Registrazione DI services |
-| Unit/GUI/ViewModels | 422 | 16 ViewModels (incl. DeviceEdit, DeviceCommands, DeviceVariables, status bar, unsaved changes) |
+| Unit/GUI/ViewModels | 400 | 14 ViewModels (incl. DeviceEdit, DeviceCommands, status bar, unsaved changes) |
 | Unit/GUI/Converters | 25 | NullableInt/Double + SeverityToColor + BoolToErrorBrush converters |
 | Unit/GUI/Services | 23 | NavigationService (incl. ViewModel caching) |
 | Unit/GUI/DI | 23 | Registrazione ViewModels + UI services |
-| Integration/Infrastructure | 122 | Repository, audit, DB, CRUD scenarios, SyncByVariableId, DeviceRepository |
-| Integration/Services | 132 | Business logic, IsStandard, DeviceStates, DeviceService, smart update |
+| Integration/Infrastructure | 109 | Repository, audit, DB, CRUD scenarios, SyncByVariableId, DeviceRepository |
+| Integration/Services | 132 | Business logic, IsStandard, StandardVariableOverride, DeviceService, smart update |
 | Integration/GUI | 20 | VariableEdit + CommandEdit flow completo |
-| **Totale metodi test** | **~995** | Tutti i target combinati |
+| **Totale metodi test** | **~944** | Tutti i target combinati |
 
 > **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è superiore ai metodi elencati.
 
@@ -291,7 +286,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 2 issue aperte (incl. TEST-010 per T-006), 8 risolte
+→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 9 risolte
 
 ---
 

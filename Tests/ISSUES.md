@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -11,22 +11,22 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 2 |
+| **Alta** | 0 | 3 |
 | **Media** | 0 | 4 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 2  
-**Totale risolte:** 8
+**Totale aperte:** 1  
+**Totale risolte:** 9
 
 ---
 
 ## Indice Issue Aperte
 
-- [TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)](#test-010--aggiornareriscitura-test-per-domain-v7-t-006)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
 
+- [TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)](#test-010--aggiornareriscitura-test-per-domain-v7-t-006)
 - [TEST-008 - VariableMapperTests non testa Format round-trip](#test-008--variablemappertests-non-testa-format-round-trip)
 - [TEST-009 - Aggiornamento test per Domain v2](#test-009--aggiornamento-test-per-domain-v2)
 - [TEST-007 - Manca test integration per Shared Peripheral in DictionaryService](#test-007--manca-test-integration-per-shared-peripheral-in-dictionaryservice)
@@ -42,89 +42,19 @@
 
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
-| Core/Enums (6) | ✅ 14 | - | 100% |
-| Core/Models (10) | ✅ 82 | - | 100% |
-| Services/Mapping (9) | ✅ 84 | - | ~100% |
-| Infrastructure/DI | ✅ 13 | - | 100% |
+| Core/Enums (5) | ✅ 16 | - | 100% |
+| Core/Models (9) | ✅ 82 | - | 100% |
+| Services/Mapping (8) | ✅ 84 | - | ~100% |
+| Infrastructure/DI | ✅ 14 | - | 100% |
 | Services/DI | ✅ 10 | - | 100% |
 | Infrastructure/Repositories (10) | - | ✅ 107 | ~98% |
 | Services (5) | - | ✅ 106 | ~95% |
-| GUI.Windows/ViewModels (16) | ✅ 254 | ✅ 11 | ~90% |
+| GUI.Windows/ViewModels (15) | ✅ 254 | ✅ 11 | ~90% |
 | GUI.Windows/Services (3) | ✅ 15 | - | ~70% |
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
 > **Nota:** I conteggi sono metodi test `[Fact]`/`[Theory]`. I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit.
-
----
-
-## Priorità Alta
-
-### TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)
-
-**Categoria:** Copertura  
-**Priorità:** Alta  
-**Impatto:** Alto — test rossi dopo refactoring  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-30  
-**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
-
-#### Descrizione
-
-Aggiornare la suite di test per Domain v7. I test esistenti per VariableDeviceState vanno convertiti a StandardVariableOverride, i test BitInterpretation devono usare DictionaryId invece di DeviceId.
-
-#### Azioni
-
-1. **Eliminare** test VariableDeviceState:
-   - `Tests/Unit/Models/VariableDeviceStateTests.cs`
-   - `Tests/Integration/Infrastructure/VariableDeviceStateRepositoryTests.cs`
-   - `Tests/Unit/Services/VariableDeviceStateMapperTests.cs`
-
-2. **Creare** test StandardVariableOverride:
-   - `Tests/Unit/Models/StandardVariableOverrideTests.cs`
-   - `Tests/Integration/Infrastructure/StandardVariableOverrideRepositoryTests.cs`
-   - `Tests/Unit/Services/StandardVariableOverrideMapperTests.cs`
-
-3. **Aggiornare** test BitInterpretation:
-   - Rinominare `DeviceId` → `DictionaryId` in tutti i test
-   - `Tests/Unit/Models/BitInterpretationTests.cs`
-   - `Tests/Integration/Infrastructure/BitInterpretationRepositoryTests.cs`
-   - `Tests/Unit/Services/BitInterpretationMapperTests.cs`
-
-4. **Eliminare** test DeviceVariablesViewModel:
-   - `Tests/Unit/GUI/ViewModels/DeviceVariablesViewModelTests.cs`
-   - `Tests/Unit/GUI/ViewModels/VariableDeviceItemTests.cs`
-
-5. **Aggiornare** test DictionaryEditViewModel:
-   - Aggiungere test per sezione variabili standard
-   - Test per SaveOverridesAsync
-   - Test per interazione override
-
-6. **Aggiornare** mock services:
-   - `Tests/Unit/GUI/Mocks/MockDataServices.cs`
-
-7. **Aggiornare** test DI:
-   - Verificare registrazione `IStandardVariableOverrideRepository`
-   - Verificare rimozione `IVariableDeviceStateRepository`
-
-#### File Coinvolti
-
-- `Tests/Unit/Models/VariableDeviceStateTests.cs` (ELIMINARE)
-- `Tests/Unit/Models/StandardVariableOverrideTests.cs` (NUOVO)
-- `Tests/Integration/Infrastructure/VariableDeviceStateRepositoryTests.cs` (ELIMINARE)
-- `Tests/Integration/Infrastructure/StandardVariableOverrideRepositoryTests.cs` (NUOVO)
-- `Tests/Unit/Services/VariableDeviceStateMapperTests.cs` (ELIMINARE)
-- `Tests/Unit/Services/StandardVariableOverrideMapperTests.cs` (NUOVO)
-- `Tests/Unit/Models/BitInterpretationTests.cs`
-- `Tests/Integration/Infrastructure/BitInterpretationRepositoryTests.cs`
-- `Tests/Unit/GUI/ViewModels/DeviceVariablesViewModelTests.cs` (ELIMINARE)
-- `Tests/Unit/GUI/ViewModels/DictionaryEditViewModelTests.cs`
-- `Tests/Unit/GUI/Mocks/MockDataServices.cs`
-- `Tests/Unit/Infrastructure/DependencyInjectionTests.cs`
-
-#### Effort Stimato
-
-M (4-8h)
 
 ---
 
@@ -203,6 +133,55 @@ public static class TestData
 ---
 
 ## Issue Risolte
+
+### TEST-010 - Aggiornare/riscrittura test per Domain v7 (T-006)
+
+**Categoria:** Copertura  
+**Priorità:** Alta  
+**Impatto:** Alto — test rossi dopo refactoring  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-07  
+**Branch:** fix/t-006  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Descrizione
+
+Aggiornare la suite di test per Domain v7. I test esistenti per VariableDeviceState vanno convertiti a StandardVariableOverride, i test BitInterpretation devono usare DictionaryId invece di DeviceId.
+
+#### Soluzione Implementata
+
+1. **Aggiornati** test BitInterpretation (DeviceId → DictionaryId):
+   - `BitInterpretationRepositoryTests.cs`: `DeviceEntity`/`DeviceId` → `DictionaryEntity`/`DictionaryId`, metodo `GetByVariableAndDevice` → `GetByVariableAndDictionary`
+   - `BitInterpretationMapperTests.cs`: già aggiornato (INFRA-009/SVC-012)
+   - `BitInterpretationTests.cs`: già aggiornato (CORE-008)
+
+2. **Aggiornati** test VariableService (override per-dizionario):
+   - `VariableServiceTests.cs`: `SetOverrideAsync` con dizionari reali (FK constraint fix), `GetOverridesByDictionaryAsync`/`GetOverridesByVariableAsync` con dizionari creati nel test, `GetBitInterpretationsForDictionaryAsync` con DictionaryId
+
+3. **Aggiornati** test E2E:
+   - `DatabaseSeederTests.cs`: rimossi test Spyke per-device override (seeder non li crea più)
+   - `DeviceWorkflowTests.cs`: `VariableDeviceState` per-device → `StandardVariableOverride` per-dizionario
+   - `VariableWorkflowTests.cs`: `DeviceId` → `DictionaryId` nelle BitInterpretation
+
+4. **Aggiornati** test GUI:
+   - `VariableEditViewModelTests.cs`: `DeviceContext` → `DictionaryContext`, `StandardVariableOverride.Restore` con parametro `description`
+   - `DeviceDetailFlowTests.cs`: `ViewType.DeviceVariables` → `ViewType.DictionaryEdit`
+
+5. **Aggiornati** test DI:
+   - `DependencyInjectionTests.cs`: `IVariableDeviceStateRepository` → `IStandardVariableOverrideRepository`
+
+6. **Fix test AuditEntityType**:
+   - `AuditEntityTypeTests.cs`: count da 7 → 8 (+StandardVariableOverride)
+
+#### Benefici Ottenuti
+
+- 1786/1786 test verdi ✅
+- Test allineati al Domain v7 ✅
+- Override per-dizionario verificati end-to-end ✅
+- FK constraint corretti nei test integration ✅
+
+---
 
 ### TEST-008 - VariableMapperTests non testa Format round-trip
 

@@ -6,7 +6,7 @@ public class BitInterpretationEntity : IAuditable
 {
     public int Id { get; set; }
     public int VariableId { get; set; }
-    public int? DeviceId { get; set; }
+    public int? DictionaryId { get; set; }
     public int WordIndex { get; set; }
     public int BitIndex { get; set; }
     public string? Meaning { get; set; }
@@ -17,5 +17,5 @@ public class BitInterpretationEntity : IAuditable
 
     // Navigation
     public VariableEntity Variable { get; set; } = null!;
-    public DeviceEntity? Device { get; set; }
+    public DictionaryEntity? Dictionary { get; set; }
 }

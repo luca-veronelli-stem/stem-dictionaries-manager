@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~1575%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~1786%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -35,17 +35,17 @@
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 models + 5 enums (Variable, Dictionary, Board, Device, etc.) |
+| **Modelli dominio** | ✅ | 9 models + 5 enums (Variable, Dictionary, Board, Device, StandardVariableOverride, etc.) |
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
-| **Domain v7** | ⚠️ | T-006 pendente: StandardVariableOverride per-dizionario |
-| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), 1 migration Domain v2 |
+| **Domain v7** | ✅ | StandardVariableOverride per-dizionario, BitInterpretation.DictionaryId |
+| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), migration Domain v7 |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
-| **Services Layer** | ✅ | 6 services + 9 mappers + business rules |
-| **GUI Desktop** | ✅ | WPF + MVVM con 15 ViewModels, 15 Views, dark theme STEM, custom dialogs, status bar |
+| **Services Layer** | ✅ | 6 services + 8 mappers + business rules |
+| **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 14 Views, dark theme STEM, custom dialogs, status bar |
 | **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
-| **Variabili standard per device** | ✅ | Stato attivo/disattivo variabili standard per DeviceType (BR-009/011) |
-| **Test Suite** | ✅ | ~1001 metodi test / ~1575 test cases (unit + integration + E2E, 2 target framework) |
+| **Override variabili standard** | ✅ | Override IsEnabled/Description per-dizionario (BR-009/010/011/020) |
+| **Test Suite** | ✅ | ~944 metodi test / ~1786 test cases (unit + integration + E2E, 2 target framework) |
 
 ---
 
@@ -81,23 +81,23 @@ dotnet ef database update -p Infrastructure -s GUI.Windows
 
 ```
 Stem.Dictionaries.Manager/
-├── Core/                  # Modelli dominio, enums (10 models, 5 enum)
+├── Core/                  # Modelli dominio, enums (9 models, 5 enum)
 │   ├── Enums/             # AccessMode, DataTypeKind, AuditEntityType, etc.
-│   └── Models/            # Variable, Dictionary, Board, Device, etc.
+│   └── Models/            # Variable, Dictionary, Board, Device, StandardVariableOverride, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
 │   ├── Interfaces/        # Service interfaces (6)
-│   └── Mapping/           # Mapper bidirezionali (9)
+│   └── Mapping/           # Mapper bidirezionali (8)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (10)
 │   ├── Repositories/      # Repository implementations (10)
-│   └── Migrations/        # 1 migration Domain v2
-├── GUI.Windows/           # Applicazione WPF (MVVM, 15 ViewModels, 15 Views)
+│   └── Migrations/        # Migration Domain v7
+├── GUI.Windows/           # Applicazione WPF (MVVM, 14 ViewModels, 14 Views)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
-│   ├── ViewModels/        # 15 ViewModels + helper classes
-│   ├── Views/             # 15 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView, DeviceVariablesView)
+│   ├── ViewModels/        # 14 ViewModels + helper classes
+│   ├── Views/             # 14 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView)
 │   ├── Converters/        # 7 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor, BoolToErrorBrush)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~995 metodi / ~1575 cases)
+├── Tests/                 # Unit & integration tests (~944 metodi / ~1786 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   ├── Integration/       # Infrastructure, Services, GUI, E2E (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -131,14 +131,14 @@ Stem.Dictionaries.Manager/
 
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
-| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 4 | 4 | **Alta** (CORE-008) |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 3 | 6 | **Alta** (INFRA-009) |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 5 | 7 | **Alta** (SVC-012) |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 3 | 6 | **Alta** (GUI-009) |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 8 | **Alta** (TEST-010) |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 4 | 2 | **Alta** (T-006) |
+| Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 7 | Bassa |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 4 | 8 | Alta (SVC-002) |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 7 | Media (GUI-002) |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 9 | Bassa |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 3 | Bassa |
 
-⚠️ **1 issue alta priorità aperta: [T-006](./ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7) (Domain v7)**
+✅ **0 issue alta priorità aperte — T-006 (Domain v7) completata**
 
 ---
 
@@ -186,25 +186,25 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│      MVVM, 15 ViewModels, 15 Views, Dark Theme STEM, Status Bar │
+│      MVVM, 14 ViewModels, 14 Views, Dark Theme STEM, Status Bar │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         Services                            │
-│        Business Logic, Mapping, Business Rules              │
+│        Business Logic, 8 Mappers, Business Rules             │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      Infrastructure                         │
-│         EF Core, 10 Repositories, 1 Migration               │
+│         EF Core, 10 Repositories, Migration Domain v7        │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                           Core                              │
-│            Domain Models (10), Enums (5)                    │
+│            Domain Models (9), Enums (5)                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 

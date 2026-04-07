@@ -27,10 +27,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _showValidation;
 
     /// <summary>
-    /// Se valorizzato, la view è in modalità DeviceContext: campi variabile read-only,
-    /// WordGroups editabili con DeviceId. Null = modalità Normal.
+    /// Se valorizzato, la view è in modalità DictionaryContext: campi variabile read-only,
+    /// WordGroups editabili con DictionaryId. Null = modalità Normal.
     /// </summary>
-    private int? _deviceContextId;
+    private int? _dictionaryContextId;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -227,21 +227,21 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsNew => _editingId is null;
 
     /// <summary>
-    /// True se in modalità DeviceContext (campi variabile read-only, solo bit editabili).
+    /// True se in modalità DictionaryContext (campi variabile read-only, solo bit editabili).
     /// </summary>
-    public bool IsDeviceContext => _deviceContextId.HasValue;
+    public bool IsDictionaryContext => _dictionaryContextId.HasValue;
 
     /// <summary>
     /// True se i campi variabile sono editabili (modalità Normal).
     /// </summary>
-    public bool IsNotDeviceContext => !IsDeviceContext;
+    public bool IsNotDictionaryContext => !IsDictionaryContext;
 
-    public string FormTitle => IsDeviceContext
-        ? "Interpretazione Bit (Device)"
+    public string FormTitle => IsDictionaryContext
+        ? "Interpretazione Bit (Dizionario)"
         : IsNew ? "Nuova Variabile" : "Modifica Variabile";
 
-    public string SaveButtonLabel => IsDeviceContext
-        ? "?? Salva Bit" : "?? Salva";
+    public string SaveButtonLabel => IsDictionaryContext
+        ? "? Salva Bit" : "? Salva";
 
     /// <summary>
     /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
@@ -392,9 +392,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Inizializza il ViewModel.
-    /// deviceId != null ? DeviceContext mode (read-only + bit editabili per device).
+    /// dictionaryContextId != null ? DictionaryContext mode (read-only + bit editabili per dizionario).
     /// </summary>
-    public async Task InitializeAsync(int? variableId, int dictionaryId, int? deviceId = null)
+    public async Task InitializeAsync(int? variableId, int dictionaryId, int? dictionaryContextId = null)
     {
         if (_isInitialized) return;
 
@@ -404,15 +404,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isLoading = true;
             _editingId = variableId;
             _dictionaryId = dictionaryId;
-            _deviceContextId = deviceId;
+            _dictionaryContextId = dictionaryContextId;
 
             // Carica il dizionario per determinare AddressHigh
             var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
             _isStandardDictionary = dictionary?.IsStandard ?? false;
             OnPropertyChanged(nameof(AddressHighHex));
             OnPropertyChanged(nameof(FullAddressDisplay));
-            OnPropertyChanged(nameof(IsDeviceContext));
-            OnPropertyChanged(nameof(IsNotDeviceContext));
+            OnPropertyChanged(nameof(IsDictionaryContext));
+            OnPropertyChanged(nameof(IsNotDictionaryContext));
 
             if (variableId.HasValue)
             {
@@ -426,22 +426,22 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 LoadFromVariable(variable);
 
-                // DeviceContext: sovrascrive IsEnabled con lo stato per device
-                if (_deviceContextId.HasValue)
+                // DictionaryContext: sovrascrive IsEnabled con l'override per dizionario
+                if (_dictionaryContextId.HasValue)
                 {
-                    var deviceState = await _variableService.GetDeviceStateAsync(
-                        variableId.Value, _deviceContextId.Value);
+                    var overrideState = await _variableService.GetOverrideAsync(
+                        _dictionaryContextId.Value, variableId.Value);
                     // Se esiste override ? usa quello, altrimenti default = true
-                    IsEnabled = deviceState?.IsEnabled ?? true;
+                    IsEnabled = overrideState?.IsEnabled ?? true;
                 }
 
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
                 {
-                    // DeviceContext: carica interpretazioni per device (con fallback a comuni)
-                    // Normal: carica tutte le interpretazioni comuni
-                    var bits = _deviceContextId.HasValue
-                        ? await _variableService.GetBitInterpretationsForDeviceAsync(
-                            variableId.Value, _deviceContextId.Value)
+                    // DictionaryContext: carica interpretazioni per dizionario (con fallback a template)
+                    // Normal: carica tutte le interpretazioni template
+                    var bits = _dictionaryContextId.HasValue
+                        ? await _variableService.GetBitInterpretationsForDictionaryAsync(
+                            variableId.Value, _dictionaryContextId.Value)
                         : await _variableService.GetBitInterpretationsAsync(variableId.Value);
 
                     var existingItems = bits.Select(b => new BitInterpretationItem
@@ -541,11 +541,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             IsBusy = true;
 
-            if (IsDeviceContext)
+            if (IsDictionaryContext)
             {
-                // DeviceContext: salva stato variabile per device + bit interpretations
-                await SaveDeviceStateAsync();
-                await SaveBitInterpretationsForDeviceAsync();
+                // DictionaryContext: salva override variabile + bit interpretations per dizionario
+                await SaveOverrideAsync();
+                await SaveBitInterpretationsForDictionaryAsync();
             }
             else
             {
@@ -634,12 +634,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 wordIndex: b.WordIndex,
                 bitIndex: b.BitIndex,
                 meaning: b.Meaning,
-                deviceId: null))
+                dictionaryId: null))
             .ToList();
         await _variableService.UpdateBitInterpretationsAsync(_editingId!.Value, bitsToSave);
     }
 
-    private async Task SaveBitInterpretationsForDeviceAsync()
+    private async Task SaveBitInterpretationsForDictionaryAsync()
     {
         if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
 
@@ -650,18 +650,18 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 wordIndex: b.WordIndex,
                 bitIndex: b.BitIndex,
                 meaning: b.Meaning,
-                deviceId: _deviceContextId))
+                dictionaryId: _dictionaryContextId))
             .ToList();
-        await _variableService.UpdateBitInterpretationsForDeviceAsync(
-            _editingId!.Value, _deviceContextId, bitsToSave);
+        await _variableService.UpdateBitInterpretationsForDictionaryAsync(
+            _editingId!.Value, _dictionaryContextId, bitsToSave);
     }
 
-    private async Task SaveDeviceStateAsync()
+    private async Task SaveOverrideAsync()
     {
-        if (_deviceContextId is null || _editingId is null) return;
-        await _variableService.SetDeviceStateAsync(
-            _editingId.Value, _deviceContextId.Value, IsEnabled);
-        _messageService.Show("Stato variabile per device salvato", MessageSeverity.Success);
+        if (_dictionaryContextId is null || _editingId is null) return;
+        await _variableService.SetOverrideAsync(
+            _dictionaryContextId.Value, _editingId.Value, IsEnabled);
+        _messageService.Show("Override variabile per dizionario salvato", MessageSeverity.Success);
     }
 
     [RelayCommand]

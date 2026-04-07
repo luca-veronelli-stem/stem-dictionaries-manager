@@ -237,9 +237,10 @@ public partial class DeviceDetailViewModel : ObservableObject
 
         if (SelectedDictionary.IsStandard)
         {
-            _navigationService.NavigateTo(ViewType.DeviceVariables, new NavigationParameter
+            // v7: Standard → DictionaryEdit (override variabili standard dentro la vista dizionario)
+            _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
             {
-                DeviceId = DeviceId!.Value
+                EntityId = SelectedDictionary.Id
             });
             return;
         }

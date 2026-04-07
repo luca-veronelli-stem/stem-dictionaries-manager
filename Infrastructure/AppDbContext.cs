@@ -18,7 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<BitInterpretationEntity> BitInterpretations => Set<BitInterpretationEntity>();
     public DbSet<CommandEntity> Commands => Set<CommandEntity>();
     public DbSet<CommandDeviceStateEntity> CommandDeviceStates => Set<CommandDeviceStateEntity>();
-    public DbSet<VariableDeviceStateEntity> VariableDeviceStates => Set<VariableDeviceStateEntity>();
+    public DbSet<StandardVariableOverrideEntity> StandardVariableOverrides => Set<StandardVariableOverrideEntity>();
     public DbSet<AuditEntryEntity> AuditEntries => Set<AuditEntryEntity>();
 
     public override int SaveChanges()
@@ -135,22 +135,22 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
-            // BR-017: 2 partial indexes per unicità con DeviceId nullable
+            // BR-017: 2 partial indexes per unicità con DictionaryId nullable
             entity.HasIndex(e => new { e.VariableId, e.WordIndex, e.BitIndex })
                   .IsUnique()
-                  .HasFilter("[DeviceId] IS NULL");
-            entity.HasIndex(e => new { e.VariableId, e.DeviceId, e.WordIndex, e.BitIndex })
+                  .HasFilter("[DictionaryId] IS NULL");
+            entity.HasIndex(e => new { e.VariableId, e.DictionaryId, e.WordIndex, e.BitIndex })
                   .IsUnique()
-                  .HasFilter("[DeviceId] IS NOT NULL");
+                  .HasFilter("[DictionaryId] IS NOT NULL");
 
             entity.Property(e => e.Meaning).HasMaxLength(200);
             entity.HasOne(e => e.Variable)
                   .WithMany(v => v.BitInterpretations)
                   .HasForeignKey(e => e.VariableId)
                   .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.Device)
-                  .WithMany()
-                  .HasForeignKey(e => e.DeviceId)
+            entity.HasOne(e => e.Dictionary)
+                  .WithMany(d => d.BitInterpretations)
+                  .HasForeignKey(e => e.DictionaryId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -174,14 +174,20 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // VariableDeviceState
-        modelBuilder.Entity<VariableDeviceStateEntity>(entity =>
+        // StandardVariableOverride
+        modelBuilder.Entity<StandardVariableOverrideEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.VariableId, e.DeviceId }).IsUnique();
-            entity.HasOne(e => e.Variable)
-                  .WithMany(v => v.DeviceStates)
-                  .HasForeignKey(e => e.VariableId)
+            // BR-010: max 1 override per (DictionaryId, StandardVariableId)
+            entity.HasIndex(e => new { e.DictionaryId, e.StandardVariableId }).IsUnique();
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.HasOne(e => e.Dictionary)
+                  .WithMany(d => d.StandardVariableOverrides)
+                  .HasForeignKey(e => e.DictionaryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.StandardVariable)
+                  .WithMany()
+                  .HasForeignKey(e => e.StandardVariableId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

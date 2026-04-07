@@ -11,7 +11,7 @@ public class AuditEntityTypeTests
     public void AuditEntityType_HasExpectedCount()
     {
         var values = Enum.GetValues<AuditEntityType>();
-        Assert.Equal(7, values.Length);
+        Assert.Equal(8, values.Length);
     }
 
     [Fact]

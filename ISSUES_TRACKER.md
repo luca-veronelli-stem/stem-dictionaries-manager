@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -8,13 +8,13 @@
 
 | Componente | Aperte | Risolte | Totale |
 |------------|--------|---------|--------|
-| [Core](./Core/ISSUES.md) | 4 | 4 | 8 |
-| [Infrastructure](./Infrastructure/ISSUES.md) | 3 | 6 | 9 |
-| [Services](./Services/ISSUES.md) | 5 | 7 | 12 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 6 | 9 |
-| [Tests](./Tests/ISSUES.md) | 2 | 8 | 10 |
-| **Trasversali** | **4** | **2** | **6** |
-| **Totale** | **21** | **33** | **54** |
+| [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
+| [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
+| [Services](./Services/ISSUES.md) | 4 | 8 | 12 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
+| [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
+| **Trasversali** | **3** | **3** | **6** |
+| **Totale** | **15** | **39** | **54** |
 
 ---
 
@@ -23,16 +23,16 @@
 | Priorità | Aperte | % |
 |----------|--------|---|
 | **Critica** | 0 | 0% |
-| **Alta** | 1 | 5% |
-| **Media** | 1 | 5% |
-| **Bassa** | 19 | 90% |
-| **Totale** | **21** | 100% |
+| **Alta** | 0 | 0% |
+| **Media** | 1 | 7% |
+| **Bassa** | 14 | 93% |
+| **Totale** | **15** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
-Alta:        █░░░░░░░░░░░░░░░░░░░  1  (T-006)
+Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ███████████████████░ 19
+Bassa:       ██████████████░░░░░░ 14
 ```
 
 ---
@@ -41,7 +41,8 @@ Bassa:       ███████████████████░ 19
 
 | ID | Componente | Titolo | Status |
 |----|------------|--------|--------|
-| **T-006** | **Trasversale** | **StandardVariableOverride per-dizionario (Domain v7)** | ⚠️ **Aperto** |
+| ~~T-006~~ | **Trasversale** | **StandardVariableOverride per-dizionario (Domain v7)** | ✅ **Risolto** |
+| ~~TEST-010~~ | Tests | Aggiornare/riscrittura test per Domain v7 | ✅ **Risolto** |
 | ~~T-002~~ | Trasversale | Rimozione BoardType e link diretto Board→Dictionary | ✅ **Risolto** |
 | ~~CORE-007~~ | Core | Refactoring Core models per Domain v2 | ✅ **Risolto** |
 | ~~INFRA-008~~ | Infrastructure | Refactoring Infrastructure per Domain v2 | ✅ **Risolto** |
@@ -55,7 +56,7 @@ Bassa:       ███████████████████░ 19
 | ~~INFRA-001~~ | Infrastructure | DeleteAsync non solleva eccezione | ✅ **Risolto** |
 | ~~T-001~~ | Trasversale | Dizionario Standard deve essere unico | ✅ **Risolto** |
 
-⚠️ **1 issue alta priorità aperta: T-006 (Domain v7)**
+✅ **0 issue alta priorità aperte**
 
 ---
 
@@ -63,7 +64,7 @@ Bassa:       ███████████████████░ 19
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
-| [T-006](#t-006--standardvariableoverride-per-dizionario-domain-v7) | StandardVariableOverride per-dizionario (Domain v7) | **Alta** | **Aperto** | Core, Infrastructure, Services, GUI.Windows, Tests |
+| ~~T-006~~ | ~~StandardVariableOverride per-dizionario (Domain v7)~~ | ~~Alta~~ | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | [T-005](#t-005--rendere-espliciti-parametri-semantici-nei-domain-models) | Rendere espliciti parametri semantici nei domain models | Bassa | Aperto | Core, Tests |
 | [T-004](#t-004--aggiungere-db-constraints-per-regole-di-business) | Aggiungere DB constraints per regole di business | Bassa | Aperto | Infrastructure |
 | [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
@@ -78,10 +79,11 @@ Refactoring completo del domain model per correggere la semantica delle variabil
 **Problema risolto:**  
 Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizionario. Ogni scheda implementa tutte le variabili standard, ma può modificare solo `IsEnabled`, `Description` e `BitInterpretations` per il suo contesto.
 
-**Status:** Aperto  
+**Status:** ✅ Risolto  
 **Priorità:** Alta — cambiamento di dominio fondamentale  
-**Branch proposto:** `domain/domain-v7`  
+**Branch:** `fix/t-006`  
 **Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-07  
 **Effort stimato:** L (8-16h)
 
 **Cambiamenti principali:**
@@ -102,7 +104,7 @@ Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizion
 | 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | M |
 | 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | M |
 | 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | M |
-| 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | M |
+| 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | ✅ Risolto |
 
 **File da CREARE:**
 - `Core/Models/StandardVariableOverride.cs`
@@ -351,11 +353,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 ## Issue per Componente
 
-### Core (4 issue aperte, 4 risolte)
+### Core (3 issue aperte, 5 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **CORE-008** | **Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)** | **Alta** | **Refactoring** |
+| ~~CORE-008~~ | ~~Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~CORE-001~~ | ~~AuditEntityType contiene "Device" non esistente~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-002~~ | ~~Variable.Category deriva solo da AddressHigh == 0x00~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~CORE-007~~ | ~~Refactoring Core models per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
@@ -364,11 +366,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [CORE-004](./Core/ISSUES.md#core-004--mancanza-di-metodi-update-sui-modelli) | Mancanza di metodi Update sui modelli | Bassa | API |
 | [CORE-005](./Core/ISSUES.md#core-005--bitinterpretationvariableid-non-ha-validazione-positiva) | BitInterpretation.VariableId non ha validazione | Bassa | API |
 
-### Infrastructure (3 issue aperte, 6 risolte)
+### Infrastructure (2 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **INFRA-009** | **Entity + Repository + Migration per Domain v7 (T-006)** | **Alta** | **Refactoring** |
+| ~~INFRA-009~~ | ~~Entity + Repository + Migration per Domain v7 (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-001~~ | ~~DeleteAsync non solleva eccezione~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-008~~ | ~~Refactoring Infrastructure per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~INFRA-007~~ | ~~DatabaseSeeder.CreateBoard usa boardTypeId~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
@@ -378,11 +380,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Services (5 issue aperte, 7 risolte)
+### Services (4 issue aperte, 8 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **SVC-012** | **Mapper + Service per StandardVariableOverride (T-006)** | **Alta** | **Refactoring** |
+| ~~SVC-012~~ | ~~Mapper + Service per StandardVariableOverride (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~SVC-001~~ | ~~Services dipendono da AppDbContext~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~SVC-011~~ | ~~Refactoring Services per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~SVC-008~~ | ~~DictionaryService.AddAsync blocca Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
@@ -395,11 +397,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### GUI.Windows (3 issue aperte, 6 risolte)
+### GUI.Windows (2 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **GUI-009** | **Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)** | **Alta** | **Refactoring** |
+| ~~GUI-009~~ | ~~Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-001~~ | ~~Mancano ViewModels per ViewType dichiarate~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~GUI-004~~ | ~~Refactoring grafico completo e migrazione login~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~GUI-008~~ | ~~Refactoring GUI per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
@@ -409,11 +411,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Media | UX |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
 
-### Tests (2 issue aperte, 8 risolte)
+### Tests (1 issue aperta, 9 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
-| **TEST-010** | **Aggiornare/riscrittura test per Domain v7 (T-006)** | **Alta** | **Copertura** |
+| ~~TEST-010~~ | ~~Aggiornare/riscrittura test per Domain v7 (T-006)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~TEST-001~~ | ~~Mancano test BoardRepository e CommandRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-002~~ | ~~Mancano test BoardTypeRepository~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~TEST-003~~ | ~~Uso .Wait() bloccante~~ | ~~Media~~ | ✅ **Risolto** |
@@ -426,18 +428,19 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 ---
 
-## Roadmap: Refactoring Domain v7 (T-006) — IN CORSO
+## Roadmap: Refactoring Domain v7 (T-006) — ✅ COMPLETATA
 
 | # | ID | Componente | Titolo | Status |
 |---|-----|------------|--------|--------|
-| 1 | CORE-008 | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ⬜ Da fare |
-| 2 | INFRA-009 | Infrastructure | Entity + Repository + Migration per Domain v7 | ⬜ Da fare |
-| 3 | SVC-012 | Services | Mapper + Service per StandardVariableOverride | ⬜ Da fare |
-| 4 | GUI-009 | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ⬜ Da fare |
-| 5 | TEST-010 | Tests | Aggiornare/riscrittura test per Domain v7 | ⬜ Da fare |
+| 1 | ~~CORE-008~~ | Core | Creare StandardVariableOverride, rimuovere VariableDeviceState | ✅ Risolto |
+| 2 | ~~INFRA-009~~ | Infrastructure | Entity + Repository + Migration per Domain v7 | ✅ Risolto |
+| 3 | ~~SVC-012~~ | Services | Mapper + Service per StandardVariableOverride | ✅ Risolto |
+| 4 | ~~GUI-009~~ | GUI.Windows | Rimuovere DeviceVariables, aggiornare DictionaryEdit | ✅ Risolto |
+| 5 | ~~TEST-010~~ | Tests | Aggiornare/riscrittura test per Domain v7 | ✅ Risolto |
 
-**Branch proposto:** `domain/domain-v7`  
+**Branch:** `fix/t-006`  
 **Data apertura:** 2026-03-30  
+**Data completamento:** 2026-04-07  
 **Issue risolte automaticamente dal refactoring:**
 - (T-005 parzialmente: VariableDeviceState eliminata)
 
@@ -461,9 +464,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | **T-006** | Trasversale | **StandardVariableOverride per-dizionario (Domain v7)** | **L** |
-| 2 | SVC-002 | Services | Manca IAuditService | M |
-| 3 | T-003 | Trasversale | Logging infrastructure | M |
+| 1 | SVC-002 | Services | Manca IAuditService | M |
+| 2 | T-003 | Trasversale | Logging infrastructure | M |
+| 3 | T-004 | Trasversale | DB constraints per regole di business | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -473,19 +476,19 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Componente | Unit | Integration | Copertura |
 |------------|------|-------------|-----------|
-| Core/Enums (6) | ✅ 21 | - | 100% |
-| Core/Models (10) | ✅ 107 | - | 100% |
-| Infrastructure/Repositories (10) | - | ✅ 96 | ~98% |
+| Core/Enums (5) | ✅ 16 | - | 100% |
+| Core/Models (9) | ✅ 90 | - | 100% |
+| Infrastructure/Repositories (10) | - | ✅ 109 | ~98% |
 | Infrastructure/DI | ✅ 14 | - | 100% |
-| Services/Mapping (9) | ✅ 89 | - | ~100% |
-| Services (5) | - | ✅ 98 | ~95% |
+| Services/Mapping (8) | ✅ 86 | - | ~100% |
+| Services (5) | - | ✅ 132 | ~95% |
 | Services/DI | ✅ 10 | - | 100% |
-| GUI.Windows/ViewModels (15) | ✅ 254 | ✅ 11 | ~90% |
+| GUI.Windows/ViewModels (14) | ✅ 400 | ✅ 11 | ~90% |
 | GUI.Windows/Services (3) | ✅ 15 | - | ~70% |
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
-**Totale test:** ~490 CI (net10.0) / 1254 Windows (net10.0-windows)
+**Totale test:** ~559 CI (net10.0) / ~1786 Windows (net10.0-windows)
 
 ---
 
@@ -493,14 +496,14 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Aspetto | Stato | Note |
 |---------|-------|------|
-| **Architecture** | ⚠️ 85% | Domain v7 formalizzato, T-006 aperta (refactoring pendente) |
+| **Architecture** | ✅ 95% | Domain v7 implementato, T-006 completata |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
 | **Input Validation** | ✅ 85% | BR-011 (StandardVariableOverride v7), CORE-006, CORE-005 residui |
 | **Data Integrity** | ✅ 95% | SVC-009 risolta |
 | **Performance** | ✅ 100% | INFRA-002 + SVC-003 (Wontfix, coperto da INFRA-002) |
 | **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
 | **Code Consistency** | ✅ 90% | INFRA-006 residuo |
-| **Test Coverage** | ✅ 95% | ~1575 test cases, TEST-008 risolta |
+| **Test Coverage** | ✅ 95% | ~1786 test cases, TEST-010 risolta |
 
 ---
 
@@ -508,7 +511,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Categoria | Count | Issue |
 |-----------|-------|-------|
-| **Refactoring** | 5 | CORE-008, INFRA-009, SVC-012, GUI-009, TEST-010 (T-006) |
+| **Refactoring** | 0 | ~~CORE-008, INFRA-009, SVC-012, GUI-009, TEST-010 (T-006)~~ — tutti risolti |
 | **Bug** | 1 | INFRA-006 |
 | **Design** | 3 | SVC-005, SVC-006, INFRA-005 |
 | **UX** | 1 | GUI-002 |
@@ -519,7 +522,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Code Smell** | 0 | - |
 | **Feature** | 1 | SVC-002 |
 | **Robustezza** | 1 | SVC-007 |
-| **Trasversale** | 4 | T-003, T-004, T-005, T-006 |
+| **Trasversale** | 3 | T-003, T-004, T-005 |
 
 ---
 
@@ -546,7 +549,11 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
-| 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)** — StandardVariableOverride per-dizionario. Rimozione VariableDeviceState, BitInterpretation.DeviceId→DictionaryId, eredità automatica variabili standard. Sub-issue: CORE-008, INFRA-009, SVC-012, GUI-009, TEST-010. 21 aperte, 33 risolte. |
+| 2026-04-07 | ✅ **TEST-010 risolta** — Test aggiornati per Domain v7: BitInterpretation DeviceId→DictionaryId, VariableDeviceState→StandardVariableOverride, E2E test riscritti, AuditEntityType count 7→8. 1786/1786 test verdi. T-006 **COMPLETATA**. 15 aperte, 39 risolte. |
+| 2026-04-07 | ✅ **GUI-009 risolta** — DeviceVariablesView eliminata, DeviceVariables rimosso da ViewType/MainViewModel/DI, VariableEditViewModel DeviceContext→DictionaryContext. |
+| 2026-04-07 | ✅ **SVC-012 risolta**
+| 2026-04-07 | ✅ **CORE-008 + INFRA-009 risolte**
+| 2026-03-30 | ⚠️ **T-006 aperta (Domain v7)**
 | 2026-03-25 | ✅ **SVC-010 risolta** — Eliminato Class1.cs placeholder. 13 aperte, 33 risolte. |
 | 2026-03-25 | ⚪ **SVC-003 Wontfix**
 | 2026-03-25 | ✅ **INFRA-003 risolta**

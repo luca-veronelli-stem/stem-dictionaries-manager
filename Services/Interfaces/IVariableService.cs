@@ -5,7 +5,7 @@ namespace Services.Interfaces;
 /// <summary>
 /// Service per gestione variabili singole.
 /// Per operazioni batch, usare IDictionaryService.
-/// SESSION_035: DeviceType enum → int deviceId.
+/// v7: DeviceState → StandardVariableOverride (per-dizionario).
 /// </summary>
 public interface IVariableService
 {
@@ -36,28 +36,41 @@ public interface IVariableService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Aggiorna le interpretazioni bit per una variabile e un device specifico (o null per comuni).
+    /// Aggiorna le interpretazioni bit per una variabile e un dizionario specifico (o null per template).
     /// </summary>
-    Task UpdateBitInterpretationsForDeviceAsync(int variableId, int? deviceId,
+    Task UpdateBitInterpretationsForDictionaryAsync(int variableId, int? dictionaryId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene le interpretazioni bit per una variabile e un device (include comuni come fallback).
+    /// Ottiene le interpretazioni bit per una variabile e un dizionario (include template come fallback).
     /// </summary>
-    Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDeviceAsync(int variableId,
-        int deviceId, CancellationToken ct = default);
+    Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDictionaryAsync(int variableId,
+        int dictionaryId, CancellationToken ct = default);
 
-    // === DeviceState Management ===
+    // === StandardVariableOverride Management ===
 
-    Task SetDeviceStateAsync(int variableId, int deviceId, bool isEnabled,
+    /// <summary>
+    /// Imposta o aggiorna l'override di una variabile standard per un dizionario.
+    /// BR-011: isEnabled=true vietato se Variable.IsEnabled=false.
+    /// </summary>
+    Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
+        string? description = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Ottiene l'override di una variabile standard per un dizionario specifico.
+    /// </summary>
+    Task<StandardVariableOverride?> GetOverrideAsync(int dictionaryId, int standardVariableId,
         CancellationToken ct = default);
 
-    Task<VariableDeviceState?> GetDeviceStateAsync(int variableId, int deviceId,
+    /// <summary>
+    /// Ottiene tutti gli override per un dizionario.
+    /// </summary>
+    Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByDictionaryAsync(int dictionaryId,
         CancellationToken ct = default);
 
-    Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesAsync(int variableId,
-        CancellationToken ct = default);
-
-    Task<IReadOnlyList<VariableDeviceState>> GetDeviceStatesForDeviceAsync(
-        int deviceId, CancellationToken ct = default);
+    /// <summary>
+    /// Ottiene tutti gli override per una variabile standard (tutti i dizionari).
+    /// </summary>
+    Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByVariableAsync(
+        int standardVariableId, CancellationToken ct = default);
 }

@@ -158,6 +158,7 @@ namespace Infrastructure.Migrations
                     Usage = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    WordSize = table.Column<int>(type: "INTEGER", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
@@ -205,7 +206,7 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VariableId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeviceId = table.Column<int>(type: "INTEGER", nullable: true),
+                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: true),
                     WordIndex = table.Column<int>(type: "INTEGER", nullable: false),
                     BitIndex = table.Column<int>(type: "INTEGER", nullable: false),
                     Meaning = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
@@ -216,9 +217,9 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_BitInterpretations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BitInterpretations_Devices_DeviceId",
-                        column: x => x.DeviceId,
-                        principalTable: "Devices",
+                        name: "FK_BitInterpretations_Dictionaries_DictionaryId",
+                        column: x => x.DictionaryId,
+                        principalTable: "Dictionaries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -230,23 +231,30 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "VariableDeviceStates",
+                name: "StandardVariableOverrides",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    VariableId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: false),
+                    StandardVariableId = table.Column<int>(type: "INTEGER", nullable: false),
                     IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VariableDeviceStates", x => x.Id);
+                    table.PrimaryKey("PK_StandardVariableOverrides", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_VariableDeviceStates_Variables_VariableId",
-                        column: x => x.VariableId,
+                        name: "FK_StandardVariableOverrides_Dictionaries_DictionaryId",
+                        column: x => x.DictionaryId,
+                        principalTable: "Dictionaries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StandardVariableOverrides_Variables_StandardVariableId",
+                        column: x => x.StandardVariableId,
                         principalTable: "Variables",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -268,23 +276,23 @@ namespace Infrastructure.Migrations
                 columns: new[] { "EntityType", "EntityId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BitInterpretations_DeviceId",
+                name: "IX_BitInterpretations_DictionaryId",
                 table: "BitInterpretations",
-                column: "DeviceId");
+                column: "DictionaryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BitInterpretations_VariableId_DeviceId_WordIndex_BitIndex",
+                name: "IX_BitInterpretations_VariableId_DictionaryId_WordIndex_BitIndex",
                 table: "BitInterpretations",
-                columns: new[] { "VariableId", "DeviceId", "WordIndex", "BitIndex" },
+                columns: new[] { "VariableId", "DictionaryId", "WordIndex", "BitIndex" },
                 unique: true,
-                filter: "[DeviceId] IS NOT NULL");
+                filter: "[DictionaryId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BitInterpretations_VariableId_WordIndex_BitIndex",
                 table: "BitInterpretations",
                 columns: new[] { "VariableId", "WordIndex", "BitIndex" },
                 unique: true,
-                filter: "[DeviceId] IS NULL");
+                filter: "[DictionaryId] IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Boards_DeviceId",
@@ -333,15 +341,20 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Username",
-                table: "Users",
-                column: "Username",
+                name: "IX_StandardVariableOverrides_DictionaryId_StandardVariableId",
+                table: "StandardVariableOverrides",
+                columns: new[] { "DictionaryId", "StandardVariableId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_VariableDeviceStates_VariableId_DeviceId",
-                table: "VariableDeviceStates",
-                columns: new[] { "VariableId", "DeviceId" },
+                name: "IX_StandardVariableOverrides_StandardVariableId",
+                table: "StandardVariableOverrides",
+                column: "StandardVariableId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -367,7 +380,7 @@ namespace Infrastructure.Migrations
                 name: "CommandDeviceStates");
 
             migrationBuilder.DropTable(
-                name: "VariableDeviceStates");
+                name: "StandardVariableOverrides");
 
             migrationBuilder.DropTable(
                 name: "Users");

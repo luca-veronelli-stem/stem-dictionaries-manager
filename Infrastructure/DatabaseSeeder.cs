@@ -312,7 +312,8 @@ public static class DatabaseSeeder
         await SeedPulsantiereDictionaryAsync(context, boards);
 
         // === Override per-device sulle variabili standard ===
-        await SeedSpykeOverridesAsync(context, devices[4], standardVariables);
+        // TODO: riscrivere per Domain v7 (StandardVariableOverride per-dizionario)
+        // await SeedSpykeOverridesAsync(context, devices[4], standardVariables);
     }
 
     /// <summary>
@@ -584,52 +585,10 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
     }
 
-    /// <summary>
-    /// Override per-device Spyke sulle variabili standard.
-    /// Fonte: Docs/Dictionaries/spyke.CSV
-    /// - Disabilita 0x0008 (Temperatura scheda), 0x0009 (Secondi lavoro parziale), 0x000A (Secondi lavoro totale)
-    /// - BitInterpretations per Allarmi (0x0006): Word 0 = allarmi, Word 1 = avvisi
-    /// </summary>
-    private static async Task SeedSpykeOverridesAsync(
-        AppDbContext context, DeviceEntity spyke, VariableEntity[] standardVariables)
-    {
-        // Disabilita variabili non usate da Spyke HMI
-        var disabledAddresses = new byte[] { 0x08, 0x09, 0x0A };
-        foreach (var v in standardVariables.Where(v => disabledAddresses.Contains(v.AddressLow)))
-        {
-            context.VariableDeviceStates.Add(new VariableDeviceStateEntity
-            {
-                VariableId = v.Id,
-                DeviceId = spyke.Id,
-                IsEnabled = false
-            });
-        }
-
-        // BitInterpretations per Allarmi (0x0006) — DeviceId = Spyke
-        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
-
-        context.BitInterpretations.AddRange(
-            // Word 0 — Allarmi
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 0, Meaning = "Errore CAN" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 1, Meaning = "Tensione troppo bassa" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 2, Meaning = "Errore touch" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 3, Meaning = "Errore sensore 10G (Vricarica senza 10G)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 0, BitIndex = 4, Meaning = "Sovraccarico celle (tensione batteria massima con corrente)" },
-
-            // Word 1 — Avvisi
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 0, Meaning = "Tensione bassa" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 1, Meaning = "NFC non presente (barellino agganciato)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 2, Meaning = "NFC non riconosciuto (barellino agganciato)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 3, Meaning = "Barellino non agganciato (NFC presente)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 4, Meaning = "Mancanza di Vricarica con 10G agganciato" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 5, Meaning = "Celle sbilanciate (ricarica senza corrente)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 6, Meaning = "Perdita di stabilità della barella (giroscopio)" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 7, Meaning = "Incoerenza leva/pulsante in carico" },
-            new BitInterpretationEntity { VariableId = allarmi.Id, DeviceId = spyke.Id, WordIndex = 1, BitIndex = 8, Meaning = "Incoerenza leva/pulsante in scarico" }
-        );
-
-        await context.SaveChangesAsync();
-    }
+    // TODO: riscrivere per Domain v7 (StandardVariableOverride per-dizionario + BitInterpretation.DictionaryId)
+    // private static async Task SeedSpykeOverridesAsync(
+    //     AppDbContext context, DeviceEntity spyke, VariableEntity[] standardVariables)
+    // { ... }
 
     /// <summary>
     /// BitInterpretation Word 3 (BYTE 0, big-endian) per LED (Verde/Rosso).

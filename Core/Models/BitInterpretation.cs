@@ -2,21 +2,21 @@ namespace Core.Models;
 
 /// <summary>
 /// Interpretazione di un bit per variabili bitmapped.
-/// SESSION_037: DeviceId? aggiunto per override per-device.
-/// DeviceId = null ? interpretazione comune a tutti i device.
-/// DeviceId valorizzato ? override per device specifico (BR-018: priorità su comune).
+/// v7: DictionaryId? sostituisce DeviceId? (scope per-dizionario).
+/// DictionaryId = null ? definita nel template Standard (default/fallback).
+/// DictionaryId valorizzato ? override per dizionario specifico (BR-018: priorità su template).
 /// </summary>
 public class BitInterpretation
 {
     public int Id { get; private set; }
     public int VariableId { get; private set; }
-    public int? DeviceId { get; private set; }
+    public int? DictionaryId { get; private set; }
     public int WordIndex { get; private set; }
     public int BitIndex { get; private set; }
     public string? Meaning { get; private set; }
 
     public BitInterpretation(int variableId, int wordIndex, int bitIndex,
-        string? meaning, int? deviceId, int maxBitIndex = 15)
+        string? meaning, int? dictionaryId, int maxBitIndex = 15)
     {
         if (wordIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(wordIndex), "WordIndex must be non-negative.");
@@ -25,7 +25,7 @@ public class BitInterpretation
                 $"BitIndex must be between 0 and {maxBitIndex}.");
 
         VariableId = variableId;
-        DeviceId = deviceId;
+        DictionaryId = dictionaryId;
         WordIndex = wordIndex;
         BitIndex = bitIndex;
         Meaning = meaning;
@@ -35,9 +35,9 @@ public class BitInterpretation
     /// Factory method per ricostruire da DB.
     /// </summary>
     public static BitInterpretation Restore(int id, int variableId,
-        int wordIndex, int bitIndex, string? meaning, int? deviceId)
+        int wordIndex, int bitIndex, string? meaning, int? dictionaryId)
     {
-        var interpretation = new BitInterpretation(variableId, wordIndex, bitIndex, meaning, deviceId)
+        var interpretation = new BitInterpretation(variableId, wordIndex, bitIndex, meaning, dictionaryId)
         {
             Id = id
         };

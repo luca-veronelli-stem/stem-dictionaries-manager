@@ -20,4 +20,6 @@ public class DictionaryEntity : IAuditable
     // Navigation
     public ICollection<VariableEntity> Variables { get; set; } = [];
     public ICollection<BoardEntity> Boards { get; set; } = [];
+    public ICollection<StandardVariableOverrideEntity> StandardVariableOverrides { get; set; } = [];
+    public ICollection<BitInterpretationEntity> BitInterpretations { get; set; } = [];
 }

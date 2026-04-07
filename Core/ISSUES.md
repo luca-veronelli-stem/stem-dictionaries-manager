@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Core**.
 
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -11,73 +11,28 @@
 | Priorità | Aperte | Risolte |
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
-| **Alta** | 1 | 1 |
+| **Alta** | 0 | 2 |
 | **Media** | 0 | 3 |
 | **Bassa** | 3 | 0 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 4
+**Totale aperte:** 3  
+**Totale risolte:** 5
 
 ---
 
 ## Indice Issue Aperte
 
-- [CORE-008 - Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)](#core-008--creare-standardvariableoverride-rimuovere-variabledevicestate-t-006)
 - [CORE-003 - Dictionary.RemoveVariable non verifica esistenza](#core-003--dictionaryremovevariable-non-verifica-esistenza)
 - [CORE-004 - Mancanza di metodi Update sui modelli](#core-004--mancanza-di-metodi-update-sui-modelli)
 - [CORE-005 - BitInterpretation.VariableId non ha validazione positiva](#core-005--bitinterpretationvariableid-non-ha-validazione-positiva)
 
 ## Indice Issue Risolte
 
+- [CORE-008 - Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)](#core-008--creare-standardvariableoverride-rimuovere-variabledevicestate-t-006)
 - [CORE-006 - Dictionary.Restore bypassa validazione unicità indirizzi](#core-006--dictionaryrestore-bypassa-validazione-unicità-indirizzi)
 - [CORE-007 - Refactoring Core models per Domain v2](#core-007--refactoring-core-models-per-domain-v2)
 - [CORE-001 - AuditEntityType contiene "Device" non esistente nel dominio](#core-001--auditentitytype-contiene-device-non-esistente-nel-dominio)
 - [CORE-002 - Variable.Category deriva solo da AddressHigh == 0x00](#core-002--variablecategory-deriva-solo-da-addresshigh--0x00)
-
----
-
-## Priorità Alta
-
-### CORE-008 - Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)
-
-**Categoria:** Refactoring  
-**Priorità:** Alta  
-**Impatto:** Alto — cambiamento di dominio fondamentale  
-**Status:** Aperto  
-**Data Apertura:** 2026-03-30  
-**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
-
-#### Descrizione
-
-Refactoring del layer Core per Domain v7. L'override delle variabili standard passa da per-device a per-dizionario.
-
-#### Azioni
-
-1. **Creare** `Core/Models/StandardVariableOverride.cs`:
-   - `Id`, `DictionaryId`, `StandardVariableId`, `IsEnabled`, `Description?`
-   - Constructor con validazione (DictionaryId > 0, StandardVariableId > 0)
-   - Factory method `Restore` per ricostruzione da DB
-   - BR-011: override `isEnabled=true` vietato se `Variable.IsEnabled=false`
-
-2. **Eliminare** `Core/Models/VariableDeviceState.cs`
-
-3. **Modificare** `Core/Enums/AuditEntityType.cs`:
-   - Rimuovere `VariableDeviceState` (se presente)
-   - Aggiungere `StandardVariableOverride`
-
-4. **Modificare** `Core/Models/BitInterpretation.cs`:
-   - `DeviceId` → `DictionaryId` (stessa semantica nullable: null = template)
-
-#### File Coinvolti
-
-- `Core/Models/StandardVariableOverride.cs` (NUOVO)
-- `Core/Models/VariableDeviceState.cs` (ELIMINARE)
-- `Core/Enums/AuditEntityType.cs`
-- `Core/Models/BitInterpretation.cs`
-
-#### Effort Stimato
-
-S (1-2h)
 
 ---
 
@@ -249,6 +204,40 @@ public BitInterpretation(int variableId, int wordIndex, int bitIndex, string? me
 ---
 
 ## Issue Risolte
+
+### CORE-008 - Creare StandardVariableOverride, rimuovere VariableDeviceState (T-006)
+
+**Categoria:** Refactoring  
+**Priorità:** Alta  
+**Impatto:** Alto — cambiamento di dominio fondamentale  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-07  
+**Branch:** fix/t-006  
+**Parent Issue:** [T-006](../ISSUES_TRACKER.md#t-006--standardvariableoverride-per-dizionario-domain-v7)
+
+#### Soluzione Implementata
+
+1. **Creato** `Core/Models/StandardVariableOverride.cs`:
+   - `Id`, `DictionaryId`, `StandardVariableId`, `IsEnabled`, `Description?`
+   - Factory method `Restore` per ricostruzione da DB
+   - Metodi `Enable()`, `Disable()`, `SetDescription()`
+
+2. **Eliminato** `Core/Models/VariableDeviceState.cs`
+
+3. **Modificato** `Core/Enums/AuditEntityType.cs`:
+   - Aggiunto `StandardVariableOverride` (8 valori totali)
+
+4. **Modificato** `Core/Models/BitInterpretation.cs`:
+   - `DeviceId?` → `DictionaryId?` (null = template Standard, valorizzato = per-dizionario)
+
+#### Benefici Ottenuti
+
+- Override variabili standard per-dizionario (non più per-device) ✅
+- Semantica allineata a Lean 4 Specification v7 ✅
+- BitInterpretation con scope per-dizionario (BR-017, BR-018) ✅
+
+---
 
 ### CORE-006 - Dictionary.Restore bypassa validazione unicità indirizzi
 
