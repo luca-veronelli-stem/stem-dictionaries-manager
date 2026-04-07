@@ -23,6 +23,7 @@
     <File Path="Docs/Dictionaries/gateway_spyke.CSV" />
     <File Path="Docs/Dictionaries/gradino.CSV" />
     <File Path="Docs/Dictionaries/hmi_spark.CSV" />
+    <File Path="Docs/Dictionaries/hmi_spyke.CSV" />
     <File Path="Docs/Dictionaries/indirizzi.csv" />
     <File Path="Docs/Dictionaries/o3z-tech.CSV" />
     <File Path="Docs/Dictionaries/old_eden.CSV" />
