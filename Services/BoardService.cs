@@ -104,6 +104,22 @@ public class BoardService : IBoardService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
+        var board = await _boardRepository.GetByIdAsync(id, ct);
+
+        if (board?.DictionaryId is int dictId)
+        {
+            // Se il dizionario è referenziato solo da questa board, eliminalo
+            var allBoards = await _boardRepository.GetAllAsync(ct);
+            var refCount = allBoards.Count(b => b.DictionaryId == dictId);
+            if (refCount <= 1)
+            {
+                // Elimina prima la board (FK), poi il dizionario
+                await _boardRepository.DeleteAsync(id, ct);
+                await _dictionaryRepository.DeleteAsync(dictId, ct);
+                return;
+            }
+        }
+
         await _boardRepository.DeleteAsync(id, ct);
     }
 
