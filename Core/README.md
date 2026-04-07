@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-03
+> **Ultimo aggiornamento:** 2026-04-07
 
 ---
 
@@ -21,7 +21,7 @@ Questo progetto è **puro dominio**: nessuna dipendenza da framework esterni, da
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, Device, etc.) |
+| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, Device, StandardVariableOverride, etc.) |
 | **Enumerazioni** | ✅ | 5 enum (AccessMode, DataTypeKind, AuditEntityType, etc.) |
 | **Validazione** | ✅ | Logica di validazione nei costruttori |
 | **Immutabilità** | ✅ | Private setters, costruttori con parametri |
@@ -83,15 +83,15 @@ Core/
 │   └── VariableCategory.cs     # Standard (0x00xx), DeviceSpecific (0x80xx)
 └── Models/
     ├── AuditEntry.cs              # Traccia modifiche con JSON completo
-    ├── BitInterpretation.cs       # Significato bit per variabili bitmapped
+    ├── BitInterpretation.cs       # Significato bit per variabili bitmapped (v7: DictionaryId?)
     ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, DictionaryName, calcolo indirizzo
     ├── Command.cs                 # Comando protocollo
     ├── CommandDeviceState.cs      # Stato comando per device specifico
     ├── Device.cs                  # Dispositivo STEM (Name, MachineCode, Description)
     ├── Dictionary.cs              # Set di variabili, IsStandard flag
+    ├── StandardVariableOverride.cs # Override per-dizionario di variabile standard (v7)
     ├── User.cs                    # Utente sistema (audit)
-    ├── Variable.cs                # Variabile dizionario con tipo e permessi
-    └── VariableDeviceState.cs     # ⚠️ Override per-device (da rimuovere in T-006 → StandardVariableOverride)
+    └── Variable.cs                # Variabile dizionario con tipo e permessi
 ```
 
 ---
@@ -106,7 +106,7 @@ Core/
 | `DataTypeKind` | 12 valori | Tipo dato (UInt8, Int16, String, Bitmapped, Array, Other, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
-| `AuditEntityType` | 7 valori | Tipo entità per audit trail (incl. Device, aggiunto SESSION_035) |
+| `AuditEntityType` | 8 valori | Tipo entità per audit trail (incl. Device, StandardVariableOverride) |
 
 > **Nota:** `DeviceType` era un enum rimosso in SESSION_035. Ora è l'entity `Device` in Models/.
 
@@ -120,8 +120,8 @@ Core/
 | `Command` | Comando protocollo universale | → CommandDeviceState[] |
 | `CommandDeviceState` | Stato comando per device specifico | → Command, Device |
 | `Device` | Dispositivo STEM (Name, MachineCode, Description) | → Board[] |
-| `VariableDeviceState` | ⚠️ Override per-device (da rimuovere in T-006) | → Variable, Device |
-| `BitInterpretation` | Significato bit per variabili bitmapped | → Variable |
+| `StandardVariableOverride` | Override per-dizionario di variabile standard (v7) | → Dictionary, Variable |
+| `BitInterpretation` | Significato bit per variabili bitmapped (v7: DictionaryId?) | → Variable, Dictionary? |
 | `User` | Utente sistema (audit) | — |
 | `AuditEntry` | Traccia modifiche | previousValue/newValue JSON |
 
@@ -154,7 +154,7 @@ uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNu
 
 ## Issue Correlate
 
-→ [Core/ISSUES.md](./ISSUES.md) — 4 issue aperte (incl. CORE-008 per T-006), 4 risolte
+→ [Core/ISSUES.md](./ISSUES.md) — 3 issue aperte, 5 risolte
 
 ---
 
