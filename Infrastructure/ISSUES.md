@@ -24,7 +24,7 @@
 
 | ID | Titolo | Status | Impatto su Infrastructure |
 |----|--------|--------|---------------------------|
-| **T-006** | StandardVariableOverride per-dizionario (Domain v7) | **In corso** | **INFRA-009**: ✅ Risolto |
+| **T-006** | StandardVariableOverride per-dizionario (Domain v7) | **✅ Risolto** | **INFRA-009**: ✅ Risolto |
 | **T-004** | Aggiungere DB constraints per regole di business | Aperto | AppDbContext.OnModelCreating: 6 constraint da aggiungere |
 | **T-003** | Aggiungere logging infrastructure | Aperto | ILogger<T> in RepositoryBase e services |
 

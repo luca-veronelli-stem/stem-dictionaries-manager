@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -127,7 +127,7 @@ Tests/
 │   │   │   └── NavigationServiceTests.cs         # 23 test (history + ViewModel caching)
 │   │   └── DependencyInjectionTests.cs           # 23 test
 │   └── Services/
-│       ├── DependencyInjectionTests.cs        # 11 test
+│       ├── DependencyInjectionTests.cs        # 13 test
 │       └── Mapping/
 │           ├── UserMapperTests.cs             # 10 test
 │           ├── BoardMapperTests.cs            # 8 test (incl. DictionaryName)
@@ -137,11 +137,12 @@ Tests/
 │           ├── DeviceMapperTests.cs               # 12 test
 │           ├── BitInterpretationMapperTests.cs    # 10 test
 │           ├── CommandDeviceStateMapperTests.cs   # 11 test
-│           └── StandardVariableOverrideMapperTests.cs # 8 test
+│           ├── StandardVariableOverrideMapperTests.cs # 8 test
+│           └── AuditEntryMapperTests.cs           # 10 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
-    │   ├── AuditEntryRepositoryTests.cs       # 5 test
+    │   ├── AuditEntryRepositoryTests.cs       # 8 test
     │   ├── AuditFieldsTests.cs                # 3 test
     │   ├── BoardRepositoryTests.cs            # 10 test
     │   ├── CommandRepositoryTests.cs          # 12 test
@@ -158,7 +159,8 @@ Tests/
     │   ├── BoardServiceTests.cs           # 18 test
     │   ├── CommandServiceTests.cs         # 22 test
     │   ├── DeviceServiceTests.cs          # 16 test
-    │   └── VariableServiceTests.cs        # 50 test (StandardVariableOverride BR-009/010/011/018/020)
+    │   ├── VariableServiceTests.cs        # 50 test (StandardVariableOverride BR-009/010/011/018/020)
+    │   └── AuditServiceTests.cs           # 20 test (query + log + validation + full trail)
     ├── E2E/                               # End-to-end workflow tests
     │   ├── AuditTrailTests.cs             # Audit trail workflow
     │   ├── CommandWorkflowTests.cs        # Comandi workflow completo

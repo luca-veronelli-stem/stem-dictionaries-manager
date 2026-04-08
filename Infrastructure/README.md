@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -160,7 +160,7 @@ Infrastructure/
 | `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
 | `IDeviceRepository` | GetByNameAsync, GetByMachineCodeAsync |
 | `IStandardVariableOverrideRepository` | GetByDictionaryIdAsync, GetByDictionaryAndVariableAsync, GetByVariableIdAsync |
-| `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync |
+| `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync |
 
 ### Audit Automatico
 

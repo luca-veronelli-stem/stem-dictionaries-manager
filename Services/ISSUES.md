@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Services**.
 
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -12,23 +12,23 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
-| **Media** | 1 | 3 |
+| **Media** | 0 | 4 |
 | **Bassa** | 3 | 2 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 8
+**Totale aperte:** 3  
+**Totale risolte:** 9
 
 ---
 
 ## Indice Issue Aperte
 
-- [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-005 - CommandService.GetWithDeviceStatesAsync non espone DeviceStates](#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates)
 - [SVC-006 - Manca validazione business rules centralizzata](#svc-006--manca-validazione-business-rules-centralizzata)
 - [SVC-007 - DependencyInjection non valida prerequisiti](#svc-007--dependencyinjection-non-valida-prerequisiti)
 
 ## Indice Issue Risolte
 
+- [SVC-002 - Manca IAuditService per gestione audit trail](#svc-002--manca-iauditservice-per-gestione-audit-trail)
 - [SVC-012 - Mapper + Service per StandardVariableOverride (T-006)](#svc-012--mapper--service-per-standardvariableoverride-t-006)
 - [SVC-010 - Class1.cs placeholder non rimosso](#svc-010--class1cs-placeholder-non-rimosso)
 - [SVC-003 - GetAllAsync senza paginazione nei services](#svc-003--getallasync-senza-paginazione-nei-services) (Wontfix)
@@ -40,50 +40,47 @@
 
 ---
 
-## Priorità Media
+## Issue Risolte
 
 ### SVC-002 - Manca IAuditService per gestione audit trail
 
 **Categoria:** Feature Mancante  
 **Priorità:** Media  
 **Impatto:** Medio  
-**Status:** Aperto  
+**Status:** ✅Risolto  
 **Data Apertura:** 2026-03-18  
+**Data Risoluzione:** 2026-04-08  
+**Branch:** fix/svc-002
 
-#### Descrizione
+#### Soluzione Implementata
 
-Il sistema ha `AuditEntryRepository` in Infrastructure ma manca un service per gestire l'audit trail a livello applicativo. Le operazioni di audit dovrebbero essere gestite tramite un service dedicato.
+1. **Creato** `AuditEntryMapper.cs`: ToDomain, ToEntity, ToDomainList (no UpdateEntity — AuditEntry immutabile)
+2. **Creato** `IAuditService.cs`: 5 metodi Query + 3 metodi Log (parametri espliciti, no generics)
+3. **Creato** `AuditService.cs`: implementazione con validazione input e factory methods del domain model
+4. **Modificato** `DependencyInjection.cs`: +`IAuditService` registration
+5. **Modificato** `IAuditEntryRepository.cs`: +`GetByDateRangeAsync`
+6. **Modificato** `AuditEntryRepository.cs`: implementazione `GetByDateRangeAsync`
 
-#### File Mancanti
+#### Design
 
-- `Services/Interfaces/IAuditService.cs`
-- `Services/AuditService.cs`
+- **Query** (per futura GUI "Cronologia"): GetByIdAsync, GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync
+- **Log** (chiamati dagli altri service in futuro): LogCreateAsync, LogUpdateAsync, LogDeleteAsync — usano `AuditEntry.ForCreate/ForUpdate/ForDelete` factory methods
+- **No `<T>` generico**: serializzazione JSON è responsabilità del chiamante (il service che fa il CRUD)
+- **Immutabile**: nessun UpdateAsync/DeleteAsync nel service (come nel repository)
 
-#### Soluzione Proposta
+#### Test Aggiunti
 
-```csharp
-// Services/Interfaces/IAuditService.cs
-public interface IAuditService
-{
-    Task<IReadOnlyList<AuditEntry>> GetByEntityAsync(AuditEntityType entityType, int entityId, 
-        CancellationToken ct = default);
-    Task<IReadOnlyList<AuditEntry>> GetRecentAsync(int count = 100, CancellationToken ct = default);
-    Task<IReadOnlyList<AuditEntry>> GetByUserAsync(int userId, CancellationToken ct = default);
-    Task<IReadOnlyList<AuditEntry>> GetByDateRangeAsync(DateTime from, DateTime to, 
-        CancellationToken ct = default);
-    
-    // Audit automatico chiamato dai services
-    Task LogCreateAsync<T>(T entity, int? userId = null, CancellationToken ct = default);
-    Task LogUpdateAsync<T>(T oldEntity, T newEntity, int? userId = null, CancellationToken ct = default);
-    Task LogDeleteAsync<T>(T entity, int? userId = null, CancellationToken ct = default);
-}
-```
+- `AuditEntryMapperTests.cs`: 10 metodi (ToDomain, ToEntity, ToDomainList, RoundTrip, null guards)
+- `AuditServiceTests.cs`: 20 metodi (Query + Log + validazione + scenario full trail)
+- `AuditEntryRepositoryTests.cs`: +3 metodi per GetByDateRangeAsync
+- `DependencyInjectionTests.cs`: +2 metodi (RegistersAuditService, AllServicesResolvable)
 
-#### Benefici Attesi
+#### Benefici Ottenuti
 
-- Gestione centralizzata dell'audit
-- Possibilità di query su audit trail
-- Integrazione con autenticazione (userId)
+- Gestione centralizzata dell'audit trail a livello applicativo ✅
+- Query su audit trail per entity, user, data, recenti ✅
+- Metodi Log pronti per integrazione con altri service ✅
+- Parametri espliciti — zero accoppiamento con domain models ✅
 
 ---
 
@@ -541,8 +538,8 @@ Applicata **Opzione A: Estensione Repository**:
 | Complessità ciclomatica media | Bassa | Bassa |
 | Dipendenze esterne | 2 (Core, Infrastructure) | ≤3 |
 | LOC per file (media) | ~120 | ≤200 |
-| Numero services | 5 | - |
-| Numero mapper | 8 | - |
+| Numero services | 7 | - |
+| Numero mapper | 9 | - |
 
 ---
 
