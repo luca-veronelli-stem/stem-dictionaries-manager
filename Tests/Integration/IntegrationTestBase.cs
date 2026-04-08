@@ -30,6 +30,23 @@ public abstract class IntegrationTestBase : IDisposable, IAsyncLifetime
     }
 
     /// <summary>
+    /// Crea un utente di test per soddisfare FK AuditEntry.ChangedById.
+    /// Chiamare nei test che usano i Service (che ora generano audit).
+    /// </summary>
+    protected void SeedTestUser()
+    {
+        if (!Context.Users.Any(u => u.Username == "test-user"))
+        {
+            Context.Users.Add(new UserEntity
+            {
+                Username = "test-user",
+                DisplayName = "Test User"
+            });
+            Context.SaveChanges();
+        }
+    }
+
+    /// <summary>
     /// Override per setup asincrono (es. seed dati test).
     /// </summary>
     public virtual Task InitializeAsync() => Task.CompletedTask;

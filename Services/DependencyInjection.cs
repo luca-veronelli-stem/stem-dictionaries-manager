@@ -14,6 +14,9 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        // Singleton: utente corrente condiviso tra tutti gli scope
+        services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
+
         // Services
         services.AddScoped<IDictionaryService, DictionaryService>();
         services.AddScoped<IVariableService, VariableService>();

@@ -140,7 +140,7 @@ Tests/
 │           ├── StandardVariableOverrideMapperTests.cs # 8 test
 │           └── AuditEntryMapperTests.cs           # 10 test
 └── Integration/
-    ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
+    \u251c\u2500\u2500 IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime, seed test-user per FK audit)", "oldString": "    \u251c\u2500\u2500 IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
     ├── Infrastructure/
     │   ├── AuditEntryRepositoryTests.cs       # 8 test
     │   ├── AuditFieldsTests.cs                # 3 test

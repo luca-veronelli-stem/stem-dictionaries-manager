@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
@@ -13,13 +15,23 @@ public class CommandService : ICommandService
 {
     private readonly ICommandRepository _repository;
     private readonly ICommandDeviceStateRepository _deviceStateRepository;
+    private readonly IAuditService _audit;
+    private readonly ICurrentUserProvider _userProvider;
 
-    public CommandService(ICommandRepository repository, ICommandDeviceStateRepository deviceStateRepository)
+    public CommandService(
+        ICommandRepository repository,
+        ICommandDeviceStateRepository deviceStateRepository,
+        IAuditService auditService,
+        ICurrentUserProvider userProvider)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(deviceStateRepository);
+        ArgumentNullException.ThrowIfNull(auditService);
+        ArgumentNullException.ThrowIfNull(userProvider);
         _repository = repository;
         _deviceStateRepository = deviceStateRepository;
+        _audit = auditService;
+        _userProvider = userProvider;
     }
 
     // === CRUD Base ===
@@ -56,7 +68,13 @@ public class CommandService : ICommandService
 
         var entity = CommandMapper.ToEntity(command);
         var created = await _repository.AddAsync(entity, ct);
-        return CommandMapper.ToDomain(created);
+        var result = CommandMapper.ToDomain(created);
+
+        await _audit.LogCreateAsync(AuditEntityType.Command, result.Id,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(result), ct: ct);
+
+        return result;
     }
 
     public async Task UpdateAsync(Command command, CancellationToken ct = default)
@@ -75,13 +93,32 @@ public class CommandService : ICommandService
                     $"Command with name '{command.Name}' already exists.");
         }
 
+        var previous = CommandMapper.ToDomain(entity);
+        var prevJson = JsonSerializer.Serialize(previous);
+
         CommandMapper.UpdateEntity(entity, command);
         await _repository.UpdateAsync(entity, ct);
+
+        await _audit.LogUpdateAsync(AuditEntityType.Command, command.Id,
+            _userProvider.CurrentUserId ?? 0,
+            prevJson, JsonSerializer.Serialize(command), ct: ct);
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        await _repository.DeleteAsync(id, ct);
+        var entity = await _repository.GetByIdAsync(id, ct);
+        if (entity is not null)
+        {
+            var previous = CommandMapper.ToDomain(entity);
+            await _repository.DeleteAsync(id, ct);
+            await _audit.LogDeleteAsync(AuditEntityType.Command, id,
+                _userProvider.CurrentUserId ?? 0,
+                JsonSerializer.Serialize(previous), ct: ct);
+        }
+        else
+        {
+            await _repository.DeleteAsync(id, ct);
+        }
     }
 
     // === Query Specifiche ===
@@ -147,6 +184,6 @@ public class CommandService : ICommandService
         int deviceId, CancellationToken ct = default)
     {
         var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
-        return entities.Select(CommandDeviceStateMapper.ToDomain).ToList();
+        return [.. entities.Select(CommandDeviceStateMapper.ToDomain)];
     }
 }

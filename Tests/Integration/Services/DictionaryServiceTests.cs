@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Repositories;
 using Services;
+using Services.Interfaces;
 
 namespace Tests.Integration.Services;
 
@@ -14,9 +15,14 @@ public class DictionaryServiceTests : IntegrationTestBase
 
     public DictionaryServiceTests()
     {
+        SeedTestUser();
         var dictionaryRepository = new DictionaryRepository(Context);
         var variableRepository = new VariableRepository(Context);
-        _service = new DictionaryService(dictionaryRepository, variableRepository);
+        var auditRepository = new AuditEntryRepository(Context);
+        IAuditService auditService = new AuditService(auditRepository);
+        ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
+        _service = new DictionaryService(
+            dictionaryRepository, variableRepository, auditService, userProvider);
     }
 
     [Fact]

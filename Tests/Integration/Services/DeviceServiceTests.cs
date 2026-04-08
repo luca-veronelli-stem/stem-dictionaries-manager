@@ -2,6 +2,7 @@ using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Services;
+using Services.Interfaces;
 
 namespace Tests.Integration.Services;
 
@@ -14,10 +15,15 @@ public class DeviceServiceTests : IntegrationTestBase
 
     public DeviceServiceTests()
     {
+        SeedTestUser();
         var repository = new DeviceRepository(Context);
         var boardRepository = new BoardRepository(Context);
         var dictionaryRepository = new DictionaryRepository(Context);
-        _service = new DeviceService(repository, boardRepository, dictionaryRepository);
+        var auditRepository = new AuditEntryRepository(Context);
+        IAuditService auditService = new AuditService(auditRepository);
+        ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
+        _service = new DeviceService(
+            repository, boardRepository, dictionaryRepository, auditService, userProvider);
     }
 
     [Fact]

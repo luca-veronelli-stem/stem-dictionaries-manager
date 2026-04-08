@@ -3,6 +3,7 @@ using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Core.Enums;
 using Services;
+using Services.Interfaces;
 
 namespace Tests.Integration.Services;
 
@@ -20,16 +21,22 @@ public class VariableServiceTests : IntegrationTestBase
 
     public VariableServiceTests()
     {
+        SeedTestUser();
         _dictionaryRepo = new DictionaryRepository(Context);
         _variableRepo = new VariableRepository(Context);
         _bitInterpretationRepo = new BitInterpretationRepository(Context);
         _overrideRepo = new StandardVariableOverrideRepository(Context);
+        var auditRepository = new AuditEntryRepository(Context);
+        IAuditService auditService = new AuditService(auditRepository);
+        ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
 
         _service = new VariableService(
             _variableRepo,
             _dictionaryRepo,
             _bitInterpretationRepo,
-            _overrideRepo);
+            _overrideRepo,
+            auditService,
+            userProvider);
     }
 
     public override async Task InitializeAsync()

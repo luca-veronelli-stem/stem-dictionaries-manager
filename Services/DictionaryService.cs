@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
@@ -13,15 +15,23 @@ public class DictionaryService : IDictionaryService
 {
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IVariableRepository _variableRepository;
+    private readonly IAuditService _audit;
+    private readonly ICurrentUserProvider _userProvider;
 
     public DictionaryService(
         IDictionaryRepository dictionaryRepository,
-        IVariableRepository variableRepository)
+        IVariableRepository variableRepository,
+        IAuditService auditService,
+        ICurrentUserProvider userProvider)
     {
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(variableRepository);
+        ArgumentNullException.ThrowIfNull(auditService);
+        ArgumentNullException.ThrowIfNull(userProvider);
         _dictionaryRepository = dictionaryRepository;
         _variableRepository = variableRepository;
+        _audit = auditService;
+        _userProvider = userProvider;
     }
 
     public async Task<Dictionary?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -57,8 +67,13 @@ public class DictionaryService : IDictionaryService
 
         var entity = DictionaryMapper.ToEntity(dictionary);
         var created = await _dictionaryRepository.AddAsync(entity, ct);
+        var result = DictionaryMapper.ToDomain(created);
 
-        return DictionaryMapper.ToDomain(created);
+        await _audit.LogCreateAsync(AuditEntityType.Dictionary, result.Id,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(result), ct: ct);
+
+        return result;
     }
 
     public async Task UpdateAsync(Dictionary dictionary, CancellationToken ct = default)
@@ -87,13 +102,32 @@ public class DictionaryService : IDictionaryService
                     "A Standard dictionary already exists. Only one is allowed (BR-004).");
         }
 
+        var previous = DictionaryMapper.ToDomain(entity);
+        var prevJson = JsonSerializer.Serialize(previous);
+
         DictionaryMapper.UpdateEntity(entity, dictionary);
         await _dictionaryRepository.UpdateAsync(entity, ct);
+
+        await _audit.LogUpdateAsync(AuditEntityType.Dictionary, dictionary.Id,
+            _userProvider.CurrentUserId ?? 0,
+            prevJson, JsonSerializer.Serialize(dictionary), ct: ct);
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        await _dictionaryRepository.DeleteAsync(id, ct);
+        var entity = await _dictionaryRepository.GetByIdAsync(id, ct);
+        if (entity is not null)
+        {
+            var previous = DictionaryMapper.ToDomain(entity);
+            await _dictionaryRepository.DeleteAsync(id, ct);
+            await _audit.LogDeleteAsync(AuditEntityType.Dictionary, id,
+                _userProvider.CurrentUserId ?? 0,
+                JsonSerializer.Serialize(previous), ct: ct);
+        }
+        else
+        {
+            await _dictionaryRepository.DeleteAsync(id, ct);
+        }
     }
 
     public async Task<Dictionary?> GetByNameAsync(string name, CancellationToken ct = default)
@@ -134,7 +168,13 @@ public class DictionaryService : IDictionaryService
 
         var entity = VariableMapper.ToEntity(variable, dictionaryId);
         var created = await _variableRepository.AddAsync(entity, ct);
-        return VariableMapper.ToDomain(created);
+        var result = VariableMapper.ToDomain(created);
+
+        await _audit.LogCreateAsync(AuditEntityType.Variable, result.Id,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(result), ct: ct);
+
+        return result;
     }
 
     public async Task RemoveVariableAsync(int dictionaryId, int variableId,
@@ -152,6 +192,11 @@ public class DictionaryService : IDictionaryService
             throw new InvalidOperationException(
                 $"Variable '{variable.Name}' does not belong to this dictionary.");
 
+        var previous = VariableMapper.ToDomain(variable);
         await _variableRepository.DeleteAsync(variableId, ct);
+
+        await _audit.LogDeleteAsync(AuditEntityType.Variable, variableId,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(previous), ct: ct);
     }
 }
