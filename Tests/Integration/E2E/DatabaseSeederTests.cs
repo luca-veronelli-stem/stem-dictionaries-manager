@@ -861,4 +861,200 @@ public class DatabaseSeederTests : IntegrationTestBase
 
         Assert.Equal(addresses.Count, addresses.Distinct().Count());
     }
+
+    // === Dizionario Gradino ===
+
+    [Fact]
+    public async Task SeedAsync_CreatesGradinoDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Azionamento Gradino");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GradinoDictionary_Has35Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var variables = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(35, variables.Count);
+        Assert.All(variables, v => Assert.Equal(0x80, v.AddressHigh));
+    }
+
+    [Fact]
+    public async Task SeedAsync_Gradino_BoardAzionamentoLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var gradino = await Context.Devices
+            .FirstAsync(d => d.Name == "Gradino");
+
+        var board = await Context.Boards
+            .FirstAsync(b => b.DeviceId == gradino.Id && b.FirmwareType == 6);
+
+        Assert.Equal(dict.Id, board.DictionaryId);
+    }
+
+    [Fact]
+    public async Task SeedAsync_Gradino_StatoKeyboard1_IsDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var var0 = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x00);
+
+        Assert.Equal("Stato keyboard 1", var0.Name);
+        Assert.False(var0.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_Gradino_Last4Variables_AreDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+
+        // Motor Type (0x1F), Stato Scheda (0x20), An_Pot1 (0x21), An_Pot2 (0x22)
+        var disabledVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x1F && v.AddressLow <= 0x22)
+            .ToListAsync();
+
+        Assert.Equal(4, disabledVars.Count);
+        Assert.All(disabledVars, v => Assert.False(v.IsEnabled));
+    }
+
+    [Fact]
+    public async Task SeedAsync_Gradino_CurrentVariables_HaveUnit()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+
+        // I Motore (0x05), I max/media (0x11-0x18), Max current x3 (0x1C-0x1E)
+        var currentVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id && v.Unit == "Ampere/100")
+            .ToListAsync();
+
+        Assert.Equal(12, currentVars.Count);
+    }
+
+    // === Override Gradino ===
+
+    [Fact]
+    public async Task SeedAsync_GradinoOverrides_Disables11Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var gradDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == gradDict.Id && !o.IsEnabled)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x05 + 0x07-0x0F (9) + 0x17 = 11
+        Assert.Equal(11, overrides.Count);
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(a => a).ToList();
+        Assert.Equal(
+            [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x17],
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GradinoOverrides_StatoHasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var gradDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var stato = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x05);
+
+        var ov = await Context.StandardVariableOverrides
+            .FirstAsync(o => o.DictionaryId == gradDict.Id
+                && o.StandardVariableId == stato.Id);
+
+        Assert.False(ov.IsEnabled);
+        Assert.NotNull(ov.Description);
+        Assert.Contains("OPENING_CALIBRATION", ov.Description);
+        Assert.Contains("SLOWDOWN_OPENING", ov.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GradinoIngressi_Has4Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var gradDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var ingressi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x15);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == ingressi.Id
+                && bi.DictionaryId == gradDict.Id)
+            .OrderBy(bi => bi.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(4, bits.Count);
+        Assert.Equal("DOOR", bits[0].Meaning);
+        Assert.Equal("FS OPEN", bits[1].Meaning);
+        Assert.Equal("FS CLOSE", bits[2].Meaning);
+        Assert.Equal("FC STEP", bits[3].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GradinoUscite_Has1Bit()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var gradDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var uscite = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x16);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == uscite.Id
+                && bi.DictionaryId == gradDict.Id)
+            .ToListAsync();
+
+        Assert.Single(bits);
+        Assert.Equal("LED1", bits[0].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_Gradino_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Gradino");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => new { v.AddressHigh, v.AddressLow })
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
 }
