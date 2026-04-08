@@ -2096,4 +2096,352 @@ public class DatabaseSeederTests : IntegrationTestBase
             b.WordIndex == 1 && b.BitIndex == 5
             && b.Meaning == "Errore hardware EEPROM esterna");
     }
+
+    // ====================================================================
+    // O3Z-Tech
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesO3ZTechDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Display O3Z-Tech");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTechDictionary_Has29Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(29, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_AllVariablesEnabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var disabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && !v.IsEnabled);
+
+        Assert.Equal(0, disabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_BoardDisplayLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(16, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_SetBootBridge_IsWriteOnly()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x1B);
+
+        Assert.Equal("Set Boot Bridge", v.Name);
+        Assert.Equal(AccessMode.WriteOnly, v.AccessMode);
+        Assert.Equal(DataTypeKind.UInt8, v.DataTypeKind);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_NomeUtente_IsString20()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x14);
+
+        Assert.Equal("Nome utente", v.Name);
+        Assert.Equal(DataTypeKind.String, v.DataTypeKind);
+        Assert.Equal(20, v.DataTypeParam);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTech_LinguaInUso_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x1C);
+
+        Assert.Equal("Lingua in uso", v.Name);
+        Assert.Equal(DataTypeKind.UInt32, v.DataTypeKind);
+        Assert.NotNull(v.Description);
+        Assert.Contains("italiano", v.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTechOverrides_Disables9Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x08-0x0D (6) + 0x0F + 0x16 + 0x17 = 9
+        Assert.Equal(9, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[]
+            {
+                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+                0x0F, 0x16, 0x17
+            },
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_O3ZTechAllarmi_Has15BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Display O3Z-Tech");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // Word 0 bits 1-15 = 15 bit
+        Assert.Equal(15, bits.Count);
+        Assert.All(bits, b => Assert.Equal(0, b.WordIndex));
+        Assert.Contains(bits, b =>
+            b.BitIndex == 1
+            && b.Meaning == "Errore generico");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 15
+            && b.Meaning == "Man inside");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 13
+            && b.Meaning == "CAN Egicon");
+    }
+
+    // ====================================================================
+    // HMI Spark
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesHmiSparkDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "HMI Spark");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSparkDictionary_Has21Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(21, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_Has20EnabledVariables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var enabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && v.IsEnabled);
+
+        Assert.Equal(20, enabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_BoardHmiLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(11, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_StatoMacchina_IsDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x14);
+
+        Assert.Equal("Stato macchina", v.Name);
+        Assert.False(v.IsEnabled);
+        Assert.NotNull(v.Description);
+        Assert.Contains("wait for hook", v.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_SensoreSherpa_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x0C);
+
+        Assert.Equal("Sensore Sherpa", v.Name);
+        Assert.True(v.IsEnabled);
+        Assert.Contains("Agganciato", v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSpark_FloatVariables_AreReadOnly()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var floatVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.DataTypeKind == DataTypeKind.Float)
+            .ToListAsync();
+
+        // Angolo X/Y/Z, Accel X/Y/Z, Coord X/Y touch = 8
+        Assert.Equal(8, floatVars.Count);
+        Assert.All(floatVars, v =>
+            Assert.Equal(AccessMode.ReadOnly, v.AccessMode));
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSparkOverrides_Disables4Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x08, 0x09, 0x0A, 0x17
+        Assert.Equal(4, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[] { 0x08, 0x09, 0x0A, 0x17 },
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_HmiSparkAllarmi_Has14BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "HMI Spark");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // 5 Word 0 + 9 Word 1
+        Assert.Equal(14, bits.Count);
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 0
+            && b.Meaning == "Errore CAN");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.BitIndex == 8
+            && b.Meaning!.Contains("scarico"));
+    }
 }

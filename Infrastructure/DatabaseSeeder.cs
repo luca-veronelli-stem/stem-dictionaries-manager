@@ -378,6 +378,22 @@ public static class DatabaseSeeder
         // === Override variabili standard per TopLift-A2 ===
         await SeedTopLiftA2OverridesAsync(
             context, topLiftA2Dictionary, standardVariables);
+
+        // === Dizionario O3Z-Tech (da o3z-tech.CSV) ===
+        var o3zTechDictionary = await SeedO3ZTechDictionaryAsync(
+            context, boards, devices[7]);
+
+        // === Override variabili standard per O3Z-Tech ===
+        await SeedO3ZTechOverridesAsync(
+            context, o3zTechDictionary, standardVariables);
+
+        // === Dizionario HMI Spark (da hmi_spark.CSV) ===
+        var hmiSparkDictionary = await SeedHmiSparkDictionaryAsync(
+            context, boards, devices[5]);
+
+        // === Override variabili standard per HMI Spark ===
+        await SeedHmiSparkOverridesAsync(
+            context, hmiSparkDictionary, standardVariables);
     }
 
     /// <summary>
@@ -4303,6 +4319,599 @@ public static class DatabaseSeeder
                 VariableId = allarmi.Id, DictionaryId = dictId,
                 WordIndex = 1, BitIndex = 5,
                 Meaning = "Errore hardware EEPROM esterna"
+            });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Display O3Z-Tech con le variabili specifiche.
+    /// Fonte: Docs/Dictionaries/o3z-tech.CSV
+    /// Indirizzo board: 0x00090401 (MC=9, FW=16, BN=1)
+    /// 29 variabili (0x8000-0x801C), tutte abilitate.
+    /// </summary>
+    private static async Task<DictionaryEntity>
+        SeedO3ZTechDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards,
+        DeviceEntity o3zTechDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Display O3Z-Tech",
+            Description = "Dizionario variabili logiche scheda "
+                + "Display O3Z-Tech",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 — On
+            Var(id, "On", 0x80, 0x00,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite,
+                description: "Comando on"),
+
+            // 0x8001 — Run
+            Var(id, "Run", 0x80, 0x01,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite,
+                description: "Comando run"),
+
+            // 0x8002 — O3 Reference
+            Var(id, "O3 Reference", 0x80, 0x02,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite,
+                description: "Riferimento di ozono"),
+
+            // 0x8003 — O3 Level
+            Var(id, "O3 Level", 0x80, 0x03,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x8004 — Isteresis Positive
+            Var(id, "Isteresis Positive", 0x80, 0x04,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite),
+
+            // 0x8005 — Isteresis Negative
+            Var(id, "Isteresis Negative", 0x80, 0x05,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite),
+
+            // 0x8006 — Manual
+            Var(id, "Manual", 0x80, 0x06,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite),
+
+            // 0x8007-0x800C — Data/ora
+            Var(id, "Secondi", 0x80, 0x07,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+            Var(id, "Minuti", 0x80, 0x08,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+            Var(id, "Ore", 0x80, 0x09,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+            Var(id, "Giorno", 0x80, 0x0A,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+            Var(id, "Mese", 0x80, 0x0B,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+            Var(id, "Anno", 0x80, 0x0C,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite),
+
+            // 0x800D — Timer trattamento
+            Var(id, "Timer trattamento", 0x80, 0x0D,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+
+            // 0x800E — Tempo trattamento manuale
+            Var(id, "Tempo trattamento manuale", 0x80, 0x0E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite),
+
+            // 0x800F — Soglia trattamento manuale
+            Var(id, "Soglia trattamento manuale", 0x80, 0x0F,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite),
+
+            // 0x8010-0x8013 — Indici log
+            Var(id, "Indice Log più vecchio", 0x80, 0x10,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+            Var(id, "Numero Logs totale", 0x80, 0x11,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+            Var(id, "Indice ultimo log letto", 0x80, 0x12,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+            Var(id, "Indice Log corrente", 0x80, 0x13,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+
+            // 0x8014 — Nome utente
+            Var(id, "Nome utente", 0x80, 0x14,
+                DataTypeKind.String, "String[20]",
+                AccessMode.ReadWrite, dataTypeParam: 20),
+
+            // 0x8015 — Nome macchina
+            Var(id, "Nome macchina", 0x80, 0x15,
+                DataTypeKind.String, "String[12]",
+                AccessMode.ReadWrite, dataTypeParam: 12),
+
+            // 0x8016 — Versione firmware Egicon
+            Var(id, "Versione firmware Egicon", 0x80, 0x16,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x8017 — Valore di fine trattamento
+            Var(id, "Valore di fine trattamento", 0x80, 0x17,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x8018 — Tempo di warmup
+            Var(id, "Tempo di warmup", 0x80, 0x18,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x8019 — Pir1
+            Var(id, "Pir1", 0x80, 0x19,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x801A — Pir2
+            Var(id, "Pir2", 0x80, 0x1A,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly),
+
+            // 0x801B — Set Boot Bridge (solo scrittura)
+            Var(id, "Set Boot Bridge", 0x80, 0x1B,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.WriteOnly),
+
+            // 0x801C — Lingua in uso
+            Var(id, "Lingua in uso", 0x80, 0x1C,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "0 = inglese, 1 = italiano, "
+                    + "2 = francese, 3 = tedesco, "
+                    + "4 = spagnolo, 5 = rumeno"),
+        };
+        context.Variables.AddRange(variables);
+
+        // Link board Display (FW=16) di O3Z-Tech
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == o3zTechDevice.Id
+                && board.FirmwareType == 16)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per dizionario Display O3Z-Tech.
+    /// Disabilita: 0x08-0x0D, 0x0F, 0x16, 0x17.
+    /// BitInterpretation: Allarmi (0x06) Word 0 (bits 1-15).
+    /// </summary>
+    private static async Task SeedO3ZTechOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity o3zTechDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = o3zTechDictionary.Id;
+
+        // === Override: Disabilita 0x08-0x0D, 0x0F, 0x16, 0x17 ===
+        var disabledOverrides = standardVariables
+            .Where(v =>
+                (v.AddressLow >= 0x08 && v.AddressLow <= 0x0D)
+                || v.AddressLow == 0x0F
+                || v.AddressLow == 0x16
+                || v.AddressLow == 0x17)
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides
+            .AddRange(disabledOverrides);
+
+        // === BitInterpretation: Allarmi (0x06) Word 0 ===
+        var allarmi = standardVariables
+            .First(v => v.AddressLow == 0x06);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Errore generico"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "Fan broken"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "No comm ozone sensor"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Locked button"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "Low ozone"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 6,
+                Meaning = "High ozone"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 7,
+                Meaning = "Ozone cell temp low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 8,
+                Meaning = "Temperature high"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 9,
+                Meaning = "Ozone cell temp high"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 10,
+                Meaning = "Humidity high"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 11,
+                Meaning = "Power supply high"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 12,
+                Meaning = "Power supply low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 13,
+                Meaning = "CAN Egicon"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 14,
+                Meaning = "CAN ozone"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 15,
+                Meaning = "Man inside"
+            });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario HMI Spark con le variabili specifiche.
+    /// Fonte: Docs/Dictionaries/hmi_spark.CSV
+    /// Indirizzo board: 0x000702C1 (MC=7, FW=11, BN=1)
+    /// 21 variabili (0x8000-0x8014), 20 abilitate.
+    /// </summary>
+    private static async Task<DictionaryEntity>
+        SeedHmiSparkDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards,
+        DeviceEntity sparkDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "HMI Spark",
+            Description = "Dizionario variabili logiche scheda "
+                + "HMI Spark",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 — Stato pulsanti
+            Var(id, "Stato pulsanti", 0x80, 0x00,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 3,
+                description: "0 = Nessun pulsante\n"
+                    + "1 = Pulsante UP\n"
+                    + "2 = Pulsante DOWN\n3 = Entrambi"),
+
+            // 0x8001 — Sensore leva
+            Var(id, "Sensore leva", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Leva tirata"),
+
+            // 0x8002-0x8004 — Angoli
+            Var(id, "Angolo X", 0x80, 0x02,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+            Var(id, "Angolo Y", 0x80, 0x03,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+            Var(id, "Angolo Z", 0x80, 0x04,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+
+            // 0x8005-0x8007 — Accelerazioni
+            Var(id, "Accelerazione X", 0x80, 0x05,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+            Var(id, "Accelerazione Y", 0x80, 0x06,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+            Var(id, "Accelerazione Z", 0x80, 0x07,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+
+            // 0x8008-0x8009 — Coordinate touch
+            Var(id, "Coordinata X touch", 0x80, 0x08,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+            Var(id, "Coordinata Y touch", 0x80, 0x09,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly),
+
+            // 0x800A — Gancio 10g
+            Var(id, "Gancio 10g", 0x80, 0x0A,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800B — Gancio Barella
+            Var(id, "Gancio Barella", 0x80, 0x0B,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800C — Sensore Sherpa
+            Var(id, "Sensore Sherpa", 0x80, 0x0C,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "1 = Agganciato"),
+
+            // 0x800D — Tipo Barella
+            Var(id, "Tipo Barella", 0x80, 0x0D,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = Emergency stretcher\n"
+                    + "1 = Bio stretcher\n"
+                    + "2 = Bariatric stretcher\n"
+                    + "3 = Incubator"),
+
+            // 0x800E — Stato gateway
+            Var(id, "Stato gateway", 0x80, 0x0E,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = not connected\n"
+                    + "1 = connected"),
+
+            // 0x800F — RSSI LTE
+            Var(id, "RSSI LTE", 0x80, 0x0F,
+                DataTypeKind.Int8, "Int8",
+                AccessMode.ReadOnly),
+
+            // 0x8010 — RSSI BLE
+            Var(id, "RSSI BLE", 0x80, 0x10,
+                DataTypeKind.Int8, "Int8",
+                AccessMode.ReadOnly),
+
+            // 0x8011 — Stato connessione Sherpa
+            Var(id, "Stato connessione Sherpa", 0x80, 0x11,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly),
+
+            // 0x8012 — Stato automa principale
+            Var(id, "Stato automa principale", 0x80, 0x12,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = hooked 10g\n"
+                    + "1 = unhooked 10g\n"
+                    + "2 = idle out\n3 = ongoing out\n"
+                    + "4 = idle mode in\n"
+                    + "5 = ongoing in\n6 = extracted"),
+
+            // 0x8013 — Tensione batteria mV
+            Var(id, "Tensione batteria mV", 0x80, 0x13,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly),
+
+            // 0x8014 — Stato macchina (disabilitata)
+            Var(id, "Stato macchina", 0x80, 0x14,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "0 = init\n1 = normal\n"
+                    + "2 = charging\n3 = error\n"
+                    + "4 = boot\n5 = death\n"
+                    + "6 = buttons mismatch\n"
+                    + "7 = hooked\n8 = wait for hook"),
+        };
+        context.Variables.AddRange(variables);
+
+        // Link board HMI (FW=11) di Spark
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == sparkDevice.Id
+                && board.FirmwareType == 11)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per dizionario HMI Spark.
+    /// Disabilita: 0x08 (Temperatura), 0x09 (Secondi motore
+    /// parziale), 0x0A (Secondi motore totale),
+    /// 0x17 (FW Bootloader).
+    /// BitInterpretation: Allarmi (0x06) Word 0 (5 bit)
+    /// + Word 1 (9 bit).
+    /// </summary>
+    private static async Task SeedHmiSparkOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity hmiSparkDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = hmiSparkDictionary.Id;
+
+        // === Override: Disabilita 0x08, 0x09, 0x0A, 0x17 ===
+        var disabledAddresses = new byte[]
+            { 0x08, 0x09, 0x0A, 0x17 };
+        var disabledOverrides = standardVariables
+            .Where(v => disabledAddresses
+                .Contains(v.AddressLow))
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides
+            .AddRange(disabledOverrides);
+
+        // === BitInterpretation: Allarmi (0x06) ===
+        var allarmi = standardVariables
+            .First(v => v.AddressLow == 0x06);
+        context.Set<BitInterpretationEntity>().AddRange(
+            // Word 0: Allarmi
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Errore CAN"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Tensione troppo bassa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "Errore touch"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Errore sensore 10G (se vedo "
+                    + "Vricarica senza vedere 10G)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Sovraccarico celle (quando sono "
+                    + "a tensione batteria massima ma ho "
+                    + "ancora corrente)"
+            },
+            // Word 1: Avvisi
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 0,
+                Meaning = "Tensione bassa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 1,
+                Meaning = "NFC non presente "
+                    + "(se barellino agganciato)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 2,
+                Meaning = "NFC non riconosciuto "
+                    + "(se barellino agganciato)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 3,
+                Meaning = "Barellino non agganciato "
+                    + "(se NFC presente)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 4,
+                Meaning = "Mancanza di Vricarica "
+                    + "con 10G agganciato"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 5,
+                Meaning = "Celle sbilanciate (quando sono "
+                    + "in ricarica ma non ho corrente "
+                    + "di ricarica)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 6,
+                Meaning = "Perdita di stabilità della "
+                    + "barella (da giroscopio)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 7,
+                Meaning = "Incoerenza leva/pulsante "
+                    + "in carico"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 8,
+                Meaning = "Incoerenza leva/pulsante "
+                    + "in scarico"
             });
 
         await context.SaveChangesAsync();
