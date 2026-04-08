@@ -1605,4 +1605,495 @@ public class DatabaseSeederTests : IntegrationTestBase
         Assert.Contains(bits, b =>
             b.BitIndex == 11 && b.Meaning == "LEDR");
     }
+
+    // ====================================================================
+    // TopLift-M
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesTopLiftMDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Madre Toplift-M");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftMDictionary_Has34Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(34, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_BoardMadreLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(3, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_HasAddressGap()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+
+        // Nessuna variabile nell'intervallo 0x8018-0x802D
+        var gapVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressHigh == 0x80
+                && v.AddressLow >= 0x18
+                && v.AddressLow <= 0x2D)
+            .CountAsync();
+
+        Assert.Equal(0, gapVars);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_MotorRunning_IsBool()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x01);
+
+        Assert.Equal("Motor Running", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_MotorType_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x02);
+
+        Assert.Equal("Motor Type", v.Name);
+        Assert.Contains("DC BRUSHLESS", v.Description!);
+        Assert.Contains("AC INDUCTION", v.Description!);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_AzionamentoVars_AreDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var vars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x03 && v.AddressLow <= 0x12)
+            .ToListAsync();
+
+        Assert.Equal(16, vars.Count);
+        Assert.All(vars, v => Assert.False(v.IsEnabled));
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_VbusMeasured_IsEnabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x13);
+
+        Assert.Equal("Vbus measured", v.Name);
+        Assert.Equal(DataTypeKind.UInt16, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_StatoAutoma_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x35);
+
+        Assert.Equal("Stato automa", v.Name);
+        Assert.Contains("DETECT_M1", v.Description!);
+        Assert.Contains("REFRESH_HEIGHT", v.Description!);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_StatoIO_IsBitmapped2Words()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x36);
+
+        Assert.Equal("Stato IO", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(16, v.WordSize);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_StatoIO_Has17BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x36);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .ToListAsync();
+
+        // 11 in Word 0 + 6 in Word 1
+        Assert.Equal(17, bits.Count);
+
+        // Verifica Word 0 (Ingressi)
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 0
+            && b.Meaning == "Stato fine corsa piano chiuso");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 10
+            && b.Meaning == "Stato selettore va orizzontale");
+
+        // Verifica Word 1 (Uscite)
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.BitIndex == 0
+            && b.Meaning == "Stato elettrovalvola 1");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.BitIndex == 5
+            && b.Meaning == "Stato relè motore");
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftM_GestioneFinecorsa_IsBoolRW()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x37);
+
+        Assert.Equal("Gestione fine corsa", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        Assert.True(v.IsEnabled);
+        Assert.Contains("PC e PA", v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftMOverrides_Disables4Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-M");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x04, 0x15, 0x16, 0x17
+        Assert.Equal(4, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[] { 0x04, 0x15, 0x16, 0x17 }, addresses);
+    }
+
+    // ====================================================================
+    // TopLift-A2
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesTopLiftA2Dictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Madre Toplift-A2");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2Dictionary_Has96Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(96, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_BoardMadreLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(14, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_Has37EnabledVariables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var enabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && v.IsEnabled);
+
+        Assert.Equal(37, enabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_SystemOn_IsBool()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x03);
+
+        Assert.Equal("SystemOn", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_StatoFinecorsa_IsBitmapped()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x11);
+
+        Assert.Equal("Stato finecorsa", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0
+            && b.Meaning == "Finecorsa piano esteso");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 1
+            && b.Meaning == "Finecorsa piano chiuso");
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_StatoLuci_Has3Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x43);
+
+        Assert.Equal("Stato Luci", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .ToListAsync();
+
+        Assert.Equal(3, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "B");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 2 && b.Meaning == "R");
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_EVStates_AreEnabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+
+        // EVA(0x1A), EVB(0x1E), EVC(0x22), P2A(0x26)
+        var evAddresses = new byte[]
+            { 0x1A, 0x1E, 0x22, 0x26 };
+        var evVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && evAddresses.Contains(v.AddressLow))
+            .ToListAsync();
+
+        Assert.Equal(4, evVars.Count);
+        Assert.All(evVars, v =>
+        {
+            Assert.True(v.IsEnabled);
+            Assert.Equal(DataTypeKind.UInt8, v.DataTypeKind);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2_FCVariables_AreEnabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+
+        // 0x5C, 0x5D, 0x5E, 0x5F
+        var fcVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x5C
+                && v.AddressLow <= 0x5F)
+            .ToListAsync();
+
+        Assert.Equal(4, fcVars.Count);
+        Assert.All(fcVars, v =>
+        {
+            Assert.True(v.IsEnabled);
+            Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2Overrides_Disables5Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x05, 0x08, 0x15, 0x16, 0x17
+        Assert.Equal(5, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[] { 0x05, 0x08, 0x15, 0x16, 0x17 },
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_TopLiftA2Allarmi_Has22BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Toplift-A2");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // 16 Word 0 + 6 Word 1
+        Assert.Equal(22, bits.Count);
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 0
+            && b.Meaning == "Sovracorrente pompa");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 15
+            && b.Meaning == "Circuito aperto EV 7");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.BitIndex == 5
+            && b.Meaning == "Errore hardware EEPROM esterna");
+    }
 }
