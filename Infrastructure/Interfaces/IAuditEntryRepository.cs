@@ -11,4 +11,6 @@ public interface IAuditEntryRepository : IRepository<AuditEntryEntity>
         CancellationToken cancellationToken = default);
     Task<IReadOnlyList<AuditEntryEntity>> GetRecentAsync(int count,
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AuditEntryEntity>> GetByDateRangeAsync(DateTime from, DateTime to,
+        CancellationToken cancellationToken = default);
 }
