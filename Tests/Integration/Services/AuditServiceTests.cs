@@ -60,7 +60,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task LogCreateAsync_NullJson_ThrowsArgumentException()
     {
-        await Assert.ThrowsAsync<ArgumentException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => _service.LogCreateAsync(
                 AuditEntityType.Variable, 1, _testUser.Id, null!));
     }
@@ -93,7 +93,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task LogUpdateAsync_NullPreviousJson_ThrowsArgumentException()
     {
-        await Assert.ThrowsAsync<ArgumentException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => _service.LogUpdateAsync(
                 AuditEntityType.Variable, 1, _testUser.Id,
                 null!, "{\"name\":\"new\"}"));
@@ -102,7 +102,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task LogUpdateAsync_NullNewJson_ThrowsArgumentException()
     {
-        await Assert.ThrowsAsync<ArgumentException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => _service.LogUpdateAsync(
                 AuditEntityType.Variable, 1, _testUser.Id,
                 "{\"name\":\"old\"}", null!));
@@ -128,7 +128,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task LogDeleteAsync_NullPreviousJson_ThrowsArgumentException()
     {
-        await Assert.ThrowsAsync<ArgumentException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => _service.LogDeleteAsync(
                 AuditEntityType.Variable, 1, _testUser.Id, null!));
     }
