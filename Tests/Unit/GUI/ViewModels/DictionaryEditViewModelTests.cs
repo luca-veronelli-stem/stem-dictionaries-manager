@@ -800,5 +800,71 @@ public class DictionaryEditViewModelTests
     {
         Assert.True(_viewModel.IsSpecificExpanded);
     }
+
+    // === Test filtro "Mostra solo abilitate" ===
+
+    [Fact]
+    public void ShowOnlyEnabled_DefaultsToFalse()
+    {
+        Assert.False(_viewModel.ShowOnlyEnabled);
+    }
+
+    [Fact]
+    public async Task ShowOnlyEnabled_FiltersStandardVariables()
+    {
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01, isEnabled: true),
+             MakeStdVar(11, "Deprecata", 0x02, isEnabled: false)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        await _viewModel.InitializeAsync(2);
+        Assert.Equal(2, _viewModel.StandardVariables.Count);
+
+        _viewModel.ShowOnlyEnabled = true;
+
+        Assert.Single(_viewModel.StandardVariables);
+        Assert.Equal("Allarmi", _viewModel.StandardVariables[0].Name);
+    }
+
+    [Fact]
+    public async Task ShowOnlyEnabled_FiltersStandardOverriddenDisabled()
+    {
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01, isEnabled: true),
+             MakeStdVar(11, "Stato", 0x02, isEnabled: true)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        // Override disabilita "Stato" per questo dizionario
+        _variableService.SeedOverrides(
+            StandardVariableOverride.Restore(1, 2, 11, false, null));
+
+        await _viewModel.InitializeAsync(2);
+        Assert.Equal(2, _viewModel.StandardVariables.Count);
+
+        _viewModel.ShowOnlyEnabled = true;
+
+        Assert.Single(_viewModel.StandardVariables);
+        Assert.Equal("Allarmi", _viewModel.StandardVariables[0].Name);
+    }
+
+    [Fact]
+    public async Task ShowOnlyEnabled_Unchecked_ShowsAllStandardVariables()
+    {
+        var standardDict = Dictionary.Restore(1, "Standard", null, true,
+            [MakeStdVar(10, "Allarmi", 0x01, isEnabled: true),
+             MakeStdVar(11, "Deprecata", 0x02, isEnabled: false)]);
+        var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
+        _dictionaryService.SeedData(standardDict, nonStdDict);
+
+        await _viewModel.InitializeAsync(2);
+        _viewModel.ShowOnlyEnabled = true;
+        Assert.Single(_viewModel.StandardVariables);
+
+        _viewModel.ShowOnlyEnabled = false;
+
+        Assert.Equal(2, _viewModel.StandardVariables.Count);
+    }
 }
 #endif
