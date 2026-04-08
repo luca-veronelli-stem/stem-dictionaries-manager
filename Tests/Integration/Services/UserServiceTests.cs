@@ -110,8 +110,8 @@ public class UserServiceTests : IntegrationTestBase
         // Act
         var result = await _service.GetAllAsync();
 
-        // Assert (+1 per l'utente test-user seedato da IntegrationTestBase)
-        Assert.Equal(4, result.Count);
+        // Assert
+        Assert.Equal(3, result.Count);
     }
 
     [Fact]

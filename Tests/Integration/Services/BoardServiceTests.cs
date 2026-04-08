@@ -15,6 +15,7 @@ public class BoardServiceTests : IntegrationTestBase
 
     public BoardServiceTests()
     {
+        SeedTestUser();
         var boardRepository = new BoardRepository(Context);
         var dictionaryRepository = new DictionaryRepository(Context);
         var auditRepository = new AuditEntryRepository(Context);

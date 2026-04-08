@@ -21,6 +21,7 @@ public class VariableServiceTests : IntegrationTestBase
 
     public VariableServiceTests()
     {
+        SeedTestUser();
         _dictionaryRepo = new DictionaryRepository(Context);
         _variableRepo = new VariableRepository(Context);
         _bitInterpretationRepo = new BitInterpretationRepository(Context);

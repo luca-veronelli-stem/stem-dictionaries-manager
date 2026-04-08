@@ -14,6 +14,7 @@ public class CommandServiceTests : IntegrationTestBase
 
     public CommandServiceTests()
     {
+        SeedTestUser();
         var repository = new CommandRepository(Context);
         var deviceStateRepository = new CommandDeviceStateRepository(Context);
         var auditRepository = new AuditEntryRepository(Context);

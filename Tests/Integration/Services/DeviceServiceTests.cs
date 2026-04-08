@@ -15,6 +15,7 @@ public class DeviceServiceTests : IntegrationTestBase
 
     public DeviceServiceTests()
     {
+        SeedTestUser();
         var repository = new DeviceRepository(Context);
         var boardRepository = new BoardRepository(Context);
         var dictionaryRepository = new DictionaryRepository(Context);

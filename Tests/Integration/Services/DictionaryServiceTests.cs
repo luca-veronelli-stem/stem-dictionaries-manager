@@ -15,6 +15,7 @@ public class DictionaryServiceTests : IntegrationTestBase
 
     public DictionaryServiceTests()
     {
+        SeedTestUser();
         var dictionaryRepository = new DictionaryRepository(Context);
         var variableRepository = new VariableRepository(Context);
         var auditRepository = new AuditEntryRepository(Context);
