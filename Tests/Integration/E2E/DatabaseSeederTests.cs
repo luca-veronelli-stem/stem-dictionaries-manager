@@ -2741,4 +2741,380 @@ public class DatabaseSeederTests : IntegrationTestBase
         Assert.Contains(bits, b =>
             b.BitIndex == 11 && b.Meaning == "LEDR");
     }
+
+    // ====================================================================
+    // R3L-XP Master
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesR3LXPMasterDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Master R3L-XP");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMasterDictionary_Has11Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(11, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_Has8EnabledVariables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var enabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && v.IsEnabled);
+
+        Assert.Equal(8, enabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count,
+            addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_BoardMasterLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(18, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_FCMaster_Has4BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x08);
+
+        Assert.Equal("FC Master", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(4, bits.Count);
+        Assert.Equal("FC di corrente Low", bits[0].Meaning);
+        Assert.Equal("FC di posizione High", bits[3].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_VirtualKeyboard_Has8BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x0A);
+
+        Assert.Equal("Virtual keyboard", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(8, bits.Count);
+        Assert.Equal("TESTA GIU", bits[0].Meaning);
+        Assert.Equal("LUCI", bits[7].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMaster_SystemOn_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x01);
+
+        Assert.Equal("SystemOn", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.Contains("piano spento", v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMasterOverrides_Disables6Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x03, 0x06, 0x08, 0x15, 0x16, 0x17
+        Assert.Equal(6, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[] { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 },
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPMasterAllarmi_Has8BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Master R3L-XP");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // Word 0 bits 0-7 = 8 bit
+        Assert.Equal(8, bits.Count);
+        Assert.All(bits, b => Assert.Equal(0, b.WordIndex));
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0
+            && b.Meaning == "Sovracorrente motore testa");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 7
+            && b.Meaning == "Errore hardware EEPROM esterna");
+    }
+
+    // ====================================================================
+    // R3L-XP Slave
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesR3LXPSlaveDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Slave R3L-XP");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlaveDictionary_Has15Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(15, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_Has12EnabledVariables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var enabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && v.IsEnabled);
+
+        Assert.Equal(12, enabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count,
+            addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_BoardSlaveLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(20, board.FirmwareType);
+        Assert.False(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_IOSlave_Has5BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x09);
+
+        Assert.Equal("IOSlave", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(5, bits.Count);
+        Assert.Equal("FC di corrente Low", bits[0].Meaning);
+        Assert.Equal("Pulsante down filtrato",
+            bits[4].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_DataFromMaster_IsReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x04);
+
+        Assert.Equal("Data from Master", v.Name);
+        Assert.Equal(DataTypeKind.UInt32, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        Assert.Contains("Stato macchina Richiesto",
+            v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlave_SoglieVoltage_AreFloat()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var undervolt = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x0D);
+        var fullCharge = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x0E);
+
+        Assert.Equal(DataTypeKind.Float, undervolt.DataTypeKind);
+        Assert.Equal("volts", undervolt.Unit);
+        Assert.Equal(DataTypeKind.Float,
+            fullCharge.DataTypeKind);
+        Assert.Equal("volts", fullCharge.Unit);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlaveOverrides_Disables6Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        Assert.Equal(6, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(
+            new byte[] { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 },
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_R3LXPSlaveAllarmi_Has8BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Slave R3L-XP");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(8, bits.Count);
+        Assert.All(bits, b => Assert.Equal(0, b.WordIndex));
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0
+            && b.Meaning == "Sovracorrente motore testa");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 7
+            && b.Meaning == "Errore hardware EEPROM esterna");
+    }
 }

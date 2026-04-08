@@ -402,6 +402,24 @@ public static class DatabaseSeeder
         // === Override variabili standard per Eden-BS8 ===
         await SeedEdenBS8OverridesAsync(
             context, edenBS8Dictionary, standardVariables);
+
+        // === Dizionario R3L-XP Master (da r3l-xp_master.CSV) ===
+        var r3lXPMasterDictionary =
+            await SeedR3LXPMasterDictionaryAsync(
+                context, boards, devices[9]);
+
+        // === Override variabili standard per R3L-XP Master ===
+        await SeedR3LXPMasterOverridesAsync(
+            context, r3lXPMasterDictionary, standardVariables);
+
+        // === Dizionario R3L-XP Slave (da r3l-xp_slave.CSV) ===
+        var r3lXPSlaveDictionary =
+            await SeedR3LXPSlaveDictionaryAsync(
+                context, boards, devices[9]);
+
+        // === Override variabili standard per R3L-XP Slave ===
+        await SeedR3LXPSlaveOverridesAsync(
+            context, r3lXPSlaveDictionary, standardVariables);
     }
 
     /// <summary>
@@ -3387,7 +3405,7 @@ public static class DatabaseSeeder
     /// 34 variabili (0x8000-0x8017 + 0x802E-0x8037), 10 abilitate.
     /// </summary>
     private static async Task<DictionaryEntity> SeedTopLiftMDictionaryAsync(
-        AppDbContext context, BoardEntity[] boards, DeviceEntity topLiftMDevice)
+        AppDbContext context, BoardEntity[] boards, DeviceEntity topLiftMDevice)    
     {
         var dictionary = new DictionaryEntity
         {
@@ -4338,8 +4356,7 @@ public static class DatabaseSeeder
     /// Indirizzo board: 0x00090401 (MC=9, FW=16, BN=1)
     /// 29 variabili (0x8000-0x801C), tutte abilitate.
     /// </summary>
-    private static async Task<DictionaryEntity>
-        SeedO3ZTechDictionaryAsync(
+    private static async Task<DictionaryEntity> SeedO3ZTechDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
         DeviceEntity o3zTechDevice)
     {
@@ -4638,8 +4655,7 @@ public static class DatabaseSeeder
     /// Indirizzo board: 0x000702C1 (MC=7, FW=11, BN=1)
     /// 21 variabili (0x8000-0x8014), 20 abilitate.
     /// </summary>
-    private static async Task<DictionaryEntity>
-        SeedHmiSparkDictionaryAsync(
+    private static async Task<DictionaryEntity> SeedHmiSparkDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
         DeviceEntity sparkDevice)
     {
@@ -5941,6 +5957,550 @@ public static class DatabaseSeeder
         };
         context.Set<BitInterpretationEntity>()
             .AddRange(usciteBits);
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Master R3L-XP con le variabili specifiche.
+    /// Fonte: Docs/Dictionaries/r3l-xp_master.CSV
+    /// Indirizzo board: 0x000B0481 (MC=11, FW=18, BN=1)
+    /// 11 variabili (0x8000-0x800A), 8 abilitate.
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedR3LXPMasterDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards,
+        DeviceEntity r3lXPDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Master R3L-XP",
+            Description = "Dizionario variabili logiche scheda "
+                + "Master R3L-XP",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 \u2014 Stato keyboard1 (R/W=\"N\", disabilitata)
+            Var(id, "Stato keyboard1", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Variabile logica gestita dalla "
+                    + "tastiera esterna "
+                    + "(non usare con l'app)"),
+
+            // 0x8001 \u2014 SystemOn
+            Var(id, "SystemOn", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "0 = piano spento, "
+                    + "1 = piano acceso "
+                    + "(In scrittura è Stato keyboard2)"),
+
+            // 0x8002 \u2014 Angolo inclinazione del piano
+            Var(id, "Angolo inclinazione del piano",
+                0x80, 0x02,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, unit: "gradi",
+                description: "Angolo di inclinazione del piano: "
+                    + "11.0 è testa su massimo, "
+                    + "0.0 è orizzontale"),
+
+            // 0x8003 \u2014 Position I Reference
+            Var(id, "Position I Reference", 0x80, 0x03,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadWrite,
+                min: -32767, max: 32767),
+
+            // 0x8004 \u2014 Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x04,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8005 \u2014 Status
+            Var(id, "Status", 0x80, 0x05,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 255,
+                description: "Stato macchina attuale"),
+
+            // 0x8006 \u2014 Position I Measure
+            Var(id, "Position I Measure", 0x80, 0x06,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly,
+                min: -32767, max: 32767,
+                description: "(In scrittura è "
+                    + "Stato keyboard3)"),
+
+            // 0x8007 \u2014 Position Slave I Measure
+            Var(id, "Position Slave I Measure", 0x80, 0x07,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly,
+                min: -32767, max: 32767),
+
+            // 0x8008 \u2014 FC Master (Bitmapped[1], WordSize=8)
+            Var(id, "FC Master", 0x80, 0x08,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1,
+                wordSize: 8),
+
+            // 0x8009 \u2014 Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x09,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x800A \u2014 Virtual keyboard (Bitmapped[1], WordSize=8)
+            Var(id, "Virtual keyboard", 0x80, 0x0A,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadWrite, dataTypeParam: 1,
+                wordSize: 8,
+                description: "Tastiera virtuale per replicare "
+                    + "i tasti tramite app"),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretations: FC Master (0x8008) ===
+        var fcMaster = variables.First(
+            v => v.AddressLow == 0x08);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = fcMaster.Id,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "FC di corrente Low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = fcMaster.Id,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "FC di corrente High"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = fcMaster.Id,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "FC di posizione Low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = fcMaster.Id,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "FC di posizione High"
+            });
+
+        // === BitInterpretations: Virtual keyboard (0x800A) ===
+        var vKeyboard = variables.First(
+            v => v.AddressLow == 0x0A);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "TESTA GIU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "TUTTO GIU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "TUTTO SU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "TESTA SU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "PIEDI SU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "PIEDI GIU"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 6,
+                Meaning = "STOP"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = vKeyboard.Id,
+                WordIndex = 0, BitIndex = 7,
+                Meaning = "LUCI"
+            });
+
+        // Link board Master (FW=18) di R3L-XP
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == r3lXPDevice.Id
+                && board.FirmwareType == 18)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per dizionario Master R3L-XP.
+    /// Disabilita: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
+    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bit).
+    /// </summary>
+    private static async Task SeedR3LXPMasterOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity r3lXPMasterDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = r3lXPMasterDictionary.Id;
+
+        // === Override: Disabilita 6 variabili standard ===
+        var disabledAddresses = new byte[]
+            { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
+        var disabledOverrides = standardVariables
+            .Where(v => disabledAddresses
+                .Contains(v.AddressLow))
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides
+            .AddRange(disabledOverrides);
+
+        // === BitInterpretation: Allarmi (0x06) Word 0 ===
+        var allarmi = standardVariables
+            .First(v => v.AddressLow == 0x06);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Sovracorrente motore testa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Circuito aperto motore testa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "Sovracorrente motore piedi"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Circuito aperto motore piedi"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Low battery"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "Costa sensibile"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 6,
+                Meaning = "Errore interno routine software"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 7,
+                Meaning = "Errore hardware EEPROM esterna"
+            });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Slave R3L-XP con le variabili specifiche.
+    /// Fonte: Docs/Dictionaries/r3l-xp_slave.CSV
+    /// Indirizzo board: 0x000B0501 (MC=11, FW=20, BN=1)
+    /// 15 variabili (0x8000-0x800E), 12 abilitate.
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedR3LXPSlaveDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards,
+        DeviceEntity r3lXPDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Slave R3L-XP",
+            Description = "Dizionario variabili logiche scheda "
+                + "Slave R3L-XP",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 — Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8001 — SystemOn
+            Var(id, "SystemOn", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "0 = piano spento, "
+                    + "1 = piano acceso"),
+
+            // 0x8002 — Angolo inclinazione del piano
+            Var(id, "Angolo inclinazione del piano",
+                0x80, 0x02,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, unit: "gradi",
+                description: "Angolo di inclinazione del piano: "
+                    + "11.0 \u00e8 testa su massimo, "
+                    + "0.0 \u00e8 orizzontale"),
+
+            // 0x8003 — Position I Reference
+            Var(id, "Position I Reference", 0x80, 0x03,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadWrite,
+                min: -32767, max: 32767),
+
+            // 0x8004 — Data from Master
+            Var(id, "Data from Master", 0x80, 0x04,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite, min: 0, max: 255,
+                description: "byte 0: Stato macchina Richiesto. "
+                    + "Se il bit alto vale 1 \u00e8 stato "
+                    + "caricato.\n"
+                    + "Byte 1->2: Posizione richiesta "
+                    + "a cui portarsi"),
+
+            // 0x8005 — Status
+            Var(id, "Status", 0x80, 0x05,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 255,
+                description: "Stato macchina attuale"),
+
+            // 0x8006 — Position Master I Measure (disabilitata)
+            Var(id, "Position Master I Measure",
+                0x80, 0x06,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly,
+                min: -32767, max: 32767,
+                isEnabled: false),
+
+            // 0x8007 — Position I Measure
+            Var(id, "Position I Measure", 0x80, 0x07,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly,
+                min: -32767, max: 32767),
+
+            // 0x8008 — Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x08,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8009 — IOSlave (Bitmapped[1], WordSize=8)
+            Var(id, "IOSlave", 0x80, 0x09,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1,
+                wordSize: 8),
+
+            // 0x800A — Colore in Standby
+            Var(id, "Colore in Standby", 0x80, 0x0A,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                min: 0, max: 16777215,
+                description: "Colore RGB a 24 bit: 0x0RGB"),
+
+            // 0x800B — Colore in Movimento
+            Var(id, "Colore in Movimento", 0x80, 0x0B,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                min: 0, max: 16777215,
+                description: "Colore RGB a 24 bit: 0x0RGB"),
+
+            // 0x800C — Livello di luce barra a led
+            Var(id, "Livello di luce barra a led",
+                0x80, 0x0C,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite,
+                min: 0, max: 100, unit: "%",
+                description: "Livello di luce della "
+                    + "barra a led"),
+
+            // 0x800D — Soglia di undervoltage
+            Var(id, "Soglia di undervoltage", 0x80, 0x0D,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadWrite,
+                min: 0.0, max: 14.0, unit: "volts",
+                description: "Valore minimo di batteria "
+                    + "(a cui ho 0% e scatto del fault)"),
+
+            // 0x800E — Soglia di batteria carica 100%
+            Var(id, "Soglia di batteria carica 100%",
+                0x80, 0x0E,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadWrite,
+                min: 0.0, max: 14.0, unit: "volts",
+                description: "Valore massimo di batteria "
+                    + "(a cui ho il 100%)"),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretations: IOSlave (0x8009) ===
+        var ioSlave = variables.First(
+            v => v.AddressLow == 0x09);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = ioSlave.Id,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "FC di corrente Low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ioSlave.Id,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "FC di corrente High"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ioSlave.Id,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "FC di posizione Low"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ioSlave.Id,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "FC di posizione High"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ioSlave.Id,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Pulsante down filtrato"
+            });
+
+        // Link board Slave (FW=20) di R3L-XP
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == r3lXPDevice.Id
+                && board.FirmwareType == 20)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per dizionario Slave R3L-XP.
+    /// Disabilita: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
+    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bit).
+    /// </summary>
+    private static async Task SeedR3LXPSlaveOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity r3lXPSlaveDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = r3lXPSlaveDictionary.Id;
+
+        // === Override: Disabilita 6 variabili standard ===
+        var disabledAddresses = new byte[]
+            { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
+        var disabledOverrides = standardVariables
+            .Where(v => disabledAddresses
+                .Contains(v.AddressLow))
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides
+            .AddRange(disabledOverrides);
+
+        // === BitInterpretation: Allarmi (0x06) Word 0 ===
+        var allarmi = standardVariables
+            .First(v => v.AddressLow == 0x06);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Sovracorrente motore testa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Circuito aperto motore testa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "Sovracorrente motore piedi"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Circuito aperto motore piedi"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Low battery"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "Costa sensibile"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 6,
+                Meaning = "Errore interno routine software"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 7,
+                Meaning = "Errore hardware EEPROM esterna"
+            });
 
         await context.SaveChangesAsync();
     }
