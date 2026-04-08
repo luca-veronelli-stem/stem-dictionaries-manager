@@ -694,4 +694,171 @@ public class DatabaseSeederTests : IntegrationTestBase
         Assert.Equal(14, allBits.Count);
         Assert.All(allBits, bi => Assert.Equal(displayDict.Id, bi.DictionaryId));
     }
+
+    // === Dizionario Gateway Spyke ===
+
+    [Fact]
+    public async Task SeedAsync_CreatesGatewaySpykeDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Gateway Spyke");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpykeDictionary_Has9Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var variables = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(9, variables.Count);
+        Assert.All(variables, v => Assert.Equal(0x80, v.AddressHigh));
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpyke_BoardGatewayLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var spyke = await Context.Devices
+            .FirstAsync(d => d.Name == "Spyke");
+
+        // Board "Gateway" (FW=7) di Spyke deve puntare al dizionario
+        var gatewayBoard = await Context.Boards
+            .FirstAsync(b => b.DeviceId == spyke.Id && b.FirmwareType == 7);
+
+        Assert.Equal(dict.Id, gatewayBoard.DictionaryId);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpyke_CustomVariables_AreOther()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+
+        // Dati SIM (0x05), Stato Gateway (0x06), Stato BLE (0x07), Stato LTE (0x08)
+        var customVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x05 && v.AddressLow <= 0x08)
+            .ToListAsync();
+
+        Assert.Equal(4, customVars.Count);
+        Assert.All(customVars, v =>
+        {
+            Assert.Equal(DataTypeKind.Other, v.DataTypeKind);
+            Assert.Equal("Custom", v.DataTypeRaw);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpyke_Luci_IsReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var luci = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x04);
+
+        Assert.Equal("Luci", luci.Name);
+        Assert.Equal(DataTypeKind.UInt8, luci.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, luci.AccessMode);
+    }
+
+    // === Override Gateway Spyke ===
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpykeOverrides_Disables9Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var gwDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == gwDict.Id && !o.IsEnabled)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x08-0x0F (8) + 0x17 (1) = 9
+        Assert.Equal(9, overrides.Count);
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(a => a).ToList();
+        Assert.Equal(
+            [0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x17],
+            addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpykeAllarmi_Word0_Has5Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var gwDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x06);
+
+        var word0 = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == allarmi.Id
+                && bi.DictionaryId == gwDict.Id
+                && bi.WordIndex == 0)
+            .OrderBy(bi => bi.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(5, word0.Count);
+        Assert.Equal("Errore CAN", word0[0].Meaning);
+        Assert.Equal("NFC non risponde", word0[1].Meaning);
+        Assert.Equal("Mancanza SIM", word0[2].Meaning);
+        Assert.Equal("Modulo IoT non risponde", word0[3].Meaning);
+        Assert.Equal("Modulo BLE non risponde", word0[4].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpykeAllarmi_Word1_IsEmpty()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var stdDict = await Context.Dictionaries.FirstAsync(d => d.IsStandard);
+        var gwDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == stdDict.Id && v.AddressLow == 0x06);
+
+        var word1 = await Context.Set<BitInterpretationEntity>()
+            .Where(bi => bi.VariableId == allarmi.Id
+                && bi.DictionaryId == gwDict.Id
+                && bi.WordIndex == 1)
+            .ToListAsync();
+
+        Assert.Empty(word1);
+    }
+
+    [Fact]
+    public async Task SeedAsync_GatewaySpyke_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Gateway Spyke");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => new { v.AddressHigh, v.AddressLow })
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
 }

@@ -322,6 +322,14 @@ public static class DatabaseSeeder
         // === Override variabili standard per Display Spyke ===
         await SeedDisplaySpykeOverridesAsync(
             context, displaySpykeDictionary, standardVariables);
+
+        // === Dizionario Gateway Spyke (da gateway_spyke.CSV) ===
+        var gatewaySpykeDictionary = await SeedGatewaySpykeDictionaryAsync(
+            context, boards, devices[4]);
+
+        // === Override variabili standard per Gateway Spyke ===
+        await SeedGatewaySpykeOverridesAsync(
+            context, gatewaySpykeDictionary, standardVariables);
     }
 
     /// <summary>
@@ -915,6 +923,129 @@ public static class DatabaseSeeder
             new() { VariableId = allarmi.Id, DictionaryId = dictId,
                 WordIndex = 1, BitIndex = 8,
                 Meaning = "Incoerenza leva/pulsante in scarico" },
+        };
+        context.Set<BitInterpretationEntity>().AddRange(bits);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Gateway Spyke con le variabili specifiche della scheda Gateway.
+    /// Fonte: Docs/Dictionaries/gateway_spyke.CSV
+    /// Board: Spyke "Gateway" (FW=7, MC=5, BoardNumber=1).
+    /// 9 variabili device-specific (0x80xx).
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedGatewaySpykeDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards, DeviceEntity spykeDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Gateway Spyke",
+            Description = "Dizionario variabili logiche scheda Gateway Spyke",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // 0x8000 — Gancio 10G
+            Var(id, "Gancio 10G", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadOnly),
+
+            // 0x8001 — Gancio barella
+            Var(id, "Gancio barella", 0x80, 0x01,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadOnly),
+
+            // 0x8002 — Sensore Sherpa
+            Var(id, "Sensore Sherpa", 0x80, 0x02,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadOnly),
+
+            // 0x8003 — NFC
+            Var(id, "NFC", 0x80, 0x03,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadOnly),
+
+            // 0x8004 — Luci
+            Var(id, "Luci", 0x80, 0x04,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadWrite),
+
+            // 0x8005 — Dati SIM
+            Var(id, "Dati SIM", 0x80, 0x05,
+                DataTypeKind.Other, "Custom", AccessMode.ReadWrite),
+
+            // 0x8006 — Stato Gateway
+            Var(id, "Stato Gateway", 0x80, 0x06,
+                DataTypeKind.Other, "Custom", AccessMode.ReadOnly),
+
+            // 0x8007 — Stato BLE
+            Var(id, "Stato BLE", 0x80, 0x07,
+                DataTypeKind.Other, "Custom", AccessMode.ReadOnly,
+                isEnabled: false),
+
+            // 0x8008 — Stato LTE
+            Var(id, "Stato LTE", 0x80, 0x08,
+                DataTypeKind.Other, "Custom", AccessMode.ReadOnly,
+                isEnabled: false),
+        };
+        context.Variables.AddRange(variables);
+
+        // Link board Gateway (FW=7) di Spyke
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 7)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per il dizionario Gateway Spyke.
+    /// - Disabilita: 0x08-0x0F (Temperatura, Secondi motore, Cicli, Livello batteria)
+    ///               e 0x17 (Firmware Bootloader).
+    /// - BitInterpretation per-dizionario: Allarmi (0x06) Word 0 (5 bit).
+    /// </summary>
+    private static async Task SeedGatewaySpykeOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity gatewaySpykeDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = gatewaySpykeDictionary.Id;
+
+        // === Override IsEnabled ===
+        // Disabilita 0x08-0x0F + 0x17
+        var disabledOverrides = standardVariables
+            .Where(v => (v.AddressLow >= 0x08 && v.AddressLow <= 0x0F)
+                || v.AddressLow == 0x17)
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+
+        context.StandardVariableOverrides.AddRange(disabledOverrides);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretation per-dizionario per Allarmi (0x06) ===
+        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+        var bits = new BitInterpretationEntity[]
+        {
+            // Word 0: Allarmi
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0, Meaning = "Errore CAN" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1, Meaning = "NFC non risponde" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2, Meaning = "Mancanza SIM" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Modulo IoT non risponde" },
+            new() { VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Modulo BLE non risponde" },
         };
         context.Set<BitInterpretationEntity>().AddRange(bits);
         await context.SaveChangesAsync();
