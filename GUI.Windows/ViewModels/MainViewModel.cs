@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ICurrentUserProvider _currentUserProvider;
 
     [ObservableProperty]
     private string _title = "Stem Dictionaries Manager";
@@ -69,12 +70,14 @@ public partial class MainViewModel : ObservableObject
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ICurrentUserProvider currentUserProvider)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
         _serviceProvider = serviceProvider;
+        _currentUserProvider = currentUserProvider;
 
         // Sottoscrivi ai cambiamenti di navigazione
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
@@ -95,6 +98,7 @@ public partial class MainViewModel : ObservableObject
     public void SetUserAndNavigate(User user)
     {
         CurrentUser = user;
+        _currentUserProvider.CurrentUserId = user.Id;
 
         // Reset navigazione: ogni sessione utente parte pulita
         _navigationService.Reset();
@@ -332,6 +336,7 @@ public partial class MainViewModel : ObservableObject
 
         // Pulisci utente corrente
         CurrentUser = null;
+        _currentUserProvider.CurrentUserId = null;
         CurrentViewModel = null;
         PageTitle = "Login";
 
