@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
@@ -13,13 +15,23 @@ public class BoardService : IBoardService
 {
     private readonly IBoardRepository _boardRepository;
     private readonly IDictionaryRepository _dictionaryRepository;
+    private readonly IAuditService _audit;
+    private readonly ICurrentUserProvider _userProvider;
 
-    public BoardService(IBoardRepository boardRepository, IDictionaryRepository dictionaryRepository)
+    public BoardService(
+        IBoardRepository boardRepository,
+        IDictionaryRepository dictionaryRepository,
+        IAuditService auditService,
+        ICurrentUserProvider userProvider)
     {
         ArgumentNullException.ThrowIfNull(boardRepository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
+        ArgumentNullException.ThrowIfNull(auditService);
+        ArgumentNullException.ThrowIfNull(userProvider);
         _boardRepository = boardRepository;
         _dictionaryRepository = dictionaryRepository;
+        _audit = auditService;
+        _userProvider = userProvider;
     }
 
     public async Task<Board?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -70,7 +82,13 @@ public class BoardService : IBoardService
         var created = await _boardRepository.AddAsync(entity, ct);
 
         var result = await _boardRepository.GetByIdAsync(created.Id, ct);
-        return BoardMapper.ToDomain(result!);
+        var domain = BoardMapper.ToDomain(result!);
+
+        await _audit.LogCreateAsync(AuditEntityType.Board, domain.Id,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(domain), ct: ct);
+
+        return domain;
     }
 
     public async Task UpdateAsync(Board board, CancellationToken ct = default)
@@ -92,13 +110,23 @@ public class BoardService : IBoardService
         if (board.IsPrimary)
             await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: board.Id, ct);
 
+        var previous = BoardMapper.ToDomain(entity);
+        var prevJson = JsonSerializer.Serialize(previous);
+
         BoardMapper.UpdateEntity(entity, board);
         await _boardRepository.UpdateAsync(entity, ct);
+
+        await _audit.LogUpdateAsync(AuditEntityType.Board, board.Id,
+            _userProvider.CurrentUserId ?? 0,
+            prevJson, JsonSerializer.Serialize(board), ct: ct);
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         var board = await _boardRepository.GetByIdAsync(id, ct);
+        var previousJson = board is not null
+            ? JsonSerializer.Serialize(BoardMapper.ToDomain(board))
+            : null;
 
         if (board?.DictionaryId is int dictId)
         {
@@ -110,11 +138,19 @@ public class BoardService : IBoardService
                 // Elimina prima la board (FK), poi il dizionario
                 await _boardRepository.DeleteAsync(id, ct);
                 await _dictionaryRepository.DeleteAsync(dictId, ct);
+
+                if (previousJson is not null)
+                    await _audit.LogDeleteAsync(AuditEntityType.Board, id,
+                        _userProvider.CurrentUserId ?? 0, previousJson, ct: ct);
                 return;
             }
         }
 
         await _boardRepository.DeleteAsync(id, ct);
+
+        if (previousJson is not null)
+            await _audit.LogDeleteAsync(AuditEntityType.Board, id,
+                _userProvider.CurrentUserId ?? 0, previousJson, ct: ct);
     }
 
     public async Task<IReadOnlyList<Board>> GetByDeviceIdAsync(int deviceId,

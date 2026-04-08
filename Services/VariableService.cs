@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
@@ -18,21 +19,29 @@ public class VariableService : IVariableService
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IBitInterpretationRepository _bitInterpretationRepository;
     private readonly IStandardVariableOverrideRepository _overrideRepository;
+    private readonly IAuditService _audit;
+    private readonly ICurrentUserProvider _userProvider;
 
     public VariableService(
         IVariableRepository repository,
         IDictionaryRepository dictionaryRepository,
         IBitInterpretationRepository bitInterpretationRepository,
-        IStandardVariableOverrideRepository overrideRepository)
+        IStandardVariableOverrideRepository overrideRepository,
+        IAuditService auditService,
+        ICurrentUserProvider userProvider)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(bitInterpretationRepository);
         ArgumentNullException.ThrowIfNull(overrideRepository);
+        ArgumentNullException.ThrowIfNull(auditService);
+        ArgumentNullException.ThrowIfNull(userProvider);
         _repository = repository;
         _dictionaryRepository = dictionaryRepository;
         _bitInterpretationRepository = bitInterpretationRepository;
         _overrideRepository = overrideRepository;
+        _audit = auditService;
+        _userProvider = userProvider;
     }
 
     // === CRUD Base ===
@@ -69,7 +78,13 @@ public class VariableService : IVariableService
 
         var entity = VariableMapper.ToEntity(variable, dictionaryId);
         var created = await _repository.AddAsync(entity, ct);
-        return VariableMapper.ToDomain(created);
+        var result = VariableMapper.ToDomain(created);
+
+        await _audit.LogCreateAsync(AuditEntityType.Variable, result.Id,
+            _userProvider.CurrentUserId ?? 0,
+            JsonSerializer.Serialize(result), ct: ct);
+
+        return result;
     }
 
     public async Task UpdateAsync(Variable variable, CancellationToken ct = default)
@@ -91,13 +106,32 @@ public class VariableService : IVariableService
                     $"already exists in this dictionary.");
         }
 
+        var previous = VariableMapper.ToDomain(entity);
+        var prevJson = JsonSerializer.Serialize(previous);
+
         VariableMapper.UpdateEntity(entity, variable);
         await _repository.UpdateAsync(entity, ct);
+
+        await _audit.LogUpdateAsync(AuditEntityType.Variable, variable.Id,
+            _userProvider.CurrentUserId ?? 0,
+            prevJson, JsonSerializer.Serialize(variable), ct: ct);
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        await _repository.DeleteAsync(id, ct);
+        var entity = await _repository.GetByIdAsync(id, ct);
+        if (entity is not null)
+        {
+            var previous = VariableMapper.ToDomain(entity);
+            await _repository.DeleteAsync(id, ct);
+            await _audit.LogDeleteAsync(AuditEntityType.Variable, id,
+                _userProvider.CurrentUserId ?? 0,
+                JsonSerializer.Serialize(previous), ct: ct);
+        }
+        else
+        {
+            await _repository.DeleteAsync(id, ct);
+        }
     }
 
     // === Query Specifiche ===
@@ -247,9 +281,18 @@ public class VariableService : IVariableService
 
         if (existing is not null)
         {
+            var prevOverride = StandardVariableOverrideMapper.ToDomain(existing);
+            var prevJson = JsonSerializer.Serialize(prevOverride);
+
             existing.IsEnabled = isEnabled;
             existing.Description = description;
             await _overrideRepository.UpdateAsync(existing, ct);
+
+            var updated = StandardVariableOverrideMapper.ToDomain(existing);
+            await _audit.LogUpdateAsync(
+                AuditEntityType.StandardVariableOverride, existing.Id,
+                _userProvider.CurrentUserId ?? 0,
+                prevJson, JsonSerializer.Serialize(updated), ct: ct);
         }
         else
         {
@@ -260,7 +303,13 @@ public class VariableService : IVariableService
                 IsEnabled = isEnabled,
                 Description = description
             };
-            await _overrideRepository.AddAsync(newOverride, ct);
+            var created = await _overrideRepository.AddAsync(newOverride, ct);
+
+            var domain = StandardVariableOverrideMapper.ToDomain(created);
+            await _audit.LogCreateAsync(
+                AuditEntityType.StandardVariableOverride, created.Id,
+                _userProvider.CurrentUserId ?? 0,
+                JsonSerializer.Serialize(domain), ct: ct);
         }
     }
 
