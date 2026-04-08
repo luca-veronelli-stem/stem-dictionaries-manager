@@ -346,6 +346,22 @@ public static class DatabaseSeeder
         // === Override variabili standard per Eden-XP ===
         await SeedEdenXPOverridesAsync(
             context, edenXPDictionary, standardVariables);
+
+        // === Dizionario Sherpa Slim (da sherpa-slim.CSV) ===
+        var sherpaSlimDictionary = await SeedSherpaSlimDictionaryAsync(
+            context, boards, devices[0]);
+
+        // === Override variabili standard per Sherpa Slim ===
+        await SeedSherpaSlimOverridesAsync(
+            context, sherpaSlimDictionary, standardVariables);
+
+        // === Dizionario Optimus-XP (da optimus-xp.CSV) ===
+        var optimusXPDictionary = await SeedOptimusXPDictionaryAsync(
+            context, boards, devices[8]);
+
+        // === Override variabili standard per Optimus-XP ===
+        await SeedOptimusXPOverridesAsync(
+            context, optimusXPDictionary, standardVariables);
     }
 
     /// <summary>
@@ -2214,6 +2230,1113 @@ public static class DatabaseSeeder
                 WordIndex = 0, BitIndex = 11, Meaning = "LEDR" },
         };
         context.Set<BitInterpretationEntity>().AddRange(usciteBits);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Sherpa Slim con le variabili specifiche della scheda Azionamento.
+    /// Fonte: Docs/Dictionaries/sherpa-slim.CSV
+    /// Board: Sherpa Slim "Azionamento" (FW=1, MC=1, BoardNumber=1).
+    /// 64 variabili device-specific (0x8000-0x8017, 0x802E-0x8055).
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedSherpaSlimDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards, DeviceEntity sherpaSlimDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Azionamento Sherpa Slim",
+            Description = "Dizionario variabili logiche scheda Azionamento Sherpa Slim",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // ============================================================
+            // DATI AZIONAMENTO (0x8000-0x8017)
+            // ============================================================
+
+            // 0x8000 — Stato keyboard (R/W="N" nel CSV, disabilitata)
+            Var(id, "Stato keyboard", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Variabile logica gestita dalla tastiera esterna (non usare con l'app)"),
+
+            // 0x8001 — Motor Running
+            Var(id, "Motor Running", 0x80, 0x01,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "0 = motore fermo, 1 = motore in movimento"),
+
+            // 0x8002 — Motor Type (Enum)
+            Var(id, "Motor Type", 0x80, 0x02,
+                DataTypeKind.Other, "Enum",
+                AccessMode.ReadOnly, min: 0, max: 4,
+                description: "0 = Not initialized\n1 = DC BRUSHLESS\n"
+                    + "2 = DC\n3 = AC INDUCTION\n4 = AC BRUSHLESS"),
+
+            // 0x8003 — Motor Position Reference
+            Var(id, "Motor Position Reference", 0x80, 0x03,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x8004 — Motor Position
+            Var(id, "Motor Position", 0x80, 0x04,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x8005 — Position PID enabled
+            Var(id, "Position PID enabled", 0x80, 0x05,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x8006 — Position PID KP
+            Var(id, "Position PID KP", 0x80, 0x06,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadWrite),
+
+            // 0x8007 — Position PID KI
+            Var(id, "Position PID KI", 0x80, 0x07,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadWrite),
+
+            // 0x8008 — Motor Speed Reference
+            Var(id, "Motor Speed Reference", 0x80, 0x08,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x8009 — Motor Speed
+            Var(id, "Motor Speed", 0x80, 0x09,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x800A — Speed PID enabled
+            Var(id, "Speed PID enabled", 0x80, 0x0A,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x800B — Speed PID KP
+            Var(id, "Speed PID KP", 0x80, 0x0B,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadWrite),
+
+            // 0x800C — Speed PID KI
+            Var(id, "Speed PID KI", 0x80, 0x0C,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadWrite),
+
+            // 0x800D — I reference
+            Var(id, "I reference", 0x80, 0x0D,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x800E — Motor I
+            Var(id, "Motor I", 0x80, 0x0E,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x800F — enabled I PID
+            Var(id, "enabled I PID", 0x80, 0x0F,
+                DataTypeKind.Bool, "Bool", AccessMode.ReadOnly),
+
+            // 0x8010 — Kp I PID
+            Var(id, "Kp I PID", 0x80, 0x10,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadWrite),
+
+            // 0x8011 — Ki I PID
+            Var(id, "Ki I PID", 0x80, 0x11,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadWrite),
+
+            // 0x8012 — Voltage reference applied to the motor
+            Var(id, "Voltage reference applied to the motor", 0x80, 0x12,
+                DataTypeKind.Int16, "Int16", AccessMode.ReadOnly),
+
+            // 0x8013 — Vbus measured
+            Var(id, "Vbus measured", 0x80, 0x13,
+                DataTypeKind.UInt16, "UInt16", AccessMode.ReadOnly),
+
+            // 0x8014 — Motor faults
+            Var(id, "Motor faults", 0x80, 0x14,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadWrite),
+
+            // 0x8015 — Motor warnings
+            Var(id, "Motor warnings", 0x80, 0x15,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadWrite),
+
+            // 0x8016 — Number of pulses when breaking in position loop control
+            Var(id, "Number of pulses when breaking in position loop control", 0x80, 0x16,
+                DataTypeKind.UInt16, "UInt16", AccessMode.ReadWrite),
+
+            // 0x8017 — Time for out of control thermal fault
+            Var(id, "Time for out of control thermal fault", 0x80, 0x17,
+                DataTypeKind.Int32, "Int32",
+                AccessMode.ReadWrite, unit: "ms"),
+
+            // ============================================================
+            // DATI SHERPA SLIM (0x802E-0x8055)
+            // ============================================================
+
+            // 0x802E — Working mode
+            Var(id, "Working mode", 0x80, 0x2E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "0 = funzionamento normale\n"
+                    + "1 = funzionamento automatico di test\n"
+                    + "2 = funzionamento manuale di test"),
+
+            // 0x802F — Stato posizione/in mezzo
+            Var(id, "Stato posizione/in mezzo", 0x80, 0x2F,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0 = in mezzo, 1 = in posizione"),
+
+            // 0x8030 — Stato movimento motore
+            Var(id, "Stato movimento motore", 0x80, 0x30,
+                DataTypeKind.UInt8, "UInt8", AccessMode.ReadOnly),
+
+            // 0x8031 — Estremo posizione
+            Var(id, "Estremo posizione", 0x80, 0x31,
+                DataTypeKind.UInt16, "UInt16", AccessMode.ReadOnly),
+
+            // 0x8032 — Posizione punto 1
+            Var(id, "Posizione punto 1", 0x80, 0x32,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8033 — Posizione punto 2
+            Var(id, "Posizione punto 2", 0x80, 0x33,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8034 — Posizione punto 3
+            Var(id, "Posizione punto 3", 0x80, 0x34,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8035 — Posizione punto 4
+            Var(id, "Posizione punto 4", 0x80, 0x35,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8036 — Posizione punto 5
+            Var(id, "Posizione punto 5", 0x80, 0x36,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8037 — Posizione punto 6
+            Var(id, "Posizione punto 6", 0x80, 0x37,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8038 — Posizione punto 7
+            Var(id, "Posizione punto 7", 0x80, 0x38,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x8039 — Posizione punto 8
+            Var(id, "Posizione punto 8", 0x80, 0x39,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x803A — Posizione punto 9
+            Var(id, "Posizione punto 9", 0x80, 0x3A,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x803B — Posizione punto 10
+            Var(id, "Posizione punto 10", 0x80, 0x3B,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x803C — Posizione punto 11
+            Var(id, "Posizione punto 11", 0x80, 0x3C,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x803D — Posizione punto 12
+            Var(id, "Posizione punto 12", 0x80, 0x3D,
+                DataTypeKind.Int32, "Int32", AccessMode.ReadOnly),
+
+            // 0x803E — Stato macchina a stati
+            Var(id, "Stato macchina a stati", 0x80, 0x3E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly,
+                description: "0 = macchina in idle\n1 = macchina in una delle posizioni\n"
+                    + "2 = macchina tra le posizioni\n3 = macchina in riconoscimento di zero\n"
+                    + "4 = macchina in rilascio cinghia\n5 = macchina ferma a zero\n"
+                    + "6 = Inizio apprendimento\n7 = movimento primo punto\n"
+                    + "8 = stop primo punto\n9 = memorizza primo punto\n"
+                    + "10 = movimento altri punti\n11 = stop altri punti\n"
+                    + "12 = memorizza altri punti\n13 = fine apprendimento\n"
+                    + "14 = fermo con posizioni non valide\n15 = in errore"),
+
+            // 0x803F — Contatore attivazione sensore
+            Var(id, "Contatore attivazione sensore", 0x80, 0x3F,
+                DataTypeKind.UInt32, "UInt32", AccessMode.ReadWrite),
+
+            // 0x8040 — Tipo di piano
+            Var(id, "Tipo di piano", 0x80, 0x40,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite,
+                description: "0 = Nessuno\n1 = Eden04-X\n2 = R-3L\n"
+                    + "3 = Compact-El\n4 = Eden-XP\n5 = R-3L XP\n"
+                    + "6 = Custom su CAN\n7 = Eden HV-2000"),
+
+            // 0x8041 — Protezione apprendimento
+            Var(id, "Protezione apprendimento", 0x80, 0x41,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite,
+                description: "0 = blocca apprendimento\n1 = permetti apprendimento"),
+
+            // 0x8042 — Stato sintetico
+            Var(id, "Stato sintetico", 0x80, 0x42,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "bit7: immagine del contatto cinghia (se vale 1 è in warning)\n"
+                    + "bit 1-0: stato della barella "
+                    + "(0 = SEI TRA I PUNTI, 1 = SEI A ZERO, 2 = SEI TUTTO FUORI)"),
+
+            // 0x8043 — Dispositivi collegati
+            Var(id, "Dispositivi collegati", 0x80, 0x43,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly,
+                description: "0x01 = Eden"),
+
+            // 0x8044 — Tipo di barella
+            Var(id, "Tipo di barella", 0x80, 0x44,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite,
+                description: "0 = nessuno\n1 = Spyke"),
+
+            // 0x8045 — Posizione tastiera
+            Var(id, "Posizione tastiera", 0x80, 0x45,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "0 = destra (default)\n1 = sinistra"),
+
+            // === Dati Apprendimento punto 1-13 (0x8046-0x8052, Struct[32]) ===
+            // automata_point_t: isValid, isZero, isStop, chrgHndDone, disHndDone,
+            //   dschrgHndlr, chrgHndlr, apprHndlr, pos, height, dir
+            Var(id, "Dati Apprendimento punto 1", 0x80, 0x46,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[0] (32 byte): "
+                    + "isValid, isZero, isStop, chrgHndDone, disHndDone, "
+                    + "dschrgHndlr, chrgHndlr, apprHndlr, pos, height, dir"),
+            Var(id, "Dati Apprendimento punto 2", 0x80, 0x47,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[1] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 3", 0x80, 0x48,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[2] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 4", 0x80, 0x49,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[3] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 5", 0x80, 0x4A,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[4] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 6", 0x80, 0x4B,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[5] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 7", 0x80, 0x4C,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[6] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 8", 0x80, 0x4D,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[7] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 9", 0x80, 0x4E,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[8] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 10", 0x80, 0x4F,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[9] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 11", 0x80, 0x50,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[10] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 12", 0x80, 0x51,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[11] (32 byte)"),
+            Var(id, "Dati Apprendimento punto 13", 0x80, 0x52,
+                DataTypeKind.Other, "Struct[32]", AccessMode.ReadOnly,
+                description: "automata_point_t autPointTable[12] (32 byte)"),
+
+            // 0x8053 — Dati correnti funzionamento (Struct[56])
+            Var(id, "Dati correnti funzionamento", 0x80, 0x53,
+                DataTypeKind.Other, "Struct[56]", AccessMode.ReadOnly,
+                description: "automata_handler_t hState (56 byte): "
+                    + "state, dir, cmd, point, pos, goal, carStep, scarStep, "
+                    + "cmdQueue, motQueue, lastTickCmd, IsPos, ext1, ext2, "
+                    + "timerGen, lastTick, waitOp, BetweenState, "
+                    + "BetweenPointsIgnoreStop, StretcherPresent, RemoteZeroPos"),
+
+            // 0x8054 — Learning set
+            Var(id, "Learning set", 0x80, 0x54,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "0 = apprendimento effettuato (R) / rimuovi apprendimento (W)\n"
+                    + "1 = apprendimento da fare (W)"),
+
+            // 0x8055 — Emergency mode
+            Var(id, "Emergency mode", 0x80, 0x55,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "0 = disabilitato\n1 = abilitato"),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // Link board Azionamento (FW=1) di Sherpa Slim
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == sherpaSlimDevice.Id && board.FirmwareType == 1)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per il dizionario Sherpa Slim.
+    /// - Disabilita: 0x05 (Stato).
+    /// </summary>
+    private static async Task SeedSherpaSlimOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity sherpaSlimDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = sherpaSlimDictionary.Id;
+
+        // === Override IsEnabled: Disabilita 0x05 (Stato) ===
+        var disabledOverrides = standardVariables
+            .Where(v => v.AddressLow == 0x05)
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides.AddRange(disabledOverrides);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea il dizionario Madre Optimus-XP con le variabili specifiche.
+    /// Fonte: Docs/Dictionaries/optimus-xp.CSV
+    /// Indirizzo board: 0x000A0441 (MC=10, FW=17, BN=1)
+    /// 132 variabili (0x8000-0x8083), 27 abilitate, 105 disabilitate.
+    /// </summary>
+    private static async Task<DictionaryEntity> SeedOptimusXPDictionaryAsync(
+        AppDbContext context, BoardEntity[] boards, DeviceEntity optimusXPDevice)
+    {
+        var dictionary = new DictionaryEntity
+        {
+            Name = "Madre Optimus-Xp",
+            Description = "Dizionario variabili logiche scheda Madre Optimus-XP",
+            IsStandard = false
+        };
+        context.Dictionaries.Add(dictionary);
+        await context.SaveChangesAsync();
+
+        var id = dictionary.Id;
+        var variables = new[]
+        {
+            // === Stato keyboard 1-3 (0x8000-0x8002, disabilitate) ===
+            Var(id, "Stato keyboard 1", 0x80, 0x00,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Variabile logica gestita dalla tastiera "
+                    + "esterna (non usare con l'app)"),
+            Var(id, "Stato keyboard 2", 0x80, 0x01,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Variabile logica gestita dalla tastiera "
+                    + "esterna (non usare con l'app)"),
+            Var(id, "Stato keyboard 3", 0x80, 0x02,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Variabile logica gestita dalla tastiera "
+                    + "esterna (non usare con l'app)"),
+
+            // 0x8003 — SystemOn
+            Var(id, "SystemOn", 0x80, 0x03,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                description: "0 = piano spento, 1 = piano acceso"),
+
+            // 0x8004-0x8006 — Non usato (disabilitate)
+            Var(id, "Non usato", 0x80, 0x04,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x05,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x06,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false,
+                description: "Immagine tasti SherpaSlim "
+                    + "per gestire i 2 blu"),
+
+            // === Potenzio (0x8007-0x800A) ===
+            Var(id, "Potenzio inclinazione giu'", 0x80, 0x07,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 65535,
+                unit: "bits",
+                description: "Valore minimo in bits letto dal "
+                    + "valore RAW del potenzio in apprendimento"),
+            Var(id, "Potenzio inclinazione orizz.", 0x80, 0x08,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 65535,
+                unit: "bits",
+                description: "Valore massimo in bits letto dal "
+                    + "valore RAW del potenzio in apprendimento"),
+            Var(id, "Potenzio altezza min", 0x80, 0x09,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 65535,
+                unit: "bits",
+                description: "Valore minimo in bits letto dal "
+                    + "valore RAW del potenzio in apprendimento"),
+            Var(id, "Potenzio altezza max", 0x80, 0x0A,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 0, max: 65535,
+                unit: "bits",
+                description: "Valore massimo in bits letto dal "
+                    + "valore RAW del potenzio in apprendimento"),
+
+            // 0x800B-0x8010 — Non usato (disabilitate)
+            Var(id, "Non usato", 0x80, 0x0B,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, min: -180, max: 180,
+                unit: "gradi", isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x0C,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, min: -180, max: 180,
+                unit: "gradi", isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x0D,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, min: -180, max: 180,
+                unit: "gradi", isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x0E,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x0F,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non usato", 0x80, 0x10,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8011 — Stato finecorsa (Bitmapped[1], WordSize=8)
+            Var(id, "Stato finecorsa", 0x80, 0x11,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1,
+                min: 0, max: 3, wordSize: 8,
+                description: "bit 0: finecorsa piano esteso, "
+                    + "bit 1: finecorsa piano chiuso"),
+
+            // 0x8012 — Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x12,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8013 — Stato ingresso barella
+            Var(id, "Stato ingresso barella", 0x80, 0x13,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1),
+
+            // 0x8014 — Non usato (disabilitata)
+            Var(id, "Non usato", 0x80, 0x14,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                isEnabled: false),
+
+            // 0x8015 — Stato pompa
+            Var(id, "Stato pompa", 0x80, 0x15,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 2,
+                description: "0 = fermo, 1 = in accensione, "
+                    + "2 = acceso"),
+
+            // 0x8016-0x8019 — Pompa diagnostica (disabilitate)
+            Var(id, "Pompa Riferimento", 0x80, 0x16,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Pompa I misurata", 0x80, 0x17,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Pompa PWM Out", 0x80, 0x18,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "I max Pompa", 0x80, 0x19,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x801A — Stato EVA
+            Var(id, "Stato EVA", 0x80, 0x1A,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 2,
+                description: "0 = fermo, 1 = in accensione, "
+                    + "2 = acceso"),
+
+            // 0x801B-0x801D — EV1 diagnostica (disabilitate)
+            Var(id, "EV1 I Reference", 0x80, 0x1B,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV1 I Measured", 0x80, 0x1C,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV1 PWM out", 0x80, 0x1D,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x801E — Stato EVB
+            Var(id, "Stato EVB", 0x80, 0x1E,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 2,
+                description: "0 = fermo, 1 = in accensione, "
+                    + "2 = acceso"),
+
+            // 0x801F-0x8021 — EV2 diagnostica (disabilitate)
+            Var(id, "EV2 I Reference", 0x80, 0x1F,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV2 I Measured", 0x80, 0x20,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV2 PWM out", 0x80, 0x21,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8022-0x8025 — EV3 (tutte disabilitate)
+            Var(id, "Non usato", 0x80, 0x22,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 2,
+                isEnabled: false,
+                description: "0 = fermo, 1 = in accensione, "
+                    + "2 = acceso"),
+            Var(id, "EV3 I Reference", 0x80, 0x23,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV3 I Measured", 0x80, 0x24,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV3 PWM out", 0x80, 0x25,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8026-0x8029 — EV4 (tutte disabilitate)
+            Var(id, "Non usato", 0x80, 0x26,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 2,
+                isEnabled: false,
+                description: "0 = fermo, 1 = in accensione, "
+                    + "2 = acceso"),
+            Var(id, "EV4 I Reference", 0x80, 0x27,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV4 I Measured", 0x80, 0x28,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "EV4 PWM out", 0x80, 0x29,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x802A — Limitazione velocita
+            Var(id, "Limitazione velocita", 0x80, 0x2A,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadWrite, min: 0, max: 6000,
+                unit: "bits",
+                description: "Valore di limite di velocita' "
+                    + "di discesa del piano"),
+
+            // 0x802B-0x8041 — Non Usato (tutte disabilitate)
+            Var(id, "Non Usato", 0x80, 0x2B, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x2C, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x2D, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x2E, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x2F, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x30, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x31, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x32, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x33, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x34, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x35, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x36, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x37, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x38, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x39, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3A, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3B, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3C, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3D, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3E, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x3F, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x40, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x41, DataTypeKind.UInt8,
+                "UInt8", AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8042 — Vbus measured (disabilitata)
+            Var(id, "Vbus measured", 0x80, 0x42,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8043 — Stato Luci (Bitmapped[1], WordSize=8)
+            Var(id, "Stato Luci", 0x80, 0x43,
+                DataTypeKind.Bitmapped, "Bitmapped[1]",
+                AccessMode.ReadOnly, dataTypeParam: 1,
+                min: 0, max: 7, wordSize: 8,
+                description: "bit 2=R, bit 1=G, bit 0=B"),
+
+            // 0x8044-0x804E — Ore lavoro (disabilitate)
+            Var(id, "Ore lavoro pompa", 0x80, 0x44,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV1", 0x80, 0x45,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV2", 0x80, 0x46,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV3", 0x80, 0x47,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV4", 0x80, 0x48,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV5", 0x80, 0x49,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV6", 0x80, 0x4A,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV7", 0x80, 0x4B,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV8", 0x80, 0x4C,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV9", 0x80, 0x4D,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ore lavoro EV10", 0x80, 0x4E,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x804F — Non Usato (disabilitata)
+            Var(id, "Non Usato", 0x80, 0x4F,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                isEnabled: false,
+                description: "se va a 0 prendo lo zero del piano"),
+
+            // 0x8050-0x8054 — Log + Non Usato (disabilitate)
+            Var(id, "Numero singoli allarmi", 0x80, 0x50,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ultimo allarme", 0x80, 0x51,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Numero singoli warning", 0x80, 0x52,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Ultimo warning", 0x80, 0x53,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x54,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8055 — Valore RAW del potenzio altezza
+            Var(id, "Valore RAW del potenzio altezza", 0x80, 0x55,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, min: 0, max: 32767,
+                unit: "bits"),
+
+            // 0x8056 — Non Usato (disabilitata)
+            Var(id, "Non Usato", 0x80, 0x56,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadOnly, min: 0, max: 32767,
+                unit: "bits", isEnabled: false),
+
+            // 0x8057 — Soglia di undervoltage
+            Var(id, "Soglia di undervoltage", 0x80, 0x57,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadWrite, min: 0.0, max: 14.0,
+                unit: "volts",
+                description: "Valore minimo di batteria "
+                    + "(a cui ho 0% e scatto del fault)"),
+
+            // 0x8058 — Soglia di batteria carica 100%
+            Var(id, "Soglia di batteria carica 100%", 0x80, 0x58,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadWrite, min: 0.0, max: 14.0,
+                unit: "volts",
+                description: "Valore massimo di batteria "
+                    + "(a cui ho il 100%)"),
+
+            // 0x8059 — Non Usato (disabilitata)
+            Var(id, "Non Usato", 0x80, 0x59,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x805A — Autospegnimento in rigido
+            Var(id, "Autospegnimento in rigido", 0x80, 0x5A,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "0 = sempre acceso, "
+                    + "1 = autospegnimento"),
+
+            // 0x805B — Timer autospegni in rigido
+            Var(id, "Timer autospegni in rigido", 0x80, 0x5B,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 20, max: 600,
+                unit: "min"),
+
+            // 0x805C — FC alt. giu'
+            Var(id, "FC alt. giu'", 0x80, 0x5C,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1),
+
+            // 0x805D — FC alt. su
+            Var(id, "FC alt. su", 0x80, 0x5D,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1),
+
+            // 0x805E-0x8060 — Non Usato (disabilitate)
+            Var(id, "Non Usato", 0x80, 0x5E,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x5F,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x60,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadOnly, min: 0, max: 1,
+                isEnabled: false),
+
+            // 0x8061 — Colore in Standby
+            Var(id, "Colore in Standby", 0x80, 0x61,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite, min: 0, max: 16777215,
+                description: "Colore RGB a 24 bit: 0x0RGB"),
+
+            // 0x8062 — Colore in Movimento
+            Var(id, "Colore in Movimento", 0x80, 0x62,
+                DataTypeKind.UInt32, "UInt32",
+                AccessMode.ReadWrite, min: 0, max: 16777215,
+                description: "Colore RGB a 24 bit: 0x0RGB"),
+
+            // 0x8063-0x8070 — Non Usato (tutte disabilitate)
+            Var(id, "Non Usato", 0x80, 0x63, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x64, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x65, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x66, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x67, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x68, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x69, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6A, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6B, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6C, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6D, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6E, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x6F, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x70, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x8071 — Altezza molleggio
+            Var(id, "Altezza molleggio", 0x80, 0x71,
+                DataTypeKind.Int16, "Int16",
+                AccessMode.ReadWrite,
+                description: "Altezza di molleggio"),
+
+            // 0x8072-0x807E — Non Usato (tutte disabilitate)
+            Var(id, "Non Usato", 0x80, 0x72, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x73, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x74, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x75, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x76, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x77, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x78, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x79, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x7A, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x7B, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x7C, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x7D, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+            Var(id, "Non Usato", 0x80, 0x7E, DataTypeKind.Bool,
+                "Bool", AccessMode.ReadOnly, isEnabled: false),
+
+            // 0x807F — Livello di luce barra a led
+            Var(id, "Livello di luce barra a led", 0x80, 0x7F,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite, min: 0, max: 100,
+                unit: "%",
+                description: "Livello di luce della barra a led"),
+
+            // 0x8080 — Tipo di barella
+            Var(id, "Tipo di barella", 0x80, 0x80,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "0 = Stryker Powerload, 1 = Spark, "
+                    + "2 = Mediroll, 3 = Ferno Viper, "
+                    + "4 = Kartsana Superbravo"),
+
+            // 0x8081 — Timer rilevamento apprendimento
+            Var(id, "Timer rilevamento apprendimento", 0x80, 0x81,
+                DataTypeKind.UInt16, "UInt16",
+                AccessMode.ReadWrite, min: 100, max: 5000,
+                unit: "ms"),
+
+            // 0x8082 — Velocità pompa apprendimento
+            Var(id, "Velocità pompa apprendimento", 0x80, 0x82,
+                DataTypeKind.Int32, "Int32",
+                AccessMode.ReadWrite, min: 1000, max: 32767),
+
+            // 0x8083 — Velocità pompa salita molleggio
+            Var(id, "Velocità pompa salita molleggio", 0x80, 0x83,
+                DataTypeKind.Int32, "Int32",
+                AccessMode.ReadWrite, min: 1000, max: 32767),
+        };
+        context.Variables.AddRange(variables);
+        await context.SaveChangesAsync();
+
+        // === BitInterpretation: Stato finecorsa (0x8011) ===
+        var finecorsa = variables.First(v => v.AddressLow == 0x11);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = finecorsa.Id,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Finecorsa piano esteso"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = finecorsa.Id,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Finecorsa piano chiuso"
+            });
+
+        // === BitInterpretation: Stato Luci (0x8043) ===
+        var luci = variables.First(v => v.AddressLow == 0x43);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = luci.Id,
+                WordIndex = 0, BitIndex = 0, Meaning = "B"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = luci.Id,
+                WordIndex = 0, BitIndex = 1, Meaning = "G"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = luci.Id,
+                WordIndex = 0, BitIndex = 2, Meaning = "R"
+            });
+
+        // Link board Madre (FW=17) di Optimus-XP
+        foreach (var board in boards)
+        {
+            if (board.DeviceId == optimusXPDevice.Id
+                && board.FirmwareType == 17)
+                board.DictionaryId = dictionary.Id;
+        }
+
+        await context.SaveChangesAsync();
+
+        return dictionary;
+    }
+
+    /// <summary>
+    /// Override variabili standard per dizionario Madre Optimus-XP.
+    /// Disabilita: 0x05 (Stato), 0x08 (Temperatura scheda).
+    /// BitInterpretation per-dizionario: Allarmi (0x06),
+    /// Stato ingressi fisici (0x15), Stato uscite fisiche (0x16).
+    /// </summary>
+    private static async Task SeedOptimusXPOverridesAsync(
+        AppDbContext context,
+        DictionaryEntity optimusXPDictionary,
+        VariableEntity[] standardVariables)
+    {
+        var dictId = optimusXPDictionary.Id;
+
+        // === Override: Disabilita 0x05, 0x08 ===
+        var disabledAddresses = new byte[] { 0x05, 0x08 };
+        var disabledOverrides = standardVariables
+            .Where(v => disabledAddresses.Contains(v.AddressLow))
+            .Select(v => new StandardVariableOverrideEntity
+            {
+                DictionaryId = dictId,
+                StandardVariableId = v.Id,
+                IsEnabled = false,
+            });
+        context.StandardVariableOverrides.AddRange(disabledOverrides);
+
+        // === BitInterpretation: Allarmi (0x06) ===
+        var allarmi = standardVariables
+            .First(v => v.AddressLow == 0x06);
+        context.Set<BitInterpretationEntity>().AddRange(
+            // Word 0
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Sovracorrente pompa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1,
+                Meaning = "Circuito aperto pompa"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2,
+                Meaning = "Sovracorrente EV 1"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 3,
+                Meaning = "Circuito aperto EV 1"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Sovracorrente EV 2"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "Circuito aperto EV 2"
+            },
+            // Word 1
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 2,
+                Meaning = "Low battery"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 4,
+                Meaning = "Errore interno routine software"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = allarmi.Id, DictionaryId = dictId,
+                WordIndex = 1, BitIndex = 5,
+                Meaning = "Errore hardware EEPROM esterna"
+            });
+
+        // === BitInterpretation: Stato ingressi fisici (0x15) ===
+        var ingressi = standardVariables
+            .First(v => v.AddressLow == 0x15);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0,
+                Meaning = "Ingresso barella"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 4,
+                Meaning = "Costa sensibile"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 5,
+                Meaning = "Comando tastiera led"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 8,
+                Meaning = "Comando tastiera molleggio"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 9,
+                Meaning = "Comando tastiera tutto su"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = ingressi.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 11,
+                Meaning = "Comando tastiera stop"
+            });
+
+        // === BitInterpretation: Stato uscite fisiche (0x16) ===
+        var uscite = standardVariables
+            .First(v => v.AddressLow == 0x16);
+        context.Set<BitInterpretationEntity>().AddRange(
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 0, Meaning = "EVA"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 1, Meaning = "EVB"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 2, Meaning = "PUMP"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 9, Meaning = "LEDB"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 10, Meaning = "LEDG"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = uscite.Id, DictionaryId = dictId,
+                WordIndex = 0, BitIndex = 11, Meaning = "LEDR"
+            });
+
         await context.SaveChangesAsync();
     }
 

@@ -1057,4 +1057,552 @@ public class DatabaseSeederTests : IntegrationTestBase
 
         Assert.Equal(addresses.Count, addresses.Distinct().Count());
     }
+
+    // === Dizionario Sherpa Slim ===
+
+    [Fact]
+    public async Task SeedAsync_CreatesSherpaSlimDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Azionamento Sherpa Slim");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlimDictionary_Has64Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var variables = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(64, variables.Count);
+        Assert.All(variables, v => Assert.Equal(0x80, v.AddressHigh));
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_BoardAzionamentoLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var sherpa = await Context.Devices
+            .FirstAsync(d => d.Name == "Sherpa Slim");
+
+        var board = await Context.Boards
+            .FirstAsync(b => b.DeviceId == sherpa.Id && b.FirmwareType == 1);
+
+        Assert.Equal(dict.Id, board.DictionaryId);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_StatoKeyboard_IsDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var var0 = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x00);
+
+        Assert.Equal("Stato keyboard", var0.Name);
+        Assert.False(var0.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_MotorType_IsOtherEnum()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var motorType = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x02);
+
+        Assert.Equal("Motor Type", motorType.Name);
+        Assert.Equal(DataTypeKind.Other, motorType.DataTypeKind);
+        Assert.Equal("Enum", motorType.DataTypeRaw);
+        Assert.Equal(AccessMode.ReadOnly, motorType.AccessMode);
+        Assert.Contains("DC BRUSHLESS", motorType.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_MotorRunning_IsBoolWithDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var motorRunning = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x01);
+
+        Assert.Equal("Motor Running", motorRunning.Name);
+        Assert.Equal(DataTypeKind.Bool, motorRunning.DataTypeKind);
+        Assert.Equal(AccessMode.ReadOnly, motorRunning.AccessMode);
+        Assert.Contains("motore fermo", motorRunning.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_PidVariables_AreReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+
+        // Position PID KP (0x06), KI (0x07), Speed PID KP (0x0B), KI (0x0C),
+        // Kp I PID (0x10), Ki I PID (0x11)
+        byte[] rwAddresses = [0x06, 0x07, 0x0B, 0x0C, 0x10, 0x11];
+        var rwVars = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && rwAddresses.Contains(v.AddressLow))
+            .ToListAsync();
+
+        Assert.Equal(6, rwVars.Count);
+        Assert.All(rwVars, v => Assert.Equal(AccessMode.ReadWrite, v.AccessMode));
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_PosizioniPunti_AreInt32ReadOnly()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+
+        // Posizione punto 1-12 (0x32-0x3D)
+        var posizioni = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x32 && v.AddressLow <= 0x3D)
+            .ToListAsync();
+
+        Assert.Equal(12, posizioni.Count);
+        Assert.All(posizioni, v =>
+        {
+            Assert.Equal(DataTypeKind.Int32, v.DataTypeKind);
+            Assert.Equal(AccessMode.ReadOnly, v.AccessMode);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_StatoMacchina_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var statoMacchina = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x3E);
+
+        Assert.Equal("Stato macchina a stati", statoMacchina.Name);
+        Assert.Equal(DataTypeKind.UInt32, statoMacchina.DataTypeKind);
+        Assert.Contains("macchina in idle", statoMacchina.Description);
+        Assert.Contains("in errore", statoMacchina.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_DatiApprendimento_AreOtherStruct()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+
+        // Dati Apprendimento punto 1-13 (0x46-0x52)
+        var datiApp = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x46 && v.AddressLow <= 0x52)
+            .ToListAsync();
+
+        Assert.Equal(13, datiApp.Count);
+        Assert.All(datiApp, v =>
+        {
+            Assert.Equal(DataTypeKind.Other, v.DataTypeKind);
+            Assert.Equal("Struct[32]", v.DataTypeRaw);
+            Assert.Equal(AccessMode.ReadOnly, v.AccessMode);
+            Assert.Contains("automata_point_t", v.Description);
+        });
+
+        // Punto 1 ha descrizione completa con campi struct
+        var punto1 = datiApp.First(v => v.AddressLow == 0x46);
+        Assert.Contains("isValid", punto1.Description);
+        Assert.Contains("height", punto1.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_DatiCorrentiFunzionamento_IsOtherStruct56()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var datiCorrente = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x53);
+
+        Assert.Equal("Dati correnti funzionamento", datiCorrente.Name);
+        Assert.Equal(DataTypeKind.Other, datiCorrente.DataTypeKind);
+        Assert.Equal("Struct[56]", datiCorrente.DataTypeRaw);
+        Assert.Contains("automata_handler_t", datiCorrente.Description);
+        Assert.Contains("RemoteZeroPos", datiCorrente.Description);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_ThermalFault_HasUnitMs()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var thermal = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id && v.AddressLow == 0x17);
+
+        Assert.Equal("Time for out of control thermal fault", thermal.Name);
+        Assert.Equal(DataTypeKind.Int32, thermal.DataTypeKind);
+        Assert.Equal("ms", thermal.Unit);
+        Assert.Equal(AccessMode.ReadWrite, thermal.AccessMode);
+    }
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlim_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => new { v.AddressHigh, v.AddressLow })
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    // === Override Sherpa Slim ===
+
+    [Fact]
+    public async Task SeedAsync_SherpaSlimOverrides_Disables1Variable()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var sherpaDict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Azionamento Sherpa Slim");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == sherpaDict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // Solo 0x05 (Stato)
+        Assert.Single(overrides);
+        Assert.False(overrides[0].IsEnabled);
+        Assert.Equal(0x05, overrides[0].StandardVariable.AddressLow);
+    }
+
+    // ====================================================================
+    // Optimus-XP
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesOptimusXPDictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Madre Optimus-Xp");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXPDictionary_Has132Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(132, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count, addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_BoardMadreLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(17, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_SystemOn_IsBoolReadOnly()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x03);
+
+        Assert.Equal("SystemOn", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadOnly, v.AccessMode);
+        Assert.True(v.IsEnabled);
+        Assert.Contains("piano spento", v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_StatoFinecorsa_IsBitmapped()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x11);
+
+        Assert.Equal("Stato finecorsa", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(2, bits.Count);
+        Assert.Equal("Finecorsa piano esteso", bits[0].Meaning);
+        Assert.Equal("Finecorsa piano chiuso", bits[1].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_StatoLuci_IsBitmapped()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x43);
+
+        Assert.Equal("Stato Luci", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+        Assert.True(v.IsEnabled);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(3, bits.Count);
+        Assert.Equal("B", bits[0].Meaning);
+        Assert.Equal("G", bits[1].Meaning);
+        Assert.Equal("R", bits[2].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_KeyboardVars_AreDisabled()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var keyboards = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x00 && v.AddressLow <= 0x02)
+            .ToListAsync();
+
+        Assert.Equal(3, keyboards.Count);
+        Assert.All(keyboards, v => Assert.False(v.IsEnabled));
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_PotenzioVars_AreReadWrite()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var potenzio = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id
+                && v.AddressLow >= 0x07 && v.AddressLow <= 0x0A)
+            .ToListAsync();
+
+        Assert.Equal(4, potenzio.Count);
+        Assert.All(potenzio, v =>
+        {
+            Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+            Assert.Equal("bits", v.Unit);
+            Assert.True(v.IsEnabled);
+        });
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_SoglieVoltage_AreFloat()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+
+        var undervoltage = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x57);
+        Assert.Equal(DataTypeKind.Float, undervoltage.DataTypeKind);
+        Assert.Equal("volts", undervoltage.Unit);
+        Assert.True(undervoltage.IsEnabled);
+
+        var carica = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x58);
+        Assert.Equal(DataTypeKind.Float, carica.DataTypeKind);
+        Assert.Equal("volts", carica.Unit);
+        Assert.True(carica.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXP_TipoBarella_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x80);
+
+        Assert.Equal("Tipo di barella", v.Name);
+        Assert.Contains("Stryker Powerload", v.Description!);
+        Assert.Contains("Kartsana Superbravo", v.Description!);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXPOverrides_Disables2Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .Include(o => o.StandardVariable)
+            .ToListAsync();
+
+        // 0x05 (Stato) e 0x08 (Temperatura scheda)
+        Assert.Equal(2, overrides.Count);
+        Assert.All(overrides, o => Assert.False(o.IsEnabled));
+        var addresses = overrides
+            .Select(o => o.StandardVariable.AddressLow)
+            .OrderBy(x => x).ToArray();
+        Assert.Equal(new byte[] { 0x05, 0x08 }, addresses);
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXPAllarmi_Has9Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var std = await Context.Dictionaries
+            .FirstAsync(d => d.IsStandard);
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == std.Id
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // 6 bit in Word 0 + 3 bit in Word 1
+        Assert.Equal(9, bits.Count);
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.Meaning == "Sovracorrente pompa");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.Meaning == "Low battery");
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXPIngressi_Has6Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var std = await Context.Dictionaries
+            .FirstAsync(d => d.IsStandard);
+        var ingressi = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == std.Id
+                && v.AddressLow == 0x15);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == ingressi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(6, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "Ingresso barella");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 11 && b.Meaning == "Comando tastiera stop");
+    }
+
+    [Fact]
+    public async Task SeedAsync_OptimusXPUscite_Has6Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Optimus-Xp");
+        var std = await Context.Dictionaries
+            .FirstAsync(d => d.IsStandard);
+        var uscite = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == std.Id
+                && v.AddressLow == 0x16);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == uscite.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(6, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "EVA");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 11 && b.Meaning == "LEDR");
+    }
 }
