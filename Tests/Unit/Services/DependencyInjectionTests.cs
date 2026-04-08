@@ -99,6 +99,15 @@ public class DependencyInjectionTests
     }
 
     [Fact]
+    public void AddServices_RegistersAuditService()
+    {
+        var provider = BuildServiceProvider();
+
+        var service = provider.GetService<IAuditService>();
+        Assert.NotNull(service);
+    }
+
+    [Fact]
     public void AddServices_RegistersServicesAsScoped()
     {
         // Arrange
@@ -156,5 +165,6 @@ public class DependencyInjectionTests
         Assert.NotNull(sp.GetRequiredService<ICommandService>());
         Assert.NotNull(sp.GetRequiredService<IBoardService>());
         Assert.NotNull(sp.GetRequiredService<IUserService>());
+        Assert.NotNull(sp.GetRequiredService<IAuditService>());
     }
 }

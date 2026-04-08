@@ -49,6 +49,16 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<AuditEntryEntity>> GetByDateRangeAsync(DateTime from, DateTime to,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(a => a.ChangedBy)
+            .Where(a => a.ChangedAt >= from && a.ChangedAt <= to)
+            .OrderByDescending(a => a.ChangedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     // AuditEntry non dovrebbe essere modificato o cancellato
     public override Task UpdateAsync(AuditEntryEntity entity, CancellationToken cancellationToken = default)
     {

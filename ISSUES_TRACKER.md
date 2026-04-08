@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
-| [Services](./Services/ISSUES.md) | 4 | 8 | 12 |
+| [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
 | [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
 | **Trasversali** | **3** | **3** | **6** |
-| **Totale** | **15** | **39** | **54** |
+| **Totale** | **14** | **40** | **54** |
 
 ---
 
@@ -24,14 +24,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 1 | 7% |
-| **Bassa** | 14 | 93% |
-| **Totale** | **15** | 100% |
+| **Media** | 0 | 0% |
+| **Bassa** | 14 | 100% |
+| **Totale** | **14** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       █░░░░░░░░░░░░░░░░░░░  1
+Media:       ░░░░░░░░░░░░░░░░░░░░  0
 Bassa:       ██████████████░░░░░░ 14
 ```
 

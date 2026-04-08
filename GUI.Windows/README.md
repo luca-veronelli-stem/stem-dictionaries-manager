@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -46,6 +46,7 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **Standard Variables** | ✅ | Sezione variabili standard ereditate in DictionaryEdit (read-only) |
 | **Override Mode** | ✅ | VariableEdit in modalità override: IsEnabled + Description + BitInterp editabili |
 | **Comandi per Device** | ✅ | DeviceCommandsView per stato attivo/disattivo comandi per device |
+| **Filtro Abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
 
 ---
 
@@ -188,7 +189,7 @@ _navigationService.GoBack();
 | `DeviceDetail` | DeviceDetailViewModel | Dettaglio device: dizionari associati |
 | `DeviceCommands` | DeviceCommandsViewModel | Stato comandi per device |
 | `DictionaryList` | DictionaryListViewModel | Lista dizionari |
-| `DictionaryEdit` | DictionaryEditViewModel | Form dizionario + lista variabili integrata |
+| `DictionaryEdit` | DictionaryEditViewModel | Form dizionario + lista variabili integrata + filtro abilitate |
 | `VariableEdit` | VariableEditViewModel | Crea/modifica variabile |
 | `CommandList` | CommandListViewModel | Lista comandi |
 | `CommandEdit` | CommandEditViewModel | Crea/modifica comando + delete |

@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~1812%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~1878%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -41,12 +41,13 @@
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), migration Domain v7 |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
-| **Services Layer** | ✅ | 6 services + 8 mappers + business rules (BR-009/010/011/018/020) |
+| **Services Layer** | ✅ | 7 services + 9 mappers + business rules (BR-009/010/011/018/020) |
 | **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 14 Views, dark theme STEM, custom dialogs, status bar |
 | **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
 | **Override variabili standard** | ✅ | Override IsEnabled/Description/BitInterp per-dizionario via VariableEdit |
 | **Variabili standard ereditate** | ✅ | DictionaryEdit con sezione variabili standard read-only + doppio-click per override |
-| **Test Suite** | ✅ | ~1160 metodi test / ~1812 test cases (unit + integration + E2E, 2 target framework) |
+| **Filtro abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
+| **Test Suite** | ✅ | ~1195 metodi test / ~1878 test cases (unit + integration + E2E, 2 target framework) |
 
 ---
 
@@ -86,8 +87,8 @@ Stem.Dictionaries.Manager/
 │   ├── Enums/             # AccessMode, DataTypeKind, AuditEntityType, etc.
 │   └── Models/            # Variable, Dictionary, Board, Device, StandardVariableOverride, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
-│   ├── Interfaces/        # Service interfaces (6)
-│   └── Mapping/           # Mapper bidirezionali (8)
+│   ├── Interfaces/        # Service interfaces (7)
+│   └── Mapping/           # Mapper bidirezionali (9)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (10)
 │   ├── Repositories/      # Repository implementations (10)
@@ -134,7 +135,7 @@ Stem.Dictionaries.Manager/
 |------------|------------|:------:|:-------:|:------------:|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 9 | Bassa |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 4 | 12 | Media (SVC-002) |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 9 | Bassa |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 9 | Media (GUI-002) |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 10 | Bassa |
 | Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 6 | Bassa |

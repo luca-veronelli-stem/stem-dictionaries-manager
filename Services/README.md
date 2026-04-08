@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-08
 
 ---
 
@@ -22,8 +22,8 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Services** | ✅ | 6 services con interface |
-| **Mappers** | ✅ | 8 mapper bidirezionali |
+| **Services** | ✅ | 7 services con interface |
+| **Mappers** | ✅ | 9 mapper bidirezionali |
 | **DI Extension** | ✅ | AddServices() per registrazione |
 | **Aggregate Pattern** | ✅ | Dictionary gestisce Variables |
 | **Validation** | ✅ | Unicità, esistenza, business rules |
@@ -90,7 +90,8 @@ Services/
 │   ├── ICommandService.cs         # Comandi + DeviceState
 │   ├── IBoardService.cs           # Board (FirmwareType diretto, DictionaryId?)
 │   ├── IDeviceService.cs          # Dispositivi CRUD
-│   └── IUserService.cs            # Utenti
+│   ├── IUserService.cs            # Utenti
+│   └── IAuditService.cs           # Audit trail: query + log
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
 │   ├── BoardMapper.cs             # Board Entity ↔ Domain (FirmwareType, DictionaryId?, IsPrimary)
@@ -100,13 +101,15 @@ Services/
 │   ├── CommandDeviceStateMapper.cs    # CommandDeviceState Entity ↔ Domain
 │   ├── DeviceMapper.cs                # Device Entity ↔ Domain
 │   ├── StandardVariableOverrideMapper.cs  # StandardVariableOverride Entity ↔ Domain (v7)
-│   └── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain (v7: DictionaryId)
+│   ├── BitInterpretationMapper.cs     # BitInterpretation Entity ↔ Domain (v7: DictionaryId)
+│   └── AuditEntryMapper.cs            # AuditEntry Entity ↔ Domain (immutabile, no UpdateEntity)
 ├── DictionaryService.cs           # Aggregate root (IsStandard uniqueness)
 ├── VariableService.cs             # Implementazione + StandardVariableOverride (BR-009/010/011 v7)
 ├── CommandService.cs              # Implementazione
 ├── BoardService.cs                # Implementazione
 ├── DeviceService.cs               # Implementazione CRUD dispositivi
 ├── UserService.cs                 # Implementazione
+├── AuditService.cs                # Audit trail: query + log (immutabile)
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
 └── ISSUES.md
@@ -126,6 +129,7 @@ Services/
 | `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync | - |
 | `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
+| `IAuditService` | GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync, LogCreateAsync, LogUpdateAsync, LogDeleteAsync | - |
 
 ### IDictionaryService (Aggregate Root)
 
@@ -289,6 +293,7 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 // - IBoardService → BoardService (Scoped)
 // - IDeviceService → DeviceService (Scoped)
 // - IUserService → UserService (Scoped)
+// - IAuditService → AuditService (Scoped)
 ```
 
 ---
@@ -306,14 +311,16 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Unit/Mapping | `BitInterpretationMapperTests.cs` | 10 |
 | Unit/Mapping | `CommandDeviceStateMapperTests.cs` | 11 |
 | Unit/Mapping | `StandardVariableOverrideMapperTests.cs` | 8 |
-| Unit/DI | `DependencyInjectionTests.cs` | 11 |
+| Unit/Mapping | `AuditEntryMapperTests.cs` | 10 |
+| Unit/DI | `DependencyInjectionTests.cs` | 13 |
 | Integration | `UserServiceTests.cs` | 15 |
 | Integration | `DictionaryServiceTests.cs` | 20 |
 | Integration | `BoardServiceTests.cs` | 18 |
 | Integration | `CommandServiceTests.cs` | 25 |
 | Integration | `DeviceServiceTests.cs` | 16 |
 | Integration | `VariableServiceTests.cs` | 45 |
-| **Totale** | | **~244** |
+| Integration | `AuditServiceTests.cs` | 20 |
+| **Totale** | | **~279** |
 
 ```bash
 # Eseguire test Services
@@ -324,13 +331,15 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 4 issue aperte, 12 risolte
+→ [Services/ISSUES.md](./ISSUES.md) — 3 issue aperte, 9 risolte
+
+---
 
 ### Top Issue
 
 | ID | Priorità | Descrizione |
 |----|----------|-------------|
-| SVC-002 | Media | Manca IAuditService per gestione audit trail |
+| SVC-005 | Bassa | CommandService.GetWithDeviceStatesAsync non espone DeviceStates |
 
 ---
 
