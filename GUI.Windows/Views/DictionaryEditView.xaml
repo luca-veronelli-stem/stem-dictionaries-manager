@@ -83,6 +83,8 @@
             <Button Content="➕ Nuova" Command="{Binding AddVariableCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
             <TextBox Text="{Binding VariableSearchText, UpdateSourceTrigger=PropertyChanged}" 
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
+            <CheckBox IsChecked="{Binding ShowOnlyEnabled}" Content="Mostra solo abilitate"
+                      Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0"/>
         </StackPanel>
 
         <!-- Sezione collapsible: variabili standard ereditate (override IsEnabled + Description) -->

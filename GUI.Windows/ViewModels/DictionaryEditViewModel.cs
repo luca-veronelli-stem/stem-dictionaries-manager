@@ -103,7 +103,12 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [ObservableProperty]
     private string _variableSearchText = string.Empty;
 
+    [ObservableProperty]
+    private bool _showOnlyEnabled;
+
     // === Sezione variabili standard (editabile per override) ===
+
+    private List<StandardVariableItem> _allStandardVariables = [];
 
     [ObservableProperty]
     private List<StandardVariableItem> _standardVariables = [];
@@ -145,6 +150,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     public bool IsBoardInvalid => _showValidation && !IsStandard && SelectedBoard is null;
 
     partial void OnVariableSearchTextChanged(string value) => ApplyVariableFilter();
+    partial void OnShowOnlyEnabledChanged(bool value)
+    {
+        ApplyVariableFilter();
+        ApplyStandardFilter();
+    }
 
     public DictionaryEditViewModel(
         IDictionaryService dictionaryService,
@@ -300,7 +310,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
             var overrideMap = overrides.ToDictionary(o => o.StandardVariableId);
 
-            StandardVariables = [.. standardDict.Variables
+            _allStandardVariables = [.. standardDict.Variables
                     .OrderBy(v => v.FullAddress)
                     .Select(v =>
                     {
@@ -317,6 +327,8 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                             Description = hasOverride ? (ov!.Description ?? v.Description) : v.Description
                         };
                     })];
+
+            ApplyStandardFilter();
         }
         catch (Exception ex)
         {
@@ -520,18 +532,29 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     private void ApplyVariableFilter()
     {
+        var source = ShowOnlyEnabled
+            ? _allVariables.Where(v => v.IsEnabled)
+            : _allVariables;
+
         if (string.IsNullOrWhiteSpace(VariableSearchText))
         {
-            Variables = _allVariables;
+            Variables = [.. source];
             return;
         }
 
         var term = VariableSearchText.Trim();
-        Variables = [.. _allVariables.Where(v =>
+        Variables = [.. source.Where(v =>
             v.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             v.Address.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             v.DataType.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             (v.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))];
+    }
+
+    private void ApplyStandardFilter()
+    {
+        StandardVariables = ShowOnlyEnabled
+            ? [.. _allStandardVariables.Where(v => v.IsEnabled)]
+            : _allStandardVariables;
     }
 
     private bool Validate()
