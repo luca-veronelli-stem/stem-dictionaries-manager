@@ -2461,7 +2461,7 @@ public class DatabaseSeederTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SeedAsync_EdenBS8Dictionary_Has132Variables()
+    public async Task SeedAsync_EdenBS8Dictionary_Has136Variables()
     {
         await DatabaseSeeder.SeedAsync(Context);
 
@@ -2470,11 +2470,11 @@ public class DatabaseSeederTests : IntegrationTestBase
         var count = await Context.Variables
             .CountAsync(v => v.DictionaryId == dict.Id);
 
-        Assert.Equal(132, count);
+        Assert.Equal(136, count);
     }
 
     [Fact]
-    public async Task SeedAsync_EdenBS8_Has67EnabledVariables()
+    public async Task SeedAsync_EdenBS8_Has71EnabledVariables()
     {
         await DatabaseSeeder.SeedAsync(Context);
 
@@ -2484,7 +2484,7 @@ public class DatabaseSeederTests : IntegrationTestBase
             .CountAsync(v => v.DictionaryId == dict.Id
                 && v.IsEnabled);
 
-        Assert.Equal(67, enabled);
+        Assert.Equal(71, enabled);
     }
 
     [Fact]
@@ -2636,7 +2636,7 @@ public class DatabaseSeederTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SeedAsync_EdenBS8_LastVariable_Is0x8083()
+    public async Task SeedAsync_EdenBS8_LastVariable_Is0x8087()
     {
         await DatabaseSeeder.SeedAsync(Context);
 
@@ -2644,12 +2644,12 @@ public class DatabaseSeederTests : IntegrationTestBase
             .FirstAsync(d => d.Name == "Madre Eden-BS8");
         var v = await Context.Variables
             .FirstAsync(v => v.DictionaryId == dict.Id
-                && v.AddressLow == 0x83);
+                && v.AddressLow == 0x87);
 
         Assert.Equal(
-            "K slope velocità pompa salita molleggio",
+            "Stato della posizione in assenza di barella",
             v.Name);
-        Assert.Equal(DataTypeKind.UInt16, v.DataTypeKind);
+        Assert.Equal(DataTypeKind.UInt8, v.DataTypeKind);
         Assert.True(v.IsEnabled);
     }
 

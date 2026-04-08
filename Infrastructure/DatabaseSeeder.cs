@@ -404,8 +404,7 @@ public static class DatabaseSeeder
             context, edenBS8Dictionary, standardVariables);
 
         // === Dizionario R3L-XP Master (da r3l-xp_master.CSV) ===
-        var r3lXPMasterDictionary =
-            await SeedR3LXPMasterDictionaryAsync(
+        var r3lXPMasterDictionary = await SeedR3LXPMasterDictionaryAsync(
                 context, boards, devices[9]);
 
         // === Override variabili standard per R3L-XP Master ===
@@ -413,8 +412,7 @@ public static class DatabaseSeeder
             context, r3lXPMasterDictionary, standardVariables);
 
         // === Dizionario R3L-XP Slave (da r3l-xp_slave.CSV) ===
-        var r3lXPSlaveDictionary =
-            await SeedR3LXPSlaveDictionaryAsync(
+        var r3lXPSlaveDictionary = await SeedR3LXPSlaveDictionaryAsync(
                 context, boards, devices[9]);
 
         // === Override variabili standard per R3L-XP Slave ===
@@ -4945,7 +4943,7 @@ public static class DatabaseSeeder
     /// Crea il dizionario Madre Eden-BS8 con le variabili specifiche.
     /// Fonte: Docs/Dictionaries/eden-bs8.CSV
     /// Indirizzo board: 0x000C04C1 (MC=12, FW=19, BN=1)
-    /// 132 variabili (0x8000-0x8083), 69 abilitate.
+    /// 136 variabili (0x8000-0x8087), 71 abilitate.
     /// </summary>
     private static async Task<DictionaryEntity> SeedEdenBS8DictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -5679,11 +5677,45 @@ public static class DatabaseSeeder
                 description: "Velocità massima della pompa "
                     + "durante salita per molleggio"),
 
-            // 0x8083 — K slope velocità pompa salita molleggio
-            Var(id, "K slope velocità pompa salita molleggio",
-                0x80, 0x83,
-                DataTypeKind.UInt16, "UInt16",
-                AccessMode.ReadWrite, min: 1, max: 1000),
+            // 0x8083 — Angolo di carico
+            Var(id, "Angolo di carico", 0x80, 0x83,
+                DataTypeKind.Float, "Float",
+                AccessMode.ReadWrite, unit: "gradi",
+                description: "Angolo a cui portare la barella "
+                    + "in fase di carico"),
+
+            // 0x8084 — Modalità programmazione angolo di carico
+            Var(id,
+                "Modalità programmazione angolo di carico",
+                0x80, 0x84,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "1 = in programmazione, "
+                    + "0 = fuori da programmazione"),
+
+            // 0x8085 — Salva angolo di carico
+            Var(id, "Salva angolo di carico", 0x80, 0x85,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "se va a 0 prendo l'angolo "
+                    + "di carico"),
+
+            // 0x8086 — Modalità manuale
+            Var(id, "Modalità manuale", 0x80, 0x86,
+                DataTypeKind.Bool, "Bool",
+                AccessMode.ReadWrite, min: 0, max: 1,
+                description: "1 manuale, 0 = normale"),
+
+            // 0x8087 — Stato della posizione in assenza di barella
+            Var(id,
+                "Stato della posizione in assenza di barella",
+                0x80, 0x87,
+                DataTypeKind.UInt8, "UInt8",
+                AccessMode.ReadOnly, min: 0, max: 255,
+                description: "0=fermo in carico\n"
+                    + "1=in movimento verso orizzontale\n"
+                    + "2=fermo orizzontale\n"
+                    + "3=in movimento verso carico"),
         };
         context.Variables.AddRange(variables);
         await context.SaveChangesAsync();
