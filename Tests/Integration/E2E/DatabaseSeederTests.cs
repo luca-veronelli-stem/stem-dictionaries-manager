@@ -2444,4 +2444,301 @@ public class DatabaseSeederTests : IntegrationTestBase
             b.WordIndex == 1 && b.BitIndex == 8
             && b.Meaning!.Contains("scarico"));
     }
+
+    // ====================================================================
+    // Eden-BS8
+    // ====================================================================
+
+    [Fact]
+    public async Task SeedAsync_CreatesEdenBS8Dictionary()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstOrDefaultAsync(d => d.Name == "Madre Eden-BS8");
+        Assert.NotNull(dict);
+        Assert.False(dict.IsStandard);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8Dictionary_Has132Variables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var count = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id);
+
+        Assert.Equal(132, count);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_Has67EnabledVariables()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var enabled = await Context.Variables
+            .CountAsync(v => v.DictionaryId == dict.Id
+                && v.IsEnabled);
+
+        Assert.Equal(67, enabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_AddressesAreUnique()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var addresses = await Context.Variables
+            .Where(v => v.DictionaryId == dict.Id)
+            .Select(v => (int)v.AddressHigh << 8 | v.AddressLow)
+            .ToListAsync();
+
+        Assert.Equal(addresses.Count,
+            addresses.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_BoardMadreLinked()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var board = await Context.Boards
+            .FirstAsync(b => b.DictionaryId == dict.Id);
+
+        Assert.Equal(19, board.FirmwareType);
+        Assert.True(board.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_StatoFinecorsa_Has2Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x0F);
+
+        Assert.Equal("Stato finecorsa", v.Name);
+        Assert.Equal(DataTypeKind.Bitmapped, v.DataTypeKind);
+        Assert.Equal(8, v.WordSize);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .OrderBy(b => b.BitIndex)
+            .ToListAsync();
+
+        Assert.Equal(2, bits.Count);
+        Assert.Equal("Finecorsa piano esteso",
+            bits[0].Meaning);
+        Assert.Equal("Finecorsa piano chiuso",
+            bits[1].Meaning);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_StatoLuci_Has3Bits()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x41);
+
+        Assert.Equal("Stato Luci", v.Name);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == v.Id)
+            .ToListAsync();
+
+        Assert.Equal(3, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "B");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 2 && b.Meaning == "R");
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_AngoloInclinazione_HasDescription()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x02);
+
+        Assert.Equal("Angolo inclinazione del piano", v.Name);
+        Assert.Contains("10.0", v.Description!);
+        Assert.Contains("-8.0", v.Description!);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_StatoIngressoBarella()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x11);
+
+        Assert.Equal("Stato ingresso barella", v.Name);
+        Assert.Equal(DataTypeKind.Bool, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_AngoloDeltaOrizzontale_IsFloat()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x52);
+
+        Assert.Equal("Angolo delta orizzontale", v.Name);
+        Assert.Equal(DataTypeKind.Float, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_LimitazioneVelocita_IsInt16()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x81);
+
+        Assert.Equal("Limitazione velocita", v.Name);
+        Assert.Equal(DataTypeKind.Int16, v.DataTypeKind);
+        Assert.Equal(AccessMode.ReadWrite, v.AccessMode);
+        Assert.Equal("bits", v.Unit);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_LastVariable_Is0x8083()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var v = await Context.Variables
+            .FirstAsync(v => v.DictionaryId == dict.Id
+                && v.AddressLow == 0x83);
+
+        Assert.Equal(
+            "K slope velocità pompa salita molleggio",
+            v.Name);
+        Assert.Equal(DataTypeKind.UInt16, v.DataTypeKind);
+        Assert.True(v.IsEnabled);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8_NoStandardDisableOverrides()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var overrides = await Context.StandardVariableOverrides
+            .Where(o => o.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Empty(overrides);
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8Allarmi_Has22BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var allarmi = await Context.Variables
+            .FirstAsync(v => v.Name == "Allarmi"
+                && v.AddressLow == 0x06);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == allarmi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        // 16 Word 0 + 6 Word 1
+        Assert.Equal(22, bits.Count);
+        Assert.Contains(bits, b =>
+            b.WordIndex == 0 && b.BitIndex == 0
+            && b.Meaning == "Sovracorrente pompa");
+        Assert.Contains(bits, b =>
+            b.WordIndex == 1 && b.BitIndex == 5
+            && b.Meaning == "Errore hardware EEPROM esterna");
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8Ingressi_Has12BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var ingressi = await Context.Variables
+            .FirstAsync(v => v.Name == "Stato ingressi fisici"
+                && v.AddressLow == 0x15);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == ingressi.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(12, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "FC Estratto");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 11
+            && b.Meaning == "Comando tastiera stop");
+    }
+
+    [Fact]
+    public async Task SeedAsync_EdenBS8Uscite_Has12BitInterpretations()
+    {
+        await DatabaseSeeder.SeedAsync(Context);
+
+        var dict = await Context.Dictionaries
+            .FirstAsync(d => d.Name == "Madre Eden-BS8");
+        var uscite = await Context.Variables
+            .FirstAsync(v => v.Name == "Stato uscite fisiche"
+                && v.AddressLow == 0x16);
+
+        var bits = await Context.Set<BitInterpretationEntity>()
+            .Where(b => b.VariableId == uscite.Id
+                && b.DictionaryId == dict.Id)
+            .ToListAsync();
+
+        Assert.Equal(12, bits.Count);
+        Assert.Contains(bits, b =>
+            b.BitIndex == 0 && b.Meaning == "EV1");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 8 && b.Meaning == "PUMP");
+        Assert.Contains(bits, b =>
+            b.BitIndex == 11 && b.Meaning == "LEDR");
+    }
 }
