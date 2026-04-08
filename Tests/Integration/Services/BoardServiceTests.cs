@@ -2,6 +2,7 @@ using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Services;
+using Services.Interfaces;
 
 namespace Tests.Integration.Services;
 
@@ -16,7 +17,11 @@ public class BoardServiceTests : IntegrationTestBase
     {
         var boardRepository = new BoardRepository(Context);
         var dictionaryRepository = new DictionaryRepository(Context);
-        _service = new BoardService(boardRepository, dictionaryRepository);
+        var auditRepository = new AuditEntryRepository(Context);
+        IAuditService auditService = new AuditService(auditRepository);
+        ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
+        _service = new BoardService(
+            boardRepository, dictionaryRepository, auditService, userProvider);
     }
 
     public override async Task InitializeAsync()

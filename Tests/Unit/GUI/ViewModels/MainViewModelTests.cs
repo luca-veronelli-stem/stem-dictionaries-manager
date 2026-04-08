@@ -3,6 +3,7 @@ using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Services;
 using Services.Interfaces;
 using Tests.Unit.GUI.Mocks;
 
@@ -18,6 +19,7 @@ public class MainViewModelTests
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
+    private readonly ICurrentUserProvider _currentUserProvider;
     private readonly MainViewModel _viewModel;
 
     public MainViewModelTests()
@@ -25,6 +27,7 @@ public class MainViewModelTests
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
+        _currentUserProvider = new CurrentUserProvider();
 
         // Create a minimal service provider for testing
         var services = new ServiceCollection();
@@ -71,7 +74,8 @@ public class MainViewModelTests
             _navigationService,
             _dialogService,
             _messageService,
-            _serviceProvider);
+            _serviceProvider,
+            _currentUserProvider);
     }
 
     [Fact]
@@ -224,7 +228,8 @@ public class MainViewModelTests
         var throwingProvider = services.BuildServiceProvider();
 
         var vm = new MainViewModel(
-            navService, _dialogService, _messageService, throwingProvider);
+            navService, _dialogService, _messageService, throwingProvider,
+            _currentUserProvider);
 
         navService.NavigateTo(ViewType.DictionaryList);
 
@@ -243,7 +248,8 @@ public class MainViewModelTests
         var throwingProvider = services.BuildServiceProvider();
 
         var vm = new MainViewModel(
-            navService, _dialogService, msgService, throwingProvider);
+            navService, _dialogService, msgService, throwingProvider,
+            _currentUserProvider);
 
         navService.NavigateTo(ViewType.DictionaryList);
 

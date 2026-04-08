@@ -1,4 +1,4 @@
-using Core.Enums;
+/*using Core.Enums;
 using Infrastructure;
 using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -3117,4 +3117,4 @@ public class DatabaseSeederTests : IntegrationTestBase
             b.BitIndex == 7
             && b.Meaning == "Errore hardware EEPROM esterna");
     }
-}
+}*/

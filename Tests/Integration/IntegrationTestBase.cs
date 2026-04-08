@@ -27,6 +27,14 @@ public abstract class IntegrationTestBase : IDisposable, IAsyncLifetime
 
         Context = new AppDbContext(options);
         Context.Database.EnsureCreated();
+
+        // Seed utente di test per soddisfare FK audit trail
+        Context.Users.Add(new UserEntity
+        {
+            Username = "test-user",
+            DisplayName = "Test User"
+        });
+        Context.SaveChanges();
     }
 
     /// <summary>

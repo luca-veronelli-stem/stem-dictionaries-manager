@@ -1,6 +1,7 @@
 using Core.Models;
 using Infrastructure.Repositories;
 using Services;
+using Services.Interfaces;
 
 namespace Tests.Integration.Services;
 
@@ -15,7 +16,11 @@ public class CommandServiceTests : IntegrationTestBase
     {
         var repository = new CommandRepository(Context);
         var deviceStateRepository = new CommandDeviceStateRepository(Context);
-        _service = new CommandService(repository, deviceStateRepository);
+        var auditRepository = new AuditEntryRepository(Context);
+        IAuditService auditService = new AuditService(auditRepository);
+        ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
+        _service = new CommandService(
+            repository, deviceStateRepository, auditService, userProvider);
     }
 
     [Fact]

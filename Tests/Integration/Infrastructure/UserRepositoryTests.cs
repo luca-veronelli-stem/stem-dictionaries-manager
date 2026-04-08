@@ -81,7 +81,8 @@ public class UserRepositoryTests : IntegrationTestBase
 
         var result = await _repository.GetAllAsync();
 
-        Assert.Equal(2, result.Count);
+        // +1 per l'utente test-user seedato da IntegrationTestBase
+        Assert.Equal(3, result.Count);
     }
 
     [Fact]
