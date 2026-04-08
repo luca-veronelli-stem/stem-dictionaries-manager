@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-08
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
-| [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
+| [Services](./Services/ISSUES.md) | 3 | 10 | 13 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
 | [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
 | **Trasversali** | **3** | **3** | **6** |
-| **Totale** | **14** | **40** | **54** |
+| **Totale** | **14** | **41** | **55** |
 
 ---
 
@@ -380,7 +380,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [INFRA-005](./Infrastructure/ISSUES.md#infra-005--commandentityparametersjson-non-ha-conversione-json-tipizzata) | ParametersJson stringa grezza | Bassa | Design |
 | [INFRA-006](./Infrastructure/ISSUES.md#infra-006--dictionaryrepositorygetbynameasync-non-normalizza-input) | GetByNameAsync non normalizza input | Bassa | Bug |
 
-### Services (4 issue aperte, 8 risolte)
+### Services (3 issue aperte, 10 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -391,7 +391,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~SVC-004~~ | ~~BoardMapper overload mancanti~~ | ~~Bassa~~ | ✅ **Risolto (T-002)** |
 | ~~SVC-009~~ | ~~VariableMapper.ToDomain non mappa Format~~ | ~~Media~~ | ✅ **Risolto** |
 | ~~SVC-003~~ | ~~GetAllAsync senza paginazione~~ | ~~Media~~ | ⚪ **Wontfix** |
-| [SVC-002](./Services/ISSUES.md#svc-002--manca-iauditservice-per-gestione-audit-trail) | Manca IAuditService per gestione audit trail | Alta | Feature |
+| ~~SVC-002~~ | ~~Manca IAuditService per gestione audit trail~~ | ~~Media~~ | ✅ **Risolto** |
 | [SVC-005](./Services/ISSUES.md#svc-005--commandservicegetwithdevicestatesasync-non-espone-devicestates) | CommandService.GetWithDeviceStatesAsync non espone DeviceStates | Bassa | UX |
 | [SVC-006](./Services/ISSUES.md#svc-006--manca-validazione-business-rules-centralizzata) | Manca validazione centralizzata | Bassa | Design |
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
@@ -464,9 +464,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
-| 1 | SVC-002 | Services | Manca IAuditService | M |
-| 2 | T-003 | Trasversale | Logging infrastructure | M |
-| 3 | T-004 | Trasversale | DB constraints per regole di business | S |
+| 1 | T-003 | Trasversale | Logging infrastructure | M |
+| 2 | T-004 | Trasversale | DB constraints per regole di business | S |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -520,7 +519,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **API** | 3 | CORE-003, CORE-004, CORE-005 |
 | **Manutenibilità** | 1 | TEST-006 |
 | **Code Smell** | 0 | - |
-| **Feature** | 1 | SVC-002 |
+| **Feature** | 0 | ~~SVC-002~~ — Risolto |
 | **Robustezza** | 1 | SVC-007 |
 | **Trasversale** | 3 | T-003, T-004, T-005 |
 

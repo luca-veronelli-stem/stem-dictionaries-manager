@@ -47,6 +47,7 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **Override Mode** | ✅ | VariableEdit in modalità override: IsEnabled + Description + BitInterp editabili |
 | **Comandi per Device** | ✅ | DeviceCommandsView per stato attivo/disattivo comandi per device |
 | **Filtro Abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
+| **Audit User Provider** | ✅ | MainViewModel setta ICurrentUserProvider dopo login/logout per audit trail |
 
 ---
 

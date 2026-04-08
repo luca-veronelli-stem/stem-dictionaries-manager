@@ -81,6 +81,8 @@
 - Query su audit trail per entity, user, data, recenti ✅
 - Metodi Log pronti per integrazione con altri service ✅
 - Parametri espliciti — zero accoppiamento con domain models ✅
+- **Log attivato in 5 service** (16 punti: Add/Update/Delete) con `ICurrentUserProvider` ✅
+- **ICurrentUserProvider** singleton settato dalla GUI dopo login ✅
 
 ---
 

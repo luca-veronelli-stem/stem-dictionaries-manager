@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~1878%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~1842%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-04-08
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -39,7 +39,7 @@
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
 | **Domain v7** | ✅ | StandardVariableOverride per-dizionario, BitInterpretation.DictionaryId |
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), migration Domain v7 |
-| **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo |
+| **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo, integrato in 5 service (16 punti) |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
 | **Services Layer** | ✅ | 7 services + 9 mappers + business rules (BR-009/010/011/018/020) |
 | **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 14 Views, dark theme STEM, custom dialogs, status bar |
@@ -87,7 +87,7 @@ Stem.Dictionaries.Manager/
 │   ├── Enums/             # AccessMode, DataTypeKind, AuditEntityType, etc.
 │   └── Models/            # Variable, Dictionary, Board, Device, StandardVariableOverride, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
-│   ├── Interfaces/        # Service interfaces (7)
+│   ├── Interfaces/        # Service interfaces (8)
 │   └── Mapping/           # Mapper bidirezionali (9)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (10)
@@ -135,7 +135,7 @@ Stem.Dictionaries.Manager/
 |------------|------------|:------:|:-------:|:------------:|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 9 | Bassa |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 9 | Bassa |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 10 | Bassa |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 9 | Media (GUI-002) |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 10 | Bassa |
 | Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 6 | Bassa |
@@ -194,7 +194,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         Services                            │
-│        Business Logic, 8 Mappers, Business Rules             │
+│        Business Logic, 9 Mappers, Audit Integration           │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼

@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-04-08
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -29,6 +29,8 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 | **Validation** | ✅ | Unicità, esistenza, business rules |
 | **StandardVariableOverride** | ✅ | Override IsEnabled/Description per-dizionario (v7) |
 | **BitInterpretation per-dizionario** | ✅ | Template + override con fallback BR-018 |
+| **Audit Integration** | ✅ | Log automatico Create/Update/Delete in 5 service (16 punti) |
+| **ICurrentUserProvider** | ✅ | Singleton per tracciare utente corrente (settato da GUI) |
 
 ---
 
@@ -91,7 +93,8 @@ Services/
 │   ├── IBoardService.cs           # Board (FirmwareType diretto, DictionaryId?)
 │   ├── IDeviceService.cs          # Dispositivi CRUD
 │   ├── IUserService.cs            # Utenti
-│   └── IAuditService.cs           # Audit trail: query + log
+│   ├── IAuditService.cs           # Audit trail: query + log
+│   └── ICurrentUserProvider.cs    # Utente corrente per audit (Singleton)
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
 │   ├── BoardMapper.cs             # Board Entity ↔ Domain (FirmwareType, DictionaryId?, IsPrimary)
@@ -110,6 +113,7 @@ Services/
 ├── DeviceService.cs               # Implementazione CRUD dispositivi
 ├── UserService.cs                 # Implementazione
 ├── AuditService.cs                # Audit trail: query + log (immutabile)
+├── CurrentUserProvider.cs         # Implementazione ICurrentUserProvider
 ├── DependencyInjection.cs         # Extension method AddServices()
 ├── README.md                      # Questa documentazione
 └── ISSUES.md
@@ -287,6 +291,7 @@ services.AddInfrastructure("Data Source=dictionaries.db");
 services.AddServices();  // Richiede AddInfrastructure() prima
 
 // Registra:
+// - ICurrentUserProvider → CurrentUserProvider (Singleton)
 // - IDictionaryService → DictionaryService (Scoped)
 // - IVariableService → VariableService (Scoped)
 // - ICommandService → CommandService (Scoped)
