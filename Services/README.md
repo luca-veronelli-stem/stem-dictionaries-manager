@@ -23,7 +23,7 @@ Questo layer espone Domain Models (Core) e nasconde i dettagli di persistenza (I
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
 | **Services** | ✅ | 7 services con interface |
-| **Mappers** | ✅ | 9 mapper bidirezionali |
+| **Mappers** | ✅ | 10 mapper bidirezionali |
 | **DI Extension** | ✅ | AddServices() per registrazione |
 | **Aggregate Pattern** | ✅ | Dictionary gestisce Variables |
 | **Validation** | ✅ | Unicità, esistenza, business rules |
@@ -128,9 +128,9 @@ Services/
 | Interface | Metodi Principali | Aggregate |
 |-----------|-------------------|:---------:|
 | `IDictionaryService` | GetWithVariablesAsync, GetStandardDictionaryAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
-| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, SetOverrideAsync, GetOverrideAsync, GetOverridesByDictionaryAsync | - |
-| `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync | - |
-| `IBoardService` | GetByDeviceTypeAsync, GetByProtocolAddressAsync | - |
+| `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, UpdateBitInterpretationsForDictionaryAsync, GetBitInterpretationsForDictionaryAsync, SetOverrideAsync, GetOverrideAsync, GetOverridesByDictionaryAsync, GetOverridesByVariableAsync | - |
+| `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync, GetDeviceStatesForDeviceAsync | - |
+| `IBoardService` | GetByDeviceIdAsync, GetByProtocolAddressAsync | - |
 | `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
 | `IAuditService` | GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync, LogCreateAsync, LogUpdateAsync, LogDeleteAsync | - |
@@ -235,11 +235,14 @@ public static class UserMapper
 | **BR-001** | Core/Dictionary | Dictionary.IsStandard flag — variabili comuni 0x00xx |
 | **BR-003** | DictionaryService, VariableService | Indirizzo variabile univoco per dizionario |
 | **BR-004** | DictionaryService | Al massimo UN dizionario con IsStandard = true |
-| **BR-005** | CommandService | Codice comando univoco per (CodeHigh, CodeLow, IsResponse) |
+| **BR-005** | BoardService | Max 1 scheda primaria (IsPrimary) per Device |
 | **BR-006** | UserService | Username univoco |
 | **BR-009** | VariableService | Stato effettivo variabile standard per dizionario |
 | **BR-010** | VariableService | StandardVariableOverride: unique (DictionaryId, StandardVariableId) |
 | **BR-011** | VariableService | Non si può abilitare una variabile deprecated per un dizionario |
+| **BR-014** | DeviceService | MachineCode > 0 |
+| **BR-015** | DeviceService | MachineCode 6 riservato per BLE Module |
+| **BR-016** | CommandService | Nome comando univoco |
 | **BR-018** | VariableService | BitInterpretation: per-dizionario > template (fallback) |
 | **BR-020** | VariableService | Descrizione effettiva: override > template |
 
@@ -336,7 +339,7 @@ dotnet test Tests/Tests.csproj --filter "FullyQualifiedName~Services"
 
 ## Issue Correlate
 
-→ [Services/ISSUES.md](./ISSUES.md) — 3 issue aperte, 9 risolte
+→ [Services/ISSUES.md](./ISSUES.md) — 3 issue aperte, 10 risolte
 
 ---
 

@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -10,7 +10,7 @@
 Il progetto **Core** rappresenta il cuore del dominio applicativo di Stem.Dictionaries.Manager. Contiene:
 
 - **Modelli di dominio** - Classi che rappresentano le entità business (Variable, Command, Dictionary, etc.)
-- **Enumerazioni** - Tipi enumerati per valori discreti (DeviceType, AccessMode, DataTypeKind, etc.)
+- **Enumerazioni** - Tipi enumerati per valori discreti (AccessMode, DataTypeKind, AuditEntityType, etc.)
 
 Questo progetto è **puro dominio**: nessuna dipendenza da framework esterni, database o UI. 
 È referenziato da tutti gli altri progetti della soluzione.
@@ -21,8 +21,8 @@ Questo progetto è **puro dominio**: nessuna dipendenza da framework esterni, da
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 10 classi (User, Board, Variable, Dictionary, Device, StandardVariableOverride, etc.) |
-| **Enumerazioni** | ✅ | 5 enum (AccessMode, DataTypeKind, AuditEntityType, etc.) |
+| **Modelli dominio** | ✅ | 10 classi (Variable, Dictionary, Board, Device, Command, User, StandardVariableOverride, etc.) |
+| **Enumerazioni** | ✅ | 5 enum (AccessMode, DataTypeKind, AuditEntityType, AuditOperation, VariableCategory) |
 | **Validazione** | ✅ | Logica di validazione nei costruttori |
 | **Immutabilità** | ✅ | Private setters, costruttori con parametri |
 
@@ -44,6 +44,9 @@ Nessuna dipendenza esterna. Progetto autocontenuto.
 using Core.Enums;
 using Core.Models;
 
+// Device entity (macchina STEM)
+var device = new Device("Optimus XP", machineCode: 10, description: "Unità di trattamento");
+
 // Creare una variabile
 var variable = new Variable(
     name: "Temperatura",
@@ -61,12 +64,9 @@ var standard = new Dictionary("Standard", description: "Variabili comuni", isSta
 var optimusXp = new Dictionary("Optimus XP", description: "Variabili scheda madre");
 optimusXp.AddVariable(variable);
 
-// Board con FirmwareType diretto e link a Dictionary
-var board = new Board(DeviceType.OptimusXp, "Madre Master", firmwareType: 17,
+// Board con FirmwareType diretto e link a Dictionary (deviceId è FK a Device)
+var board = new Board(deviceId: device.Id, "Madre Master", firmwareType: 17,
     boardNumber: 1, isPrimary: true, dictionaryId: optimusXp.Id);
-
-// Device entity (ex DeviceType enum, SESSION_035)
-var device = new Device("Optimus XP", machineCode: 10, description: "Unità di trattamento");
 ```
 
 ---
@@ -77,10 +77,12 @@ var device = new Device("Optimus XP", machineCode: 10, description: "Unità di t
 Core/
 ├── Enums/
 │   ├── AccessMode.cs           # ReadOnly, ReadWrite, WriteOnly
-│   ├── AuditEntityType.cs      # Tipi entità per audit trail (7 valori)
+│   ├── AuditEntityType.cs      # Tipi entità per audit trail (8 valori)
 │   ├── AuditOperation.cs       # Create, Update, Delete
 │   ├── DataTypeKind.cs         # UInt8, Int16, String, Bitmapped, etc.
 │   └── VariableCategory.cs     # Standard (0x00xx), DeviceSpecific (0x80xx)
+├── README.md
+├── ISSUES.md
 └── Models/
     ├── AuditEntry.cs              # Traccia modifiche con JSON completo
     ├── BitInterpretation.cs       # Significato bit per variabili bitmapped (v7: DictionaryId?)
@@ -106,7 +108,7 @@ Core/
 | `DataTypeKind` | 12 valori | Tipo dato (UInt8, Int16, String, Bitmapped, Array, Other, etc.) |
 | `VariableCategory` | 2 valori | Standard (0x00xx) o DeviceSpecific (0x80xx) |
 | `AuditOperation` | 3 valori | Operazione audit (Create, Update, Delete) |
-| `AuditEntityType` | 8 valori | Tipo entità per audit trail (incl. Device, StandardVariableOverride) |
+| `AuditEntityType` | 8 valori | Tipo entità per audit trail (Variable, Command, Board, Dictionary, BitInterpretation, User, Device, StandardVariableOverride) |
 
 > **Nota:** `DeviceType` era un enum rimosso in SESSION_035. Ora è l'entity `Device` in Models/.
 
@@ -127,13 +129,13 @@ Core/
 
 ### Semantiche Dizionario (Domain v2)
 
-I dizionari non hanno più DeviceType/BoardType. La semantica è derivata a runtime dai Board che li referenziano:
+I dizionari non hanno DeviceType/BoardType. La semantica è derivata a runtime dai Board che li referenziano:
 
 | Semantica | IsStandard | Board che lo referenziano | Esempio |
 |-----------|:----------:|---------------------------|----------|
 | **Standard** | `true` | (tutti, implicitamente) | Variabili comuni 0x00xx |
-| **Dedicated** | `false` | 1 solo DeviceType | Madre Optimus-XP |
-| **Shared** | `false` | 2+ DeviceType diversi | Pulsantiera 4x4 |
+| **Dedicated** | `false` | 1 solo Device | Madre Optimus-XP |
+| **Shared** | `false` | 2+ Device diversi | Pulsantiera 4x4 |
 | **Orphan** | `false` | nessun Board | Dizionario non ancora assegnato |
 
 > Il flag `IsStandard` è persistito. Le altre 3 semantiche sono **calcolate** dalla relazione Board→Dictionary.
@@ -142,8 +144,8 @@ I dizionari non hanno più DeviceType/BoardType. La semantica è derivata a runt
 
 ```csharp
 // Board.CalculateAddress compone l'indirizzo da:
-// - machineCode (DeviceType)
-// - firmwareType (BoardType)
+// - machineCode (dal Device)
+// - firmwareType (dalla Board)
 // - boardNumber
 
 uint address = Board.CalculateAddress(machineCode: 10, firmwareType: 17, boardNumber: 1);

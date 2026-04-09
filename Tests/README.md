@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-04-08
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -20,8 +20,8 @@ I test sono eseguibili cross-platform (Linux CI) e su Windows con target multipl
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Unit Tests** | ✅ | ~750 test per Core + Services/Mapping + GUI (14 ViewModels) |
-| **Integration Tests** | ✅ | ~410 test per Infrastructure + Services + GUI + E2E |
+| **Unit Tests** | ✅ | ~770 test per Core + Services/Mapping + GUI (14 ViewModels) |
+| **Integration Tests** | ✅ | ~600 test per Infrastructure + Services + GUI + E2E (170 DatabaseSeeder) |
 | **Multi-target** | ✅ | net10.0 (CI/Linux) + net10.0-windows (GUI tests) |
 | **SQLite In-Memory** | ✅ | DB pulito per ogni test |
 | **IntegrationTestBase** | ✅ | Base class per setup/teardown (IAsyncLifetime) |
@@ -79,6 +79,8 @@ dotnet test Tests/Tests.csproj --collect:"XPlat Code Coverage"
 
 ```
 Tests/
+├── README.md
+├── ISSUES.md
 ├── Unit/
 │   ├── Enums/
 │   │   ├── AccessModeTests.cs        # 3 test
@@ -140,7 +142,7 @@ Tests/
 │           ├── StandardVariableOverrideMapperTests.cs # 8 test
 │           └── AuditEntryMapperTests.cs           # 10 test
 └── Integration/
-    \u251c\u2500\u2500 IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime, seed test-user per FK audit)", "oldString": "    \u251c\u2500\u2500 IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime)
+    ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime, seed test-user)
     ├── Infrastructure/
     │   ├── AuditEntryRepositoryTests.cs       # 8 test
     │   ├── AuditFieldsTests.cs                # 3 test
@@ -164,7 +166,7 @@ Tests/
     ├── E2E/                               # End-to-end workflow tests
     │   ├── AuditTrailTests.cs             # Audit trail workflow
     │   ├── CommandWorkflowTests.cs        # Comandi workflow completo
-    │   ├── DatabaseSeederTests.cs         # 21 test — verifica dati seed (Standard + Pulsantiere)
+    │   ├── DatabaseSeederTests.cs         # 170 test — verifica dati seed (Standard + 13 dizionari device-specific)
     │   ├── DeviceWorkflowTests.cs         # Dispositivi workflow
     │   ├── DictionaryWorkflowTests.cs     # Dizionari workflow
     │   └── VariableWorkflowTests.cs       # Variabili workflow
@@ -238,9 +240,9 @@ public class MyRepositoryTests : IntegrationTestBase
 |------|-------------|-------------|
 | Unit/Enums | 11 | Valori, count, casting |
 | Unit/Models | 90 | Costruttori, validazione, metodi (IsStandard, FirmwareType, DictionaryName, Device) |
-| Unit/Services/Mapping | 94 | Mapper Entity ↔ Domain (9 mapper incl. StandardVariableOverrideMapper) |
+| Unit/Services/Mapping | 104 | Mapper Entity ↔ Domain (10 mapper incl. AuditEntryMapper, StandardVariableOverrideMapper) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
-| Unit/Services/DI | 11 | Registrazione DI services |
+| Unit/Services/DI | 13 | Registrazione DI services |
 | Unit/GUI/ViewModels | 450 | 14 ViewModels (incl. DictionaryContext override, status bar, unsaved changes) |
 | Unit/GUI/Converters | 25 | NullableInt/Double + SeverityToColor + BoolToErrorBrush converters |
 | Unit/GUI/Services | 23 | NavigationService (incl. ViewModel caching) |
@@ -248,10 +250,10 @@ public class MyRepositoryTests : IntegrationTestBase
 | Integration/Infrastructure | 115 | Repository, audit, DB, CRUD scenarios, SyncByVariableId, DeviceRepository |
 | Integration/Services | 140 | Business logic, IsStandard, StandardVariableOverride, DeviceService, smart update |
 | Integration/GUI | 25 | VariableEdit + CommandEdit + DictionaryEdit flow completo |
-| Integration/E2E | 45 | Workflow completi + DatabaseSeeder tests |
-| **Totale metodi test** | **~1160** | Tutti i target combinati |
+| Integration/E2E | 195 | Workflow completi + DatabaseSeeder tests (170 E2E) |
+| **Totale metodi test** | **~1370** | Tutti i target combinati |
 
-> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è **~1812 test cases** (multi-target).
+> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è **~2230 test cases** (multi-target).
 
 ---
 
@@ -290,7 +292,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 10 risolte
+→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 9 risolte
 
 ---
 
