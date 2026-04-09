@@ -151,7 +151,7 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Dictionary)
                   .WithMany(d => d.BitInterpretations)
                   .HasForeignKey(e => e.DictionaryId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Command
