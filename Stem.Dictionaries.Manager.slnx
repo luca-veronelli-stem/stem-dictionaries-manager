@@ -12,6 +12,7 @@
   </Folder>
   <Folder Name="/Docs/">
     <File Path="Docs/ER-schema.puml" />
+    <File Path="Docs/SHIPPED_README.txt" />
   </Folder>
   <Folder Name="/Docs/Dictionaries/">
     <File Path="Docs/Dictionaries/comandi.csv" />
@@ -48,6 +49,7 @@
     <File Path=".gitignore" />
     <File Path="bitbucket-pipelines.yml" />
     <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
     <File Path="ISSUES_TRACKER.md" />
     <File Path="LICENSE" />
     <File Path="README.md" />
