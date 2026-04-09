@@ -15,15 +15,15 @@ namespace Infrastructure.Migrations
                 name: "Commands",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    CodeHigh = table.Column<byte>(type: "INTEGER", nullable: false),
-                    CodeLow = table.Column<byte>(type: "INTEGER", nullable: false),
-                    IsResponse = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ParametersJson = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CodeHigh = table.Column<byte>(type: "tinyint", nullable: false),
+                    CodeLow = table.Column<byte>(type: "tinyint", nullable: false),
+                    IsResponse = table.Column<bool>(type: "bit", nullable: false),
+                    ParametersJson = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -34,13 +34,13 @@ namespace Infrastructure.Migrations
                 name: "Devices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    MachineCode = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    MachineCode = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -51,13 +51,13 @@ namespace Infrastructure.Migrations
                 name: "Dictionaries",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    IsStandard = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsStandard = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -68,12 +68,12 @@ namespace Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -84,13 +84,13 @@ namespace Infrastructure.Migrations
                 name: "CommandDeviceStates",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    CommandId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CommandId = table.Column<int>(type: "int", nullable: false),
+                    DeviceId = table.Column<int>(type: "int", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,18 +107,18 @@ namespace Infrastructure.Migrations
                 name: "Boards",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DeviceId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    FirmwareType = table.Column<int>(type: "INTEGER", nullable: false),
-                    BoardNumber = table.Column<int>(type: "INTEGER", nullable: false),
-                    PartNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
-                    ProtocolAddress = table.Column<uint>(type: "INTEGER", nullable: false),
-                    IsPrimary = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DeviceId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FirmwareType = table.Column<int>(type: "int", nullable: false),
+                    BoardNumber = table.Column<int>(type: "int", nullable: false),
+                    PartNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    ProtocolAddress = table.Column<long>(type: "bigint", nullable: false),
+                    IsPrimary = table.Column<bool>(type: "bit", nullable: false),
+                    DictionaryId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -141,26 +141,26 @@ namespace Infrastructure.Migrations
                 name: "Variables",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    AddressHigh = table.Column<byte>(type: "INTEGER", nullable: false),
-                    AddressLow = table.Column<byte>(type: "INTEGER", nullable: false),
-                    DataTypeKind = table.Column<int>(type: "INTEGER", nullable: false),
-                    DataTypeParam = table.Column<int>(type: "INTEGER", nullable: true),
-                    DataTypeRaw = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Format = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    MinValue = table.Column<double>(type: "REAL", nullable: true),
-                    MaxValue = table.Column<double>(type: "REAL", nullable: true),
-                    Unit = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
-                    AccessMode = table.Column<int>(type: "INTEGER", nullable: false),
-                    Usage = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    WordSize = table.Column<int>(type: "INTEGER", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DictionaryId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    AddressHigh = table.Column<byte>(type: "tinyint", nullable: false),
+                    AddressLow = table.Column<byte>(type: "tinyint", nullable: false),
+                    DataTypeKind = table.Column<int>(type: "int", nullable: false),
+                    DataTypeParam = table.Column<int>(type: "int", nullable: true),
+                    DataTypeRaw = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Format = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    MinValue = table.Column<double>(type: "float", nullable: true),
+                    MaxValue = table.Column<double>(type: "float", nullable: true),
+                    Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    AccessMode = table.Column<int>(type: "int", nullable: false),
+                    Usage = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    IsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    WordSize = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -177,16 +177,16 @@ namespace Infrastructure.Migrations
                 name: "AuditEntries",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EntityType = table.Column<int>(type: "INTEGER", nullable: false),
-                    EntityId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Operation = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChangedById = table.Column<int>(type: "INTEGER", nullable: false),
-                    ChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    PreviousValue = table.Column<string>(type: "TEXT", nullable: true),
-                    NewValue = table.Column<string>(type: "TEXT", nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EntityType = table.Column<int>(type: "int", nullable: false),
+                    EntityId = table.Column<int>(type: "int", nullable: false),
+                    Operation = table.Column<int>(type: "int", nullable: false),
+                    ChangedById = table.Column<int>(type: "int", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PreviousValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NewValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -203,15 +203,15 @@ namespace Infrastructure.Migrations
                 name: "BitInterpretations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VariableId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: true),
-                    WordIndex = table.Column<int>(type: "INTEGER", nullable: false),
-                    BitIndex = table.Column<int>(type: "INTEGER", nullable: false),
-                    Meaning = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VariableId = table.Column<int>(type: "int", nullable: false),
+                    DictionaryId = table.Column<int>(type: "int", nullable: true),
+                    WordIndex = table.Column<int>(type: "int", nullable: false),
+                    BitIndex = table.Column<int>(type: "int", nullable: false),
+                    Meaning = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -234,14 +234,14 @@ namespace Infrastructure.Migrations
                 name: "StandardVariableOverrides",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DictionaryId = table.Column<int>(type: "INTEGER", nullable: false),
-                    StandardVariableId = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DictionaryId = table.Column<int>(type: "int", nullable: false),
+                    StandardVariableId = table.Column<int>(type: "int", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
