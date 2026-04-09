@@ -9,13 +9,18 @@ public static class DependencyInjection
 {
     /// <summary>
     /// Registra i servizi di Infrastructure (DbContext, Repositories).
+    /// Se useSqlServer=true usa SQL Server, altrimenti SQLite.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
-        string connectionString)
+        string connectionString, bool useSqlServer = false)
     {
-        // DbContext con SQLite
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(connectionString));
+        {
+            if (useSqlServer)
+                options.UseSqlServer(connectionString);
+            else
+                options.UseSqlite(connectionString);
+        });
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();

@@ -1,7 +1,7 @@
 # Infrastructure
 
-> **Layer di persistenza con Entity Framework Core, SQLite e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-04-08
+> **Layer di persistenza con Entity Framework Core, SQLite / Azure SQL e pattern Repository.**  
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -10,7 +10,9 @@
 Il progetto **Infrastructure** gestisce la persistenza dati per Stem.Dictionaries.Manager. Implementa:
 
 - **Entity Framework Core** - ORM per accesso dati
-- **SQLite** - Database di sviluppo (migrabile ad Azure SQL)
+- **SQLite** - Database di sviluppo
+- **Azure SQL (SQL Server)** - Database di produzione
+- **Dual Provider** - Selezionabile via `appsettings.json` (`DatabaseProvider`)
 - **Pattern Repository** - Astrazione accesso dati con interfacce
 - **Audit automatico** - CreatedAt/UpdatedAt gestiti in SaveChanges
 
@@ -24,10 +26,11 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 |---------|-------|-------------|
 | **Entities** | ✅ | 10 entity classes con IAuditable |
 | **Repositories** | ✅ | 10 repository + base generica |
-| **Migrations** | ✅ | 1 migration (InitialCreate Domain v7) |
+| **Migrations** | ✅ | SQL Server target (DesignTimeDbContextFactory), SQLite usa EnsureCreated |
+| **Dual Provider** | ✅ | SQLite (dev) / SQL Server (prod), selezionabile a runtime |
 | **Audit Fields** | ✅ | CreatedAt/UpdatedAt automatici |
 | **DI Extension** | ✅ | AddInfrastructure() per registrazione |
-| **Database Seeder** | ✅ | Dati demo per sviluppo ✨ |
+| **Database Seeder** | ✅ | Dati iniziali (auto-skip se DB già popolato) |
 
 ---
 
@@ -40,7 +43,8 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 | Package | Versione | Uso |
 |---------|----------|-----|
 | Microsoft.EntityFrameworkCore | 10.0.5 | ORM |
-| Microsoft.EntityFrameworkCore.Sqlite | 10.0.5 | Provider SQLite |
+| Microsoft.EntityFrameworkCore.Sqlite | 10.0.5 | Provider SQLite (sviluppo) |
+| Microsoft.EntityFrameworkCore.SqlServer | 10.0.5 | Provider SQL Server (produzione Azure SQL) |
 | Microsoft.EntityFrameworkCore.Design | 10.0.5 | Migrations tooling |
 
 ### Dipendenze Progetto
@@ -57,8 +61,11 @@ Questo layer è l'unico che conosce il database. I modelli di dominio (Core) son
 using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-// Registrazione servizi
+// Registrazione servizi (SQLite)
 services.AddInfrastructure("Data Source=dictionaries.db");
+
+// Registrazione servizi (Azure SQL)
+services.AddInfrastructure(connectionString, useSqlServer: true);
 
 // Uso repository
 public class MyService
@@ -122,8 +129,8 @@ Infrastructure/
 ├── Migrations/
 │   └── InitialCreate                  # Schema completo Domain v7
 ├── AppDbContext.cs                    # DbContext con audit automatico (10 DbSet)
-├── DatabaseSeeder.cs                  # Dati demo per sviluppo
-├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI
+├── DatabaseSeeder.cs                  # Dati iniziali (skip se DB già popolato)
+├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI (SQL Server target)
 └── DependencyInjection.cs             # Extension method AddInfrastructure()
 ```
 
@@ -183,25 +190,50 @@ public interface IAuditable
 ### Connection String
 
 ```csharp
-// Sviluppo (SQLite)
-services.AddInfrastructure("Data Source=Infrastructure/Data/development.db");
+// Sviluppo (SQLite) - default, path in AppData
+services.AddInfrastructure("Data Source=path/to/dictionaries.db");
 
-// Produzione (Azure SQL) - futuro
-services.AddInfrastructure("Server=...;Database=Dictionaries;...");
+// Produzione (Azure SQL) - connection string da appsettings.json / User Secrets
+services.AddInfrastructure(connectionString, useSqlServer: true);
 ```
+
+### Provider Selection
+
+Il provider è selezionato in `GUI.Windows/appsettings.json`:
+
+```json
+{
+  "DatabaseProvider": "SqlServer",
+  "ConnectionStrings": {
+    "SqlServer": "",
+    "Sqlite": ""
+  }
+}
+```
+
+- `DatabaseProvider: "SqlServer"` → usa `MigrateAsync()` (migrations versionati)
+- `DatabaseProvider: "Sqlite"` (o assente) → usa `EnsureCreatedAsync()` (ricrea schema dal modello)
+- Connection string vuota per SQLite → fallback a `%AppData%\STEM\DictionariesManager\`
+- Connection string per SQL Server → consigliato via **User Secrets** (non committare nel repo)
 
 ### Migrations
 
+Le migrations sono generate per **SQL Server** (target produzione Azure SQL).  
+Per SQLite in sviluppo, `EnsureCreatedAsync()` ricrea lo schema dal modello.
+
 ```bash
-# Creare nuova migration
+# Creare nuova migration (SQL Server target)
 dotnet ef migrations add NomeMigration -p Infrastructure -s GUI.Windows
 
-# Applicare migrations
+# Applicare migrations (SQL Server)
 dotnet ef database update -p Infrastructure -s GUI.Windows
 
-# Rollback
+# Rollback (SQL Server)
 dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 ```
+
+> **Nota:** `DesignTimeDbContextFactory` usa una connection string fittizia SQL Server.  
+> Le migrations non vengono mai applicate a SQLite — usano `EnsureCreated` all'avvio.
 
 ---
 

@@ -151,7 +151,7 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Dictionary)
                   .WithMany(d => d.BitInterpretations)
                   .HasForeignKey(e => e.DictionaryId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Command
@@ -188,7 +188,7 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.StandardVariable)
                   .WithMany()
                   .HasForeignKey(e => e.StandardVariableId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // AuditEntry
@@ -197,8 +197,6 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.EntityType, e.EntityId });
             entity.HasIndex(e => e.ChangedAt);
-            entity.Property(e => e.PreviousValue).HasColumnType("TEXT");
-            entity.Property(e => e.NewValue).HasColumnType("TEXT");
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.HasOne(e => e.ChangedBy)
                   .WithMany(u => u.AuditEntries)
