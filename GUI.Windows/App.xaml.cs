@@ -2,6 +2,7 @@
 using GUI.Windows.Views;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Services;
@@ -29,11 +30,31 @@ public partial class App : Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                // Database path in AppData
-                var connectionString = $"Data Source={GetDatabasePath()}";
+                // Legge provider e connection string da appsettings.json / User Secrets
+                var provider = context.Configuration["DatabaseProvider"] ?? "Sqlite";
+                var useSqlServer = provider.Equals("SqlServer",
+                    StringComparison.OrdinalIgnoreCase);
+
+                string connectionString;
+                if (useSqlServer)
+                {
+                    connectionString = context.Configuration
+                        .GetConnectionString("SqlServer")
+                        ?? throw new InvalidOperationException(
+                            "Connection string 'SqlServer' mancante in configurazione");
+                }
+                else
+                {
+                    // Se vuota o assente, usa path di default in AppData
+                    var sqliteConn = context.Configuration
+                        .GetConnectionString("Sqlite");
+                    connectionString = string.IsNullOrWhiteSpace(sqliteConn)
+                        ? $"Data Source={GetDatabasePath()}"
+                        : sqliteConn;
+                }
 
                 // Infrastructure layer (DbContext + Repositories)
-                services.AddInfrastructure(connectionString);
+                services.AddInfrastructure(connectionString, useSqlServer);
 
                 // Services layer (Business logic)
                 services.AddServices();
@@ -53,12 +74,18 @@ public partial class App : Application
         await _host.StartAsync();
         Services = _host.Services;
 
-        // Applica tutte le migrations pendenti (crea DB se non esiste)
-        // e popola con dati di esempio se il DB è vuoto
+        // Crea/aggiorna il DB e popola con dati iniziali se vuoto
         using (var scope = _host.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await dbContext.Database.MigrateAsync();
+
+            // SQL Server: applica migrations versionati
+            // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
+            if (dbContext.Database.IsSqlServer())
+                await dbContext.Database.MigrateAsync();
+            else
+                await dbContext.Database.EnsureCreatedAsync();
+
             await DatabaseSeeder.SeedAsync(dbContext);
         }
 
@@ -121,7 +148,6 @@ public partial class App : Application
 
         Directory.CreateDirectory(folder);
 
-        return Path.Combine(folder, "data.db");
+        return Path.Combine(folder, "sqldb-dictionaries-manager-test.db");
     }
 }
-
