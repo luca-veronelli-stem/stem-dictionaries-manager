@@ -3,9 +3,21 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Abilita il targeting di windows per CI su linux -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <!-- Metadata applicazione (specifici GUI) -->
+    <AssemblyName>Stem.Dictionaries.Manager</AssemblyName>
+    <Product>STEM Dictionaries Manager</Product>
+    <Description>Applicazione per la gestione centralizzata dei dizionari dispositivi STEM</Description>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+
+    <!-- Single-file publish -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,5 +38,22 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <!-- SHIPPED_README incluso nella cartella di publish -->
+  <ItemGroup>
+    <None Include="..\Docs\SHIPPED_README.txt">
+      <Link>README.txt</Link>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Copia e rinomina README durante build/publish -->
+  <Target Name="CopyReadmeToOutput" AfterTargets="Build">
+    <Copy SourceFiles="..\Docs\SHIPPED_README.txt" DestinationFiles="$(OutputPath)README.txt" />
+  </Target>
+
+  <Target Name="CopyReadmeToPublish" AfterTargets="Publish">
+    <Copy SourceFiles="..\Docs\SHIPPED_README.txt" DestinationFiles="$(PublishDir)README.txt" />
+  </Target>
 
 </Project>
