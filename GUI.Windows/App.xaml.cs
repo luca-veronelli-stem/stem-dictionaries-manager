@@ -83,8 +83,6 @@ public partial class App : Application
             // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
             if (dbContext.Database.IsSqlServer())
             {
-                // TODO: rimuovere dopo primo deploy riuscito
-                await dbContext.Database.EnsureDeletedAsync();
                 await dbContext.Database.MigrateAsync();
             }
             else
