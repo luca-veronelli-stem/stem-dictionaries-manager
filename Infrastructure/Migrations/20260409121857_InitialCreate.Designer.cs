@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260408142743_InitialCreate")]
+    [Migration("20260409121857_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -473,7 +473,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
                         .WithMany("BitInterpretations")
                         .HasForeignKey("DictionaryId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
                         .WithMany("BitInterpretations")
@@ -526,7 +526,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Entities.VariableEntity", "StandardVariable")
                         .WithMany()
                         .HasForeignKey("StandardVariableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Dictionary");

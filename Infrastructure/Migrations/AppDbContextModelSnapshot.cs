@@ -470,7 +470,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
                         .WithMany("BitInterpretations")
                         .HasForeignKey("DictionaryId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
                         .WithMany("BitInterpretations")
@@ -523,7 +523,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Entities.VariableEntity", "StandardVariable")
                         .WithMany()
                         .HasForeignKey("StandardVariableId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Dictionary");

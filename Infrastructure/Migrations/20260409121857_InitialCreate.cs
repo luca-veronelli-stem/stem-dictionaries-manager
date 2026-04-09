@@ -221,7 +221,7 @@ namespace Infrastructure.Migrations
                         column: x => x.DictionaryId,
                         principalTable: "Dictionaries",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_BitInterpretations_Variables_VariableId",
                         column: x => x.VariableId,
@@ -257,7 +257,7 @@ namespace Infrastructure.Migrations
                         column: x => x.StandardVariableId,
                         principalTable: "Variables",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
