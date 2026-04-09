@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-08
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -39,8 +39,8 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **Message Service** | ✅ | Status bar globale con colori per severity e auto-hide |
 | **IEditableViewModel** | ✅ | Guard per unsaved changes su Indietro e Annulla |
 | **DI Container** | ✅ | Generic Host pattern |
-| **Auto-Migration** | ✅ | EF Core migrations all'avvio |
-| **Database Seeder** | ✅ | Dati demo (Standard + Pulsantiere + 11 device + board) |
+| **Auto-Migration** | ✅ | SQL Server: MigrateAsync / SQLite: EnsureCreatedAsync |
+| **Database Seeder** | ✅ | Dati iniziali (auto-skip se DB già popolato) |
 | **BitInterpretations** | ✅ | Gestione bit per variabili Bitmapped (WordGroups, WordSize 8/16/32) |
 | **CRUD Dispositivi** | ✅ | DeviceEditView per creazione/modifica dispositivi (nome, MachineCode, descrizione) |
 | **Standard Variables** | ✅ | Sezione variabili standard ereditate in DictionaryEdit (read-only) |
@@ -83,11 +83,12 @@ dotnet run --project GUI.Windows
 
 ### Primo Avvio
 
-1. L'app crea il database SQLite in `%AppData%\STEM\DictionariesManager\`
-2. Applica automaticamente le migrations EF Core
-3. Popola con dati demo (utenti, dizionari, variabili di esempio)
-4. Mostra la LoginView integrata — selezionare un utente e premere ACCEDI
-5. Sidebar e header diventano visibili, naviga alla lista dizionari
+1. L'app legge `DatabaseProvider` da `appsettings.json` (o User Secrets)
+2. **SQLite** (default): crea il DB in `%AppData%\STEM\DictionariesManager\` con `EnsureCreated`
+3. **SQL Server** (Azure): applica le migrations versionati con `MigrateAsync`
+4. Il `DatabaseSeeder` popola dati iniziali se il DB è vuoto (skip automatico se dati presenti)
+5. Mostra la LoginView integrata — selezionare un utente e premere ACCEDI
+6. Sidebar e header diventano visibili, naviga alla lista dizionari
 
 ---
 
@@ -144,7 +145,8 @@ GUI.Windows/
 │   ├── NullableNumericConverter.cs # NullableInt, NullableDouble converters
 │   └── SeverityToColorConverter.cs # MessageSeverity → colore status bar
 ├── App.xaml                       # Application resources + dark theme styles
-├── App.xaml.cs                    # Startup, DI, ShowLoginView
+├── App.xaml.cs                    # Startup, DI, dual provider config, ShowLoginView
+├── appsettings.json               # DatabaseProvider + ConnectionStrings
 ├── MainWindow.xaml                # Shell: sidebar + header + content + status bar
 ├── MainWindow.xaml.cs             # Window code-behind + shutdown
 └── DependencyInjection.cs         # AddGUI() extension method
@@ -256,20 +258,42 @@ public interface IMessageService
 
 ```csharp
 // In App.xaml.cs
-services.AddInfrastructure(connectionString);  // DbContext + Repos
-services.AddServices();                         // Business logic
-services.AddGUI();                              // ViewModels + UI Services
+services.AddInfrastructure(connectionString, useSqlServer);  // DbContext + Repos
+services.AddServices();                                       // Business logic
+services.AddGUI();                                            // ViewModels + UI Services
 ```
 
 ---
 
 ## Configurazione
 
-### Database Location
+### Database Provider
 
-Il database SQLite è creato in:
+Configurato in `appsettings.json`:
+
+```json
+{
+  "DatabaseProvider": "SqlServer",
+  "ConnectionStrings": {
+    "SqlServer": "",
+    "Sqlite": ""
+  }
+}
 ```
-%AppData%\Stem.Dictionaries.Manager\dictionaries.db
+
+| Provider | Comportamento |
+|----------|---------------|
+| `SqlServer` | Usa Azure SQL, `MigrateAsync()`, connection string da config/User Secrets |
+| `Sqlite` (default) | Usa SQLite locale, `EnsureCreatedAsync()`, fallback `%AppData%` |
+
+> **Connection string SQL Server:** usare **User Secrets** per non committare credenziali nel repo.  
+> `dotnet user-secrets set "ConnectionStrings:SqlServer" "Server=...;Database=...;"`
+
+### Database Location (SQLite)
+
+Se non configurato in `appsettings.json`, il database SQLite è creato in:
+```
+%AppData%\STEM\DictionariesManager\sqldb-dictionaries-manager-test.db
 ```
 
 ### Logging

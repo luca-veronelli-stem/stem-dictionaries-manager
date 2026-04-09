@@ -6,7 +6,7 @@
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -38,7 +38,7 @@
 | **Modelli dominio** | ✅ | 9 models + 5 enums (Variable, Dictionary, Board, Device, StandardVariableOverride, etc.) |
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
 | **Domain v7** | ✅ | StandardVariableOverride per-dizionario, BitInterpretation.DictionaryId |
-| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), migration Domain v7 |
+| **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), dual provider, User Secrets |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo, integrato in 5 service (16 punti) |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
 | **Services Layer** | ✅ | 7 services + 9 mappers + business rules (BR-009/010/011/018/020) |
@@ -55,7 +55,7 @@
 
 - **.NET 10.0** o superiore
 - **Visual Studio 2022/2026** (per sviluppo WPF)
-- **SQLite** (sviluppo) / **Azure SQL** (produzione)
+- **SQLite** (sviluppo) / **Azure SQL** (produzione) — selezionabile via `appsettings.json`
 
 ---
 
@@ -73,8 +73,10 @@ dotnet build
 # Eseguire i test
 dotnet test Tests/Tests.csproj --framework net10.0
 
-# Applicare migrations (crea DB sviluppo)
+# Applicare migrations SQL Server (produzione Azure SQL)
 dotnet ef database update -p Infrastructure -s GUI.Windows
+
+# SQLite (sviluppo): il DB viene creato automaticamente all'avvio (EnsureCreated)
 ```
 
 ---
@@ -200,7 +202,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      Infrastructure                         │
-│         EF Core, 10 Repositories, Migration Domain v7        │
+│    EF Core, SQLite/SQL Server, 10 Repositories, Migrations   │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
