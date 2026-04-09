@@ -49,6 +49,7 @@
     <File Path="bitbucket-pipelines.yml" />
     <File Path="CHANGELOG.md" />
     <File Path="ISSUES_TRACKER.md" />
+    <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
   <Project Path="Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
