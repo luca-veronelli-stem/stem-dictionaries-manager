@@ -13,10 +13,8 @@
     <Description>Applicazione per la gestione centralizzata dei dizionari dispositivi STEM</Description>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
 
-    <!-- Single-file publish -->
+    <!-- Single-file publish: proprietà attive solo durante dotnet publish -->
     <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
