@@ -221,7 +221,7 @@ namespace Infrastructure.Migrations
                         column: x => x.DictionaryId,
                         principalTable: "Dictionaries",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_BitInterpretations_Variables_VariableId",
                         column: x => x.VariableId,

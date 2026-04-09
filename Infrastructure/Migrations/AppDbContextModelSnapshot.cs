@@ -470,7 +470,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Entities.DictionaryEntity", "Dictionary")
                         .WithMany("BitInterpretations")
                         .HasForeignKey("DictionaryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Infrastructure.Entities.VariableEntity", "Variable")
                         .WithMany("BitInterpretations")
