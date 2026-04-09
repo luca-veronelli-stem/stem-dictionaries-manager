@@ -31,7 +31,8 @@ public partial class App : Application
             .ConfigureServices((context, services) =>
             {
                 // Legge provider e connection string da appsettings.json / User Secrets
-                var provider = context.Configuration["DatabaseProvider"] ?? "Sqlite";
+                // Default: SqlServer (produzione). Per sviluppo, appsettings.json sovrascrive con "Sqlite".
+                var provider = context.Configuration["DatabaseProvider"] ?? "SqlServer";
                 var useSqlServer = provider.Equals("SqlServer",
                     StringComparison.OrdinalIgnoreCase);
 
