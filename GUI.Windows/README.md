@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -112,7 +112,7 @@ GUI.Windows/
 │   ├── DeviceEditViewModel.cs     # Crea/modifica/elimina dispositivo
 │   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari + schede associate
 │   ├── DictionaryListViewModel.cs # Lista dizionari (double-click per edit)
-│   ├── DictionaryEditViewModel.cs # Form dizionario + variabili specifiche + variabili standard
+│   ├── DictionaryEditViewModel.cs # Form dizionario + variabili + StandardVariableItem (record)
 │   ├── VariableEditViewModel.cs   # Crea/modifica variabile o override standard
 │   ├── DeviceCommandsViewModel.cs # Stato comandi per device (checkbox Attivo, salvataggio bulk)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
@@ -123,8 +123,7 @@ GUI.Windows/
 │   ├── WordBitGroup.cs            # Gruppo bit per word (max WordSize bit, Bitmapped)
 │   ├── BitInterpretationItem.cs   # Item singolo bit (WordIndex, BitIndex, Meaning)
 │   ├── CommandParameterItem.cs    # Item parametro comando (Size, Description)
-│   ├── CommandDeviceItem.cs       # Item stato comando per device
-│   └── StandardVariableItem.cs    # Item variabile standard ereditata (record read-only)
+│   └── CommandDeviceItem.cs       # Item stato comando per device
 ├── Views/
 │   ├── LoginView.xaml             # Login integrato nella MainWindow
 │   ├── DeviceListView.xaml        # UI lista dispositivi con ricerca
@@ -141,7 +140,7 @@ GUI.Windows/
 │   ├── SettingsView.xaml          # UI impostazioni (non in sidebar v1)
 │   └── DarkDialog.xaml            # Dialog modale dark theme custom
 ├── Converters/
-│   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility
+│   ├── Converters.cs              # BoolToVisibility, InverseBool, NullToVisibility, BoolToErrorBrush
 │   ├── NullableNumericConverter.cs # NullableInt, NullableDouble converters
 │   └── SeverityToColorConverter.cs # MessageSeverity → colore status bar
 ├── App.xaml                       # Application resources + dark theme styles
@@ -149,7 +148,9 @@ GUI.Windows/
 ├── appsettings.json               # DatabaseProvider + ConnectionStrings
 ├── MainWindow.xaml                # Shell: sidebar + header + content + status bar
 ├── MainWindow.xaml.cs             # Window code-behind + shutdown
-└── DependencyInjection.cs         # AddGUI() extension method
+├── DependencyInjection.cs         # AddGUI() extension method
+├── README.md
+└── ISSUES.md
 ```
 
 ---

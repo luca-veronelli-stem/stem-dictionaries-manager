@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~1842%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~2230%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -27,7 +27,7 @@
 - **Database centralizzato** su Azure SQL (single source of truth)
 - **Applicativo desktop** per gestione CRUD
 - **Versionamento modifiche** con audit trail completo
-- **API per consumer** (es. Stem.Production.Tracker)
+- **API per consumer** (futuro — es. Stem.Production.Tracker)
 
 ---
 
@@ -35,19 +35,19 @@
 
 | Feature | Stato | Descrizione |
 |---------|-------|-------------|
-| **Modelli dominio** | ✅ | 9 models + 5 enums (Variable, Dictionary, Board, Device, StandardVariableOverride, etc.) |
+| **Modelli dominio** | ✅ | 10 models + 5 enums (Variable, Dictionary, Board, Device, StandardVariableOverride, etc.) |
 | **Domain v2** | ✅ | IsStandard flag, Board→Dictionary diretto, semantica derivata |
 | **Domain v7** | ✅ | StandardVariableOverride per-dizionario, BitInterpretation.DictionaryId |
 | **Persistenza** | ✅ | EF Core + SQLite (dev) / Azure SQL (prod), dual provider, User Secrets |
 | **Audit Trail** | ✅ | Traccia ogni modifica con JSON completo, integrato in 5 service (16 punti) |
 | **Repository Pattern** | ✅ | 10 repository con interfacce |
-| **Services Layer** | ✅ | 7 services + 9 mappers + business rules (BR-009/010/011/018/020) |
+| **Services Layer** | ✅ | 7 services + 10 mappers + business rules (BR-009/010/011/018/020) |
 | **GUI Desktop** | ✅ | WPF + MVVM con 14 ViewModels, 14 Views, dark theme STEM, custom dialogs, status bar |
-| **Comandi per device** | ✅ | Stato attivo/disattivo comandi per DeviceType con override persistente |
+| **Comandi per device** | ✅ | Stato attivo/disattivo comandi per Device con override persistente |
 | **Override variabili standard** | ✅ | Override IsEnabled/Description/BitInterp per-dizionario via VariableEdit |
 | **Variabili standard ereditate** | ✅ | DictionaryEdit con sezione variabili standard read-only + doppio-click per override |
 | **Filtro abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
-| **Test Suite** | ✅ | ~1195 metodi test / ~1878 test cases (unit + integration + E2E, 2 target framework) |
+| **Test Suite** | ✅ | ~1370 metodi test / ~2230 test cases (unit + integration + E2E, 2 target framework) |
 
 ---
 
@@ -85,12 +85,12 @@ dotnet ef database update -p Infrastructure -s GUI.Windows
 
 ```
 Stem.Dictionaries.Manager/
-├── Core/                  # Modelli dominio, enums (9 models, 5 enum)
+├── Core/                  # Modelli dominio, enums (10 models, 5 enum)
 │   ├── Enums/             # AccessMode, DataTypeKind, AuditEntityType, etc.
 │   └── Models/            # Variable, Dictionary, Board, Device, StandardVariableOverride, etc.
 ├── Services/              # Business logic, mapping Entity ↔ Domain
 │   ├── Interfaces/        # Service interfaces (8)
-│   └── Mapping/           # Mapper bidirezionali (9)
+│   └── Mapping/           # Mapper bidirezionali (10)
 ├── Infrastructure/        # EF Core, SQLite, Repositories
 │   ├── Entities/          # Entity classes (10)
 │   ├── Repositories/      # Repository implementations (10)
@@ -101,7 +101,7 @@ Stem.Dictionaries.Manager/
 │   ├── Views/             # 14 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView)
 │   ├── Converters/        # 7 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor, BoolToErrorBrush)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~1160 metodi / ~1812 cases)
+├── Tests/                 # Unit & integration tests (~1370 metodi / ~2230 cases)
 │   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
 │   ├── Integration/       # Infrastructure, Services, GUI, E2E (SQLite in-memory)
 ├── Docs/                  # Documentazione
@@ -109,6 +109,7 @@ Stem.Dictionaries.Manager/
 │   ├── Standards/         # Template documentazione
 │   └── ER-schema.puml     # Schema database
 ├── .copilot/              # Copilot instructions e agents
+├── README.md              # Questa documentazione
 └── ISSUES_TRACKER.md      # Riepilogo globale issue
 ```
 
@@ -136,11 +137,11 @@ Stem.Dictionaries.Manager/
 | Componente | Issue File | Aperte | Risolte | Priorità Max |
 |------------|------------|:------:|:-------:|:------------:|
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
-| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 9 | Bassa |
-| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 10 | Bassa |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 9 | Media (GUI-002) |
-| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 10 | Bassa |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 6 | Bassa |
+| Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 7 | Bassa |
+| Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 9 | Bassa |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 7 | Bassa |
+| Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 9 | Bassa |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 3 | Bassa |
 
 ✅ **0 issue alta priorità aperte — T-006 (Domain v7) completata**
 
@@ -196,7 +197,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         Services                            │
-│        Business Logic, 9 Mappers, Audit Integration           │
+│        Business Logic, 10 Mappers, Audit Integration          │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -208,7 +209,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                           Core                              │
-│            Domain Models (9), Enums (5)                     │
+│            Domain Models (10), Enums (5)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 

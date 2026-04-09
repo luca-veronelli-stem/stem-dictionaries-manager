@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite / Azure SQL e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-09
 
 ---
 
@@ -131,7 +131,9 @@ Infrastructure/
 ├── AppDbContext.cs                    # DbContext con audit automatico (10 DbSet)
 ├── DatabaseSeeder.cs                  # Dati iniziali (skip se DB già popolato)
 ├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI (SQL Server target)
-└── DependencyInjection.cs             # Extension method AddInfrastructure()
+├── DependencyInjection.cs             # Extension method AddInfrastructure()
+├── README.md
+└── ISSUES.md
 ```
 
 ---
@@ -148,7 +150,7 @@ Infrastructure/
 | `DictionaryEntity` | Dictionaries | ✅ | IsStandard flag, Name univoco |
 | `BitInterpretationEntity` | BitInterpretations | ✅ | FK → Variable, Dictionary? (v7: DictionaryId?) |
 | `CommandEntity` | Commands | ✅ | ParametersJson, unique (CodeHigh, CodeLow, IsResponse) |
-| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceType, unique (CommandId, DeviceType) |
+| `CommandDeviceStateEntity` | CommandDeviceStates | ✅ | FK → Command, DeviceId, unique (CommandId, DeviceId) |
 | `DeviceEntity` | Devices | ✅ | Name, MachineCode, Description |
 | `StandardVariableOverrideEntity` | StandardVariableOverrides | ✅ | FK → Dictionary, Variable, unique (DictionaryId, StandardVariableId) BR-010 |
 | `AuditEntryEntity` | AuditEntries | ❌ | Immutabile, FK → User |
@@ -159,12 +161,12 @@ Infrastructure/
 |-----------|---------------|
 | `IRepository<T>` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync |
 | `IUserRepository` | GetByUsernameAsync |
-| `IBoardRepository` | GetByDeviceTypeAsync, GetByProtocolAddressAsync |
-| `IDictionaryRepository` | GetByNameAsync, GetWithVariablesAsync, GetStandardDictionaryAsync, ExistsAsync |
+| `IBoardRepository` | GetByDeviceIdAsync, GetByProtocolAddressAsync |
+| `IDictionaryRepository` | GetByNameAsync, GetWithVariablesAsync, GetAllWithVariablesAsync, GetStandardDictionaryAsync, ExistsAsync |
 | `IVariableRepository` | GetByDictionaryIdAsync, GetByAddressAsync, GetWithBitInterpretationsAsync, ExistsAsync |
-| `ICommandRepository` | GetByCodeAsync, GetWithDeviceStatesAsync |
+| `ICommandRepository` | GetByCodeAsync, GetByNameAsync, GetWithDeviceStatesAsync |
 | `IBitInterpretationRepository` | GetByVariableIdAsync, GetByVariableAndDictionaryAsync, SyncByVariableIdAsync |
-| `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync |
+| `ICommandDeviceStateRepository` | GetByCommandAndDeviceAsync, GetByCommandIdAsync, GetByDeviceIdAsync |
 | `IDeviceRepository` | GetByNameAsync, GetByMachineCodeAsync |
 | `IStandardVariableOverrideRepository` | GetByDictionaryIdAsync, GetByDictionaryAndVariableAsync, GetByVariableIdAsync |
 | `IAuditEntryRepository` | GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync |
