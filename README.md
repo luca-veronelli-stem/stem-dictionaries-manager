@@ -110,6 +110,7 @@ Stem.Dictionaries.Manager/
 │   └── ER-schema.puml     # Schema database
 ├── .copilot/              # Copilot instructions e agents
 ├── README.md              # Questa documentazione
+├── CHANGELOG.md           # Storico release (Keep a Changelog)
 └── ISSUES_TRACKER.md      # Riepilogo globale issue
 ```
 
@@ -125,6 +126,7 @@ Stem.Dictionaries.Manager/
 | [GUI.Windows/README.md](./GUI.Windows/README.md) | Applicazione WPF, ViewModels, Navigation |
 | [Tests/README.md](./Tests/README.md) | Suite di test, convenzioni |
 | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md) | Riepilogo globale issue e metriche qualità |
+| [CHANGELOG.md](./CHANGELOG.md) | Storico delle release e modifiche |
 | [Docs/ER-schema.puml](./Docs/ER-schema.puml) | Schema ER database |
 | [.copilot/copilot-instructions.md](./.copilot/copilot-instructions.md) | Formalizzazione Lean 4, workflow |
 

@@ -47,6 +47,7 @@
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
     <File Path="bitbucket-pipelines.yml" />
+    <File Path="CHANGELOG.md" />
     <File Path="ISSUES_TRACKER.md" />
     <File Path="README.md" />
   </Folder>
