@@ -1,50 +1,52 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using API.Endpoints;
+using API.Middleware;
+using Infrastructure;
+using Services;
 
-namespace API
+var builder = WebApplication.CreateBuilder(args);
+
+// Database — stessa configurazione dual provider della GUI
+var provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
+var connString = provider == "Sqlite"
+    ? builder.Configuration.GetConnectionString("Sqlite")!
+    : builder.Configuration.GetConnectionString("SqlServer")
+      ?? Environment.GetEnvironmentVariable("STEM_DICTIONARIES_CONN_STRING")
+      ?? throw new InvalidOperationException(
+          "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' o env var 'STEM_DICTIONARIES_CONN_STRING'.");
+
+builder.Services.AddInfrastructure(connString, useSqlServer: provider != "Sqlite");
+builder.Services.AddServices();
+
+// JSON: camelCase + null omessi (BR-API-004)
+builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 
-            // Add services to the container.
-            builder.Services.AddAuthorization();
+// OpenAPI/Swagger
+builder.Services.AddOpenApi();
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+var app = builder.Build();
 
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-            var summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
-
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast");
-
-            app.Run();
-        }
-    }
+// Swagger UI solo in Development
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Stem.Dictionaries.Manager API v1"));
 }
+
+app.UseHttpsRedirection();
+
+// Autenticazione API Key (BR-API-001)
+app.UseMiddleware<ApiKeyMiddleware>();
+
+// Endpoint
+app.MapDeviceEndpoints();
+app.MapDictionaryEndpoints();
+app.MapCommandEndpoints();
+app.MapBoardEndpoints();
+
+app.Run();
