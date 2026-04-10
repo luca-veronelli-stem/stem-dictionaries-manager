@@ -9,12 +9,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Database — stessa configurazione dual provider della GUI
 var provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
-var connString = provider == "Sqlite"
-    ? builder.Configuration.GetConnectionString("Sqlite")!
-    : builder.Configuration.GetConnectionString("SqlServer")
-      ?? Environment.GetEnvironmentVariable("STEM_DICTIONARIES_CONN_STRING")
-      ?? throw new InvalidOperationException(
-          "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' o env var 'STEM_DICTIONARIES_CONN_STRING'.");
+string connString;
+if (provider == "Sqlite")
+{
+    var sqliteConn = builder.Configuration.GetConnectionString("Sqlite");
+    connString = string.IsNullOrWhiteSpace(sqliteConn)
+        ? $"Data Source={GetDatabasePath()}"
+        : sqliteConn;
+}
+else
+{
+    connString = builder.Configuration.GetConnectionString("SqlServer")
+        ?? Environment.GetEnvironmentVariable("STEM_DICTIONARIES_CONN_STRING")
+        ?? throw new InvalidOperationException(
+            "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' o env var 'STEM_DICTIONARIES_CONN_STRING'.");
+}
+
+static string GetDatabasePath()
+{
+    var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+    var folder = Path.Combine(appData, "STEM", "DictionariesManager");
+    Directory.CreateDirectory(folder);
+    return Path.Combine(folder, "sqldb-dictionaries-manager-test.db");
+}
 
 builder.Services.AddInfrastructure(connString, useSqlServer: provider != "Sqlite");
 builder.Services.AddServices();
@@ -37,8 +54,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Stem.Dictionaries.Manager API v1"));
 }
-
-app.UseHttpsRedirection();
 
 // Autenticazione API Key (BR-API-001)
 app.UseMiddleware<ApiKeyMiddleware>();
