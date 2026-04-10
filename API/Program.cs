@@ -11,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 var provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
 var useSqlServer = !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
 var connString = Infrastructure.DependencyInjection.ResolveConnectionString(
-    provider,
     builder.Configuration.GetConnectionString(useSqlServer ? "SqlServer" : "Sqlite"),
     useSqlServer);
 

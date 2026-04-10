@@ -45,17 +45,16 @@ public static class DependencyInjection
     /// <summary>
     /// Risolve la connection string per il database.
     /// Per SQLite: se la conn string è vuota, usa il path di default in AppData.
-    /// Per SQL Server: cerca nella config, poi nella env var STEM_DICTIONARIES_CONN_STRING.
+    /// Per SQL Server: usa la conn string dalla config (appsettings o env var ConnectionStrings__SqlServer).
     /// </summary>
     public static string ResolveConnectionString(
-        string provider, string? configuredConnString, bool isSqlServer)
+        string? configuredConnString, bool isSqlServer)
     {
         if (isSqlServer)
         {
             return configuredConnString
-                ?? Environment.GetEnvironmentVariable("STEM_DICTIONARIES_CONN_STRING")
                 ?? throw new InvalidOperationException(
-                    "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' o env var 'STEM_DICTIONARIES_CONN_STRING'.");
+                    "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' in appsettings.json o env var 'ConnectionStrings__SqlServer'.");
         }
 
         return string.IsNullOrWhiteSpace(configuredConnString)

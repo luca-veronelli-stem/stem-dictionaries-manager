@@ -36,7 +36,6 @@ public partial class App : Application
                 var useSqlServer = provider.Equals("SqlServer",
                     StringComparison.OrdinalIgnoreCase);
                 var connectionString = Infrastructure.DependencyInjection.ResolveConnectionString(
-                    provider,
                     context.Configuration.GetConnectionString(
                         useSqlServer ? "SqlServer" : "Sqlite"),
                     useSqlServer);
