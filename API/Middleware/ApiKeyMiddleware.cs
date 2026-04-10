@@ -15,10 +15,9 @@ public class ApiKeyMiddleware
         _next = next;
 
         var keysSection = configuration.GetSection("ApiKeys");
-        _validKeys = keysSection.GetChildren()
+        _validKeys = [.. keysSection.GetChildren()
             .Select(c => c.Value!)
-            .Where(v => !string.IsNullOrWhiteSpace(v))
-            .ToHashSet();
+            .Where(v => !string.IsNullOrWhiteSpace(v))];
     }
 
     public async Task InvokeAsync(HttpContext context)

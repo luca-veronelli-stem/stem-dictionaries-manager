@@ -81,7 +81,7 @@ public static class BoardEndpoints
             variables.Add(ApiMapper.ToVariableDto(v));
 
         // Ordina per indirizzo
-        variables = variables.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow).ToList();
+        variables = [.. variables.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
         var dto = new BoardDefinitionDto(
             DeviceName: device.Name,

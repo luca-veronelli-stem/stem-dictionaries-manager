@@ -41,7 +41,7 @@ public static class DeviceEndpoints
             Name: device.Name,
             MachineCode: device.MachineCode,
             Description: device.Description,
-            Boards: boards.Select(ApiMapper.ToBoardSummaryDto).ToList());
+            Boards: [.. boards.Select(ApiMapper.ToBoardSummaryDto)]);
 
         return Results.Ok(dto);
     }

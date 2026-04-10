@@ -128,7 +128,7 @@ public static class DictionaryEndpoints
             resolved.Add(ApiMapper.ToResolvedDto(v, isStandard: false));
 
         // Ordina per indirizzo completo
-        resolved = resolved.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow).ToList();
+        resolved = [.. resolved.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
         var dto = new DictionaryResolvedDto(
             Id: dictionary.Id,

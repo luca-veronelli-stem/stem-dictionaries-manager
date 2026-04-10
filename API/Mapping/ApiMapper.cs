@@ -62,12 +62,12 @@ public static class ApiMapper
         CodeHigh: c.CodeHigh,
         CodeLow: c.CodeLow,
         IsResponse: c.IsResponse,
-        Parameters: c.Parameters.ToList());
+        Parameters: [.. c.Parameters]);
 
     public static CommandDeviceDto ToCommandDeviceDto(Command c) => new(
         Name: c.Name,
         CodeHigh: c.CodeHigh,
         CodeLow: c.CodeLow,
         IsResponse: c.IsResponse,
-        Parameters: c.Parameters.ToList());
+        Parameters: [.. c.Parameters]);
 }
