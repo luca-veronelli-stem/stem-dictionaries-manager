@@ -20,6 +20,31 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Added
+
+- **API**: Progetto ASP.NET Core Minimal API con 10 endpoint REST read-only
+- **API**: Autenticazione via API Key header `X-Api-Key` con chiavi multiple per consumer (BR-API-001)
+- **API**: Endpoint variabili risolte con merge standard + specifiche + override per-dizionario (BR-API-002)
+- **API**: Endpoint comandi per device con stato attivo/disattivo e default enabled (BR-API-003)
+- **API**: JSON camelCase con null omessi per payload leggeri (BR-API-004)
+- **API**: Board definition endpoint in formato compatibile Production.Tracker (BR-API-005)
+- **API**: 7 DTO record, ApiMapper, ApiKeyMiddleware
+- **API**: Swagger UI in Development, file `.http` per test da Visual Studio
+- **API**: Dual DB provider SQLite/SQL Server con logica centralizzata
+- **Tests**: 49 nuovi test API (13 unit ApiMapper, 8 unit ApiKeyMiddleware, 28 integration endpoint)
+- **Tests**: ApiIntegrationTestBase con scenario completo (Device+Board+Standard+Override)
+
+### Changed
+
+- **Infrastructure**: Centralizzata logica risoluzione connection string in `DependencyInjection.ResolveConnectionString()`
+- **Infrastructure**: Centralizzato path default SQLite in `DependencyInjection.GetDefaultSqlitePath()`
+- **GUI.Windows**: Rimosso `GetDatabasePath()` duplicato, usa metodo centralizzato di Infrastructure
+
+### Removed
+
+- **API**: Rimosso `UseHttpsRedirection()` (non necessario in dev, Azure gestisce HTTPS in prod)
+- **API**: Rimosso `appsettings.Development.json` (override identico a base, nessun effetto)
+
 ---
 
 ## [0.5.0] - 2026-04-09

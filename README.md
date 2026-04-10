@@ -1,12 +1,12 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~2230%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~2330%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
-> **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili).**
+> **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili), con API REST per consumer esterni.**
 
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -27,7 +27,7 @@
 - **Database centralizzato** su Azure SQL (single source of truth)
 - **Applicativo desktop** per gestione CRUD
 - **Versionamento modifiche** con audit trail completo
-- **API per consumer** (futuro — es. Stem.Production.Tracker)
+- **API REST** per consumer (Production.Tracker, Collaudo Pulsantiere, SW Comunicazione)
 
 ---
 
@@ -47,7 +47,8 @@
 | **Override variabili standard** | ✅ | Override IsEnabled/Description/BitInterp per-dizionario via VariableEdit |
 | **Variabili standard ereditate** | ✅ | DictionaryEdit con sezione variabili standard read-only + doppio-click per override |
 | **Filtro abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
-| **Test Suite** | ✅ | ~1370 metodi test / ~2230 test cases (unit + integration + E2E, 2 target framework) |
+| **API REST** | ✅ | 10 endpoint read-only, API Key auth, Swagger UI, formato Production.Tracker |
+| **Test Suite** | ✅ | ~1420 metodi test / ~2330 test cases (unit + integration + E2E + API, 2 target framework) |
 
 ---
 
@@ -95,15 +96,20 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (10)
 │   ├── Repositories/      # Repository implementations (10)
 │   └── Migrations/        # Migration Domain v7
+├── API/                   # ASP.NET Core Minimal API (10 endpoint REST)
+│   ├── Dtos/              # DTO record per risposte JSON (7)
+│   ├── Endpoints/         # Endpoint groups (4 classi)
+│   ├── Mapping/           # ApiMapper (domain → DTO)
+│   └── Middleware/        # ApiKeyMiddleware
 ├── GUI.Windows/           # Applicazione WPF (MVVM, 14 ViewModels, 14 Views)
 │   ├── Abstractions/      # Interfaces navigazione, dialoghi, messaggi, IEditableViewModel
 │   ├── ViewModels/        # 14 ViewModels + helper classes
 │   ├── Views/             # 14 Views XAML (incl. LoginView, DarkDialog, DeviceEditView, DeviceCommandsView)
 │   ├── Converters/        # 7 converter (Bool, Inverse, Null, NullableInt/Double, SeverityToColor, BoolToErrorBrush)
 │   └── Services/          # NavigationService, DialogService, MessageService
-├── Tests/                 # Unit & integration tests (~1370 metodi / ~2230 cases)
-│   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI
-│   ├── Integration/       # Infrastructure, Services, GUI, E2E (SQLite in-memory)
+├── Tests/                 # Unit & integration tests (~1420 metodi / ~2330 cases)
+│   ├── Unit/              # Core, Services/Mapping, Infrastructure/DI, GUI, API
+│   ├── Integration/       # Infrastructure, Services, GUI, API, E2E (SQLite in-memory)
 ├── Docs/                  # Documentazione
 │   ├── Dictionaries/      # CSV originali per riferimento
 │   ├── Standards/         # Template documentazione
@@ -123,6 +129,7 @@ Stem.Dictionaries.Manager/
 | [Core/README.md](./Core/README.md) | Modelli dominio ed enumerazioni |
 | [Services/README.md](./Services/README.md) | Business logic, mapping, services |
 | [Infrastructure/README.md](./Infrastructure/README.md) | Persistenza, EF Core, Repositories |
+| [API/README.md](./API/README.md) | API REST, endpoint, autenticazione |
 | [GUI.Windows/README.md](./GUI.Windows/README.md) | Applicazione WPF, ViewModels, Navigation |
 | [Tests/README.md](./Tests/README.md) | Suite di test, convenzioni |
 | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md) | Riepilogo globale issue e metriche qualità |
@@ -141,11 +148,12 @@ Stem.Dictionaries.Manager/
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 7 | Bassa |
 | Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 9 | Bassa |
+| API | [API/ISSUES.md](./API/ISSUES.md) | 3 | 0 | Bassa |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 7 | Bassa |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 9 | Bassa |
 | Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 3 | Bassa |
 
-✅ **0 issue alta priorità aperte — T-006 (Domain v7) completata**
+✅ **0 issue alta/media priorità aperte**
 
 ---
 
@@ -181,10 +189,11 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 
 **Stem.Production.Tracker** è un **consumer** di questo progetto:
 
-| Attualmente | Futuro |
+| Attualmente | Con API (in sviluppo) |
 |-------------|--------|
-| Usa JSON files (`DeviceDefinitions/`) | Consumerà API/DB di Dictionaries.Manager |
-| Import manuale | Sincronizzazione automatica |
+| Usa JSON files (`DeviceDefinitions/`) | `GET /api/boards/{id}/definition` |
+| Import manuale | Chiamata API con API Key |
+| Nessuna autenticazione | Header `X-Api-Key: STEM-PT-xxx` |
 
 ---
 
@@ -193,10 +202,15 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      GUI.Windows (WPF)                      │
-│      MVVM, 14 ViewModels, 14 Views, Dark Theme STEM, Status Bar │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
+│  MVVM, 14 ViewModels, 14 Views, Dark Theme STEM, Status Bar │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+┌────────────────────────────┼────────────────────────────────┐
+│                        API (REST)                           │
+│     10 Endpoints, API Key Auth, Swagger, DTO Mapping        │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         Services                            │
 │        Business Logic, 10 Mappers, Audit Integration          │

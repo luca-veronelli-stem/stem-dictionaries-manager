@@ -11,10 +11,11 @@
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
+| [API](./API/ISSUES.md) | 3 | 0 | 3 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
 | [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
 | **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **15** | **40** | **55** |
+| **Totale** | **18** | **40** | **58** |
 
 ---
 
@@ -25,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 0 | 0% |
-| **Bassa** | 15 | 100% |
-| **Totale** | **15** | 100% |
+| **Bassa** | 18 | 100% |
+| **Totale** | **18** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       ░░░░░░░░░░░░░░░░░░░░  0
-Bassa:       ███████████████░░░░░ 15
+Bassa:       ██████████████████░░ 18
 ```
 
 ---
