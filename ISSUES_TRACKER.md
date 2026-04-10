@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -10,11 +10,11 @@
 |------------|--------|---------|--------|
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
-| [Services](./Services/ISSUES.md) | 3 | 10 | 13 |
+| [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
 | [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
-| **Trasversali** | **3** | **3** | **6** |
-| **Totale** | **14** | **41** | **55** |
+| **Trasversali** | **4** | **3** | **7** |
+| **Totale** | **15** | **40** | **55** |
 
 ---
 
@@ -25,14 +25,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 0 | 0% |
-| **Bassa** | 14 | 100% |
-| **Totale** | **14** | 100% |
+| **Bassa** | 15 | 100% |
+| **Totale** | **15** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       ░░░░░░░░░░░░░░░░░░░░  0
-Bassa:       ██████████████░░░░░░ 14
+Bassa:       ███████████████░░░░░ 15
 ```
 
 ---
@@ -68,6 +68,7 @@ Bassa:       ██████████████░░░░░░ 14
 | [T-005](#t-005--rendere-espliciti-parametri-semantici-nei-domain-models) | Rendere espliciti parametri semantici nei domain models | Bassa | Aperto | Core, Tests |
 | [T-004](#t-004--aggiungere-db-constraints-per-regole-di-business) | Aggiungere DB constraints per regole di business | Bassa | Aperto | Infrastructure |
 | [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
+| [T-007](#t-007--rimuovere-proprietà-ridondanti-dai-csproj) | Rimuovere proprietà ridondanti dai .csproj | Bassa | Aperto | Core, Infrastructure, Services |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
 
@@ -301,7 +302,35 @@ _logger.LogWarning("GetAllAsync returned {Count} records for {Entity}", result.C
 
 ---
 
-### T-002 — Rimozione BoardType e link diretto Board→Dictionary
+### T-007 — Rimuovere proprietà ridondanti dai .csproj
+
+**Descrizione:**  
+`Nullable` e `ImplicitUsings` sono definiti in `Directory.Build.props` ma ripetuti in `Core.csproj`, `Infrastructure.csproj` e `Services.csproj`. Le proprietà ridondanti dovrebbero essere rimosse per centralizzare la configurazione.
+
+**Status:** Aperto  
+**Priorità:** Bassa  
+**Data Apertura:** 2026-04-10
+
+**Componenti Coinvolti:**
+- `Core/Core.csproj`
+- `Infrastructure/Infrastructure.csproj`
+- `Services/Services.csproj`
+
+**File `Directory.Build.props` (già presente):**
+```xml
+<Nullable>enable</Nullable>
+<ImplicitUsings>enable</ImplicitUsings>
+```
+
+**Effort stimato:** XS (<30min) — rimozione 2 righe da 3 file
+
+**Benefici Attesi:**
+- Configurazione centralizzata senza duplicati
+- Meno rischio di divergenza tra progetti
+
+---
+
+### T-002
 
 **Descrizione:**  
 Refactoring completo del domain model: rimozione entità `BoardType`, spostamento `FirmwareType` su `Board`, link diretto `Board→Dictionary` (nullable), sostituzione semantica 3-tuple `(DeviceType?, BoardType?)` con `IsStandard` flag e semantica derivata.

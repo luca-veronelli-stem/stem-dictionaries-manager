@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia problemi di struttura, copertura, significatività e consistenza per la suite di test del progetto **Stem.Dictionaries.Manager**.
 
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
