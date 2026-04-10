@@ -35,24 +35,11 @@ public partial class App : Application
                 var provider = context.Configuration["DatabaseProvider"] ?? "SqlServer";
                 var useSqlServer = provider.Equals("SqlServer",
                     StringComparison.OrdinalIgnoreCase);
-
-                string connectionString;
-                if (useSqlServer)
-                {
-                    connectionString = context.Configuration
-                        .GetConnectionString("SqlServer")
-                        ?? throw new InvalidOperationException(
-                            "Connection string 'SqlServer' mancante in configurazione");
-                }
-                else
-                {
-                    // Se vuota o assente, usa path di default in AppData
-                    var sqliteConn = context.Configuration
-                        .GetConnectionString("Sqlite");
-                    connectionString = string.IsNullOrWhiteSpace(sqliteConn)
-                        ? $"Data Source={GetDatabasePath()}"
-                        : sqliteConn;
-                }
+                var connectionString = Infrastructure.DependencyInjection.ResolveConnectionString(
+                    provider,
+                    context.Configuration.GetConnectionString(
+                        useSqlServer ? "SqlServer" : "Sqlite"),
+                    useSqlServer);
 
                 // Infrastructure layer (DbContext + Repositories)
                 services.AddInfrastructure(connectionString, useSqlServer);
@@ -140,19 +127,5 @@ public partial class App : Application
         await _host.StopAsync();
         _host.Dispose();
         base.OnExit(e);
-    }
-
-    /// <summary>
-    /// Restituisce il path del database SQLite in AppData.
-    /// Crea la cartella se non esiste.
-    /// </summary>
-    private static string GetDatabasePath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, "STEM", "DictionariesManager");
-
-        Directory.CreateDirectory(folder);
-
-        return Path.Combine(folder, "sqldb-dictionaries-manager-test.db");
     }
 }

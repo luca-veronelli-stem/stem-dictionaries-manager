@@ -7,33 +7,15 @@ using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database — stessa configurazione dual provider della GUI
+// Database — logica di risoluzione centralizzata in Infrastructure
 var provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
-string connString;
-if (provider == "Sqlite")
-{
-    var sqliteConn = builder.Configuration.GetConnectionString("Sqlite");
-    connString = string.IsNullOrWhiteSpace(sqliteConn)
-        ? $"Data Source={GetDatabasePath()}"
-        : sqliteConn;
-}
-else
-{
-    connString = builder.Configuration.GetConnectionString("SqlServer")
-        ?? Environment.GetEnvironmentVariable("STEM_DICTIONARIES_CONN_STRING")
-        ?? throw new InvalidOperationException(
-            "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' o env var 'STEM_DICTIONARIES_CONN_STRING'.");
-}
+var useSqlServer = !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
+var connString = Infrastructure.DependencyInjection.ResolveConnectionString(
+    provider,
+    builder.Configuration.GetConnectionString(useSqlServer ? "SqlServer" : "Sqlite"),
+    useSqlServer);
 
-static string GetDatabasePath()
-{
-    var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-    var folder = Path.Combine(appData, "STEM", "DictionariesManager");
-    Directory.CreateDirectory(folder);
-    return Path.Combine(folder, "sqldb-dictionaries-manager-test.db");
-}
-
-builder.Services.AddInfrastructure(connString, useSqlServer: provider != "Sqlite");
+builder.Services.AddInfrastructure(connString, useSqlServer);
 builder.Services.AddServices();
 
 // JSON: camelCase + null omessi (BR-API-004)
