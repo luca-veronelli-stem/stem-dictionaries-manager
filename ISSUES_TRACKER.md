@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -11,11 +11,11 @@
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
-| [API](./API/ISSUES.md) | 3 | 0 | 3 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
+| [API](./API/ISSUES.md) | 4 | 0 | 4 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 7 | 10 |
 | [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
 | **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **18** | **40** | **58** |
+| **Totale** | **20** | **40** | **60** |
 
 ---
 
@@ -26,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 0 | 0% |
-| **Bassa** | 18 | 100% |
-| **Totale** | **18** | 100% |
+| **Bassa** | 20 | 100% |
+| **Totale** | **20** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       ░░░░░░░░░░░░░░░░░░░░  0
-Bassa:       ██████████████████░░ 18
+Bassa:       ████████████████████ 20
 ```
 
 ---
@@ -427,7 +427,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### GUI.Windows (2 issue aperte, 7 risolte)
+### GUI.Windows (3 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -438,8 +438,18 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-007~~ | ~~DictionaryListItem non mostra DeviceType~~ | ~~Media~~ | ✅ **Risolto (T-002)** |
 | ~~GUI-005~~ | ~~NavigateToView async void senza error handling~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-006~~ | ~~LoginViewModel registrato due volte nel DI~~ | ~~Media~~ | ✅ **Risolto** |
-| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Media | UX |
+| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
+| [GUI-010](./GUI.Windows/ISSUES.md#gui-010--manca-gestione-errore-connessione-db-allavvio) | Manca gestione errore connessione DB all'avvio | Bassa | Robustezza |
+
+### API (4 issue aperte, 0 risolte)
+
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|  
+| [API-001](./API/ISSUES.md#api-001--swagger-ui-non-supporta-api-key-authentication) | Swagger UI non supporta API Key authentication | Bassa | UX |
+| [API-002](./API/ISSUES.md#api-002--endpoint-non-hanno-response-type-annotations) | Endpoint non hanno response type annotations | Bassa | API |
+| [API-003](./API/ISSUES.md#api-003--manca-rate-limiting) | Manca rate limiting | Bassa | Security |
+| [API-004](./API/ISSUES.md#api-004--endpoint-restituiscono-500-con-stacktrace-se-db-non-raggiungibile) | Endpoint restituiscono 500 se DB non raggiungibile | Bassa | Robustezza |
 
 ### Tests (1 issue aperta, 9 risolte)
 

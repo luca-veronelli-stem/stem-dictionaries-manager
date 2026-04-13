@@ -311,7 +311,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 9 risolte
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 3 issue aperte, 7 risolte
 
 ---
 

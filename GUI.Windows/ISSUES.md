@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -13,9 +13,9 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
 | **Media** | 0 | 4 |
-| **Bassa** | 2 | 0 |
+| **Bassa** | 3 | 0 |
 
-**Totale aperte:** 2  
+**Totale aperte:** 3  
 **Totale risolte:** 7
 
 ---
@@ -24,6 +24,7 @@
 
 - [GUI-002 - App.Services è static e impedisce testabilità](#gui-002--appservices-è-static-e-impedisce-testabilità)
 - [GUI-003 - DialogService usa MessageBox sincrono wrappato in Task](#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task)
+- [GUI-010 - Manca gestione errore connessione DB all'avvio](#gui-010--manca-gestione-errore-connessione-db-allavvio)
 
 ## Indice Issue Risolte
 
@@ -170,6 +171,67 @@ Accettare il pattern attuale come **low priority** — il DarkDialog custom è g
 
 - API coerente (sync o async, non finto async)
 - Sblocco thread UI durante dialog
+
+---
+
+### GUI-010 — Manca gestione errore connessione DB all'avvio
+
+**Categoria:** Robustezza/UX  
+**Priorità:** Bassa  
+**Impatto:** Medio — crash non gestito se il DB non è raggiungibile  
+**Status:** Aperto  
+**Data Apertura:** 2026-04-13
+
+#### Descrizione
+
+Se l'app viene avviata con `DatabaseProvider=SqlServer` e il server Azure SQL non è raggiungibile (assenza di connessione internet, firewall, DNS), l'applicazione crasha con un `SqlException` non gestito durante `MigrateAsync()` o al primo accesso EF Core. Nessun messaggio informativo viene mostrato all'utente.
+
+#### Scenario
+
+1. Operatore avvia l'exe in ufficio
+2. La rete è temporaneamente assente
+3. `App.OnStartup` chiama `MigrateAsync()` → `SqlException` timeout
+4. L'app crasha con stacktrace
+
+#### File Coinvolti
+
+- `GUI.Windows/App.xaml.cs` (`OnStartup`)
+
+#### Soluzione Proposta
+
+Aggiungere `try/catch` in `OnStartup` attorno all'inizializzazione DB. In caso di errore di connessione:
+
+1. Mostrare un `DarkDialog` con messaggio chiaro: "Impossibile connettersi al database. Verificare la connessione internet."
+2. Opzione **Riprova** (retry) + **Esci**
+3. Loop retry finché la connessione non riesce o l'utente esce
+
+```csharp
+while (true)
+{
+    try
+    {
+        await context.Database.MigrateAsync();
+        break; // connessione ok
+    }
+    catch (Exception ex) when (ex is SqlException or TimeoutException)
+    {
+        var retry = DarkDialog.ShowConfirm(
+            "Errore connessione",
+            "Impossibile connettersi al database.\nVerificare la connessione internet.\n\nRiprovare?");
+        if (!retry)
+        {
+            Application.Current.Shutdown();
+            return;
+        }
+    }
+}
+```
+
+#### Benefici Attesi
+
+- Messaggio chiaro all'utente invece di crash con stacktrace
+- Possibilità di riprovare senza riavviare l'app
+- Gestione graceful di interruzioni temporanee di rete
 
 ---
 

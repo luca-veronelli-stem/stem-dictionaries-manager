@@ -148,8 +148,8 @@ Stem.Dictionaries.Manager/
 | Core | [Core/ISSUES.md](./Core/ISSUES.md) | 3 | 5 | Bassa |
 | Infrastructure | [Infrastructure/ISSUES.md](./Infrastructure/ISSUES.md) | 2 | 7 | Bassa |
 | Services | [Services/ISSUES.md](./Services/ISSUES.md) | 3 | 9 | Bassa |
-| API | [API/ISSUES.md](./API/ISSUES.md) | 3 | 0 | Bassa |
-| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 7 | Bassa |
+| API | [API/ISSUES.md](./API/ISSUES.md) | 4 | 0 | Bassa |
+| GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 3 | 7 | Bassa |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 1 | 9 | Bassa |
 | Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 3 | Bassa |
 
