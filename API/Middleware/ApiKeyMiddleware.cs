@@ -22,10 +22,12 @@ public class ApiKeyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Swagger/OpenAPI senza autenticazione
+        // Swagger/OpenAPI, health check e version senza autenticazione
         var path = context.Request.Path.Value ?? "";
         if (path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase))
+            path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/api/version", StringComparison.OrdinalIgnoreCase))
         {
             await _next(context);
             return;

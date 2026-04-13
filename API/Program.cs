@@ -1,8 +1,10 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using API.Endpoints;
 using API.Middleware;
 using Infrastructure;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // OpenAPI/Swagger
 builder.Services.AddOpenApi();
 
+// Health check con verifica connessione DB
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
+
 var app = builder.Build();
 
 // Swagger UI solo in Development
@@ -44,5 +50,17 @@ app.MapDeviceEndpoints();
 app.MapDictionaryEndpoints();
 app.MapCommandEndpoints();
 app.MapBoardEndpoints();
+
+// Health check — GET /health (no auth)
+app.MapHealthChecks("/health");
+
+// Version — GET /api/version (no auth)
+app.MapGet("/api/version", () => Results.Ok(new
+{
+    version = Assembly.GetExecutingAssembly()
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
+    environment = app.Environment.EnvironmentName
+}));
 
 app.Run();

@@ -54,3 +54,10 @@ X-Api-Key: {{ApiKey}}
 ### Test senza API Key — deve restituire 401
 GET {{API_HostAddress}}/api/devices
 Accept: application/json
+
+### Health check — no auth, deve restituire 200 Healthy
+GET {{API_HostAddress}}/health
+
+### Version — no auth, restituisce versione e environment
+GET {{API_HostAddress}}/api/version
+Accept: application/json

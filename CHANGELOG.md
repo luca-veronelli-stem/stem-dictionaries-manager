@@ -22,15 +22,19 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
-- **API**: Progetto ASP.NET Core Minimal API con 10 endpoint REST read-only
+- **API**: Progetto ASP.NET Core Minimal API con 12 endpoint (10 business + health check + version)
 - **API**: Autenticazione via API Key header `X-Api-Key` con chiavi multiple per consumer (BR-API-001)
 - **API**: Endpoint variabili risolte con merge standard + specifiche + override per-dizionario (BR-API-002)
 - **API**: Endpoint comandi per device con stato attivo/disattivo e default enabled (BR-API-003)
 - **API**: JSON camelCase con null omessi per payload leggeri (BR-API-004)
 - **API**: Board definition endpoint in formato compatibile Production.Tracker (BR-API-005)
+- **API**: Health check `GET /health` con verifica connessione DB (no auth)
+- **API**: Version endpoint `GET /api/version` con versione assembly e environment (no auth)
 - **API**: 7 DTO record, ApiMapper, ApiKeyMiddleware
 - **API**: Swagger UI in Development, file `.http` per test da Visual Studio
 - **API**: Dual DB provider SQLite/SQL Server con logica centralizzata
+- **API**: Deploy su Azure App Service (F1 Free, Linux, Italy North)
+- **API**: 4 consumer configurati (Production.Tracker, ButtonPanel.Tester, Global Service, Stem.Device.Manager)
 - **Tests**: 49 nuovi test API (13 unit ApiMapper, 8 unit ApiKeyMiddleware, 28 integration endpoint)
 - **Tests**: ApiIntegrationTestBase con scenario completo (Device+Board+Standard+Override)
 
@@ -38,7 +42,10 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 - **Infrastructure**: Centralizzata logica risoluzione connection string in `DependencyInjection.ResolveConnectionString()`
 - **Infrastructure**: Centralizzato path default SQLite in `DependencyInjection.GetDefaultSqlitePath()`
+- **Infrastructure**: Rimosso parametro inutilizzato `provider` da `ResolveConnectionString()`
 - **GUI.Windows**: Rimosso `GetDatabasePath()` duplicato, usa metodo centralizzato di Infrastructure
+- **API**: `appsettings.json` escluso dal publish (`CopyToPublishDirectory=Never`), Azure usa env var
+- **API**: `DatabaseProvider` default `Sqlite` in appsettings (dev), `SqlServer` via env var (prod)
 
 ### Removed
 

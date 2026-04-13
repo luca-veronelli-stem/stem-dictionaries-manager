@@ -6,7 +6,7 @@
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili), con API REST per consumer esterni.**
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -47,7 +47,7 @@
 | **Override variabili standard** | ✅ | Override IsEnabled/Description/BitInterp per-dizionario via VariableEdit |
 | **Variabili standard ereditate** | ✅ | DictionaryEdit con sezione variabili standard read-only + doppio-click per override |
 | **Filtro abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
-| **API REST** | ✅ | 10 endpoint read-only, API Key auth, Swagger UI, formato Production.Tracker |
+| **API REST** | ✅ | 12 endpoint (10 business + health + version), API Key auth, Swagger UI, deploy Azure App Service |
 | **Test Suite** | ✅ | ~1420 metodi test / ~2330 test cases (unit + integration + E2E + API, 2 target framework) |
 
 ---
@@ -96,7 +96,7 @@ Stem.Dictionaries.Manager/
 │   ├── Entities/          # Entity classes (10)
 │   ├── Repositories/      # Repository implementations (10)
 │   └── Migrations/        # Migration Domain v7
-├── API/                   # ASP.NET Core Minimal API (10 endpoint REST)
+├── API/                   # ASP.NET Core Minimal API (12 endpoint REST, deploy Azure)
 │   ├── Dtos/              # DTO record per risposte JSON (7)
 │   ├── Endpoints/         # Endpoint groups (4 classi)
 │   ├── Mapping/           # ApiMapper (domain → DTO)
@@ -189,11 +189,12 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
 
 **Stem.Production.Tracker** è un **consumer** di questo progetto:
 
-| Attualmente | Con API (in sviluppo) |
+| Attualmente | Con API (✅ live) |
 |-------------|--------|
 | Usa JSON files (`DeviceDefinitions/`) | `GET /api/boards/{id}/definition` |
 | Import manuale | Chiamata API con API Key |
-| Nessuna autenticazione | Header `X-Api-Key: STEM-PT-xxx` |
+| Nessuna autenticazione | Header `X-Api-Key` |
+| — | URL: `https://app-dictionaries-manager-prod.azurewebsites.net` |
 
 ---
 
@@ -207,7 +208,7 @@ Badge: [![Build](https://img.shields.io/badge/CI-Bitbucket%20Pipelines-blue)](./
                              │
 ┌────────────────────────────┼────────────────────────────────┐
 │                        API (REST)                           │
-│     10 Endpoints, API Key Auth, Swagger, DTO Mapping        │
+│  12 Endpoints, API Key Auth, Health Check, Deploy Azure F1  │
 └────────────────────────────┬────────────────────────────────┘
                              │
                              ▼
