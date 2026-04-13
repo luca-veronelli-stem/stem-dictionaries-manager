@@ -41,7 +41,7 @@
                          BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceId, Mode=OneWay}" 
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceDisplayName, Mode=OneWay}" 
                          IsEnabled="False" Padding="8,6" Margin="0,0,0,12"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,4"/>
