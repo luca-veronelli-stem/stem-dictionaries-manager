@@ -1,7 +1,7 @@
 # Infrastructure
 
 > **Layer di persistenza con Entity Framework Core, SQLite / Azure SQL e pattern Repository.**  
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -127,7 +127,8 @@ Infrastructure/
 │   ├── StandardVariableOverrideRepository.cs
 │   └── AuditEntryRepository.cs
 ├── Migrations/
-│   └── InitialCreate                  # Schema completo Domain v7
+│   ├── InitialCreate                  # Schema completo Domain v7
+│   └── AddBusinessRuleConstraints      # 6 constraint DB per business rules (T-004)
 ├── AppDbContext.cs                    # DbContext con audit automatico (10 DbSet)
 ├── DatabaseSeeder.cs                  # Dati iniziali (skip se DB già popolato)
 ├── DesignTimeDbContextFactory.cs      # Factory per migrations CLI (SQL Server target)
@@ -241,7 +242,7 @@ dotnet ef database update PreviousMigration -p Infrastructure -s GUI.Windows
 
 ## Issue Correlate
 
-→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 7 risolte
+→ [Infrastructure/ISSUES.md](./ISSUES.md) — 2 issue aperte, 8 risolte
 
 ---
 

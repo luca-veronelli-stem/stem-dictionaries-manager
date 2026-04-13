@@ -22,6 +22,8 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- **Infrastructure**: 6 DB constraints per regole di business — 3 CHECK (`MachineCode > 0`, `BitIndex >= 0`, `WordIndex >= 0`), 2 partial unique (`IsStandard`, `IsPrimary`), 1 unique (`Command.Name`) (T-004)
+- **Infrastructure**: Migration `AddBusinessRuleConstraints` per Azure SQL
 - **API**: Progetto ASP.NET Core Minimal API con 12 endpoint (10 business + health check + version)
 - **API**: Autenticazione via API Key header `X-Api-Key` con chiavi multiple per consumer (BR-API-001)
 - **API**: Endpoint variabili risolte con merge standard + specifiche + override per-dizionario (BR-API-002)

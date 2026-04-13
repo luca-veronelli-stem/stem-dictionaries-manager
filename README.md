@@ -151,7 +151,7 @@ Stem.Dictionaries.Manager/
 | API | [API/ISSUES.md](./API/ISSUES.md) | 3 | 1 | Bassa |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 8 | Bassa |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 9 | Media |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 3 | Bassa |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 4 | Bassa |
 
 ✅ **0 issue alta/media priorità aperte**
 

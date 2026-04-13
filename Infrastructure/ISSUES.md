@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, performance issues, opportunità di refactoring e violazioni di best practice per il componente **Infrastructure**.
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -25,7 +25,7 @@
 | ID | Titolo | Status | Impatto su Infrastructure |
 |----|--------|--------|---------------------------|
 | **T-006** | StandardVariableOverride per-dizionario (Domain v7) | **✅ Risolto** | **INFRA-009**: ✅ Risolto |
-| **T-004** | Aggiungere DB constraints per regole di business | Aperto | AppDbContext.OnModelCreating: 6 constraint da aggiungere |
+| **T-004** | Aggiungere DB constraints per regole di business | **✅ Risolto** | Migration `AddBusinessRuleConstraints`: 6 constraint aggiunti |
 | **T-003** | Aggiungere logging infrastructure | Aperto | ILogger<T> in RepositoryBase e services |
 
 → [ISSUES_TRACKER.md](../ISSUES_TRACKER.md) per dettagli completi.
