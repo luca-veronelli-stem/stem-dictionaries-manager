@@ -35,6 +35,7 @@ public record BoardListItem
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public int MachineCode { get; init; }
     public int FirmwareType { get; init; }
     public int BoardNumber { get; init; }
     public string ProtocolAddress { get; init; } = string.Empty;
@@ -193,6 +194,7 @@ public partial class DeviceDetailViewModel : ObservableObject
                 {
                     Id = b.Id,
                     Name = b.Name,
+                    MachineCode = b.MachineCode,
                     FirmwareType = b.FirmwareType,
                     BoardNumber = b.BoardNumber,
                     ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
