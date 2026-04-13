@@ -108,7 +108,7 @@ Tests/
 │   │   │   ├── MainViewModelTests.cs             # 32 test (login/logout, nav, status bar, unsaved changes guard)
 │   │   │   ├── LoginViewModelTests.cs            # 8 test
 │   │   │   ├── DeviceListViewModelTests.cs       # 12 test
-│   │   │   ├── DeviceEditViewModelTests.cs       # 27 test (Name, MachineCode, Cancel+HasChanges, Delete)
+│   │   │   ├── DeviceEditViewModelTests.cs       # 31 test (Name, MachineCode, Cancel+HasChanges, Delete, auto-fill)
 │   │   │   ├── DeviceDetailViewModelTests.cs     # 32 test
 │   │   │   ├── DictionaryListViewModelTests.cs   # 14 test
 │   │   │   ├── DictionaryEditViewModelTests.cs   # 54 test (form + variabili + standard section + CanSetStandard)
@@ -117,7 +117,7 @@ Tests/
 │   │   │   ├── CommandListViewModelTests.cs      # 13 test
 │   │   │   ├── CommandEditViewModelTests.cs      # 52 test (CodeHigh + Delete + Cancel + Params)
 │   │   │   ├── CommandParameterItemTests.cs      # 7 test
-│   │   │   ├── BoardEditViewModelTests.cs        # 29 test (FirmwareType, DictionaryId?, Cancel, Delete)
+│   │   │   ├── BoardEditViewModelTests.cs        # 34 test (FirmwareType, DictionaryId?, Cancel, Delete, auto-fill)
 │   │   │   ├── DeviceCommandsViewModelTests.cs   # 19 test (load, save, HasChanges)
 │   │   │   ├── UserListViewModelTests.cs         # 18 test
 │   │   │   └── SettingsViewModelTests.cs         # 3 test
@@ -162,9 +162,9 @@ Tests/
     ├── Services/
     │   ├── UserServiceTests.cs            # 15 test
     │   ├── DictionaryServiceTests.cs      # 20 test (IsStandard uniqueness)
-    │   ├── BoardServiceTests.cs           # 18 test
+    │   ├── BoardServiceTests.cs           # 20 test
     │   ├── CommandServiceTests.cs         # 22 test
-    │   ├── DeviceServiceTests.cs          # 16 test
+    │   ├── DeviceServiceTests.cs          # 19 test
     │   ├── VariableServiceTests.cs        # 50 test (StandardVariableOverride BR-009/010/011/018/020)
     │   └── AuditServiceTests.cs           # 20 test (query + log + validation + full trail)
     ├── E2E/                               # End-to-end workflow tests

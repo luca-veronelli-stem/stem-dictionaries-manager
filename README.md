@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~2345%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~2375%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili), con API REST per consumer esterni.**
@@ -48,7 +48,8 @@
 | **Variabili standard ereditate** | ✅ | DictionaryEdit con sezione variabili standard read-only + doppio-click per override |
 | **Filtro abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
 | **API REST** | ✅ | 12 endpoint (10 business + health + version), API Key auth, Swagger UI, deploy Azure App Service |
-| **Test Suite** | ✅ | ~1420 metodi test / ~2330 test cases (unit + integration + E2E + API, 2 target framework) |
+| **Auto-fill parametri** | ✅ | MachineCode (Device) e FirmwareType (Board) pre-compilati con primo valore disponibile in creazione |
+| **Test Suite** | ✅ | ~1455 metodi test / ~2375 test cases (unit + integration + E2E + API, 2 target framework) |
 
 ---
 

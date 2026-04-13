@@ -22,7 +22,14 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
-- **Infrastructure**: 6 DB constraints per regole di business — 3 CHECK (`MachineCode > 0`, `BitIndex >= 0`, `WordIndex >= 0`), 2 partial unique (`IsStandard`, `IsPrimary`), 1 unique (`Command.Name`) (T-004)
+- **Services**: `IDeviceService.GetNextAvailableMachineCodeAsync()` — calcola primo MachineCode disponibile (max+1, salta 6 riservato BLE BR-015)
+- **Services**: `IBoardService.GetNextAvailableFirmwareTypeAsync()` — calcola primo FirmwareType disponibile (max globale+1)
+- **GUI**: DeviceEditView pre-compila MachineCode con primo valore disponibile in creazione + nota informativa
+- **GUI**: BoardEditView pre-compila FirmwareType con primo valore disponibile in creazione + nota informativa
+- **GUI**: Colonna "Machine Type" nella DataGrid schede di DeviceDetailView
+- **GUI**: BoardEditView mostra nome dispositivo invece di DeviceId nel campo "Dispositivo"
+- **Tests**: 14 nuovi test (3 DeviceService + 2 BoardService + 4 DeviceEditViewModel + 5 BoardEditViewModel)
+- **Infrastructure**: 6 DB constraints per regole di business
 - **Infrastructure**: Migration `AddBusinessRuleConstraints` per Azure SQL
 - **API**: Progetto ASP.NET Core Minimal API con 12 endpoint (10 business + health check + version)
 - **API**: Autenticazione via API Key header `X-Api-Key` con chiavi multiple per consumer (BR-API-001)
@@ -58,6 +65,7 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 - **GUI.Windows**: Rimosso `GetDatabasePath()` duplicato, usa metodo centralizzato di Infrastructure
 - **API**: `appsettings.json` escluso dal publish (`CopyToPublishDirectory=Never`), Azure usa env var
 - **API**: `DatabaseProvider` default `Sqlite` in appsettings (dev), `SqlServer` via env var (prod)
+- **GUI.Windows**: `DeviceDetailViewModel` — rimossa duplicazione mappatura board con metodo `PopulateBoards`
 
 ### Removed
 
