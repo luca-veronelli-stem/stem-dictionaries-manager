@@ -1,0 +1,63 @@
+@API_HostAddress = http://localhost:5062
+@ApiKey = STEM-PT-DEV-KEY-2026
+
+### Dispositivi — lista
+GET {{API_HostAddress}}/api/devices
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Dispositivo — dettaglio con board (sostituire {id})
+GET {{API_HostAddress}}/api/devices/1
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Board di un device (sostituire {id})
+GET {{API_HostAddress}}/api/devices/1/boards
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Dizionari — lista
+GET {{API_HostAddress}}/api/dictionaries
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Dizionario Standard (standalone)
+GET {{API_HostAddress}}/api/dictionaries/standard
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Dizionario — dettaglio (sostituire {id})
+GET {{API_HostAddress}}/api/dictionaries/1
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Dizionario — variabili risolte (standard + specifiche, sostituire {id})
+GET {{API_HostAddress}}/api/dictionaries/2/resolved
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Comandi — lista
+GET {{API_HostAddress}}/api/commands
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Comandi abilitati per device (sostituire {deviceId})
+GET {{API_HostAddress}}/api/commands/device/1
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Board definition — formato Production.Tracker (sostituire {id})
+GET {{API_HostAddress}}/api/boards/1/definition
+Accept: application/json
+X-Api-Key: {{ApiKey}}
+
+### Test senza API Key — deve restituire 401
+GET {{API_HostAddress}}/api/devices
+Accept: application/json
+
+### Health check — no auth, deve restituire 200 Healthy
+GET {{API_HostAddress}}/health
+
+### Version — no auth, restituisce versione e environment
+GET {{API_HostAddress}}/api/version
+Accept: application/json

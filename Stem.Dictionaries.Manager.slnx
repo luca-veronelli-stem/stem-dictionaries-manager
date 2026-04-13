@@ -54,6 +54,7 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="API/API.csproj" Id="c586b696-fd83-4dda-9b20-9000e5b7ccc1" />
   <Project Path="Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
   <Project Path="GUI.Windows/GUI.Windows.csproj" Id="4aa22c84-d37f-429e-9cb8-5a3fc7811303" />
   <Project Path="Infrastructure/Infrastructure.csproj" Id="c83537e0-2958-4e99-a51d-b6ea0138f710" />

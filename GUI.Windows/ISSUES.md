@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-04-07
+> **Ultimo aggiornamento:** 2026-04-10
 
 ---
 
@@ -126,33 +126,32 @@ public class ViewModelLocator
 
 ---
 
-### GUI-003 - DialogService usa MessageBox sincrono wrappato in Task
+### GUI-003 - DialogService wrappa sync in Task
 
 **Categoria:** UX/Design  
 **Priorità:** Bassa  
 **Impatto:** Basso  
 **Status:** Aperto  
 **Data Apertura:** 2026-03-19  
+**Aggiornamento:** 2026-04-10 — `DarkDialog` custom sostituisce `MessageBox.Show()`, ma il pattern sync-wrappato-in-Task rimane.
 
 #### Descrizione
 
-`DialogService` espone metodi async ma internamente usa `MessageBox.Show()` che è sincrono. Questo può bloccare il thread UI.
+`DialogService` espone metodi async ma internamente usa `DarkDialog.ShowConfirm()` (modale WPF `ShowDialog()`) che è sincrono. Il risultato è wrappato in `Task.FromResult`.
 
 #### File Coinvolti
 
 - `GUI.Windows/Services/DialogService.cs`
 
-#### Codice Problematico (probabile)
+#### Codice Attuale
 
 ```csharp
-public class DialogService : IDialogService
+public sealed class DialogService : IDialogService
 {
-    public Task<bool> ConfirmAsync(string message, string title)
+    public Task<DialogResult> ShowConfirmAsync(string title, string message)
     {
-        // MessageBox.Show è sincrono!
-        var result = MessageBox.Show(message, title, 
-            MessageBoxButton.YesNo, MessageBoxImage.Question);
-        return Task.FromResult(result == MessageBoxResult.Yes);
+        var result = DarkDialog.ShowConfirm(title, message); // sync ShowDialog()
+        return Task.FromResult(result ? DialogResult.Yes : DialogResult.No);
     }
 }
 ```
@@ -160,40 +159,17 @@ public class DialogService : IDialogService
 #### Problema Specifico
 
 - API async ma implementazione sync (misleading)
-- MessageBox blocca il message pump del thread UI
-- Non permette animazioni o progress mentre il dialog è aperto
-- Futuro: impossibile sostituire con dialog custom async
+- `ShowDialog()` blocca il message pump del thread UI
+- Per ora accettabile (desktop app, UX soddisfacente con DarkDialog)
 
 #### Soluzione Proposta
 
-**Opzione A: Rinominare metodi sync**
-
-Se sync è accettabile, rendere l'API onesta:
-
-```csharp
-public bool Confirm(string message, string title)
-{
-    return MessageBox.Show(...) == MessageBoxResult.Yes;
-}
-```
-
-**Opzione B: Dialog WPF custom**
-
-Creare dialog Window custom che supporta vero async:
-
-```csharp
-public async Task<bool> ConfirmAsync(string message, string title)
-{
-    var dialog = new ConfirmDialog(message, title);
-    return await dialog.ShowDialogAsync();
-}
-```
+Accettare il pattern attuale come **low priority** — il DarkDialog custom è già themed correttamente e funziona bene. Se servisse vero async in futuro, wrappare `ShowDialog()` con `TaskCompletionSource`.
 
 #### Benefici Attesi
 
 - API coerente (sync o async, non finto async)
-- UX migliore con dialog custom
-- Possibilità di theming/styling
+- Sblocco thread UI durante dialog
 
 ---
 
