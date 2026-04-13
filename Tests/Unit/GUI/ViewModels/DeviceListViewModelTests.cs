@@ -167,9 +167,9 @@ public class DeviceListViewModelTests
         var boardService = new MockBoardService();
         deviceService.SeedData(Device.Restore(1, "TestDevice", 1, null));
         boardService.SeedBoards(
-            Board.Restore(1, 1, "Madre", 5, 1, null, true, dictionaryId: 10),
-            Board.Restore(2, 1, "Puls 1", 4, 2, null, false, dictionaryId: 20),
-            Board.Restore(3, 1, "Puls 2", 4, 3, null, false, dictionaryId: 20));
+            Board.Restore(1, 1, "Madre", 5, 1, null, true, dictionaryId: 10, machineCode: 1),
+            Board.Restore(2, 1, "Puls 1", 4, 2, null, false, dictionaryId: 20, machineCode: 1),
+            Board.Restore(3, 1, "Puls 2", 4, 3, null, false, dictionaryId: 20, machineCode: 1));
 
         var vm = new DeviceListViewModel(
             _navigationService, deviceService, boardService, _dialogService, _messageService);

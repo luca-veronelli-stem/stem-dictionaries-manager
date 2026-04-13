@@ -158,7 +158,8 @@ public class MockBoardService : IBoardService
             board.BoardNumber,
             board.PartNumber,
             board.IsPrimary,
-            board.DictionaryId);
+            board.DictionaryId,
+            board.MachineCode);
         _boards.Add(restored);
         return Task.FromResult(restored);
     }

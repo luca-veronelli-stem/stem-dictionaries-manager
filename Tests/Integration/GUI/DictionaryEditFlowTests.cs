@@ -62,7 +62,7 @@ public class DictionaryEditFlowTests
     public async Task CreateDictionary_NonStandard_WithBoard_SetsIsStandardFalse()
     {
         // Arrange — serve una board per dizionari non-standard
-        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, null));
+        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, null, machineCode: 1));
         await _viewModel.InitializeAsync(null, deviceId: 1);
 
         _viewModel.Name = "Eden-XP";

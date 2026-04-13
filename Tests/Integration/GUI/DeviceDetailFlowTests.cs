@@ -53,7 +53,7 @@ public class DeviceDetailFlowTests
             Dictionary.Restore(2, "Standard", null, true, [])
         );
         _boardService.SeedBoards(
-            Board.Restore(1, 1, "Madre", 17, 1, null, true, dictionaryId: 1)
+            Board.Restore(1, 1, "Madre", 17, 1, null, true, dictionaryId: 1, machineCode: 3)
         );
 
         // Act
@@ -85,8 +85,8 @@ public class DeviceDetailFlowTests
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
         _boardService.SeedBoards(
-            Board.Restore(1, 1, "Madre", 17, 1, null, true, null),
-            Board.Restore(2, 1, "Pulsantiera", 4, 2, null, false, null)
+            Board.Restore(1, 1, "Madre", 17, 1, null, true, null, machineCode: 3),
+            Board.Restore(2, 1, "Pulsantiera", 4, 2, null, false, null, machineCode: 3)
         );
 
         // Act
@@ -122,7 +122,7 @@ public class DeviceDetailFlowTests
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
         _dictionaryService.SeedData(Dictionary.Restore(1, "Eden-XP Main", null, false, []));
-        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, dictionaryId: 1));
+        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, dictionaryId: 1, machineCode: 3));
         await _viewModel.LoadAsync(deviceId: 1);
 
         var nonStandardDict = _viewModel.Dictionaries.FirstOrDefault(d => !d.IsStandard && !d.IsCommandsEntry);
@@ -176,7 +176,7 @@ public class DeviceDetailFlowTests
     {
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
-        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, null));
+        _boardService.SeedBoards(Board.Restore(1, 1, "Madre", 17, 1, null, true, null, machineCode: 3));
         await _viewModel.LoadAsync(deviceId: 1);
 
         // Act

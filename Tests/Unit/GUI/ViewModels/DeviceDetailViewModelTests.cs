@@ -78,7 +78,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        var board = new Board(10, "Madre #1", 17, 1,
+        var board = new Board(10, "Madre #1", 17, 1, 10,
             dictionaryId: seededDict.Id);
         await _boardService.AddAsync(board);
 
@@ -196,7 +196,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        var board = new Board(10, "Tastiera 1", 4, 1,
+        var board = new Board(10, "Tastiera 1", 4, 1, 10,
             dictionaryId: seededDict.Id);
         await _boardService.AddAsync(board);
 
@@ -239,9 +239,9 @@ public class DeviceDetailViewModelTests
         var dictPulsantiereId = allDicts.First(d => d.Name == "Pulsantiere 4x4").Id;
 
         // Board di OptimusXp puntano a dictOptimus e dictPulsantiere
-        await _boardService.AddAsync(new Board(10, "Madre #1", 17, 1,
+        await _boardService.AddAsync(new Board(10, "Madre #1", 17, 1, 10,
             dictionaryId: dictOptimusId));
-        await _boardService.AddAsync(new Board(10, "Tastiera 1", 4, 2,
+        await _boardService.AddAsync(new Board(10, "Tastiera 1", 4, 2, 10,
             dictionaryId: dictPulsantiereId));
 
         // Act
@@ -272,7 +272,7 @@ public class DeviceDetailViewModelTests
         foreach (var d in allDicts)
         {
             await _boardService.AddAsync(new Board(10,
-                $"Board-{d.Name}", 17, allDicts.ToList().IndexOf(d) + 1,
+                $"Board-{d.Name}", 17, allDicts.ToList().IndexOf(d) + 1, 10,
                 dictionaryId: d.Id));
         }
 
@@ -296,7 +296,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        await _boardService.AddAsync(new Board(10, "Board 1", 17, 1,
+        await _boardService.AddAsync(new Board(10, "Board 1", 17, 1, 10,
             dictionaryId: seededDict.Id));
 
         // Act
@@ -386,8 +386,8 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_PopulatesBoards()
     {
         // Arrange
-        await _boardService.AddAsync(new Board(3, "Madre", 17, 1));
-        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2));
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1, 3));
+        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2, 3));
 
         // Act
         await _viewModel.LoadAsync(3);
@@ -400,9 +400,9 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_BoardsAreOrderedByBoardNumber()
     {
         // Arrange — inseriti in ordine inverso
-        await _boardService.AddAsync(new Board(7, "Rostro", 22, 4));
-        await _boardService.AddAsync(new Board(7, "HMI", 20, 1));
-        await _boardService.AddAsync(new Board(7, "Motore DX", 21, 2));
+        await _boardService.AddAsync(new Board(7, "Rostro", 22, 4, 7));
+        await _boardService.AddAsync(new Board(7, "HMI", 20, 1, 7));
+        await _boardService.AddAsync(new Board(7, "Motore DX", 21, 2, 7));
 
         // Act
         await _viewModel.LoadAsync(7);
@@ -422,7 +422,7 @@ public class DeviceDetailViewModelTests
         _dictionaryService.SeedData(dict);
         var seededDict = (await _dictionaryService.GetAllAsync())[0];
 
-        await _boardService.AddAsync(new Board(3, "Madre", 17, 1,
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1, 3,
             partNumber: "DIS0020477", isPrimary: true, dictionaryId: seededDict.Id));
 
         // Act
@@ -442,8 +442,8 @@ public class DeviceDetailViewModelTests
     public async Task LoadAsync_OnlyShowsBoardsForSelectedDevice()
     {
         // Arrange — board di due device diversi
-        await _boardService.AddAsync(new Board(3, "Madre Eden", 17, 1));
-        await _boardService.AddAsync(new Board(7, "HMI Spark", 20, 1));
+        await _boardService.AddAsync(new Board(3, "Madre Eden", 17, 1, 3));
+        await _boardService.AddAsync(new Board(7, "HMI Spark", 20, 1, 7));
 
         // Act
         await _viewModel.LoadAsync(3);
@@ -506,12 +506,12 @@ public class DeviceDetailViewModelTests
     public async Task ReloadBoardsAsync_RefreshesOnlyBoards()
     {
         // Arrange — carica iniziale
-        await _boardService.AddAsync(new Board(3, "Madre", 17, 1));
+        await _boardService.AddAsync(new Board(3, "Madre", 17, 1, 3));
         await _viewModel.LoadAsync(3);
         Assert.Single(_viewModel.Boards);
 
         // Aggiungi una board dopo il load iniziale
-        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2));
+        await _boardService.AddAsync(new Board(3, "Pulsantiera", 4, 2, 3));
 
         // Act
         await _viewModel.ReloadBoardsAsync();

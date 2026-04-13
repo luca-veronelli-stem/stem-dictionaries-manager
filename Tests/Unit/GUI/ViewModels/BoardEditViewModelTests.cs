@@ -13,6 +13,7 @@ namespace Tests.Unit.GUI.ViewModels;
 public class BoardEditViewModelTests
 {
     private readonly MockBoardService _boardService;
+    private readonly MockDeviceService _deviceService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +22,14 @@ public class BoardEditViewModelTests
     public BoardEditViewModelTests()
     {
         _boardService = new MockBoardService();
+        _deviceService = new MockDeviceService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
         _viewModel = new BoardEditViewModel(
             _boardService,
+            _deviceService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -44,7 +47,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
-        var board = new Board(10, "Existing", 17, 1);
+        var board = new Board(10, "Existing", 17, 1, 10);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -56,7 +59,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_LoadsExistingData()
     {
-        var board = new Board(3, "TestBoard", 18, 3, "PN123");
+        var board = new Board(3, "TestBoard", 18, 3, 3, "PN123");
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -245,7 +248,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task InitializeAsync_WithPrimaryBoard_SetsIsPrimary()
     {
-        var board = new Board(10, "Madre", 17, 1, isPrimary: true);
+        var board = new Board(10, "Madre", 17, 1, 10, isPrimary: true);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -300,7 +303,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ConfirmedYes_DeletesAndGoesBack()
     {
-        var board = new Board(3, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1, 3);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -316,7 +319,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ConfirmedNo_DoesNotDelete()
     {
-        var board = new Board(3, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1, 3);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
@@ -331,7 +334,7 @@ public class BoardEditViewModelTests
     [Fact]
     public async Task DeleteBoardCommand_ServiceThrows_ShowsErrorDialog()
     {
-        var board = new Board(3, "Madre", 17, 1);
+        var board = new Board(3, "Madre", 17, 1, 3);
         await _boardService.AddAsync(board);
 
         await _viewModel.InitializeAsync(1);
