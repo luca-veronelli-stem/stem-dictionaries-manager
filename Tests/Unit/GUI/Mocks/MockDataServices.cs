@@ -202,6 +202,14 @@ public class MockBoardService : IBoardService
         return Task.FromResult<Board?>(null);
     }
 
+    public Task<int> GetNextAvailableFirmwareTypeAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetNextAvailableFirmwareTypeAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        var maxFw = _boards.Count > 0 ? _boards.Max(b => b.FirmwareType) : 0;
+        return Task.FromResult(maxFw + 1);
+    }
+
     public Task UpdateAsync(Board board, CancellationToken ct = default)
     {
         MethodCalls.Add($"UpdateAsync:{board.Id}");
@@ -756,6 +764,17 @@ public class MockDeviceService : IDeviceService
         if (ExceptionToThrow is not null) throw ExceptionToThrow;
         _devices.RemoveAll(d => d.Id == id);
         return Task.CompletedTask;
+    }
+
+    public Task<int> GetNextAvailableMachineCodeAsync(CancellationToken ct = default)
+    {
+        MethodCalls.Add("GetNextAvailableMachineCodeAsync");
+        if (ExceptionToThrow is not null) throw ExceptionToThrow;
+        var maxCode = _devices.Count > 0 ? _devices.Max(d => d.MachineCode) : 0;
+        var next = maxCode + 1;
+        if (next == Core.Models.Device.ReservedBleModuleMachineCode)
+            next++;
+        return Task.FromResult(next);
     }
 
     public void Reset()

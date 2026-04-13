@@ -253,4 +253,36 @@ public class DeviceServiceTests : IntegrationTestBase
         Assert.Null(await _service.GetByIdAsync(device1.Id));
         Assert.NotNull(await Context.Dictionaries.FindAsync(dict.Id));
     }
+
+    // === GetNextAvailableMachineCodeAsync ===
+
+    [Fact]
+    public async Task GetNextAvailableMachineCodeAsync_NoDevices_Returns1()
+    {
+        var next = await _service.GetNextAvailableMachineCodeAsync();
+
+        Assert.Equal(1, next);
+    }
+
+    [Fact]
+    public async Task GetNextAvailableMachineCodeAsync_WithDevices_ReturnsMaxPlusOne()
+    {
+        await _service.AddAsync(new Device("A", 3));
+        await _service.AddAsync(new Device("B", 7));
+
+        var next = await _service.GetNextAvailableMachineCodeAsync();
+
+        Assert.Equal(8, next);
+    }
+
+    [Fact]
+    public async Task GetNextAvailableMachineCodeAsync_SkipsReserved6()
+    {
+        await _service.AddAsync(new Device("A", 5));
+
+        var next = await _service.GetNextAvailableMachineCodeAsync();
+
+        // 5 + 1 = 6 riservato BLE → salta a 7
+        Assert.Equal(7, next);
+    }
 }

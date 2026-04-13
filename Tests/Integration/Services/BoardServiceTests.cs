@@ -314,4 +314,26 @@ public class BoardServiceTests : IntegrationTestBase
         var dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
         Assert.NotNull(dictAfter);
     }
+
+    // === GetNextAvailableFirmwareTypeAsync ===
+
+    [Fact]
+    public async Task GetNextAvailableFirmwareTypeAsync_NoBoards_Returns1()
+    {
+        var next = await _service.GetNextAvailableFirmwareTypeAsync();
+
+        Assert.Equal(1, next);
+    }
+
+    [Fact]
+    public async Task GetNextAvailableFirmwareTypeAsync_WithBoards_ReturnsMaxPlusOne()
+    {
+        // DeviceId=5 → Spyke, MachineCode=5
+        await _service.AddAsync(new Board(5, "HMI", 11, 1, machineCode: 5));
+        await _service.AddAsync(new Board(5, "Gateway", 20, 2, machineCode: 5));
+
+        var next = await _service.GetNextAvailableFirmwareTypeAsync();
+
+        Assert.Equal(21, next);
+    }
 }
