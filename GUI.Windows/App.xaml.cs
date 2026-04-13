@@ -99,6 +99,7 @@ public partial class App : Application
 
         // Configura MainWindow
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        MainWindow = mainWindow; // Esplicito: evita che un DarkDialog di startup resti come MainWindow
         var mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
         mainWindow.DataContext = mainViewModel;
 
