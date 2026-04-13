@@ -1,5 +1,6 @@
 # STEM Dictionaries Manager
 
+[![Version](https://img.shields.io/badge/version-0.6.0-blue)](./CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Tests](https://img.shields.io/badge/tests-~2375%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
@@ -154,7 +155,7 @@ Stem.Dictionaries.Manager/
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 9 | Media |
 | Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 2 | 5 | Bassa |
 
-✅ **0 issue alta/media priorità aperte**
+⚠️ **0 alta priorità aperte, 1 media (TEST-011: riorganizzazione test suite)** — 17 aperte totali, tutte bassa tranne 1
 
 ---
 
