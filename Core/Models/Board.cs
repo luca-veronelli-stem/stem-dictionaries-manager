@@ -51,8 +51,8 @@ public class Board
         BoardNumber);
 
     public Board(int deviceId, string name, int firmwareType, int boardNumber,
-        string? partNumber = null, bool isPrimary = false, int? dictionaryId = null,
-        int machineCode = 0)
+        int machineCode, string? partNumber = null, bool isPrimary = false,
+        int? dictionaryId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (firmwareType < 0)
@@ -77,11 +77,11 @@ public class Board
     /// </summary>
     public static Board Restore(int id, int deviceId, string name,
         int firmwareType, int boardNumber, string? partNumber, bool isPrimary,
-        int? dictionaryId, string? dictionaryName = null,
-        string? deviceName = null, int machineCode = 0)
+        int? dictionaryId, int machineCode, string? dictionaryName = null,
+        string? deviceName = null)
     {
         var board = new Board(deviceId, name, firmwareType, boardNumber,
-            partNumber, isPrimary, dictionaryId, machineCode)
+            machineCode, partNumber, isPrimary, dictionaryId)
         {
             Id = id,
             DictionaryName = dictionaryName,
