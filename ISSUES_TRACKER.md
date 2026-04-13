@@ -11,11 +11,11 @@
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
-| [API](./API/ISSUES.md) | 4 | 0 | 4 |
+| [API](./API/ISSUES.md) | 3 | 1 | 4 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 8 | 10 |
 | [Tests](./Tests/ISSUES.md) | 2 | 9 | 11 |
 | **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **20** | **41** | **61** |
+| **Totale** | **19** | **42** | **61** |
 
 ---
 
@@ -26,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 5% |
-| **Bassa** | 19 | 95% |
-| **Totale** | **20** | 100% |
+| **Bassa** | 18 | 95% |
+| **Totale** | **19** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ███████████████████░ 19
+Bassa:       ██████████████████░░ 18
 ```
 
 ---
@@ -442,7 +442,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-006~~ | ~~LoginViewModel registrato due volte nel DI~~ | ~~Media~~ | ✅ **Risolto** |
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
-| [GUI-010](./GUI.Windows/ISSUES.md#gui-010--manca-gestione-errore-connessione-db-allavvio) | Manca gestione errore connessione DB all'avvio | Bassa | Robustezza |
+| [GUI-010](./GUI.Windows/ISSUES.md#gui-010--gestione-errore-connessione-db-allavvio) | Gestione errore connessione DB all'avvio | Bassa | ✅ **Risolto** |
 
 ### API (4 issue aperte, 0 risolte)
 
@@ -451,7 +451,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [API-001](./API/ISSUES.md#api-001--swagger-ui-non-supporta-api-key-authentication) | Swagger UI non supporta API Key authentication | Bassa | UX |
 | [API-002](./API/ISSUES.md#api-002--endpoint-non-hanno-response-type-annotations) | Endpoint non hanno response type annotations | Bassa | API |
 | [API-003](./API/ISSUES.md#api-003--manca-rate-limiting) | Manca rate limiting | Bassa | Security |
-| [API-004](./API/ISSUES.md#api-004--endpoint-restituiscono-500-con-stacktrace-se-db-non-raggiungibile) | Endpoint restituiscono 500 se DB non raggiungibile | Bassa | Robustezza |
+| ~~API-004~~ | ~~Endpoint restituiscono 500 se DB non raggiungibile~~ | ~~Bassa~~ | ✅ **Risolto** |
 
 ### Tests (1 issue aperta, 9 risolte)
 

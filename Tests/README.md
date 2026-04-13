@@ -1,7 +1,7 @@
 # Tests
 
 > **Suite di test xUnit per Stem.Dictionaries.Manager — Unit e Integration tests.**  
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -141,6 +141,10 @@ Tests/
 │           ├── CommandDeviceStateMapperTests.cs   # 11 test
 │           ├── StandardVariableOverrideMapperTests.cs # 8 test
 │           └── AuditEntryMapperTests.cs           # 10 test
+├── Unit/API/
+│   ├── ApiKeyMiddlewareTests.cs               # 8 test
+│   ├── ApiMapperTests.cs                      # 13 test
+│   └── DatabaseExceptionMiddlewareTests.cs    # 8 test
 └── Integration/
     ├── IntegrationTestBase.cs        # Base class SQLite in-memory (IAsyncLifetime, seed test-user)
     ├── Infrastructure/
@@ -243,6 +247,7 @@ public class MyRepositoryTests : IntegrationTestBase
 | Unit/Services/Mapping | 104 | Mapper Entity ↔ Domain (10 mapper incl. AuditEntryMapper, StandardVariableOverrideMapper) |
 | Unit/Infrastructure/DI | 14 | Registrazione DI repositories |
 | Unit/Services/DI | 13 | Registrazione DI services |
+| Unit/API | 29 | ApiKeyMiddleware + ApiMapper + DatabaseExceptionMiddleware |
 | Unit/GUI/ViewModels | 450 | 14 ViewModels (incl. DictionaryContext override, status bar, unsaved changes) |
 | Unit/GUI/Converters | 25 | NullableInt/Double + SeverityToColor + BoolToErrorBrush converters |
 | Unit/GUI/Services | 23 | NavigationService (incl. ViewModel caching) |
@@ -251,9 +256,9 @@ public class MyRepositoryTests : IntegrationTestBase
 | Integration/Services | 140 | Business logic, IsStandard, StandardVariableOverride, DeviceService, smart update |
 | Integration/GUI | 25 | VariableEdit + CommandEdit + DictionaryEdit flow completo |
 | Integration/E2E | 195 | Workflow completi + DatabaseSeeder tests (170 E2E) |
-| **Totale metodi test** | **~1370** | Tutti i target combinati |
+| **Totale metodi test** | **~1430** | Tutti i target combinati |
 
-> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è **~2230 test cases** (multi-target).
+> **Nota:** I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit. Il conteggio effettivo nel test runner è **~2340 test cases** (multi-target).
 
 ---
 
@@ -292,7 +297,7 @@ Il progetto supporta due target framework:
 
 ## Issue Correlate
 
-→ [Tests/ISSUES.md](./ISSUES.md) — 1 issue aperta, 9 risolte
+→ [Tests/ISSUES.md](./ISSUES.md) — 2 issue aperte, 9 risolte
 
 ---
 

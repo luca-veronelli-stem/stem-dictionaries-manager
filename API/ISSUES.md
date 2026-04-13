@@ -13,10 +13,10 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
 | **Media** | 0 | 0 |
-| **Bassa** | 4 | 0 |
+| **Bassa** | 3 | 1 |
 
-**Totale aperte:** 4  
-**Totale risolte:** 0
+**Totale aperte:** 3  
+**Totale risolte:** 1
 
 ---
 
@@ -25,7 +25,10 @@
 - [API-001 - Swagger UI non supporta API Key authentication](#api-001--swagger-ui-non-supporta-api-key-authentication)
 - [API-002 - Endpoint non hanno response type annotations](#api-002--endpoint-non-hanno-response-type-annotations)
 - [API-003 - Manca rate limiting](#api-003--manca-rate-limiting)
-- [API-004 - Endpoint restituiscono 500 con stacktrace se DB non raggiungibile](#api-004--endpoint-restituiscono-500-con-stacktrace-se-db-non-raggiungibile)
+
+## Indice Issue Risolte
+
+- [API-004 - Gestione errore DB con 503 Service Unavailable](#api-004--gestione-errore-db-con-503-service-unavailable)
 
 ---
 
@@ -88,52 +91,41 @@ Aggiungere `Microsoft.AspNetCore.RateLimiting` con policy per API Key quando l'A
 
 ---
 
-### API-004 — Endpoint restituiscono 500 con stacktrace se DB non raggiungibile
+## Issue Risolte
+
+### API-004 — Gestione errore DB con 503 Service Unavailable
 
 | Campo | Valore |
 |-------|--------|
 | **ID** | API-004 |
 | **Categoria** | Robustezza |
 | **Priorità** | Bassa |
-| **Status** | Aperto |
+| **Status** | ✅Risolto |
 | **Data Apertura** | 2026-04-13 |
-| **Correlata** | [GUI-010](../GUI.Windows/ISSUES.md#gui-010--manca-gestione-errore-connessione-db-allavvio) (stesso problema lato GUI) |
+| **Data Risoluzione** | 2026-04-13 |
+| **Branch** | fix/gui-010-api-004 |
+| **Correlata** | [GUI-010](../GUI.Windows/ISSUES.md#gui-010--gestione-errore-connessione-db-allavvio) |
 
-**Descrizione:**  
-Se Azure SQL non è raggiungibile (rete assente, firewall, DNS, timeout), i 10 endpoint business restituiscono `500 Internal Server Error` con stacktrace `SqlException` nel body. L'health check `/health` ritorna correttamente `503 Unhealthy`, ma gli endpoint business non hanno gestione strutturata dell'errore.
+**Soluzione Implementata:**
 
-**Scenario:**
-1. Azure SQL temporaneamente non raggiungibile
-2. Consumer chiama `GET /api/devices` con API Key valida
-3. EF Core lancia `SqlException` (timeout/connection refused)
-4. ASP.NET ritorna 500 con stacktrace (in Development) o body vuoto (in Production)
-5. Consumer non riceve un messaggio JSON strutturato
+1. **`DatabaseExceptionMiddleware.cs`** CREATO — global exception handler:
+   - Cattura `TimeoutException`, `SqlException` (by name, no direct dependency) e wrapper EF Core (InnerException ricorsivo)
+   - Ritorna `503 Service Unavailable` con JSON `{ "error": "..." }`
+   - In Development: aggiunge campo `detail` con `ex.Message`
+   - In Production: solo messaggio generico (no stacktrace leak)
+2. **`Program.cs`**: middleware registrato **prima** di `ApiKeyMiddleware`
+3. **8 unit test** in `DatabaseExceptionMiddlewareTests.cs`
 
-**Soluzione proposta:**  
-Aggiungere un global exception handler middleware che cattura `SqlException` e `TimeoutException` e ritorna un JSON strutturato `503 Service Unavailable`:
+**File Creati:**
+- `API/Middleware/DatabaseExceptionMiddleware.cs`
+- `Tests/Unit/API/DatabaseExceptionMiddlewareTests.cs`
 
-```csharp
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next(context);
-    }
-    catch (Exception ex) when (ex is SqlException or TimeoutException)
-    {
-        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(new
-        {
-            error = "Database non raggiungibile. Riprovare tra qualche minuto."
-        });
-    }
-});
-```
+**File Modificati:**
+- `API/Program.cs` (registrazione middleware)
 
-**Note:**
-- L'health check `/health` già segnala `Unhealthy` quando il DB è giù — i consumer possono usarlo per monitoraggio
-- Il middleware va registrato **prima** di `UseRouting` per catturare le eccezioni degli endpoint
-- Priorità bassa: l'API gira su Azure con DB Azure SQL nella stessa region (Italy North), interruzioni rare
+**Benefici Ottenuti:**
+- Consumer ricevono JSON strutturato 503 invece di 500 con stacktrace ✅
+- Nessun leak di informazioni interne in produzione ✅
+- Health check `/health` + middleware complementari ✅
 
 ---
