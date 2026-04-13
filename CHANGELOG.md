@@ -20,6 +20,12 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+---
+
+## [0.6.0] - 2026-04-13
+
+API REST, DB constraints, auto-fill parametri schede, gestione errori DB.
+
 ### Added
 
 - **Services**: `IDeviceService.GetNextAvailableMachineCodeAsync()` — calcola primo MachineCode disponibile (max+1, salta 6 riservato BLE BR-015)
@@ -126,5 +132,6 @@ Prima release interna per test.
 
 ## Storico URL versioni
 
-[Unreleased]: https://bitbucket.org/stem-fw/stem-dictionaries-manager/branches/compare/HEAD..v0.5.0
+[Unreleased]: https://bitbucket.org/stem-fw/stem-dictionaries-manager/branches/compare/HEAD..v0.6.0
+[0.6.0]: https://bitbucket.org/stem-fw/stem-dictionaries-manager/src/v0.6.0/
 [0.5.0]: https://bitbucket.org/stem-fw/stem-dictionaries-manager/src/v0.5.0/
