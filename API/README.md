@@ -1,6 +1,6 @@
 # API
 
-> **API REST read-only per l'accesso ai dizionari STEM da consumer esterni (Production.Tracker, Collaudo Pulsantiere, SW Comunicazione).**  
+> **API REST read-only per l'accesso ai dizionari STEM da consumer esterni (Global Service, Production.Tracker, ButtonPanel.Tester, Stem.Device.Manager).**  
 > **Ultimo aggiornamento:** 2026-04-10
 
 ---

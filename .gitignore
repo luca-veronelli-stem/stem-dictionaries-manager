@@ -8,6 +8,10 @@
 *.db-shm
 *.db-wal
 
+# Deploy artifacts
+API/publish/
+API/deploy.zip
+
 # copilot generated files
 .copilot/*
 

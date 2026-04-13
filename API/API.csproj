@@ -16,4 +16,11 @@
     <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
+  <!-- appsettings.json: solo per dev locale, non distribuito (Azure usa env var) -->
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
