@@ -1,7 +1,7 @@
 # README Template - Struttura Standard per README
 
-> **Versione:** 1.1  
-> **Data:** 2026-03-18  
+> **Versione:** 1.2  
+> **Data:** 2026-04-13  
 > **Stato:** Active
 
 ---
@@ -140,6 +140,7 @@ Per il README principale della soluzione:
 ```markdown
 # {NomeSoluzione}
 
+[![Version](https://img.shields.io/badge/version-{X.Y.Z}-blue)](./CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Tests](https://img.shields.io/badge/tests-{N}%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
@@ -273,7 +274,7 @@ Stem.Dictionaries.Manager/
 
 ### README Root
 
-- [ ] Badge presenti e aggiornati
+- [ ] Badge presenti e aggiornati (incluso badge versione)
 - [ ] Quick Start funzionante
 - [ ] Struttura soluzione aggiornata
 - [ ] Licenza come ultima sezione (formato completo)
@@ -284,5 +285,6 @@ Stem.Dictionaries.Manager/
 
 | Data | Versione | Descrizione |
 |------|----------|-------------|
+| 2026-04-13 | 1.2 | README di root: aggiunto badge versione con link a CHANGELOG.md |
 | 2026-03-18 | 1.1 | README di root: badge subito sotto il titolo; adattato per Stem.Dictionaries.Manager |
 | 2026-02-18 | 1.0 | Versione iniziale |

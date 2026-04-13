@@ -1,5 +1,5 @@
 ﻿================================================================================
-                    STEM DICTIONARIES MANAGER v0.5.0
+                    STEM DICTIONARIES MANAGER v0.6.0
                               STEM E.m.s.
 ================================================================================
 
@@ -7,7 +7,8 @@ DESCRIZIONE
 -----------
 Applicazione per la gestione centralizzata dei dizionari dispositivi STEM
 (comandi + variabili). Sostituisce i file Excel con un database SQL
-centralizzato, con audit trail completo e interfaccia desktop moderna.
+centralizzato, con audit trail completo, interfaccia desktop moderna
+e API REST per consumer esterni.
 
 
 REQUISITI
@@ -87,6 +88,8 @@ Nota: Sostituire <CONNECTION_STRING> con il valore fornito dal supporto.
 - Audit trail: traccia ogni modifica con utente, data e valori JSON
 - Filtro e ricerca: ricerca istantanea in tutte le liste
 - Dark theme: interfaccia STEM con palette corporate
+- API REST: 12 endpoint per consumer esterni (Production.Tracker, etc.)
+- Auto-fill: MachineCode e FirmwareType pre-compilati in creazione
 
 
 ================================================================================

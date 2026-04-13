@@ -1,9 +1,9 @@
 <Project>
   <PropertyGroup>
     <!-- Versione centralizzata -->
-    <Version>0.5.0</Version>
-    <FileVersion>0.5.0.0</FileVersion>
-    <AssemblyVersion>0.5.0.0</AssemblyVersion>
+    <Version>0.6.0</Version>
+    <FileVersion>0.6.0.0</FileVersion>
+    <AssemblyVersion>0.6.0.0</AssemblyVersion>
 
 	<!-- Metadati autore/azienda -->
 	<Authors>Luca Veronelli</Authors>
