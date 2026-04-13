@@ -61,23 +61,40 @@ public partial class App : Application
         await _host.StartAsync();
         Services = _host.Services;
 
-        // Crea/aggiorna il DB e popola con dati iniziali se vuoto
-        using (var scope = _host.Services.CreateScope())
+        // Crea/aggiorna il DB e popola con dati iniziali se vuoto.
+        // Retry loop: se il DB non è raggiungibile, mostra dialog Riprova/Esci.
+        while (true)
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            // SQL Server: applica migrations versionati
-            // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
-            if (dbContext.Database.IsSqlServer())
+            try
             {
-                await dbContext.Database.MigrateAsync();
-            }
-            else
-            {
-                await dbContext.Database.EnsureCreatedAsync();
-            }
+                using var scope = _host.Services.CreateScope();
+                var dbContext = scope.ServiceProvider
+                    .GetRequiredService<AppDbContext>();
 
-            await DatabaseSeeder.SeedAsync(dbContext);
+                // SQL Server: applica migrations versionati
+                // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
+                if (dbContext.Database.IsSqlServer())
+                    await dbContext.Database.MigrateAsync();
+                else
+                    await dbContext.Database.EnsureCreatedAsync();
+
+                await DatabaseSeeder.SeedAsync(dbContext);
+                break;
+            }
+            catch (Exception ex)
+            {
+                var retry = DarkDialog.ShowConfirm(
+                    "Errore connessione database",
+                    "Impossibile connettersi al database.\n\n"
+                    + ex.Message
+                    + "\n\nRiprovare?");
+
+                if (!retry)
+                {
+                    Shutdown();
+                    return;
+                }
+            }
         }
 
         // Configura MainWindow
