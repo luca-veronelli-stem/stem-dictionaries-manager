@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia bug, code smells, UX issues, opportunità di refactoring e violazioni di best practice per il componente **GUI.Windows**.
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -13,10 +13,10 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
 | **Media** | 0 | 4 |
-| **Bassa** | 2 | 0 |
+| **Bassa** | 2 | 1 |
 
 **Totale aperte:** 2  
-**Totale risolte:** 7
+**Totale risolte:** 8
 
 ---
 
@@ -27,6 +27,7 @@
 
 ## Indice Issue Risolte
 
+- [GUI-010 - Gestione errore connessione DB all'avvio](#gui-010--gestione-errore-connessione-db-allavvio)
 - [GUI-009 - Rimuovere DeviceVariables, aggiornare DictionaryEdit (T-006)](#gui-009--rimuovere-devicevariables-aggiornare-dictionaryedit-t-006)
 - [GUI-006 - LoginViewModel registrato due volte nel DI container](#gui-006--loginviewmodel-registrato-due-volte-nel-di-container)
 - [GUI-005 - MainViewModel.NavigateToView è async void senza error handling](#gui-005--mainviewmodelnavigatetoview-è-async-void-senza-error-handling)
@@ -170,6 +171,46 @@ Accettare il pattern attuale come **low priority** — il DarkDialog custom è g
 
 - API coerente (sync o async, non finto async)
 - Sblocco thread UI durante dialog
+
+---
+
+---
+
+## Issue Risolte
+
+### GUI-010 — Gestione errore connessione DB all'avvio
+
+**Categoria:** Robustezza/UX  
+**Priorità:** Bassa  
+**Impatto:** Medio — crash non gestito se il DB non è raggiungibile  
+**Status:** ✅Risolto  
+**Data Apertura:** 2026-04-13  
+**Data Risoluzione:** 2026-04-13  
+**Branch:** fix/gui-010-api-004
+
+#### Soluzione Implementata
+
+1. **`App.xaml.cs`**: Blocco inizializzazione DB wrappato in `while(true)` + `try/catch(Exception)`
+   - Errore → `DarkDialog.ShowConfirm` con messaggio + `ex.Message` + opzioni Riprova/Esci
+   - Riprova → nuovo scope DI + nuovo tentativo (DbContext fresco)
+   - Esci → `Shutdown()` + `return` (uscita pulita)
+2. **`DarkDialog.xaml.cs`**: Fix `Owner` durante startup — WPF assegna `MainWindow` alla prima `Window` istanziata:
+   - Se `MainWindow` è `null` o è il dialog stesso → `CenterScreen` (fallback)
+   - Se `MainWindow` è disponibile → `Owner = MainWindow` (centrato sulla finestra)
+3. **`App.xaml.cs`**: Assegnamento esplicito `MainWindow = mainWindow` dopo creazione, per evitare che un `DarkDialog` di startup resti come `MainWindow` dell'applicazione
+
+#### File Modificati
+
+- `GUI.Windows/App.xaml.cs` (retry loop + MainWindow esplicito)
+- `GUI.Windows/Views/DarkDialog.xaml.cs` (Owner null-safe)
+
+#### Benefici Ottenuti
+
+- Messaggio chiaro all'utente invece di crash con stacktrace ✅
+- Possibilità di riprovare senza riavviare l'app ✅
+- Gestione graceful di interruzioni temporanee di rete ✅
+- DarkDialog sicuro durante startup (nessun crash Owner=self) ✅
+- MainWindow assegnata correttamente dopo retry riuscito ✅
 
 ---
 

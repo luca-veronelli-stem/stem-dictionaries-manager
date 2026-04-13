@@ -80,10 +80,15 @@ public partial class DarkDialog : Window
     private static DarkDialog CreateDialog(string title, string message,
         string primaryText, string? secondaryText)
     {
-        var dialog = new DarkDialog
-        {
-            Owner = Application.Current.MainWindow
-        };
+        var dialog = new DarkDialog();
+
+        // Owner = MainWindow se disponibile (non durante startup)
+        var mainWindow = Application.Current.MainWindow;
+        if (mainWindow is not null && mainWindow != dialog)
+            dialog.Owner = mainWindow;
+        else
+            dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
         dialog.TitleText.Text = title;
         dialog.MessageText.Text = message;
         dialog.PrimaryButton.Content = primaryText;

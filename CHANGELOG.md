@@ -38,6 +38,13 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 - **Tests**: 49 nuovi test API (13 unit ApiMapper, 8 unit ApiKeyMiddleware, 28 integration endpoint)
 - **Tests**: ApiIntegrationTestBase con scenario completo (Device+Board+Standard+Override)
 
+### Fixed
+
+- **GUI**: Gestione errore connessione DB all'avvio — retry loop con DarkDialog Riprova/Esci invece di crash (GUI-010)
+- **GUI**: DarkDialog Owner null-safe durante startup — WPF assegnava MainWindow alla prima Window istanziata, causando `Owner = self` crash
+- **GUI**: Assegnamento esplicito `MainWindow` dopo creazione per evitare che un DarkDialog di startup resti come MainWindow dell'applicazione
+- **API**: Endpoint restituiscono 503 Service Unavailable con JSON strutturato se DB non raggiungibile, invece di 500 con stacktrace (API-004)
+
 ### Changed
 
 - **Infrastructure**: Centralizzata logica risoluzione connection string in `DependencyInjection.ResolveConnectionString()`

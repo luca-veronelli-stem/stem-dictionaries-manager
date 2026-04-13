@@ -1,6 +1,6 @@
 ﻿# Stem.Dictionaries.Manager - Issue Tracker
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -11,11 +11,11 @@
 | [Core](./Core/ISSUES.md) | 3 | 5 | 8 |
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
-| [API](./API/ISSUES.md) | 3 | 0 | 3 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 7 | 9 |
-| [Tests](./Tests/ISSUES.md) | 1 | 9 | 10 |
+| [API](./API/ISSUES.md) | 3 | 1 | 4 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 8 | 10 |
+| [Tests](./Tests/ISSUES.md) | 2 | 9 | 11 |
 | **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **18** | **40** | **58** |
+| **Totale** | **19** | **42** | **61** |
 
 ---
 
@@ -25,14 +25,14 @@
 |----------|--------|---|
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
-| **Media** | 0 | 0% |
-| **Bassa** | 18 | 100% |
-| **Totale** | **18** | 100% |
+| **Media** | 1 | 5% |
+| **Bassa** | 18 | 95% |
+| **Totale** | **19** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
-Media:       ░░░░░░░░░░░░░░░░░░░░  0
+Media:       █░░░░░░░░░░░░░░░░░░░  1
 Bassa:       ██████████████████░░ 18
 ```
 
@@ -150,6 +150,8 @@ Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizion
 - Eliminazione DeviceVariablesView (view non più necessaria)
 
 ---
+
+### T-005 - Rendere espliciti i parametri semantici nei domain models
 
 **Descrizione:**  
 Diversi constructor e factory method `Restore` nei domain models hanno parametri opzionali con default che nascondono scelte semantiche di dominio. Il pattern è stato corretto per `BitInterpretation.DeviceId` (SESSION_037), ma rimane in altri model. L'obiettivo è rimuovere i default dove il valore ha un significato di dominio, forzando il chiamante a dichiarare sempre l'intento.
@@ -427,7 +429,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### GUI.Windows (2 issue aperte, 7 risolte)
+### GUI.Windows (3 issue aperte, 7 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -438,8 +440,18 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-007~~ | ~~DictionaryListItem non mostra DeviceType~~ | ~~Media~~ | ✅ **Risolto (T-002)** |
 | ~~GUI-005~~ | ~~NavigateToView async void senza error handling~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~GUI-006~~ | ~~LoginViewModel registrato due volte nel DI~~ | ~~Media~~ | ✅ **Risolto** |
-| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Media | UX |
+| [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
+| [GUI-010](./GUI.Windows/ISSUES.md#gui-010--gestione-errore-connessione-db-allavvio) | Gestione errore connessione DB all'avvio | Bassa | ✅ **Risolto** |
+
+### API (4 issue aperte, 0 risolte)
+
+| ID | Titolo | Priorità | Categoria |
+|----|--------|----------|-----------|  
+| [API-001](./API/ISSUES.md#api-001--swagger-ui-non-supporta-api-key-authentication) | Swagger UI non supporta API Key authentication | Bassa | UX |
+| [API-002](./API/ISSUES.md#api-002--endpoint-non-hanno-response-type-annotations) | Endpoint non hanno response type annotations | Bassa | API |
+| [API-003](./API/ISSUES.md#api-003--manca-rate-limiting) | Manca rate limiting | Bassa | Security |
+| ~~API-004~~ | ~~Endpoint restituiscono 500 se DB non raggiungibile~~ | ~~Bassa~~ | ✅ **Risolto** |
 
 ### Tests (1 issue aperta, 9 risolte)
 

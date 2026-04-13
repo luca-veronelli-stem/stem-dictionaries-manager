@@ -36,6 +36,7 @@ Il progetto **API** è un'applicazione ASP.NET Core Minimal API che espone 12 en
 | **File .http** | ✅ | Test endpoint integrato in Visual Studio |
 | **Dual DB provider** | ✅ | SQLite (dev) / SQL Server (prod), logica centralizzata |
 | **Deploy Azure** | ✅ | App Service F1 (Free), deploy via CLI |
+| **DB Error Handling** | ✅ | Middleware 503 Service Unavailable con JSON strutturato se DB non raggiungibile |
 
 ---
 
@@ -140,7 +141,7 @@ API/
 ├── Dtos/                  # DTO per le risposte JSON (7 record)
 ├── Endpoints/             # Minimal API endpoint groups (4 classi)
 ├── Mapping/               # ApiMapper (domain → DTO)
-├── Middleware/             # ApiKeyMiddleware
+├── Middleware/             # ApiKeyMiddleware, DatabaseExceptionMiddleware
 ├── Properties/            # launchSettings.json
 ├── Program.cs             # Entry point, DI, middleware pipeline
 ├── appsettings.json       # Configurazione (DB, API Keys, Logging)
@@ -208,6 +209,6 @@ https://app-dictionaries-manager-prod.azurewebsites.net/health
 
 ## Link
 
-- [ISSUES.md](./ISSUES.md) — Issue tracking per il progetto API
+- [ISSUES.md](./ISSUES.md) — Issue tracking per il progetto API (3 aperte, 1 risolta)
 - [README principale](../README.md) — Panoramica soluzione
 - [CHANGELOG](../CHANGELOG.md) — Storico release

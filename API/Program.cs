@@ -42,6 +42,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Stem.Dictionaries.Manager API v1"));
 }
 
+// Gestione errori DB — 503 Service Unavailable con JSON strutturato (API-004)
+app.UseMiddleware<DatabaseExceptionMiddleware>();
+
 // Autenticazione API Key (BR-API-001)
 app.UseMiddleware<ApiKeyMiddleware>();
 

@@ -2,7 +2,7 @@
 
 > **Scopo:** Questo documento traccia problemi, miglioramenti e code smells per il progetto **API** di Stem.Dictionaries.Manager.
 
-> **Ultimo aggiornamento:** 2026-04-10
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -13,10 +13,10 @@
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 0 |
 | **Media** | 0 | 0 |
-| **Bassa** | 3 | 0 |
+| **Bassa** | 3 | 1 |
 
 **Totale aperte:** 3  
-**Totale risolte:** 0
+**Totale risolte:** 1
 
 ---
 
@@ -25,6 +25,10 @@
 - [API-001 - Swagger UI non supporta API Key authentication](#api-001--swagger-ui-non-supporta-api-key-authentication)
 - [API-002 - Endpoint non hanno response type annotations](#api-002--endpoint-non-hanno-response-type-annotations)
 - [API-003 - Manca rate limiting](#api-003--manca-rate-limiting)
+
+## Indice Issue Risolte
+
+- [API-004 - Gestione errore DB con 503 Service Unavailable](#api-004--gestione-errore-db-con-503-service-unavailable)
 
 ---
 
@@ -84,5 +88,44 @@ Non c'è rate limiting sugli endpoint. Un consumer con API Key valida potrebbe s
 
 **Soluzione proposta:**  
 Aggiungere `Microsoft.AspNetCore.RateLimiting` con policy per API Key quando l'API sarà in produzione.
+
+---
+
+## Issue Risolte
+
+### API-004 — Gestione errore DB con 503 Service Unavailable
+
+| Campo | Valore |
+|-------|--------|
+| **ID** | API-004 |
+| **Categoria** | Robustezza |
+| **Priorità** | Bassa |
+| **Status** | ✅Risolto |
+| **Data Apertura** | 2026-04-13 |
+| **Data Risoluzione** | 2026-04-13 |
+| **Branch** | fix/gui-010-api-004 |
+| **Correlata** | [GUI-010](../GUI.Windows/ISSUES.md#gui-010--gestione-errore-connessione-db-allavvio) |
+
+**Soluzione Implementata:**
+
+1. **`DatabaseExceptionMiddleware.cs`** CREATO — global exception handler:
+   - Cattura `TimeoutException`, `SqlException` (by name, no direct dependency) e wrapper EF Core (InnerException ricorsivo)
+   - Ritorna `503 Service Unavailable` con JSON `{ "error": "..." }`
+   - In Development: aggiunge campo `detail` con `ex.Message`
+   - In Production: solo messaggio generico (no stacktrace leak)
+2. **`Program.cs`**: middleware registrato **prima** di `ApiKeyMiddleware`
+3. **8 unit test** in `DatabaseExceptionMiddlewareTests.cs`
+
+**File Creati:**
+- `API/Middleware/DatabaseExceptionMiddleware.cs`
+- `Tests/Unit/API/DatabaseExceptionMiddlewareTests.cs`
+
+**File Modificati:**
+- `API/Program.cs` (registrazione middleware)
+
+**Benefici Ottenuti:**
+- Consumer ricevono JSON strutturato 503 invece di 500 con stacktrace ✅
+- Nessun leak di informazioni interne in produzione ✅
+- Health check `/health` + middleware complementari ✅
 
 ---
