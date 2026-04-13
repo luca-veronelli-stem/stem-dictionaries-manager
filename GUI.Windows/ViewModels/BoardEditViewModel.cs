@@ -64,6 +64,12 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _isPrimary;
 
+    /// <summary>
+    /// Nota informativa sotto il campo FirmwareType (visibile solo in creazione).
+    /// </summary>
+    [ObservableProperty]
+    private string? _firmwareTypeHint;
+
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
 
@@ -126,6 +132,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 }
 
                 LoadFromBoard(board);
+            }
+            else
+            {
+                // Pre-compila con il primo FirmwareType disponibile
+                var nextFw = await _boardService.GetNextAvailableFirmwareTypeAsync();
+                FirmwareType = nextFw;
+                FirmwareTypeHint = $"Primo valore disponibile suggerito ({nextFw})";
             }
 
             _isInitialized = true;
