@@ -92,18 +92,13 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         Assert.NotNull(stdDict);
         Assert.Equal("Standard", stdDict.Name);
 
-        // 3. Tenta di creare secondo standard (violazione BR-004 a livello DB)
+        // 3. Tenta di creare secondo standard → il DB blocca (BR-004 partial unique index)
         var standard2 = new DictionaryEntity
         {
             Name = "AltroStandard",
             IsStandard = true
         };
-        await dictRepo.AddAsync(standard2);
-
-        // 4. Verifica che ci siano 2 standard (il vincolo è a livello service, non DB)
-        var allStandards = await Context.Dictionaries.Where(d => d.IsStandard).ToListAsync();
-        Assert.Equal(2, allStandards.Count);
-        // Nota: Il vincolo BR-004 è enforced da DictionaryService, non dal DB
+        await Assert.ThrowsAsync<DbUpdateException>(() => dictRepo.AddAsync(standard2));
     }
 
     #endregion
