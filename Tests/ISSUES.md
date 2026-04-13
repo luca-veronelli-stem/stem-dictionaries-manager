@@ -12,16 +12,17 @@
 |----------|--------|---------|
 | **Critica** | 0 | 0 |
 | **Alta** | 0 | 3 |
-| **Media** | 0 | 4 |
+| **Media** | 1 | 4 |
 | **Bassa** | 1 | 2 |
 
-**Totale aperte:** 1  
+**Totale aperte:** 2  
 **Totale risolte:** 9
 
 ---
 
 ## Indice Issue Aperte
 
+- [TEST-011 - Riorganizzazione completa suite di test](#test-011--riorganizzazione-completa-suite-di-test)
 - [TEST-006 - Magic strings ripetute nei test](#test-006--magic-strings-ripetute-nei-test)
 
 ## Indice Issue Risolte
@@ -55,6 +56,97 @@
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
 > **Nota:** I conteggi sono metodi test `[Fact]`/`[Theory]`. I metodi `[Theory]` con `[InlineData]` generano più test case nel runner xUnit.
+
+---
+
+## Priorità Media
+
+### TEST-011 — Riorganizzazione completa suite di test
+
+**Categoria:** Struttura/Manutenibilità  
+**Priorità:** Media  
+**Impatto:** Medio — test incasinati riducono fiducia nella copertura e rallentano lo sviluppo  
+**Status:** Aperto  
+**Data Apertura:** 2026-04-13  
+**Effort stimato:** L (8-16h)
+
+#### Descrizione
+
+La suite di test (~1420 metodi / ~2330 test cases) è cresciuta organicamente per 48 sessioni. Risultato: duplicazioni, namespace inconsistenti, scenari sovrapposti, copertura non verificabile con certezza. Serve una riorganizzazione completa.
+
+#### Problemi Identificati
+
+**1. Namespace e posizionamento file incoerenti**
+- `WordBitGroupTests` e `CommandParameterItemTests` in `Unit/GUI/ViewModels/` — sono model test, non ViewModel test
+- `SettingsViewModelTests` ancora presente ma Settings rimosso dalla sidebar (UI v1)
+- `Unit/GUI/Mocks/` contiene mock usati sia da Unit che da Integration/GUI — dovrebbe essere shared
+
+**2. Duplicazione tra Integration/GUI e Integration/E2E**
+- `DictionaryEditFlowTests` (Integration/GUI) e `DictionaryWorkflowTests` (Integration/E2E) testano scenari simili con approcci diversi
+- `DeviceFlowTests` + `DeviceDetailFlowTests` (Integration/GUI) vs `DeviceWorkflowTests` (Integration/E2E) — sovrapposizione
+- Non è chiaro quale layer sia responsabile di cosa
+
+**3. Mock services duplicati e frammentati**
+- `MockDataServices.cs` (450+ righe) con 6+ mock service in un unico file
+- `MockServices.cs` con mock UI services — stessa logica, file diverso
+- Alcuni test integration (es. `VariableEditFlowTests`) creano mock locali invece di usare quelli centralizzati
+
+**4. Copertura non verificabile**
+- Tabella copertura in ISSUES.md è manuale e probabilmente non aggiornata
+- Nessun tool di code coverage configurato
+- Alcuni componenti a ~70% (GUI Services) senza piano per migliorare
+
+**5. Test "di accumulo" senza valore chiaro**
+- Test DI registration (22 per GUI, 14 per Infra, 10 per Services = 46 test) — verificano solo che il DI resolve. Utili ma sproporzionati
+- Test enum con `HasExpectedCount` e `HasExpectedValues` — fragili (rompono ogni volta che aggiungi un valore)
+
+**6. Convenzione nomi non uniforme**
+- Alcuni: `MethodName_Scenario_Expected` (corretto)
+- Altri: `MethodName_ExpectedBehavior` (manca lo scenario)
+- Flow tests: nomi lunghi descrittivi vs nomi brevi
+
+#### Soluzione Proposta
+
+**Fase 1 — Namespace e struttura** (4h)
+```
+Tests/
+├── Shared/                          # Mock, factory, costanti (ex Mocks/)
+│   ├── TestData.cs                  # Factory + costanti (incorpora TEST-006)
+│   ├── MockServices.cs              # Mock UI services
+│   └── MockDataServices.cs          # Mock data services
+├── Unit/
+│   ├── Core/                        # Enums + Models (merge, non separati)
+│   ├── Infrastructure/              # DI tests
+│   ├── Services/                    # Mapping + DI tests
+│   ├── GUI/                         # ViewModels + Converters + Services
+│   └── API/                         # Middleware + Mapper
+├── Integration/
+│   ├── Infrastructure/              # Repository CRUD
+│   ├── Services/                    # Service business logic
+│   └── Scenarios/                   # Flussi GUI + E2E (merge)
+└── E2E/
+    ├── DatabaseSeederTests.cs       # Seed verification (170 test)
+    └── AuditTrailTests.cs           # Audit verification
+```
+
+**Fase 2 — Eliminare duplicazioni** (4h)
+- Merge flow tests + workflow tests in `Integration/Scenarios/`
+- Consolidare mock in `Shared/`
+- Rimuovere test DI ridondanti (tenere 1 per servizio, non 3)
+
+**Fase 3 — Magic strings e factory** (2h)
+- Incorpora TEST-006: creare `TestData.cs` con factory method
+- Tutti i test usano factory invece di costruttori inline
+
+**Fase 4 — Convenzione nomi** (2h)
+- Allineare tutti a `MethodName_Scenario_Expected`
+- Rinominare file: `*FlowTests` + `*WorkflowTests` → `*ScenarioTests`
+
+#### Note
+
+- TEST-006 (Magic strings) viene incorporata in questa issue (Fase 3)
+- Non aggiungere code coverage tool — verifica manuale è sufficiente per ora
+- I 170 test DatabaseSeeder restano separati (sono un mondo a sé)
 
 ---
 
