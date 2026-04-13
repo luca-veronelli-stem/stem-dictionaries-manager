@@ -22,9 +22,12 @@ public static class BoardMapper
             entity.PartNumber,
             entity.IsPrimary,
             entity.DictionaryId,
+            entity.Device?.MachineCode
+                ?? throw new InvalidOperationException(
+                    $"Board '{entity.Name}' (Id={entity.Id}) has no Device loaded. " +
+                    "Include Device in the query to provide MachineCode."),
             entity.Dictionary?.Name,
-            entity.Device?.Name,
-            entity.Device?.MachineCode ?? 0);
+            entity.Device?.Name);
     }
 
     public static BoardEntity ToEntity(Board domain)

@@ -22,6 +22,8 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- **Infrastructure**: 6 DB constraints per regole di business — 3 CHECK (`MachineCode > 0`, `BitIndex >= 0`, `WordIndex >= 0`), 2 partial unique (`IsStandard`, `IsPrimary`), 1 unique (`Command.Name`) (T-004)
+- **Infrastructure**: Migration `AddBusinessRuleConstraints` per Azure SQL
 - **API**: Progetto ASP.NET Core Minimal API con 12 endpoint (10 business + health check + version)
 - **API**: Autenticazione via API Key header `X-Api-Key` con chiavi multiple per consumer (BR-API-001)
 - **API**: Endpoint variabili risolte con merge standard + specifiche + override per-dizionario (BR-API-002)
@@ -47,6 +49,9 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Changed
 
+- **Core**: `Board.machineCode` reso parametro obbligatorio in constructor e `Restore` — era `= 0` (illegale per BR-014), ora il compilatore forza il chiamante a dichiarare il valore (T-005)
+- **Services**: `BoardMapper.ToDomain` lancia `InvalidOperationException` se `Device` non è caricato nel query, invece di usare silenziosamente `MachineCode = 0` (T-005)
+- **GUI.Windows**: `BoardEditViewModel` inietta `IDeviceService` per caricare `MachineCode` dal Device — fix bug pre-esistente dove `ProtocolAddress` veniva salvato come `0x00000000` per board create dalla GUI (T-005)
 - **Infrastructure**: Centralizzata logica risoluzione connection string in `DependencyInjection.ResolveConnectionString()`
 - **Infrastructure**: Centralizzato path default SQLite in `DependencyInjection.GetDefaultSqlitePath()`
 - **Infrastructure**: Rimosso parametro inutilizzato `provider` da `ResolveConnectionString()`

@@ -13,6 +13,7 @@ namespace Tests.Integration.GUI;
 public class BoardEditFlowTests
 {
     private readonly MockBoardService _boardService;
+    private readonly MockDeviceService _deviceService;
     private readonly MockNavigationService _navigationService;
     private readonly MockDialogService _dialogService;
     private readonly MockMessageService _messageService;
@@ -21,12 +22,14 @@ public class BoardEditFlowTests
     public BoardEditFlowTests()
     {
         _boardService = new MockBoardService();
+        _deviceService = new MockDeviceService();
         _navigationService = new MockNavigationService();
         _dialogService = new MockDialogService();
         _messageService = new MockMessageService();
 
         _viewModel = new BoardEditViewModel(
             _boardService,
+            _deviceService,
             _navigationService,
             _dialogService,
             _messageService);
@@ -77,7 +80,7 @@ public class BoardEditFlowTests
     public async Task CreateBoard_AsPrimary_WhenPrimaryExists_ShowsError()
     {
         // Arrange - esiste già una primary per questo device
-        var existingPrimary = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: true, null);
+        var existingPrimary = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: true, null, machineCode: 1);
         _boardService.SeedBoards(existingPrimary);
 
         await _viewModel.InitializeAsync(null, presetDeviceId: 1);
@@ -143,7 +146,7 @@ public class BoardEditFlowTests
     public async Task EditBoard_LoadsExistingData()
     {
         // Arrange
-        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, "DIS0020477", isPrimary: true, dictionaryId: 1);
+        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, "DIS0020477", isPrimary: true, dictionaryId: 1, machineCode: 1);
         _boardService.SeedBoards(existingBoard);
 
         // Act
@@ -162,8 +165,8 @@ public class BoardEditFlowTests
     public async Task EditBoard_ChangePrimary_WhenAnotherExists_ShowsError()
     {
         // Arrange
-        var existingPrimary = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: true, null);
-        var editingBoard = Board.Restore(2, 1, "Pulsantiera", 4, 2, null, isPrimary: false, null);
+        var existingPrimary = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: true, null, machineCode: 1);
+        var editingBoard = Board.Restore(2, 1, "Pulsantiera", 4, 2, null, isPrimary: false, null, machineCode: 1);
         _boardService.SeedBoards(existingPrimary, editingBoard);
 
         await _viewModel.InitializeAsync(boardId: 2);
@@ -189,7 +192,7 @@ public class BoardEditFlowTests
     public async Task DeleteBoard_WithConfirmation_DeletesAndNavigatesBack()
     {
         // Arrange
-        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: false, null);
+        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: false, null, machineCode: 1);
         _boardService.SeedBoards(existingBoard);
         _dialogService.ConfirmResult = DialogResult.Yes;
 
@@ -207,7 +210,7 @@ public class BoardEditFlowTests
     public async Task DeleteBoard_WithCancellation_DoesNotDelete()
     {
         // Arrange
-        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: false, null);
+        var existingBoard = Board.Restore(1, 1, "Madre", 17, 1, null, isPrimary: false, null, machineCode: 1);
         _boardService.SeedBoards(existingBoard);
         _dialogService.ConfirmResult = DialogResult.No;
 

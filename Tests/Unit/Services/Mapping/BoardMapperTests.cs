@@ -50,7 +50,7 @@ public class BoardMapperTests
     public void ToEntity_MapsAllProperties()
     {
         var board = new Board(10, "Madre", 17, 1,
-            "DIS001", isPrimary: true, dictionaryId: 3);
+            10, "DIS001", isPrimary: true, dictionaryId: 3);
 
         var result = BoardMapper.ToEntity(board);
 
@@ -66,7 +66,7 @@ public class BoardMapperTests
     [Fact]
     public void ToEntity_IsPrimaryFalse_MapsCorrectly()
     {
-        var board = new Board(10, "Periferica", 4, 2);
+        var board = new Board(10, "Periferica", 4, 2, 10);
 
         var result = BoardMapper.ToEntity(board);
 
@@ -78,7 +78,7 @@ public class BoardMapperTests
     public void UpdateEntity_UpdatesAllFields()
     {
         var entity = CreateEntity(isPrimary: false);
-        var updated = Board.Restore(10, 3, "Renamed", 18, 2, "NEW", true, 7);
+        var updated = Board.Restore(10, 3, "Renamed", 18, 2, "NEW", true, 7, machineCode: 3);
 
         BoardMapper.UpdateEntity(entity, updated);
 
@@ -122,6 +122,7 @@ public class BoardMapperTests
         PartNumber = "DIS001",
         ProtocolAddress = 0,
         IsPrimary = isPrimary,
-        DictionaryId = dictionaryId
+        DictionaryId = dictionaryId,
+        Device = new DeviceEntity { Id = 10, Name = "Optimus-XP", MachineCode = 10 }
     };
 }

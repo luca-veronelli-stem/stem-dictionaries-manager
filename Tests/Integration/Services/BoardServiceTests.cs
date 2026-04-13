@@ -34,7 +34,7 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task AddAsync_ValidBoard_CreatesAndReturns()
     {
         // DeviceId=9 → Optimus-XP, MachineCode=10
-        var board = new Board(9, "TestBoard", 17, 1, "DIS001", machineCode: 10);
+        var board = new Board(9, "TestBoard", 17, 1, 10, "DIS001");
 
         var result = await _service.AddAsync(board);
 

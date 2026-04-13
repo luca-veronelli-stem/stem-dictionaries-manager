@@ -159,7 +159,7 @@ public class ApiMapperTests
         var board = Board.Restore(
             id: 2, deviceId: 7, name: "Motore DX", firmwareType: 12,
             boardNumber: 2, partNumber: null, isPrimary: false,
-            dictionaryId: null, dictionaryName: null);
+            dictionaryId: null, machineCode: 7, dictionaryName: null);
 
         var dto = ApiMapper.ToBoardSummaryDto(board);
 

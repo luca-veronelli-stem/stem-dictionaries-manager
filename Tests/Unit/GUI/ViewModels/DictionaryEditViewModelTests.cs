@@ -584,8 +584,8 @@ public class DictionaryEditViewModelTests
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        var warning = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
-        Assert.Contains("Nome", warning.Message);
+        var (Message, Severity) = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
+        Assert.Contains("Nome", Message);
     }
 
     // === StandardVariableOverride Tests ===
@@ -704,7 +704,7 @@ public class DictionaryEditViewModelTests
 
         // Nuovo dizionario non-standard con board
         _boardService.SeedBoards(
-            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: null));
+            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: null, machineCode: 5));
 
         await _viewModel.InitializeAsync(null, deviceId: 5);
         _viewModel.Name = "NuovoDizionario";
@@ -727,7 +727,7 @@ public class DictionaryEditViewModelTests
         var nonStdDict = Dictionary.Restore(2, "Eden-XP", null, false, []);
         _dictionaryService.SeedData(standardDict, nonStdDict);
         _boardService.SeedBoards(
-            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: 2));
+            Board.Restore(1, 5, "Madre", 5, 1, null, true, dictionaryId: 2, machineCode: 5));
 
         await _viewModel.InitializeAsync(2, deviceId: 5);
         _viewModel.Name = "Eden-XP";

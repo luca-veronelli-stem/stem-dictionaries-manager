@@ -14,8 +14,8 @@
 | [API](./API/ISSUES.md) | 3 | 1 | 4 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 8 | 10 |
 | [Tests](./Tests/ISSUES.md) | 2 | 9 | 11 |
-| **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **19** | **42** | **61** |
+| **Trasversali** | **2** | **5** | **7** |
+| **Totale** | **17** | **44** | **61** |
 
 ---
 
@@ -26,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 5% |
-| **Bassa** | 18 | 95% |
-| **Totale** | **19** | 100% |
+| **Bassa** | 16 | 94% |
+| **Totale** | **17** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ██████████████████░░ 18
+Bassa:       ████████████████░░░░ 16
 ```
 
 ---
@@ -65,13 +65,43 @@ Bassa:       ██████████████████░░ 18
 
 | ID | Titolo | Priorità | Status | Componenti Coinvolti |
 |----|--------|----------|--------|----------------------|
-| ~~T-006~~ | ~~StandardVariableOverride per-dizionario (Domain v7)~~ | ~~Alta~~ | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
-| [T-005](#t-005--rendere-espliciti-parametri-semantici-nei-domain-models) | Rendere espliciti parametri semantici nei domain models | Bassa | Aperto | Core, Tests |
-| [T-004](#t-004--aggiungere-db-constraints-per-regole-di-business) | Aggiungere DB constraints per regole di business | Bassa | Aperto | Infrastructure |
-| [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | [T-007](#t-007--rimuovere-proprietà-ridondanti-dai-csproj) | Rimuovere proprietà ridondanti dai .csproj | Bassa | Aperto | Core, Infrastructure, Services |
+| ~~T-006~~ | ~~StandardVariableOverride per-dizionario (Domain v7)~~ | ~~Alta~~ | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
+| ~~T-005~~ | ~~Rendere espliciti parametri semantici nei domain models~~ | ~~Bassa~~ | ✅ **Risolto (parziale)** | Core, Services, GUI.Windows, Tests |
+| ~~T-004~~ | ~~Aggiungere DB constraints per regole di business~~ | ~~Bassa~~ | ✅ **Risolto** | Infrastructure |
+| [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
 | ~~T-001~~ | Dizionario Standard deve essere unico | Alta | ✅ **Risolto** | Services |
+
+---
+
+### T-007 — Rimuovere proprietà ridondanti dai .csproj
+
+**Descrizione:**  
+`Nullable` e `ImplicitUsings` sono definiti in `Directory.Build.props` ma ripetuti in `Core.csproj`, `Infrastructure.csproj` e `Services.csproj`. Le proprietà ridondanti dovrebbero essere rimosse per centralizzare la configurazione.
+
+**Status:** Aperto  
+**Priorità:** Bassa  
+**Data Apertura:** 2026-04-10
+
+**Componenti Coinvolti:**
+- `Core/Core.csproj`
+- `Infrastructure/Infrastructure.csproj`
+- `Services/Services.csproj`
+
+**File `Directory.Build.props` (già presente):**
+```xml
+<Nullable>enable</Nullable>
+<ImplicitUsings>enable</ImplicitUsings>
+```
+
+**Effort stimato:** XS (<30min) — rimozione 2 righe da 3 file
+
+**Benefici Attesi:**
+- Configurazione centralizzata senza duplicati
+- Meno rischio di divergenza tra progetti
+
+---
 
 ### T-006 — StandardVariableOverride per-dizionario (Domain v7)
 
@@ -156,35 +186,43 @@ Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizion
 **Descrizione:**  
 Diversi constructor e factory method `Restore` nei domain models hanno parametri opzionali con default che nascondono scelte semantiche di dominio. Il pattern è stato corretto per `BitInterpretation.DeviceId` (SESSION_037), ma rimane in altri model. L'obiettivo è rimuovere i default dove il valore ha un significato di dominio, forzando il chiamante a dichiarare sempre l'intento.
 
-**Status:** Aperto  
+**Status:** ✅ Risolto (parziale)  
 **Priorità:** Bassa  
-**Data Apertura:** 2026-03-30
+**Branch:** `fix/t-004-005`  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-13  
+**Effort effettivo:** S (~2h)
 
 **Precedente:**  
 `BitInterpretation(deviceId = null)` → reso obbligatorio in SESSION_037. Il default nascondeva "interpretazione comune a tutti i device". In v7, `DeviceId` → `DictionaryId` (T-006).
 
-**Parametri da valutare:**
+**Parametri valutati:**
 
-| # | Model | Parametro | Default | Rischio | Note |
-|---|-------|-----------|---------|---------|------|
-| 1 | Board | `machineCode` | `= 0` | Medio | 0 è illegale per BR-014. In Restore (da DB) potrebbe mascherare un mapper incompleto |
-| 2 | Board.Restore | `machineCode` | `= 0` | Medio | Stesso problema — dato denormalizzato da Device |
-| 3 | CommandDeviceState | `isEnabled` | `= true` | Basso | Restore esplicito, constructor usato solo nei test |
-| ~~4~~ | ~~VariableDeviceState~~ | ~~`isEnabled`~~ | ~~`= true`~~ | ~~Basso~~ | ~~Risolto da T-006 (entity rimossa)~~ |
-| 5 | Command | `isResponse` | `= false` | Basso | Restore esplicito, mapper passa il valore |
-| 6 | Dictionary | `isStandard` | `= false` | Basso | Restore esplicito, GUI passa esplicitamente |
-| 7 | Variable | `isEnabled` | `= true` | Basso | Restore completamente esplicito |
+| # | Model | Parametro | Default | Rischio | Decisione |
+|---|-------|-----------|---------|---------|----------|
+| 1 | Board | `machineCode` | `= 0` | Medio | ✅ **Risolto** — reso obbligatorio (5° parametro) |
+| 2 | Board.Restore | `machineCode` | `= 0` | Medio | ✅ **Risolto** — reso obbligatorio |
+| ~~3~~ | ~~VariableDeviceState~~ | ~~`isEnabled`~~ | ~~`= true`~~ | ~~Basso~~ | ~~Risolto da T-006 (entity rimossa)~~ |
+| 4 | CommandDeviceState | `isEnabled` | `= true` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 5 | Command | `isResponse` | `= false` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 6 | Dictionary | `isStandard` | `= false` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 7 | Variable | `isEnabled` | `= true` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
 
-**Criteri di priorità:**
-- **Medio**: il default è un valore illegale o il Restore lo ha opzionale
-- **Basso**: il Restore è già esplicito e il mapper passa sempre il valore
+**Motivazione Wontfix #4-7:**  
+I default sono valori semanticamente corretti (la maggior parte dei comandi non è response, la maggior parte dei dizionari non è standard, variabili e comandi sono abilitati di default). I Restore sono già espliciti, i mapper passano sempre il valore. Forzare l'esplicitezza costerebbe ~150 modifiche meccaniche nei test senza beneficio reale.
 
-**Effort stimato:** S-M (2-4h) — rimozione default + aggiornamento call site nei test
+**Cambiamenti implementati:**
 
-**Benefici Attesi:**
-- Coerenza con il pattern già applicato su `BitInterpretation.DeviceId`
-- Impossibilità di dimenticare un parametro semantico
-- Codice auto-documentante: ogni call site dichiara l'intento
+| # | File | Modifica |
+|---|------|----------|
+| 1 | `Core/Models/Board.cs` | `machineCode` da opzionale (`= 0`) a obbligatorio (5° parametro) |
+| 2 | `Services/Mapping/BoardMapper.cs` | `?? 0` → `throw InvalidOperationException` se Device non caricato |
+| 3 | `Services/BoardService.cs` | Aggiornato ordine parametri in auto-assign |
+| 4 | `GUI.Windows/ViewModels/BoardEditViewModel.cs` | Iniettato `IDeviceService`, carica MachineCode dal Device/Board |
+| 5 | ~18 file test | Aggiornati tutti i call site Board constructor/Restore |
+
+**Bug pre-esistente scoperto e risolto:**  
+`BoardEditViewModel.SaveAsync` creava Board con `machineCode = 0` → `ProtocolAddress = 0x00000000` nel DB. Fix: il ViewModel ora carica `MachineCode` dal Device (new board) o dal Board esistente (edit).
 
 ---
 
@@ -193,24 +231,27 @@ Diversi constructor e factory method `Restore` nei domain models hanno parametri
 **Descrizione:**  
 Diverse regole di business sono attualmente protette solo a livello codice (Core constructor, Services). Aggiungere guard a livello DB (unique indexes, partial indexes, CHECK constraints) come ultima trincea contro dati corrotti.
 
-**Status:** Aperto  
+**Status:** ✅ Risolto  
 **Priorità:** Bassa  
-**Data Apertura:** 2026-03-27
+**Branch:** `fix/t-004-005`  
+**Data Apertura:** 2026-03-27  
+**Data Risoluzione:** 2026-04-13  
+**Effort effettivo:** S (~1h)
 
 **Componenti Coinvolti:**
-- Infrastructure (AppDbContext.OnModelCreating, nuova migration)
+- Infrastructure (AppDbContext.OnModelCreating, migration `AddBusinessRuleConstraints`)
 
 **Constraint da aggiungere:**
 
-| # | Regola | Tipo DB | EF Core API | Entità |
-|---|--------|---------|-------------|--------|
-| 1 | BR-004: Max 1 dizionario Standard | Partial unique index `(IsStandard) WHERE IsStandard = 1` | `HasIndex().IsUnique().HasFilter()` | Dictionary |
-| 2 | BR-005: Max 1 primary board per device | Partial unique index `(DeviceId) WHERE IsPrimary = 1` | `HasIndex().IsUnique().HasFilter()` | Board |
-| 3 | BR-014: MachineCode > 0 | CHECK constraint | `HasCheckConstraint()` | Device |
-| 4 | BR-016: Command.Name univoco | Unique index (**oggi manca!**) | `HasIndex().IsUnique()` | Command |
-| 5 | BitIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
-| 6 | WordIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation |
-| 7 | BR-010: Unicità override standard | Unique index `(DictionaryId, StandardVariableId)` | `HasIndex().IsUnique()` | StandardVariableOverride |
+| # | Regola | Tipo DB | EF Core API | Entità | Status |
+|---|--------|---------|-------------|--------|--------|
+| 1 | BR-004: Max 1 dizionario Standard | Partial unique index `(IsStandard) WHERE IsStandard = 1` | `HasIndex().IsUnique().HasFilter()` | Dictionary | ✅ |
+| 2 | BR-005: Max 1 primary board per device | Partial unique index `(DeviceId) WHERE IsPrimary = 1` | `HasIndex().IsUnique().HasFilter()` | Board | ✅ |
+| 3 | BR-014: MachineCode > 0 | CHECK constraint | `HasCheckConstraint()` | Device | ✅ |
+| 4 | BR-016: Command.Name univoco | Unique index | `HasIndex().IsUnique()` | Command | ✅ |
+| 5 | BitIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation | ✅ |
+| 6 | WordIndex ≥ 0 | CHECK constraint | `HasCheckConstraint()` | BitInterpretation | ✅ |
+| 7 | BR-010: Unicità override standard | Unique index `(DictionaryId, StandardVariableId)` | `HasIndex().IsUnique()` | StandardVariableOverride | ✅ (pre-esistente) |
 
 **Esclusi (restano solo nel codice):**
 
@@ -302,34 +343,6 @@ _logger.LogWarning("GetAllAsync returned {Count} records for {Entity}", result.C
 - Monitoraggio centralizzato
 - Sostituzione Debug.WriteLineIf con logging strutturato
 - Preparazione per futuro Azure Application Insights
-
----
-
-### T-007 — Rimuovere proprietà ridondanti dai .csproj
-
-**Descrizione:**  
-`Nullable` e `ImplicitUsings` sono definiti in `Directory.Build.props` ma ripetuti in `Core.csproj`, `Infrastructure.csproj` e `Services.csproj`. Le proprietà ridondanti dovrebbero essere rimosse per centralizzare la configurazione.
-
-**Status:** Aperto  
-**Priorità:** Bassa  
-**Data Apertura:** 2026-04-10
-
-**Componenti Coinvolti:**
-- `Core/Core.csproj`
-- `Infrastructure/Infrastructure.csproj`
-- `Services/Services.csproj`
-
-**File `Directory.Build.props` (già presente):**
-```xml
-<Nullable>enable</Nullable>
-<ImplicitUsings>enable</ImplicitUsings>
-```
-
-**Effort stimato:** XS (<30min) — rimozione 2 righe da 3 file
-
-**Benefici Attesi:**
-- Configurazione centralizzata senza duplicati
-- Meno rischio di divergenza tra progetti
 
 ---
 
@@ -429,7 +442,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [SVC-007](./Services/ISSUES.md#svc-007--dependencyinjection-non-valida-prerequisiti) | DI non valida prerequisiti | Bassa | Robustezza |
 | ~~SVC-010~~ | ~~Class1.cs placeholder non rimosso~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### GUI.Windows (3 issue aperte, 7 risolte)
+### GUI.Windows (2 issue aperte, 8 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -442,9 +455,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~GUI-006~~ | ~~LoginViewModel registrato due volte nel DI~~ | ~~Media~~ | ✅ **Risolto** |
 | [GUI-002](./GUI.Windows/ISSUES.md#gui-002--appservices-è-static-e-impedisce-testabilità) | AppServices è static e impedisce testabilità | Bassa | Design |
 | [GUI-003](./GUI.Windows/ISSUES.md#gui-003--dialogservice-usa-messagebox-sincrono-wrappato-in-task) | DialogService finto async | Bassa | Design |
-| [GUI-010](./GUI.Windows/ISSUES.md#gui-010--gestione-errore-connessione-db-allavvio) | Gestione errore connessione DB all'avvio | Bassa | ✅ **Risolto** |
+| ~~GUI-010~~ | ~~Gestione errore connessione DB all'avvio~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### API (4 issue aperte, 0 risolte)
+### API (3 issue aperte, 1 risolta)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|  
@@ -453,7 +466,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | [API-003](./API/ISSUES.md#api-003--manca-rate-limiting) | Manca rate limiting | Bassa | Security |
 | ~~API-004~~ | ~~Endpoint restituiscono 500 se DB non raggiungibile~~ | ~~Bassa~~ | ✅ **Risolto** |
 
-### Tests (1 issue aperta, 9 risolte)
+### Tests (2 issue aperte, 9 risolte)
 
 | ID | Titolo | Priorità | Categoria |
 |----|--------|----------|-----------|
@@ -466,7 +479,8 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | ~~TEST-009~~ | ~~Aggiornamento test per Domain v2 (T-002)~~ | ~~Alta~~ | ✅ **Risolto** |
 | ~~TEST-007~~ | ~~Manca test Shared Peripheral~~ | ~~Alta~~ | ✅ **Risolto (T-002)** |
 | ~~TEST-008~~ | ~~VariableMapperTests non testa Format round-trip~~ | ~~Media~~ | ✅ **Risolto** |
-| [TEST-006](./Tests/ISSUES.md#test-006--test-gui-usano-costruttori-deprecati) | Test GUI usano costruttori deprecati | Bassa | Manutenibilità |
+| [TEST-011](./Tests/ISSUES.md#test-011--riorganizzazione-completa-suite-di-test) | Riorganizzazione completa suite di test | Media | Struttura |
+| [TEST-006](./Tests/ISSUES.md#test-006--magic-strings-ripetute-nei-test) | Magic strings ripetute nei test | Bassa | Manutenibilità |
 
 ---
 
@@ -507,7 +521,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | # | ID | Componente | Titolo | Effort |
 |---|-----|------------|--------|--------|
 | 1 | T-003 | Trasversale | Logging infrastructure | M |
-| 2 | T-004 | Trasversale | DB constraints per regole di business | S |
+| ~~2~~ | ~~T-004~~ | ~~Trasversale~~ | ~~DB constraints per regole di business~~ | ✅ **Risolto** |
 
 **Effort:** S = 1-2h, M = 4-8h, L = 1-2 giorni
 
@@ -529,7 +543,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
-**Totale test:** ~559 CI (net10.0) / ~1786 Windows (net10.0-windows)
+**Totale test:** ~559 CI (net10.0) / ~1974 Windows (net10.0-windows)
 
 ---
 
@@ -539,12 +553,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 |---------|-------|------|
 | **Architecture** | ✅ 95% | Domain v7 implementato, T-006 completata |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
-| **Input Validation** | ✅ 85% | BR-011 (StandardVariableOverride v7), CORE-006, CORE-005 residui |
-| **Data Integrity** | ✅ 95% | SVC-009 risolta |
+| **Input Validation** | ✅ 90% | T-005 risolta (Board machineCode obbligatorio), CORE-005 residuo |
+| **Data Integrity** | ✅ 100% | SVC-009 + T-004 risolte, DB constraints come ultima trincea |
 | **Performance** | ✅ 100% | INFRA-002 + SVC-003 (Wontfix, coperto da INFRA-002) |
-| **Resilience** | ✅ 90% | GUI-005 risolta, navigazione protetta |
+| **Resilience** | ✅ 95% | GUI-005+GUI-010+API-004 risolte, navigazione e DB protetti |
 | **Code Consistency** | ✅ 90% | INFRA-006 residuo |
-| **Test Coverage** | ✅ 95% | ~1786 test cases, TEST-010 risolta |
+| **Test Coverage** | ✅ 95% | ~1974 test cases, TEST-010 risolta |
 
 ---
 
@@ -563,7 +577,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Code Smell** | 0 | - |
 | **Feature** | 0 | ~~SVC-002~~ — Risolto |
 | **Robustezza** | 1 | SVC-007 |
-| **Trasversale** | 3 | T-003, T-004, T-005 |
+| **Trasversale** | 1 | T-003 |
 
 ---
 
@@ -590,6 +604,9 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
+| 2026-04-13 | ✅ **T-005 risolta (parziale)** — Board `machineCode` reso obbligatorio, `BoardMapper` fail-fast se Device non caricato, `BoardEditViewModel` inietta `IDeviceService` per MachineCode. #4-7 Wontfix (default semanticamente corretti). Bug pre-esistente ProtocolAddress=0 risolto. 1974/1974 test verdi. 17 aperte, 44 risolte.
+| 2026-04-13 | ✅ **T-004 risolta**
+| 2026-04-13 | ✅ **GUI-010 + API-004 risolte** —
 | 2026-04-07 | ✅ **TEST-010 risolta** — Test aggiornati per Domain v7: BitInterpretation DeviceId→DictionaryId, VariableDeviceState→StandardVariableOverride, E2E test riscritti, AuditEntityType count 7→8. 1786/1786 test verdi. T-006 **COMPLETATA**. 15 aperte, 39 risolte. |
 | 2026-04-07 | ✅ **GUI-009 risolta** — DeviceVariablesView eliminata, DeviceVariables rimosso da ViewType/MainViewModel/DI, VariableEditViewModel DeviceContext→DictionaryContext. |
 | 2026-04-07 | ✅ **SVC-012 risolta**

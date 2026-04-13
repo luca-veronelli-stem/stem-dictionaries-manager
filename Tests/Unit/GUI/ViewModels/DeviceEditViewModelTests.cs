@@ -299,8 +299,8 @@ public class DeviceEditViewModelTests
     {
         // Arrange: device con 2 board, 1 dizionario
         _boardService.SeedBoards(
-            Board.Restore(1, 3, "Madre", 5, 1, null, true, dictionaryId: 10),
-            Board.Restore(2, 3, "Puls", 4, 2, null, false, dictionaryId: 20));
+            Board.Restore(1, 3, "Madre", 5, 1, null, true, dictionaryId: 10, machineCode: 3),
+            Board.Restore(2, 3, "Puls", 4, 2, null, false, dictionaryId: 20, machineCode: 3));
         _dialogService.ConfirmResult = DialogResult.No;
         await _viewModel.InitializeAsync(3);
 
@@ -388,7 +388,7 @@ public class DeviceEditViewModelTests
     [Fact]
     public void ImplementsIEditableViewModel()
     {
-        Assert.IsAssignableFrom<IEditableViewModel>(_viewModel);
+        Assert.IsType<IEditableViewModel>(_viewModel, exactMatch: false);
     }
 }
 #endif

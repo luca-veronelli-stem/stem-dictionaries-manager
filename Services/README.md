@@ -1,7 +1,7 @@
 # Services
 
 > **Layer di business logic con mapping Entity ↔ Domain e orchestrazione dei repository.**  
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -97,7 +97,7 @@ Services/
 │   └── ICurrentUserProvider.cs    # Utente corrente per audit (Singleton)
 ├── Mapping/
 │   ├── UserMapper.cs              # User Entity ↔ Domain
-│   ├── BoardMapper.cs             # Board Entity ↔ Domain (FirmwareType, DictionaryId?, IsPrimary)
+│   ├── BoardMapper.cs             # Board Entity ↔ Domain (machineCode obbligatorio, fail-fast se Device non caricato)
 │   ├── VariableMapper.cs          # Variable Entity ↔ Domain (Format, DataTypeKind/Param/Raw)
 │   ├── DictionaryMapper.cs        # Dictionary Entity ↔ Domain (IsStandard flag)
 │   ├── CommandMapper.cs           # Command Entity ↔ Domain (JSON params)
