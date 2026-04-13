@@ -14,6 +14,7 @@ namespace GUI.Windows.ViewModels;
 public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
     private readonly IBoardService _boardService;
+    private readonly IDeviceService _deviceService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
@@ -21,6 +22,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private int? _editingId;
     private int? _existingDictionaryId;
     private string? _existingDictionaryName;
+    private int _machineCode;
     private bool _isInitialized;
     private bool _showValidation;
 
@@ -81,11 +83,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     public BoardEditViewModel(
         IBoardService boardService,
+        IDeviceService deviceService,
         INavigationService navigationService,
         IDialogService dialogService,
         IMessageService messageService)
     {
         _boardService = boardService;
+        _deviceService = deviceService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
@@ -105,6 +109,10 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             {
                 DeviceId = presetDeviceId.Value;
                 IsDeviceIdLocked = true;
+
+                // Carica MachineCode dal Device per ProtocolAddress
+                var device = await _deviceService.GetByIdAsync(presetDeviceId.Value);
+                _machineCode = device?.MachineCode ?? 0;
             }
 
             if (boardId.HasValue)
@@ -147,6 +155,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         IsPrimary = b.IsPrimary;
         _existingDictionaryId = b.DictionaryId;
         _existingDictionaryName = b.DictionaryName;
+        _machineCode = b.MachineCode;
     }
 
     private bool Validate()
@@ -190,6 +199,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     name: Name,
                     firmwareType: FirmwareType,
                     boardNumber: BoardNumber,
+                    machineCode: _machineCode,
                     partNumber: PartNumber,
                     isPrimary: IsPrimary);
 
@@ -206,7 +216,8 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     boardNumber: BoardNumber,
                     partNumber: PartNumber,
                     isPrimary: IsPrimary,
-                    dictionaryId: _existingDictionaryId);
+                    dictionaryId: _existingDictionaryId,
+                    machineCode: _machineCode);
 
                 await _boardService.UpdateAsync(existing);
                 _messageService.Show($"Scheda '{Name}' aggiornata", MessageSeverity.Success);
