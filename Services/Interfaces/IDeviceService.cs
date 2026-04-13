@@ -18,4 +18,9 @@ public interface IDeviceService
     /// Cerca device per nome (unique).
     /// </summary>
     Task<Device?> GetByNameAsync(string name, CancellationToken ct = default);
+
+    /// <summary>
+    /// Calcola il primo MachineCode disponibile (max + 1, salta 6 riservato BLE).
+    /// </summary>
+    Task<int> GetNextAvailableMachineCodeAsync(CancellationToken ct = default);
 }
