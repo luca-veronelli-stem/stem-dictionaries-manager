@@ -119,7 +119,17 @@ public partial class DeviceDetailViewModel : ObservableObject
     public async Task ReloadBoardsAsync()
     {
         if (DeviceId is null) return;
-        await LoadBoardsAsync(DeviceId.Value);
+
+        try
+        {
+            var boards = await _boardService.GetByDeviceIdAsync(DeviceId.Value);
+            PopulateBoards(boards);
+        }
+        catch (Exception ex)
+        {
+            _messageService.Show($"Errore caricamento schede: {ex.Message}",
+                MessageSeverity.Error);
+        }
     }
 
     private async Task LoadDataAsync()
@@ -135,20 +145,7 @@ public partial class DeviceDetailViewModel : ObservableObject
 
             // Carica board di questo device
             var boards = await _boardService.GetByDeviceIdAsync(id);
-
-            // Popola sezione schede
-            Boards = new ObservableCollection<BoardListItem>(
-                boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    FirmwareType = b.FirmwareType,
-                    BoardNumber = b.BoardNumber,
-                    ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
-                    PartNumber = b.PartNumber,
-                    DictionaryName = b.DictionaryName,
-                    IsPrimary = b.IsPrimary
-                }));
+            PopulateBoards(boards);
 
             // Popola sezione dizionari (derivati da board)
             var linkedDictIds = new HashSet<int>(
@@ -184,30 +181,21 @@ public partial class DeviceDetailViewModel : ObservableObject
         }
     }
 
-    private async Task LoadBoardsAsync(int deviceId)
+    private void PopulateBoards(IReadOnlyList<Board> boards)
     {
-        try
-        {
-            var boards = await _boardService.GetByDeviceIdAsync(deviceId);
-            Boards = new ObservableCollection<BoardListItem>(
-                boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    MachineCode = b.MachineCode,
-                    FirmwareType = b.FirmwareType,
-                    BoardNumber = b.BoardNumber,
-                    ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
-                    PartNumber = b.PartNumber,
-                    DictionaryName = b.DictionaryName,
-                    IsPrimary = b.IsPrimary
-                }));
-        }
-        catch (Exception ex)
-        {
-            _messageService.Show($"Errore caricamento schede: {ex.Message}",
-                MessageSeverity.Error);
-        }
+        Boards = new ObservableCollection<BoardListItem>(
+            boards.OrderBy(b => b.BoardNumber).Select(b => new BoardListItem
+            {
+                Id = b.Id,
+                Name = b.Name,
+                MachineCode = b.MachineCode,
+                FirmwareType = b.FirmwareType,
+                BoardNumber = b.BoardNumber,
+                ProtocolAddress = $"0x{b.ProtocolAddress:X8}",
+                PartNumber = b.PartNumber,
+                DictionaryName = b.DictionaryName,
+                IsPrimary = b.IsPrimary
+            }));
     }
 
     [RelayCommand]
