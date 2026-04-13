@@ -83,6 +83,14 @@
             </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                <DataGridTextColumn Header="Machine Type" Binding="{Binding MachineCode}" Width="90" MinWidth="60">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="FW Type" Binding="{Binding FirmwareType}" Width="70" MinWidth="50">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
