@@ -49,6 +49,7 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **Filtro Abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
 | **Audit User Provider** | ✅ | MainViewModel setta ICurrentUserProvider dopo login/logout per audit trail |
 | **DB Error Handling** | ✅ | Retry loop all'avvio con DarkDialog se DB non raggiungibile (Riprova/Esci) |
+| **Auto-fill parametri** | ✅ | MachineCode e FirmwareType pre-compilati con primo valore disponibile in creazione |
 
 ---
 
@@ -111,7 +112,7 @@ GUI.Windows/
 │   ├── MainViewModel.cs           # Shell, navigazione, status bar, unsaved changes guard
 │   ├── LoginViewModel.cs          # Login: carica utenti, conferma login
 │   ├── DeviceListViewModel.cs     # Lista dispositivi con ricerca
-│   ├── DeviceEditViewModel.cs     # Crea/modifica/elimina dispositivo
+│   ├── DeviceEditViewModel.cs     # Crea/modifica/elimina dispositivo (MachineCode auto-fill + hint)
 │   ├── DeviceDetailViewModel.cs   # Dettaglio device: dizionari + schede associate
 │   ├── DictionaryListViewModel.cs # Lista dizionari (double-click per edit)
 │   ├── DictionaryEditViewModel.cs # Form dizionario + variabili + StandardVariableItem (record)
@@ -119,7 +120,7 @@ GUI.Windows/
 │   ├── DeviceCommandsViewModel.cs # Stato comandi per device (checkbox Attivo, salvataggio bulk)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
 │   ├── CommandEditViewModel.cs    # Crea/modifica comando + delete (CodeHigh computed)
-│   ├── BoardEditViewModel.cs      # Crea/modifica/elimina scheda (IDeviceService per MachineCode)
+│   ├── BoardEditViewModel.cs      # Crea/modifica/elimina scheda (IDeviceService per MachineCode, FirmwareType auto-fill + hint)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   ├── SettingsViewModel.cs       # Impostazioni app (stub, non in sidebar v1)
 │   ├── WordBitGroup.cs            # Gruppo bit per word (max WordSize bit, Bitmapped)

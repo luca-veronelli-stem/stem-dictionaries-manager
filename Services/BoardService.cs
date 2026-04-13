@@ -167,6 +167,13 @@ public class BoardService : IBoardService
         return entity is null ? null : BoardMapper.ToDomain(entity);
     }
 
+    public async Task<int> GetNextAvailableFirmwareTypeAsync(CancellationToken ct = default)
+    {
+        var all = await _boardRepository.GetAllAsync(ct);
+        var maxFw = all.Count > 0 ? all.Max(b => b.FirmwareType) : 0;
+        return maxFw + 1;
+    }
+
     // === Private helpers ===
 
     private async Task EnsureNoPrimaryExistsAsync(

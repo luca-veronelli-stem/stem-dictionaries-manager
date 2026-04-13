@@ -24,4 +24,9 @@ public interface IBoardService
     /// Cerca scheda per indirizzo protocol.
     /// </summary>
     Task<Board?> GetByProtocolAddressAsync(uint protocolAddress, CancellationToken ct = default);
+
+    /// <summary>
+    /// Calcola il primo FirmwareType disponibile (max globale + 1).
+    /// </summary>
+    Task<int> GetNextAvailableFirmwareTypeAsync(CancellationToken ct = default);
 }

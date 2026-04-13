@@ -43,6 +43,12 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private string _description = string.Empty;
 
+    /// <summary>
+    /// Nota informativa sotto il campo MachineCode (visibile solo in creazione).
+    /// </summary>
+    [ObservableProperty]
+    private string? _machineCodeHint;
+
     // === Validazione ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
@@ -79,6 +85,13 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             Name = device.Name;
             MachineCode = device.MachineCode.ToString();
             Description = device.Description ?? string.Empty;
+        }
+        else
+        {
+            // Pre-compila con il primo MachineCode disponibile
+            var nextCode = await _deviceService.GetNextAvailableMachineCodeAsync();
+            MachineCode = nextCode.ToString();
+            MachineCodeHint = $"Primo valore disponibile suggerito ({nextCode})";
         }
 
         HasChanges = false;

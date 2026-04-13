@@ -45,6 +45,58 @@ public class BoardEditViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_New_PreFillsFirmwareType()
+    {
+        // Nessuna board seedata → max=0, next=1
+        await _viewModel.InitializeAsync(null);
+
+        Assert.Equal(1, _viewModel.FirmwareType);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_New_PreFillsFirmwareType_WithExistingBoards()
+    {
+        _boardService.SeedBoards(
+            Board.Restore(1, 10, "A", 17, 1, null, false, null, 10),
+            Board.Restore(2, 10, "B", 20, 2, null, false, null, 10));
+
+        var vm = new BoardEditViewModel(
+            _boardService, _deviceService, _navigationService,
+            _dialogService, _messageService);
+        await vm.InitializeAsync(null);
+
+        Assert.Equal(21, vm.FirmwareType);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_New_SetsFirmwareTypeHint()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        Assert.NotNull(_viewModel.FirmwareTypeHint);
+        Assert.Contains("1", _viewModel.FirmwareTypeHint);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_New_HasChangesIsFalse()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        Assert.False(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Edit_NoFirmwareTypeHint()
+    {
+        var board = new Board(10, "Existing", 17, 1, 10);
+        await _boardService.AddAsync(board);
+
+        await _viewModel.InitializeAsync(1);
+
+        Assert.Null(_viewModel.FirmwareTypeHint);
+    }
+
+    [Fact]
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
         var board = new Board(10, "Existing", 17, 1, 10);

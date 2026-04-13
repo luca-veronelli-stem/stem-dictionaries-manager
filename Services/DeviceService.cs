@@ -144,4 +144,17 @@ public class DeviceService : IDeviceService
         var entity = await _repository.GetByNameAsync(name, ct);
         return entity is null ? null : DeviceMapper.ToDomain(entity);
     }
+
+    public async Task<int> GetNextAvailableMachineCodeAsync(CancellationToken ct = default)
+    {
+        var all = await _repository.GetAllAsync(ct);
+        var maxCode = all.Count > 0 ? all.Max(d => d.MachineCode) : 0;
+        var next = maxCode + 1;
+
+        // Salta MachineCode 6 riservato per BLE Module (BR-015)
+        if (next == Device.ReservedBleModuleMachineCode)
+            next++;
+
+        return next;
+    }
 }

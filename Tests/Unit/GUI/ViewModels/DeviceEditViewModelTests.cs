@@ -52,6 +52,41 @@ public class DeviceEditViewModelTests
         Assert.False(_viewModel.HasChanges);
     }
 
+    [Fact]
+    public async Task InitializeAsync_New_PreFillsMachineCode()
+    {
+        // MockDeviceService ha 11 device seedati, max MachineCode = 12
+        await _viewModel.InitializeAsync(null);
+
+        Assert.Equal("13", _viewModel.MachineCode);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_New_SetsMachineCodeHint()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        Assert.NotNull(_viewModel.MachineCodeHint);
+        Assert.Contains("13", _viewModel.MachineCodeHint);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_New_HasChangesIsFalse()
+    {
+        await _viewModel.InitializeAsync(null);
+
+        // Pre-compilazione non deve marcare HasChanges
+        Assert.False(_viewModel.HasChanges);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Edit_NoHint()
+    {
+        await _viewModel.InitializeAsync(3);
+
+        Assert.Null(_viewModel.MachineCodeHint);
+    }
+
     // === InitializeAsync — Edit ===
 
     [Fact]
@@ -128,6 +163,7 @@ public class DeviceEditViewModelTests
     {
         await _viewModel.InitializeAsync(null);
         _viewModel.Name = "New Device";
+        _viewModel.MachineCode = "";
 
         _viewModel.SaveCommand.Execute(null);
         await Task.Delay(50);
@@ -254,8 +290,8 @@ public class DeviceEditViewModelTests
     [Fact]
     public async Task SaveCommand_ServiceThrows_ShowsError()
     {
-        _deviceService.ExceptionToThrow = new InvalidOperationException("Duplicate");
         await _viewModel.InitializeAsync(null);
+        _deviceService.ExceptionToThrow = new InvalidOperationException("Duplicate");
         _viewModel.Name = "New";
         _viewModel.MachineCode = "99";
 

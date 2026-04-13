@@ -45,6 +45,12 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private int _deviceId;
 
     /// <summary>
+    /// Nome del dispositivo (per display read-only).
+    /// </summary>
+    [ObservableProperty]
+    private string _deviceDisplayName = string.Empty;
+
+    /// <summary>
     /// True se il DeviceId è bloccato (arrivo da DeviceDetail).
     /// </summary>
     [ObservableProperty]
@@ -63,6 +69,12 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     [ObservableProperty]
     private bool _isPrimary;
+
+    /// <summary>
+    /// Nota informativa sotto il campo FirmwareType (visibile solo in creazione).
+    /// </summary>
+    [ObservableProperty]
+    private string? _firmwareTypeHint;
 
     public bool IsNew => _editingId is null;
     public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
@@ -113,6 +125,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 // Carica MachineCode dal Device per ProtocolAddress
                 var device = await _deviceService.GetByIdAsync(presetDeviceId.Value);
                 _machineCode = device?.MachineCode ?? 0;
+                DeviceDisplayName = device?.Name ?? $"Device #{presetDeviceId}";
             }
 
             if (boardId.HasValue)
@@ -126,6 +139,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 }
 
                 LoadFromBoard(board);
+            }
+            else
+            {
+                // Pre-compila con il primo FirmwareType disponibile
+                var nextFw = await _boardService.GetNextAvailableFirmwareTypeAsync();
+                FirmwareType = nextFw;
+                FirmwareTypeHint = $"Primo valore disponibile suggerito ({nextFw})";
             }
 
             _isInitialized = true;
@@ -149,6 +169,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     {
         Name = b.Name;
         DeviceId = b.DeviceId;
+        DeviceDisplayName = b.DeviceName ?? $"Device #{b.DeviceId}";
         FirmwareType = b.FirmwareType;
         BoardNumber = b.BoardNumber;
         PartNumber = b.PartNumber;

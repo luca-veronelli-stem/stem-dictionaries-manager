@@ -130,8 +130,8 @@ Services/
 | `IDictionaryService` | GetWithVariablesAsync, GetStandardDictionaryAsync, AddVariableAsync, RemoveVariableAsync | ✅ Root |
 | `IVariableService` | GetByDictionaryIdAsync, GetByAddressAsync, AddBitInterpretationAsync, UpdateBitInterpretationsAsync, UpdateBitInterpretationsForDictionaryAsync, GetBitInterpretationsForDictionaryAsync, SetOverrideAsync, GetOverrideAsync, GetOverridesByDictionaryAsync, GetOverridesByVariableAsync | - |
 | `ICommandService` | GetByCodeAsync, GetWithDeviceStatesAsync, SetDeviceStateAsync, GetDeviceStateAsync, GetDeviceStatesForDeviceAsync | - |
-| `IBoardService` | GetByDeviceIdAsync, GetByProtocolAddressAsync | - |
-| `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync | - |
+| `IBoardService` | GetByDeviceIdAsync, GetByProtocolAddressAsync, GetNextAvailableFirmwareTypeAsync | - |
+| `IDeviceService` | GetByIdAsync, GetAllAsync, AddAsync, UpdateAsync, DeleteAsync, GetNextAvailableMachineCodeAsync | - |
 | `IUserService` | GetByUsernameAsync, UsernameExistsAsync | - |
 | `IAuditService` | GetByEntityAsync, GetByUserAsync, GetRecentAsync, GetByDateRangeAsync, LogCreateAsync, LogUpdateAsync, LogDeleteAsync | - |
 
@@ -323,12 +323,12 @@ services.AddServices();  // Richiede AddInfrastructure() prima
 | Unit/DI | `DependencyInjectionTests.cs` | 13 |
 | Integration | `UserServiceTests.cs` | 15 |
 | Integration | `DictionaryServiceTests.cs` | 20 |
-| Integration | `BoardServiceTests.cs` | 18 |
+| Integration | `BoardServiceTests.cs` | 20 |
 | Integration | `CommandServiceTests.cs` | 25 |
-| Integration | `DeviceServiceTests.cs` | 16 |
+| Integration | `DeviceServiceTests.cs` | 19 |
 | Integration | `VariableServiceTests.cs` | 45 |
 | Integration | `AuditServiceTests.cs` | 20 |
-| **Totale** | | **~279** |
+| **Totale** | | **~284** |
 
 ```bash
 # Eseguire test Services
