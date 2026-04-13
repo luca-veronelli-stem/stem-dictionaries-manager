@@ -85,6 +85,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.MachineCode).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
+            // BR-014: MachineCode deve essere > 0
+            entity.ToTable(t => t.HasCheckConstraint("CK_Devices_MachineCode", "[MachineCode] > 0"));
         });
 
         // Board
@@ -92,6 +94,10 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ProtocolAddress).IsUnique();
+            // BR-005: max 1 scheda primaria per device
+            entity.HasIndex(e => e.DeviceId)
+                  .IsUnique()
+                  .HasFilter("[IsPrimary] = 1");
             entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
             entity.Property(e => e.PartNumber).HasMaxLength(20);
             entity.HasOne(e => e.Device)
@@ -109,6 +115,10 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name).IsUnique();
+            // BR-004: max 1 dizionario Standard nel sistema
+            entity.HasIndex(e => e.IsStandard)
+                  .IsUnique()
+                  .HasFilter("[IsStandard] = 1");
             entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
         });
@@ -144,6 +154,12 @@ public class AppDbContext : DbContext
                   .HasFilter("[DictionaryId] IS NOT NULL");
 
             entity.Property(e => e.Meaning).HasMaxLength(200);
+            // BitIndex e WordIndex devono essere >= 0
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_BitInterpretations_BitIndex", "[BitIndex] >= 0");
+                t.HasCheckConstraint("CK_BitInterpretations_WordIndex", "[WordIndex] >= 0");
+            });
             entity.HasOne(e => e.Variable)
                   .WithMany(v => v.BitInterpretations)
                   .HasForeignKey(e => e.VariableId)
@@ -159,6 +175,8 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.CodeHigh, e.CodeLow, e.IsResponse }).IsUnique();
+            // BR-016: nome comando univoco
+            entity.HasIndex(e => e.Name).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
             entity.Property(e => e.ParametersJson).HasMaxLength(1000);
         });
