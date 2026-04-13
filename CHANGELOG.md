@@ -49,6 +49,9 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Changed
 
+- **Core**: `Board.machineCode` reso parametro obbligatorio in constructor e `Restore` — era `= 0` (illegale per BR-014), ora il compilatore forza il chiamante a dichiarare il valore (T-005)
+- **Services**: `BoardMapper.ToDomain` lancia `InvalidOperationException` se `Device` non è caricato nel query, invece di usare silenziosamente `MachineCode = 0` (T-005)
+- **GUI.Windows**: `BoardEditViewModel` inietta `IDeviceService` per caricare `MachineCode` dal Device — fix bug pre-esistente dove `ProtocolAddress` veniva salvato come `0x00000000` per board create dalla GUI (T-005)
 - **Infrastructure**: Centralizzata logica risoluzione connection string in `DependencyInjection.ResolveConnectionString()`
 - **Infrastructure**: Centralizzato path default SQLite in `DependencyInjection.GetDefaultSqlitePath()`
 - **Infrastructure**: Rimosso parametro inutilizzato `provider` da `ResolveConnectionString()`

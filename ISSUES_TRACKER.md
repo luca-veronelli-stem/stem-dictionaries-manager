@@ -14,8 +14,8 @@
 | [API](./API/ISSUES.md) | 3 | 1 | 4 |
 | [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 8 | 10 |
 | [Tests](./Tests/ISSUES.md) | 2 | 9 | 11 |
-| **Trasversali** | **3** | **4** | **7** |
-| **Totale** | **18** | **43** | **61** |
+| **Trasversali** | **2** | **5** | **7** |
+| **Totale** | **17** | **44** | **61** |
 
 ---
 
@@ -26,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 5% |
-| **Bassa** | 17 | 94% |
-| **Totale** | **18** | 100% |
+| **Bassa** | 16 | 94% |
+| **Totale** | **17** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       █████████████████░░░ 17
+Bassa:       ████████████████░░░░ 16
 ```
 
 ---
@@ -67,7 +67,7 @@ Bassa:       █████████████████░░░ 17
 |----|--------|----------|--------|----------------------|
 | [T-007](#t-007--rimuovere-proprietà-ridondanti-dai-csproj) | Rimuovere proprietà ridondanti dai .csproj | Bassa | Aperto | Core, Infrastructure, Services |
 | ~~T-006~~ | ~~StandardVariableOverride per-dizionario (Domain v7)~~ | ~~Alta~~ | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
-| [T-005](#t-005--rendere-espliciti-parametri-semantici-nei-domain-models) | Rendere espliciti parametri semantici nei domain models | Bassa | Aperto | Core, Tests |
+| ~~T-005~~ | ~~Rendere espliciti parametri semantici nei domain models~~ | ~~Bassa~~ | ✅ **Risolto (parziale)** | Core, Services, GUI.Windows, Tests |
 | ~~T-004~~ | ~~Aggiungere DB constraints per regole di business~~ | ~~Bassa~~ | ✅ **Risolto** | Infrastructure |
 | [T-003](#t-003--aggiungere-logging-infrastructure) | Aggiungere logging infrastructure | Bassa | Aperto | Infrastructure, Services, GUI.Windows |
 | ~~T-002~~ | Rimozione BoardType e link diretto Board→Dictionary | Alta | ✅ **Risolto** | Core, Infrastructure, Services, GUI.Windows, Tests |
@@ -186,35 +186,43 @@ Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizion
 **Descrizione:**  
 Diversi constructor e factory method `Restore` nei domain models hanno parametri opzionali con default che nascondono scelte semantiche di dominio. Il pattern è stato corretto per `BitInterpretation.DeviceId` (SESSION_037), ma rimane in altri model. L'obiettivo è rimuovere i default dove il valore ha un significato di dominio, forzando il chiamante a dichiarare sempre l'intento.
 
-**Status:** Aperto  
+**Status:** ✅ Risolto (parziale)  
 **Priorità:** Bassa  
-**Data Apertura:** 2026-03-30
+**Branch:** `fix/t-004-005`  
+**Data Apertura:** 2026-03-30  
+**Data Risoluzione:** 2026-04-13  
+**Effort effettivo:** S (~2h)
 
 **Precedente:**  
 `BitInterpretation(deviceId = null)` → reso obbligatorio in SESSION_037. Il default nascondeva "interpretazione comune a tutti i device". In v7, `DeviceId` → `DictionaryId` (T-006).
 
-**Parametri da valutare:**
+**Parametri valutati:**
 
-| # | Model | Parametro | Default | Rischio | Note |
-|---|-------|-----------|---------|---------|------|
-| 1 | Board | `machineCode` | `= 0` | Medio | 0 è illegale per BR-014. In Restore (da DB) potrebbe mascherare un mapper incompleto |
-| 2 | Board.Restore | `machineCode` | `= 0` | Medio | Stesso problema — dato denormalizzato da Device |
-| 3 | CommandDeviceState | `isEnabled` | `= true` | Basso | Restore esplicito, constructor usato solo nei test |
-| ~~4~~ | ~~VariableDeviceState~~ | ~~`isEnabled`~~ | ~~`= true`~~ | ~~Basso~~ | ~~Risolto da T-006 (entity rimossa)~~ |
-| 5 | Command | `isResponse` | `= false` | Basso | Restore esplicito, mapper passa il valore |
-| 6 | Dictionary | `isStandard` | `= false` | Basso | Restore esplicito, GUI passa esplicitamente |
-| 7 | Variable | `isEnabled` | `= true` | Basso | Restore completamente esplicito |
+| # | Model | Parametro | Default | Rischio | Decisione |
+|---|-------|-----------|---------|---------|----------|
+| 1 | Board | `machineCode` | `= 0` | Medio | ✅ **Risolto** — reso obbligatorio (5° parametro) |
+| 2 | Board.Restore | `machineCode` | `= 0` | Medio | ✅ **Risolto** — reso obbligatorio |
+| ~~3~~ | ~~VariableDeviceState~~ | ~~`isEnabled`~~ | ~~`= true`~~ | ~~Basso~~ | ~~Risolto da T-006 (entity rimossa)~~ |
+| 4 | CommandDeviceState | `isEnabled` | `= true` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 5 | Command | `isResponse` | `= false` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 6 | Dictionary | `isStandard` | `= false` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
+| 7 | Variable | `isEnabled` | `= true` | Basso | ⚪ **Wontfix** — default semanticamente corretto |
 
-**Criteri di priorità:**
-- **Medio**: il default è un valore illegale o il Restore lo ha opzionale
-- **Basso**: il Restore è già esplicito e il mapper passa sempre il valore
+**Motivazione Wontfix #4-7:**  
+I default sono valori semanticamente corretti (la maggior parte dei comandi non è response, la maggior parte dei dizionari non è standard, variabili e comandi sono abilitati di default). I Restore sono già espliciti, i mapper passano sempre il valore. Forzare l'esplicitezza costerebbe ~150 modifiche meccaniche nei test senza beneficio reale.
 
-**Effort stimato:** S-M (2-4h) — rimozione default + aggiornamento call site nei test
+**Cambiamenti implementati:**
 
-**Benefici Attesi:**
-- Coerenza con il pattern già applicato su `BitInterpretation.DeviceId`
-- Impossibilità di dimenticare un parametro semantico
-- Codice auto-documentante: ogni call site dichiara l'intento
+| # | File | Modifica |
+|---|------|----------|
+| 1 | `Core/Models/Board.cs` | `machineCode` da opzionale (`= 0`) a obbligatorio (5° parametro) |
+| 2 | `Services/Mapping/BoardMapper.cs` | `?? 0` → `throw InvalidOperationException` se Device non caricato |
+| 3 | `Services/BoardService.cs` | Aggiornato ordine parametri in auto-assign |
+| 4 | `GUI.Windows/ViewModels/BoardEditViewModel.cs` | Iniettato `IDeviceService`, carica MachineCode dal Device/Board |
+| 5 | ~18 file test | Aggiornati tutti i call site Board constructor/Restore |
+
+**Bug pre-esistente scoperto e risolto:**  
+`BoardEditViewModel.SaveAsync` creava Board con `machineCode = 0` → `ProtocolAddress = 0x00000000` nel DB. Fix: il ViewModel ora carica `MachineCode` dal Device (new board) o dal Board esistente (edit).
 
 ---
 
@@ -535,7 +543,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | GUI.Windows/Converters (2) | ✅ 20 | - | 100% |
 | GUI.Windows/DI | ✅ 22 | - | 100% |
 
-**Totale test:** ~559 CI (net10.0) / ~1786 Windows (net10.0-windows)
+**Totale test:** ~559 CI (net10.0) / ~1974 Windows (net10.0-windows)
 
 ---
 
@@ -545,12 +553,12 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 |---------|-------|------|
 | **Architecture** | ✅ 95% | Domain v7 implementato, T-006 completata |
 | **Thread Safety** | ✅ 95% | Modelli immutabili |
-| **Input Validation** | ✅ 85% | BR-011 (StandardVariableOverride v7), CORE-006, CORE-005 residui |
+| **Input Validation** | ✅ 90% | T-005 risolta (Board machineCode obbligatorio), CORE-005 residuo |
 | **Data Integrity** | ✅ 100% | SVC-009 + T-004 risolte, DB constraints come ultima trincea |
 | **Performance** | ✅ 100% | INFRA-002 + SVC-003 (Wontfix, coperto da INFRA-002) |
 | **Resilience** | ✅ 95% | GUI-005+GUI-010+API-004 risolte, navigazione e DB protetti |
 | **Code Consistency** | ✅ 90% | INFRA-006 residuo |
-| **Test Coverage** | ✅ 95% | ~1786 test cases, TEST-010 risolta |
+| **Test Coverage** | ✅ 95% | ~1974 test cases, TEST-010 risolta |
 
 ---
 
@@ -569,7 +577,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 | **Code Smell** | 0 | - |
 | **Feature** | 0 | ~~SVC-002~~ — Risolto |
 | **Robustezza** | 1 | SVC-007 |
-| **Trasversale** | 2 | T-003, T-005 |
+| **Trasversale** | 1 | T-003 |
 
 ---
 
@@ -596,6 +604,7 @@ Il dizionario "Standard" (senza `BoardType`) deve essere unico nel sistema. Attu
 
 | Data | Modifica |
 |------|----------|
+| 2026-04-13 | ✅ **T-005 risolta (parziale)** — Board `machineCode` reso obbligatorio, `BoardMapper` fail-fast se Device non caricato, `BoardEditViewModel` inietta `IDeviceService` per MachineCode. #4-7 Wontfix (default semanticamente corretti). Bug pre-esistente ProtocolAddress=0 risolto. 1974/1974 test verdi. 17 aperte, 44 risolte.
 | 2026-04-13 | ✅ **T-004 risolta**
 | 2026-04-13 | ✅ **GUI-010 + API-004 risolte** —
 | 2026-04-07 | ✅ **TEST-010 risolta** — Test aggiornati per Domain v7: BitInterpretation DeviceId→DictionaryId, VariableDeviceState→StandardVariableOverride, E2E test riscritti, AuditEntityType count 7→8. 1786/1786 test verdi. T-006 **COMPLETATA**. 15 aperte, 39 risolte. |

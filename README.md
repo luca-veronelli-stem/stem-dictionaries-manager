@@ -1,7 +1,7 @@
 # STEM Dictionaries Manager
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-~2330%20passing-brightgreen)](./Tests/)
+[![Tests](https://img.shields.io/badge/tests-~2345%20passing-brightgreen)](./Tests/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#licenza)
 
 > **Applicazione per la gestione centralizzata dei dizionari dispositivi STEM (comandi + variabili), con API REST per consumer esterni.**
@@ -151,7 +151,7 @@ Stem.Dictionaries.Manager/
 | API | [API/ISSUES.md](./API/ISSUES.md) | 3 | 1 | Bassa |
 | GUI.Windows | [GUI.Windows/ISSUES.md](./GUI.Windows/ISSUES.md) | 2 | 8 | Bassa |
 | Tests | [Tests/ISSUES.md](./Tests/ISSUES.md) | 2 | 9 | Media |
-| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 3 | 4 | Bassa |
+| Trasversali | [ISSUES_TRACKER.md](./ISSUES_TRACKER.md#issue-trasversali-t-xxx) | 2 | 5 | Bassa |
 
 ✅ **0 issue alta/media priorità aperte**
 

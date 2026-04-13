@@ -119,7 +119,7 @@ GUI.Windows/
 │   ├── DeviceCommandsViewModel.cs # Stato comandi per device (checkbox Attivo, salvataggio bulk)
 │   ├── CommandListViewModel.cs    # Lista comandi protocollo (double-click per edit)
 │   ├── CommandEditViewModel.cs    # Crea/modifica comando + delete (CodeHigh computed)
-│   ├── BoardEditViewModel.cs      # Crea/modifica/elimina scheda (FirmwareType, DictionaryId?)
+│   ├── BoardEditViewModel.cs      # Crea/modifica/elimina scheda (IDeviceService per MachineCode)
 │   ├── UserListViewModel.cs       # Lista utenti con add inline
 │   ├── SettingsViewModel.cs       # Impostazioni app (stub, non in sidebar v1)
 │   ├── WordBitGroup.cs            # Gruppo bit per word (max WordSize bit, Bitmapped)

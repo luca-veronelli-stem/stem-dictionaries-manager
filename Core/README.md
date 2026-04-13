@@ -1,7 +1,7 @@
 # Core
 
 > **Libreria di dominio contenente modelli ed enumerazioni per la gestione dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -66,7 +66,8 @@ optimusXp.AddVariable(variable);
 
 // Board con FirmwareType diretto e link a Dictionary (deviceId è FK a Device)
 var board = new Board(deviceId: device.Id, "Madre Master", firmwareType: 17,
-    boardNumber: 1, isPrimary: true, dictionaryId: optimusXp.Id);
+    boardNumber: 1, machineCode: device.MachineCode, isPrimary: true,
+    dictionaryId: optimusXp.Id);
 ```
 
 ---
@@ -86,7 +87,7 @@ Core/
 └── Models/
     ├── AuditEntry.cs              # Traccia modifiche con JSON completo
     ├── BitInterpretation.cs       # Significato bit per variabili bitmapped (v7: DictionaryId?)
-    ├── Board.cs                   # Scheda con FirmwareType, DictionaryId?, DictionaryName, calcolo indirizzo
+    ├── Board.cs                   # Scheda con FirmwareType, machineCode (obbligatorio), DictionaryId?, calcolo indirizzo
     ├── Command.cs                 # Comando protocollo
     ├── CommandDeviceState.cs      # Stato comando per device specifico
     ├── Device.cs                  # Dispositivo STEM (Name, MachineCode, Description)
