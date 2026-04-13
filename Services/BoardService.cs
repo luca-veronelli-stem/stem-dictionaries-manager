@@ -70,8 +70,8 @@ public class BoardService : IBoardService
             if (sharedDictId > 0)
                 board = new Board(
                     board.DeviceId, board.Name, board.FirmwareType, board.BoardNumber,
-                    board.PartNumber, board.IsPrimary, dictionaryId: sharedDictId,
-                    board.MachineCode);
+                    board.MachineCode, board.PartNumber, board.IsPrimary,
+                    dictionaryId: sharedDictId);
         }
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
