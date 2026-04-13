@@ -44,11 +44,16 @@
                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceId, Mode=OneWay}" 
                          IsEnabled="False" Padding="8,6" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FirmwareType}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: 17, 20..."
-                         Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"
-                         BorderBrush="{Binding IsFirmwareTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,4"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,12">
+                    <TextBox Text="{Binding FirmwareType}" 
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: 17, 20..."
+                             Width="80" HorizontalAlignment="Left"
+                             BorderBrush="{Binding IsFirmwareTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
+                    <TextBlock Text="{Binding FirmwareTypeHint}" Foreground="#888888" FontSize="11"
+                               Margin="0,3,0,0"
+                               Visibility="{Binding FirmwareTypeHint, Converter={StaticResource NullToVisibilityConverter}}"/>
+                </StackPanel>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Numero Scheda *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BoardNumber}" 
