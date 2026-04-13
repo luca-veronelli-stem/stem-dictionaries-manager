@@ -1,7 +1,7 @@
 # GUI.Windows
 
 > **Applicazione WPF desktop per la gestione dei dizionari STEM.**  
-> **Ultimo aggiornamento:** 2026-04-09
+> **Ultimo aggiornamento:** 2026-04-13
 
 ---
 
@@ -48,6 +48,7 @@ L'applicazione si avvia con login integrato nella MainWindow, poi applica migrat
 | **Comandi per Device** | ✅ | DeviceCommandsView per stato attivo/disattivo comandi per device |
 | **Filtro Abilitate** | ✅ | Checkbox "Mostra solo abilitate" filtra variabili specifiche e standard in DictionaryEdit |
 | **Audit User Provider** | ✅ | MainViewModel setta ICurrentUserProvider dopo login/logout per audit trail |
+| **DB Error Handling** | ✅ | Retry loop all'avvio con DarkDialog se DB non raggiungibile (Riprova/Esci) |
 
 ---
 
@@ -86,9 +87,10 @@ dotnet run --project GUI.Windows
 1. L'app legge `DatabaseProvider` da `appsettings.json` (o User Secrets)
 2. **SQLite** (default): crea il DB in `%AppData%\STEM\DictionariesManager\` con `EnsureCreated`
 3. **SQL Server** (Azure): applica le migrations versionati con `MigrateAsync`
-4. Il `DatabaseSeeder` popola dati iniziali se il DB è vuoto (skip automatico se dati presenti)
-5. Mostra la LoginView integrata — selezionare un utente e premere ACCEDI
-6. Sidebar e header diventano visibili, naviga alla lista dizionari
+4. Se il DB non è raggiungibile → DarkDialog con **Riprova/Esci** (retry loop)
+5. Il `DatabaseSeeder` popola dati iniziali se il DB è vuoto (skip automatico se dati presenti)
+6. Mostra la LoginView integrata — selezionare un utente e premere ACCEDI
+7. Sidebar e header diventano visibili, naviga alla lista dizionari
 
 ---
 
@@ -311,7 +313,7 @@ Il Generic Host configura automaticamente il logging. Per debug verbose:
 
 ## Issue Correlate
 
-→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 3 issue aperte, 7 risolte
+→ [GUI.Windows/ISSUES.md](./ISSUES.md) — 2 issue aperte, 8 risolte
 
 ---
 

@@ -12,10 +12,10 @@
 | [Infrastructure](./Infrastructure/ISSUES.md) | 2 | 7 | 9 |
 | [Services](./Services/ISSUES.md) | 3 | 9 | 12 |
 | [API](./API/ISSUES.md) | 4 | 0 | 4 |
-| [GUI.Windows](./GUI.Windows/ISSUES.md) | 3 | 7 | 10 |
+| [GUI.Windows](./GUI.Windows/ISSUES.md) | 2 | 8 | 10 |
 | [Tests](./Tests/ISSUES.md) | 2 | 9 | 11 |
 | **Trasversali** | **4** | **3** | **7** |
-| **Totale** | **21** | **40** | **61** |
+| **Totale** | **20** | **41** | **61** |
 
 ---
 
@@ -26,14 +26,14 @@
 | **Critica** | 0 | 0% |
 | **Alta** | 0 | 0% |
 | **Media** | 1 | 5% |
-| **Bassa** | 20 | 95% |
-| **Totale** | **21** | 100% |
+| **Bassa** | 19 | 95% |
+| **Totale** | **20** | 100% |
 
 ```
 Critica:     ░░░░░░░░░░░░░░░░░░░░  0
 Alta:        ░░░░░░░░░░░░░░░░░░░░  0
 Media:       █░░░░░░░░░░░░░░░░░░░  1
-Bassa:       ████████████████████ 20
+Bassa:       ███████████████████░ 19
 ```
 
 ---
@@ -150,6 +150,8 @@ Le variabili standard non sono un blocco separato, ma fanno parte di ogni dizion
 - Eliminazione DeviceVariablesView (view non più necessaria)
 
 ---
+
+### T-005 - Rendere espliciti i parametri semantici nei domain models
 
 **Descrizione:**  
 Diversi constructor e factory method `Restore` nei domain models hanno parametri opzionali con default che nascondono scelte semantiche di dominio. Il pattern è stato corretto per `BitInterpretation.DeviceId` (SESSION_037), ma rimane in altri model. L'obiettivo è rimuovere i default dove il valore ha un significato di dominio, forzando il chiamante a dichiarare sempre l'intento.
