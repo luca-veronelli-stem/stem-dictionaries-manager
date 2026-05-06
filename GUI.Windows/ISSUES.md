@@ -4,6 +4,8 @@
 
 > **Ultimo aggiornamento:** 2026-04-13
 
+> ⚠️ **Open items migrated to GitHub Issues (2026-05-06).** This in-tree file is being retired as part of the upcoming `llm-settings v1.2.1` standards-adoption PR. Map: GUI-002 → [#15](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/15), GUI-003 → [#16](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/16).
+
 ---
 
 ## Riepilogo

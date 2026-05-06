@@ -4,6 +4,8 @@
 
 > **Ultimo aggiornamento:** 2026-04-10
 
+> ⚠️ **Open items migrated to GitHub Issues (2026-05-06).** This in-tree file is being retired as part of the upcoming `llm-settings v1.2.1` standards-adoption PR. Map: TEST-011 → [#17](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/17), TEST-006 → [#18](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/18). TEST-006 is subsumed by TEST-011 Phase 3.
+
 ---
 
 ## Riepilogo

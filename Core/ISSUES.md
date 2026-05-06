@@ -4,6 +4,8 @@
 
 > **Ultimo aggiornamento:** 2026-04-10
 
+> ⚠️ **Open items migrated to GitHub Issues (2026-05-06).** This in-tree file is being retired as part of the upcoming `llm-settings v1.2.1` standards-adoption PR. Map: CORE-003 → [#4](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/4), CORE-004 → [#5](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/5), CORE-005 → [#6](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/6).
+
 ---
 
 ## Riepilogo
