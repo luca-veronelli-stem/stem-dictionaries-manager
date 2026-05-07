@@ -1,63 +1,21 @@
 <Solution>
-  <Folder Name="/.copilot/">
-    <File Path=".copilot/copilot-instructions.md" />
-    <File Path=".copilot/sample-instructions.md" />
-  </Folder>
-  <Folder Name="/.copilot/agents/">
-    <File Path=".copilot/agents/coding-agent.md" />
-    <File Path=".copilot/agents/docs-agent.md" />
-    <File Path=".copilot/agents/formal-spec-agent.md" />
-    <File Path=".copilot/agents/issues-agent.md" />
-    <File Path=".copilot/agents/test-agent.md" />
-  </Folder>
-  <Folder Name="/Docs/">
-    <File Path="Docs/ER-schema.puml" />
-    <File Path="Docs/SHIPPED_README.txt" />
-  </Folder>
-  <Folder Name="/Docs/Dictionaries/">
-    <File Path="Docs/Dictionaries/comandi.csv" />
-    <File Path="Docs/Dictionaries/dati_standard.CSV" />
-    <File Path="Docs/Dictionaries/dizionari.xlsx" />
-    <File Path="Docs/Dictionaries/eden-bs8.csv" />
-    <File Path="Docs/Dictionaries/eden-xp.CSV" />
-    <File Path="Docs/Dictionaries/firmware.csv" />
-    <File Path="Docs/Dictionaries/gateway_spyke.CSV" />
-    <File Path="Docs/Dictionaries/gradino.CSV" />
-    <File Path="Docs/Dictionaries/hmi_spark.CSV" />
-    <File Path="Docs/Dictionaries/hmi_spyke.CSV" />
-    <File Path="Docs/Dictionaries/indirizzi.csv" />
-    <File Path="Docs/Dictionaries/o3z-tech.CSV" />
-    <File Path="Docs/Dictionaries/old_eden.CSV" />
-    <File Path="Docs/Dictionaries/optimus-xp.csv" />
-    <File Path="Docs/Dictionaries/pulsantiere.CSV" />
-    <File Path="Docs/Dictionaries/r3l-xp_master.csv" />
-    <File Path="Docs/Dictionaries/r3l-xp_slave.csv" />
-    <File Path="Docs/Dictionaries/sherpa-slim.CSV" />
-    <File Path="Docs/Dictionaries/toplift-a2.CSV" />
-    <File Path="Docs/Dictionaries/toplift-m.CSV" />
-  </Folder>
-  <Folder Name="/Docs/Standards/">
-    <File Path="Docs/Standards/TEMPLATE_STANDARD.md" />
-  </Folder>
-  <Folder Name="/Docs/Standards/Templates/">
-    <File Path="Docs/Standards/Templates/ISSUES_TEMPLATE.md" />
-    <File Path="Docs/Standards/Templates/README_TEMPLATE.md" />
-    <File Path="Docs/Standards/Templates/STANDARD_TEMPLATE.md" />
-  </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
     <File Path="bitbucket-pipelines.yml" />
     <File Path="CHANGELOG.md" />
+    <File Path="CLAUDE.md" />
     <File Path="Directory.Build.props" />
-    <File Path="ISSUES_TRACKER.md" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="API/API.csproj" Id="c586b696-fd83-4dda-9b20-9000e5b7ccc1" />
-  <Project Path="Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
-  <Project Path="GUI.Windows/GUI.Windows.csproj" Id="4aa22c84-d37f-429e-9cb8-5a3fc7811303" />
-  <Project Path="Infrastructure/Infrastructure.csproj" Id="c83537e0-2958-4e99-a51d-b6ea0138f710" />
-  <Project Path="Services/Services.csproj" Id="3ed47dd5-4eb8-44a2-a301-1970953776ac" />
-  <Project Path="Tests/Tests.csproj" Id="5cfbe6e6-1a16-457d-80e3-e279f66985ef" />
+  <Project Path="src/API/API.csproj" Id="c586b696-fd83-4dda-9b20-9000e5b7ccc1" />
+  <Project Path="src/Core/Core.csproj" Id="92376109-6307-4b0c-b1cc-2b0d3fd5cfd8" />
+  <Project Path="src/GUI.Windows/GUI.Windows.csproj" Id="4aa22c84-d37f-429e-9cb8-5a3fc7811303" />
+  <Project Path="src/Infrastructure/Infrastructure.csproj" Id="c83537e0-2958-4e99-a51d-b6ea0138f710" />
+  <Project Path="src/Services/Services.csproj" Id="3ed47dd5-4eb8-44a2-a301-1970953776ac" />
+  <Project Path="tests/Tests/Tests.csproj" Id="5cfbe6e6-1a16-457d-80e3-e279f66985ef" />
 </Solution>
