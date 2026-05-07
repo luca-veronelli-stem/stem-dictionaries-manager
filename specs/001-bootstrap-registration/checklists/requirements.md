@@ -31,11 +31,13 @@
 
 ## Notes
 
-- Three intentional `[NEEDS CLARIFICATION: ...]` markers remain in spec.md under
-  *Requirements → Open clarifications*. Each names the question, the reasonable
-  alternatives, and the implications. Resolution is deferred to `/speckit-clarify`
-  per the speckit-specify guidance (max 3 markers, prioritized by scope/security
-  impact).
+- Two intentional `[NEEDS CLARIFICATION: ...]` markers remain in spec.md under
+  *Requirements → Open clarifications* (revocation latency tolerance,
+  bootstrap-token TTL bounds). Each names the question, the reasonable
+  alternatives, and the implications. The third marker (client identity model)
+  was resolved in the `/speckit-clarify` session of 2026-05-07 — see
+  `## Clarifications` in spec.md. Remaining resolution continues in further
+  `/speckit-clarify` rounds before `/speckit-plan`.
 - One narrow protocol mention (`POST /register`) appears in **FR-001**. This is
   not a HOW leak — it is a hard constraint inherited from issue #1 itself
   ("POST /register endpoint exists; accepts bootstrap_token and
