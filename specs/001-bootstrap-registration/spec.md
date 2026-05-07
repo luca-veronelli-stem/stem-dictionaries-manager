@@ -23,6 +23,14 @@
   scope is the client app family only; the (user, machine) binding
   is enforced operationally (single-use + admin distribution
   discipline), not encoded in the token.
+- Q: How quickly must a revoked installation's API credential stop
+  authenticating? → A: **Within 5 seconds** of the admin's revoke
+  action. This permits an in-process credential-validity cache with a
+  TTL of up to 5 seconds (or with explicit invalidation on revoke) on
+  the API's authentication hot path, cutting DB load while remaining
+  operationally indistinguishable from instant for incident response.
+  The 5 s ceiling matches SC-004's existing target; stricter
+  guarantees (instant on next request, no caching) are not required.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -209,8 +217,11 @@ unaffected.
   registration flow. This is **not** a deprecation of the legacy
   keys.
 - **Revocation latency.** A revoked installation's API credential
-  MUST stop authenticating within seconds, not minutes — a stale
-  cache is a security regression, not an acceptable optimization.
+  MUST stop authenticating within 5 seconds of the admin action.
+  An in-process credential-validity cache with a TTL of up to
+  5 seconds (or with explicit invalidation on revoke) is acceptable
+  on the authentication hot path; longer is a security regression,
+  not an acceptable optimization.
 - **Repeated registration attempts from the same network source
   using invalid tokens.** Out of scope for this feature, but the
   audit trail MUST capture enough information for an operator or
@@ -286,7 +297,10 @@ unaffected.
   timestamp where applicable).
 - **FR-011**: An admin user MUST be able to revoke any specific
   per-installation identity. Revocation MUST take effect within
-  seconds and MUST NOT propagate to any other identity.
+  5 seconds (matching SC-004) and MUST NOT propagate to any other
+  identity. An in-process credential-validity cache with a TTL of
+  up to 5 seconds, or with explicit invalidation on revoke, is
+  acceptable on the authentication hot path.
 - **FR-012**: The system MUST persist a registration audit record for
   every registration attempt, regardless of outcome (success or any
   failure mode). Each record MUST capture: timestamp, claimed client
@@ -346,15 +360,9 @@ unaffected.
 
 #### Open clarifications
 
-The following clarifications affect operational latency and admin
-authority; they will be resolved in `/speckit-clarify` before
-`/speckit-plan`:
+The following clarification affects admin authority; it will be
+resolved in `/speckit-clarify` before `/speckit-plan`:
 
-- [NEEDS CLARIFICATION: revocation latency tolerance] — FR-011 says
-  "within seconds." Is "within 5 seconds" acceptable (allowing
-  in-process credential caches to refresh on a short interval), or
-  must revocation be instant on the very next request after the
-  admin action?
 - [NEEDS CLARIFICATION: bootstrap-token TTL bounds] — FR-007 sets a
   default of 30 days and allows per-token override "within
   reasonable bounds." What are the bounds? Examples: must be at
