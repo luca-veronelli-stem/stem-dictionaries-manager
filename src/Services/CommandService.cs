@@ -9,7 +9,7 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione comandi.
+/// Command service implementation.
 /// </summary>
 public class CommandService : ICommandService
 {
@@ -34,7 +34,7 @@ public class CommandService : ICommandService
         _userProvider = userProvider;
     }
 
-    // === CRUD Base ===
+    // === Base CRUD ===
 
     public async Task<Command?> GetByIdAsync(int id, CancellationToken ct = default)
     {
@@ -52,7 +52,7 @@ public class CommandService : ICommandService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // Verifica unicità nome
+        // Name uniqueness check
         CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
         if (existingByName is not null)
         {
@@ -60,7 +60,7 @@ public class CommandService : ICommandService
                 $"Command with name '{command.Name}' already exists.");
         }
 
-        // Verifica unicità codice
+        // Code uniqueness check
         CommandEntity? existing = await _repository.GetByCodeAsync(
             command.CodeHigh, command.CodeLow, command.IsResponse, ct);
         if (existing is not null)
@@ -88,7 +88,7 @@ public class CommandService : ICommandService
         CommandEntity entity = await _repository.GetByIdAsync(command.Id, ct)
             ?? throw new KeyNotFoundException($"Command '{command.Name}' (Id={command.Id}) not found.");
 
-        // Verifica unicità nome (se cambiato)
+        // Name uniqueness check (if changed)
         if (!entity.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
         {
             CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
@@ -127,7 +127,7 @@ public class CommandService : ICommandService
         }
     }
 
-    // === Query Specifiche ===
+    // === Specific queries ===
 
     public async Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse,
         CancellationToken ct = default)
@@ -136,7 +136,7 @@ public class CommandService : ICommandService
         return entity is null ? null : CommandMapper.ToDomain(entity);
     }
 
-    // === DeviceState Management ===
+    // === DeviceState management ===
 
     public async Task<Command?> GetWithDeviceStatesAsync(int id, CancellationToken ct = default)
     {
@@ -147,20 +147,20 @@ public class CommandService : ICommandService
         }
 
         Command command = CommandMapper.ToDomain(entity);
-        // Nota: DeviceStates sono caricati ma non esposti nel Domain Model Command.
-        // Per accedere agli stati, usare GetDeviceStateAsync o SetDeviceStateAsync.
+        // Note: DeviceStates are loaded but not exposed on the Command domain model.
+        // To access states, use GetDeviceStateAsync or SetDeviceStateAsync.
         return command;
     }
 
     public async Task SetDeviceStateAsync(int commandId, int deviceId, bool isEnabled,
         CancellationToken ct = default)
     {
-        // Verifica che il comando esista
+        // Check that the command exists
         CommandEntity cmd = await _repository.GetByIdAsync(commandId, ct)
             ?? throw new KeyNotFoundException(
                 $"Command (Id={commandId}) not found.");
 
-        // Cerca stato esistente
+        // Look up existing state
         CommandDeviceStateEntity? existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         if (existingState is not null)

@@ -8,7 +8,7 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione audit trail.
+/// Audit trail service implementation.
 /// </summary>
 public class AuditService : IAuditService
 {

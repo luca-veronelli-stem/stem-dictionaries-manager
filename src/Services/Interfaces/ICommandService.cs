@@ -3,12 +3,12 @@ using Core.Models;
 namespace Services.Interfaces;
 
 /// <summary>
-/// Service per gestione comandi protocollo.
+/// Protocol command service.
 /// SESSION_035: DeviceType enum → int deviceId.
 /// </summary>
 public interface ICommandService
 {
-    // === CRUD Base ===
+    // === Base CRUD ===
 
     Task<Command?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<IReadOnlyList<Command>> GetAllAsync(CancellationToken ct = default);
@@ -16,7 +16,7 @@ public interface ICommandService
     Task UpdateAsync(Command command, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
 
-    // === Query Specifiche ===
+    // === Specific queries ===
 
     Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse,
         CancellationToken ct = default);

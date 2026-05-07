@@ -9,9 +9,9 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione variabili.
-/// Per operazioni aggregate su Dictionary, usare DictionaryService.
-/// v7: DeviceState → StandardVariableOverride (per-dizionario).
+/// Variable service implementation.
+/// For aggregate operations on Dictionary, use DictionaryService.
+/// v7: DeviceState → StandardVariableOverride (per-dictionary).
 /// </summary>
 public class VariableService : IVariableService
 {
@@ -44,7 +44,7 @@ public class VariableService : IVariableService
         _userProvider = userProvider;
     }
 
-    // === CRUD Base ===
+    // === Base CRUD ===
 
     public async Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default)
     {
@@ -62,7 +62,7 @@ public class VariableService : IVariableService
     {
         ArgumentNullException.ThrowIfNull(variable);
 
-        // Verifica che il dizionario esista
+        // Check that the dictionary exists
         bool dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
         {
@@ -70,7 +70,7 @@ public class VariableService : IVariableService
                 $"Dictionary (Id={dictionaryId}) not found.");
         }
 
-        // Verifica unicità indirizzo nel dizionario
+        // Address uniqueness check within the dictionary
         VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
             dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
         if (existingByAddress is not null)
@@ -99,7 +99,7 @@ public class VariableService : IVariableService
             ?? throw new KeyNotFoundException(
                 $"Variable '{variable.Name}' (Id={variable.Id}) not found.");
 
-        // Verifica unicità indirizzo (se cambiato)
+        // Address uniqueness check (if changed)
         if (entity.AddressHigh != variable.AddressHigh || entity.AddressLow != variable.AddressLow)
         {
             VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
@@ -140,7 +140,7 @@ public class VariableService : IVariableService
         }
     }
 
-    // === Query Specifiche ===
+    // === Specific queries ===
 
     public async Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default)
     {
@@ -155,12 +155,12 @@ public class VariableService : IVariableService
         return entity is null ? null : VariableMapper.ToDomain(entity);
     }
 
-    // === BitInterpretation Management ===
+    // === BitInterpretation management ===
 
     public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId,
         CancellationToken ct = default)
     {
-        // Verifica che la variabile esista
+        // Check that the variable exists
         bool variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
         {
@@ -170,7 +170,7 @@ public class VariableService : IVariableService
 
         IReadOnlyList<BitInterpretationEntity> entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
-        // Ritorna solo le interpretazioni template (DictionaryId = null)
+        // Return only template interpretations (DictionaryId = null)
         var template = BitInterpretationMapper.ToDomainList(entities)
             .Where(b => b.DictionaryId is null)
             .ToList();
@@ -193,7 +193,7 @@ public class VariableService : IVariableService
 
         IReadOnlyList<BitInterpretation> allBits = BitInterpretationMapper.ToDomainList(entities);
 
-        // BR-018: per ogni (WordIndex, BitIndex), per-dizionario ha priorità su template
+        // BR-018: for each (WordIndex, BitIndex), per-dictionary takes precedence over template
         var merged = allBits
             .GroupBy(b => (b.WordIndex, b.BitIndex))
             .Select(g => g.FirstOrDefault(b => b.DictionaryId is not null) ?? g.First())
@@ -209,7 +209,7 @@ public class VariableService : IVariableService
     {
         ArgumentNullException.ThrowIfNull(interpretation);
 
-        // Verifica che la variabile esista ed sia bitmapped
+        // Check that the variable exists and is bitmapped
         VariableEntity variable = await _repository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
@@ -252,7 +252,7 @@ public class VariableService : IVariableService
 
         var incoming = interpretations.ToList();
 
-        // Validazione: nessun duplicato (WordIndex, BitIndex)
+        // Validation: no duplicate (WordIndex, BitIndex)
         var keys = incoming.Select(i => (i.WordIndex, i.BitIndex)).ToList();
         if (keys.Distinct().Count() != keys.Count)
         {
@@ -260,7 +260,7 @@ public class VariableService : IVariableService
                 "Duplicate (WordIndex, BitIndex) found in incoming interpretations.");
         }
 
-        // Validazione: BitIndex 0-15, WordIndex >= 0
+        // Validation: BitIndex 0-15, WordIndex >= 0
         foreach (BitInterpretation? i in incoming)
         {
             if (i.BitIndex is < 0 or > 15)
@@ -280,17 +280,17 @@ public class VariableService : IVariableService
         await _bitInterpretationRepository.SyncByVariableIdAsync(variableId, dictionaryId, entities, ct);
     }
 
-    // === StandardVariableOverride Management ===
+    // === StandardVariableOverride management ===
 
     public async Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
         string? description = null, CancellationToken ct = default)
     {
-        // Verifica che la variabile standard esista
+        // Check that the standard variable exists
         VariableEntity variable = await _repository.GetByIdAsync(standardVariableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={standardVariableId}) not found.");
 
-        // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
+        // BR-011: override isEnabled=true forbidden when Variable.IsEnabled=false
         if (!variable.IsEnabled && isEnabled)
         {
             throw new InvalidOperationException(
@@ -298,7 +298,7 @@ public class VariableService : IVariableService
                 "variable is deprecated globally (IsEnabled=false).");
         }
 
-        // Cerca override esistente
+        // Look up existing override
         StandardVariableOverrideEntity? existing = await _overrideRepository
             .GetByDictionaryAndVariableAsync(dictionaryId, standardVariableId, ct);
 

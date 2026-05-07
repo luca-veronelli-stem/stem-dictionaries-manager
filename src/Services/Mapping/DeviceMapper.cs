@@ -4,12 +4,12 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per Device Entity ↔ Domain.
+/// Bidirectional mapper for Device Entity ↔ Domain.
 /// </summary>
 public static class DeviceMapper
 {
     /// <summary>
-    /// Converte DeviceEntity in Device (Domain).
+    /// Converts DeviceEntity to Device (Domain).
     /// </summary>
     public static Device ToDomain(DeviceEntity entity)
     {
@@ -23,7 +23,7 @@ public static class DeviceMapper
     }
 
     /// <summary>
-    /// Converte Device (Domain) in DeviceEntity per creazione.
+    /// Converts Device (Domain) to DeviceEntity for creation.
     /// </summary>
     public static DeviceEntity ToEntity(Device domain)
     {
@@ -39,7 +39,7 @@ public static class DeviceMapper
     }
 
     /// <summary>
-    /// Aggiorna DeviceEntity esistente con dati da Device (Domain).
+    /// Updates an existing DeviceEntity with data from Device (Domain).
     /// </summary>
     public static void UpdateEntity(DeviceEntity entity, Device domain)
     {
@@ -52,7 +52,7 @@ public static class DeviceMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<Device> ToDomainList(IEnumerable<DeviceEntity> entities)
     {

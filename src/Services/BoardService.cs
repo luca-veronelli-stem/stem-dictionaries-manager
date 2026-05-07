@@ -9,7 +9,7 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione schede.
+/// Board service implementation.
 /// SESSION_035: DeviceType enum → DeviceId FK.
 /// </summary>
 public class BoardService : IBoardService
@@ -51,7 +51,7 @@ public class BoardService : IBoardService
     {
         ArgumentNullException.ThrowIfNull(board);
 
-        // Verifica che il dizionario esista (se specificato)
+        // Check that the dictionary exists (if specified)
         if (board.DictionaryId.HasValue)
         {
             DictionaryEntity dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
@@ -59,8 +59,8 @@ public class BoardService : IBoardService
         }
         else
         {
-            // Auto-assign: se altre board con lo stesso FirmwareType hanno un dizionario,
-            // lo eredita automaticamente (es. Pulsantiere condiviso per FW=4).
+            // Auto-assign: if other boards with the same FirmwareType have a dictionary,
+            // inherit it automatically (e.g. shared Pulsantiere for FW=4).
             IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
             int sharedDictId = allBoards
                 .Where(b => b.FirmwareType == board.FirmwareType && b.DictionaryId.HasValue)
@@ -77,7 +77,7 @@ public class BoardService : IBoardService
             }
         }
 
-        // Validazione: max 1 IsPrimary per Device (BR-005)
+        // Validation: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
         {
             await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: null, ct);
@@ -104,14 +104,14 @@ public class BoardService : IBoardService
             ?? throw new KeyNotFoundException(
                 $"Board '{board.Name}' (Id={board.Id}) not found.");
 
-        // Verifica dizionario se specificato
+        // Check dictionary if specified
         if (board.DictionaryId.HasValue)
         {
             _ = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
                     $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
 
-        // Validazione: max 1 IsPrimary per Device (BR-005)
+        // Validation: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
         {
             await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: board.Id, ct);
@@ -137,12 +137,12 @@ public class BoardService : IBoardService
 
         if (board?.DictionaryId is int dictId)
         {
-            // Se il dizionario è referenziato solo da questa board, eliminalo
+            // If the dictionary is only referenced by this board, delete it
             IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
             int refCount = allBoards.Count(b => b.DictionaryId == dictId);
             if (refCount <= 1)
             {
-                // Elimina prima la board (FK), poi il dizionario
+                // Delete the board first (FK), then the dictionary
                 await _boardRepository.DeleteAsync(id, ct);
                 await _dictionaryRepository.DeleteAsync(dictId, ct);
 

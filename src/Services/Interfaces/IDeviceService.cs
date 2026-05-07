@@ -3,8 +3,8 @@ using Core.Models;
 namespace Services.Interfaces;
 
 /// <summary>
-/// Service per gestione dispositivi STEM.
-/// SESSION_035: Device entity sostituisce DeviceType enum.
+/// STEM device service.
+/// SESSION_035: Device entity replaces DeviceType enum.
 /// </summary>
 public interface IDeviceService
 {
@@ -15,12 +15,12 @@ public interface IDeviceService
     Task DeleteAsync(int id, CancellationToken ct = default);
 
     /// <summary>
-    /// Cerca device per nome (unique).
+    /// Looks up a device by name (unique).
     /// </summary>
     Task<Device?> GetByNameAsync(string name, CancellationToken ct = default);
 
     /// <summary>
-    /// Calcola il primo MachineCode disponibile (max + 1, salta 6 riservato BLE).
+    /// Computes the first available MachineCode (max + 1, skipping 6 reserved for BLE).
     /// </summary>
     Task<int> GetNextAvailableMachineCodeAsync(CancellationToken ct = default);
 }

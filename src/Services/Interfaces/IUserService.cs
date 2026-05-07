@@ -3,11 +3,11 @@ using Core.Models;
 namespace Services.Interfaces;
 
 /// <summary>
-/// Service per gestione utenti.
+/// User service.
 /// </summary>
 public interface IUserService
 {
-    // === CRUD Base ===
+    // === Base CRUD ===
 
     Task<User?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<IReadOnlyList<User>> GetAllAsync(CancellationToken ct = default);
@@ -15,15 +15,15 @@ public interface IUserService
     Task UpdateAsync(User user, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
 
-    // === Query Specifiche ===
+    // === Specific queries ===
 
     /// <summary>
-    /// Cerca utente per username (case-insensitive).
+    /// Looks up a user by username (case-insensitive).
     /// </summary>
     Task<User?> GetByUsernameAsync(string username, CancellationToken ct = default);
 
     /// <summary>
-    /// Verifica se un username esiste già.
+    /// Checks whether a username already exists.
     /// </summary>
     Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default);
 }

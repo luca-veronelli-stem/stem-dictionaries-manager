@@ -4,12 +4,12 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per User Entity ↔ Domain.
+/// Bidirectional mapper for User Entity ↔ Domain.
 /// </summary>
 public static class UserMapper
 {
     /// <summary>
-    /// Converte UserEntity in User (Domain).
+    /// Converts UserEntity to User (Domain).
     /// </summary>
     public static User ToDomain(UserEntity entity)
     {
@@ -19,7 +19,7 @@ public static class UserMapper
     }
 
     /// <summary>
-    /// Converte User (Domain) in UserEntity per creazione.
+    /// Converts User (Domain) to UserEntity for creation.
     /// </summary>
     public static UserEntity ToEntity(User domain)
     {
@@ -34,8 +34,8 @@ public static class UserMapper
     }
 
     /// <summary>
-    /// Aggiorna UserEntity esistente con dati da User (Domain).
-    /// Preserva Id e audit fields.
+    /// Updates an existing UserEntity with data from User (Domain).
+    /// Preserves Id and audit fields.
     /// </summary>
     public static void UpdateEntity(UserEntity entity, User domain)
     {
@@ -47,7 +47,7 @@ public static class UserMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<User> ToDomainList(IEnumerable<UserEntity> entities)
     {

@@ -4,12 +4,12 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per BitInterpretation Entity ↔ Domain.
+/// Bidirectional mapper for BitInterpretation Entity ↔ Domain.
 /// </summary>
 public static class BitInterpretationMapper
 {
     /// <summary>
-    /// Converte BitInterpretationEntity in BitInterpretation (Domain).
+    /// Converts BitInterpretationEntity to BitInterpretation (Domain).
     /// </summary>
     public static BitInterpretation ToDomain(BitInterpretationEntity entity)
     {
@@ -25,7 +25,7 @@ public static class BitInterpretationMapper
     }
 
     /// <summary>
-    /// Converte BitInterpretation (Domain) in BitInterpretationEntity per creazione.
+    /// Converts BitInterpretation (Domain) to BitInterpretationEntity for creation.
     /// </summary>
     public static BitInterpretationEntity ToEntity(BitInterpretation domain)
     {
@@ -43,7 +43,7 @@ public static class BitInterpretationMapper
     }
 
     /// <summary>
-    /// Aggiorna BitInterpretationEntity esistente.
+    /// Updates an existing BitInterpretationEntity.
     /// </summary>
     public static void UpdateEntity(BitInterpretationEntity entity, BitInterpretation domain)
     {
@@ -58,7 +58,7 @@ public static class BitInterpretationMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<BitInterpretation> ToDomainList(IEnumerable<BitInterpretationEntity> entities)
     {

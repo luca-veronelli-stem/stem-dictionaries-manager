@@ -3,8 +3,8 @@ using Services.Interfaces;
 namespace Services;
 
 /// <summary>
-/// Implementazione di ICurrentUserProvider.
-/// Singleton: la GUI lo setta dopo login, i service lo leggono per audit.
+/// ICurrentUserProvider implementation.
+/// Singleton: the GUI sets it after login; services read it for auditing.
 /// </summary>
 public class CurrentUserProvider : ICurrentUserProvider
 {

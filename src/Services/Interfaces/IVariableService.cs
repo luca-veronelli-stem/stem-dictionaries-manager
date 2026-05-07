@@ -3,13 +3,13 @@ using Core.Models;
 namespace Services.Interfaces;
 
 /// <summary>
-/// Service per gestione variabili singole.
-/// Per operazioni batch, usare IDictionaryService.
-/// v7: DeviceState → StandardVariableOverride (per-dizionario).
+/// Single-variable service.
+/// For batch operations, use IDictionaryService.
+/// v7: DeviceState → StandardVariableOverride (per-dictionary).
 /// </summary>
 public interface IVariableService
 {
-    // === CRUD Base ===
+    // === Base CRUD ===
 
     Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<IReadOnlyList<Variable>> GetAllAsync(CancellationToken ct = default);
@@ -17,14 +17,14 @@ public interface IVariableService
     Task UpdateAsync(Variable variable, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
 
-    // === Query Specifiche ===
+    // === Specific queries ===
 
     Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default);
 
     Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow,
         CancellationToken ct = default);
 
-    // === BitInterpretation Management ===
+    // === BitInterpretation management ===
 
     Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsAsync(int variableId,
         CancellationToken ct = default);
@@ -36,40 +36,40 @@ public interface IVariableService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Aggiorna le interpretazioni bit per una variabile e un dizionario specifico (o null per template).
+    /// Updates bit interpretations for a variable and a specific dictionary (or null for the template).
     /// </summary>
     Task UpdateBitInterpretationsForDictionaryAsync(int variableId, int? dictionaryId,
         IEnumerable<BitInterpretation> interpretations, CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene le interpretazioni bit per una variabile e un dizionario (include template come fallback).
+    /// Gets bit interpretations for a variable and a dictionary (falls back to the template).
     /// </summary>
     Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDictionaryAsync(int variableId,
         int dictionaryId, CancellationToken ct = default);
 
-    // === StandardVariableOverride Management ===
+    // === StandardVariableOverride management ===
 
     /// <summary>
-    /// Imposta o aggiorna l'override di una variabile standard per un dizionario.
-    /// BR-011: isEnabled=true vietato se Variable.IsEnabled=false.
+    /// Sets or updates the override of a standard variable for a dictionary.
+    /// BR-011: isEnabled=true is forbidden when Variable.IsEnabled=false.
     /// </summary>
     Task SetOverrideAsync(int dictionaryId, int standardVariableId, bool isEnabled,
         string? description = null, CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene l'override di una variabile standard per un dizionario specifico.
+    /// Gets the override of a standard variable for a specific dictionary.
     /// </summary>
     Task<StandardVariableOverride?> GetOverrideAsync(int dictionaryId, int standardVariableId,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene tutti gli override per un dizionario.
+    /// Gets all overrides for a dictionary.
     /// </summary>
     Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByDictionaryAsync(int dictionaryId,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene tutti gli override per una variabile standard (tutti i dizionari).
+    /// Gets all overrides for a standard variable (across all dictionaries).
     /// </summary>
     Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByVariableAsync(
         int standardVariableId, CancellationToken ct = default);

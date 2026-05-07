@@ -4,17 +4,17 @@ using Services.Interfaces;
 namespace Services;
 
 /// <summary>
-/// Extension methods per la registrazione dei servizi nel DI container.
+/// Extension methods to register the Services layer in the DI container.
 /// </summary>
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registra tutti i servizi del layer Services.
-    /// Richiede che Infrastructure sia già registrato (AddInfrastructure).
+    /// Registers all services from the Services layer.
+    /// Requires that Infrastructure is already registered (AddInfrastructure).
     /// </summary>
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        // Singleton: utente corrente condiviso tra tutti gli scope
+        // Singleton: current user shared across all scopes
         services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
 
         // Services

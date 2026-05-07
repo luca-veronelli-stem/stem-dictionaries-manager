@@ -7,7 +7,7 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione utenti.
+/// User service implementation.
 /// </summary>
 public class UserService : IUserService
 {
@@ -35,7 +35,7 @@ public class UserService : IUserService
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        // Verifica unicità username
+        // Username uniqueness check
         if (await UsernameExistsAsync(user.Username, ct))
         {
             throw new InvalidOperationException($"Username '{user.Username}' already exists.");
@@ -54,7 +54,7 @@ public class UserService : IUserService
             ?? throw new KeyNotFoundException(
                 $"User '{user.Username}' (Id={user.Id}) not found.");
 
-        // Verifica unicità username (se cambiato)
+        // Username uniqueness check (if changed)
         if (!entity.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
         {
             if (await UsernameExistsAsync(user.Username, ct))
