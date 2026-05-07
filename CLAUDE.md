@@ -33,7 +33,7 @@ Examples:
 ## Active migrations
 
 - [x] Phase 1: structural adoption of `llm-settings v1.3.2` — restructure to `src/` + `tests/`, CPM, GitHub Actions CI, inline standards under `docs/Standards/`, in-tree ISSUES files migrated to GitHub Issues (#2–#18).
-- [ ] Phase 2: per-component README translation Italian → English — TBD.
+- [ ] Phase 2: Italian → English translation pass for in-tree XML doc comments, inline comments, and XAML UI strings (≈125 files across `src/` and `tests/`). Pre-v1 component READMEs were dropped in #32; the residual translation work is tracked in #33 with a per-layer PR breakdown.
 - [ ] Phase 3: F# migration of `Core` (and any cross-cutting domain logic that lands in F# alongside).
 - [ ] Phase 4: F# migration of `Services`.
 - [ ] Phase 5: Avalonia + FuncUI migration of `GUI.Windows` → `GUI` (cross-platform, retiring WPF).
