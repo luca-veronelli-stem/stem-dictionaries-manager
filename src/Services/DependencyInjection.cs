@@ -33,6 +33,8 @@ public static class DependencyInjection
         // for US1 only LookupAsync/MarkUsedAsync are implemented.
         services.AddScoped<Services.Interfaces.Auth.IBootstrapTokenService,
             Services.Auth.BootstrapTokenService>();
+        services.AddScoped<Services.Interfaces.Auth.IInstallationCredentialService,
+            Services.Auth.InstallationCredentialService>();
 
         return services;
     }
