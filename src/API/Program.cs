@@ -80,6 +80,7 @@ app.MapDictionaryEndpoints();
 app.MapCommandEndpoints();
 app.MapBoardEndpoints();
 app.MapRegistrationEndpoints();
+app.MapAdminAuthEndpoints();
 
 // Health check — GET /health (no auth)
 app.MapHealthChecks("/health");
