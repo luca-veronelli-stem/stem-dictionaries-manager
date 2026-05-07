@@ -43,6 +43,46 @@
   default per-token within `[1 h, 90 d]`; values outside that
   interval MUST be rejected at mint time.
 
+### Session 2026-05-07 (cont.)
+
+Triggered by review of the consumer-side draft contract at
+`stem-button-panel-tester/specs/001-dictionary-from-api/contracts/register-api.md`
+(written 2026-05-06, before this spec's first clarify session).
+
+- Q: Should the unified-`401`-on-failure decision (FR-002 / SC-002) be
+  reversed in favor of the consumer's distinguishable
+  `401 token_invalid` / `403 supplier_revoked` /
+  `409 already_registered` shape? → A: **No, keep unified.**
+  Distinguishable codes are a token-status oracle for an attacker
+  harvesting tokens from disassembled installers (the explicit threat
+  model). Differentiation lives in `RegistrationEvents.Outcome`
+  server-side, queryable by admins. Idempotent re-registration on
+  partial-failure (the consumer's `409 → return existing key`) is also
+  rejected — it would require either re-issuing plaintext (violates
+  "plaintext returned exactly once") or storing plaintext server-side
+  (the anti-pattern this feature exists to fix). Recovery on partial
+  failure is operator-side: revoke the half-created Installation, mint
+  a fresh bootstrap token.
+- Q: Adopt an `appVersion` field on the installation descriptor for
+  ops correlation (per consumer contract)? → A: **Yes, optional
+  semver string.** Persisted on Installation and RegistrationEvent for
+  forward-compat. Older clients that omit it record `null`.
+- Q: How does `descriptor.clientApp` relate to repo names vs the
+  existing `ApiKeys` config-key convention? → A: **Free-text matching
+  the bootstrap token's minted scope, by convention the `ApiKeys`
+  config-key form** (`ButtonPanelTester`, `GlobalService`,
+  `StemDeviceManager`, `ProductionTracker`). No server-side
+  repo-name → config-key map. The admin mints with the canonical
+  string; the consumer hard-codes the same string in its source.
+- Q: Should the descriptor's `osUserId` and `machineId` be hashed
+  client-side (per consumer's draft) or sent raw? → A: **Server-opaque
+  — consumer's choice.** The server stores whatever stable string the
+  consumer sends; both raw values (Windows SID, POSIX `UID:username`,
+  SMBIOS UUID, `/etc/machine-id`) and consumer-applied SHA-256 hashes
+  are valid. Hashing is permitted but not required; the privacy
+  trade-off (smaller leak blast radius vs. ops debuggability) is the
+  consumer's call to make.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Client app obtains its API credential on first launch (Priority: P1)
@@ -259,8 +299,14 @@ unaffected.
   identifier (matching the bootstrap token's scope), stable OS user
   identifier (e.g. SID on Windows; UID + username on POSIX), stable
   machine identifier (per-machine fingerprint), and install GUID
-  (per-install unique value). (Issue #1 prescribes the wire-level
-  path as `POST /register`.)
+  (per-install unique value). The OS user and machine identifiers are
+  treated as opaque strings server-side — consumers MAY hash them
+  before submission for privacy reasons, but the server makes no
+  semantic distinction between raw and hashed values. The descriptor
+  MAY also include an `appVersion` semver string for ops correlation
+  (forward-compat; older clients omitting it record `null`
+  server-side). (Issue #1 prescribes the wire-level path as
+  `POST /register`.)
 - **FR-002**: The system MUST reject any registration attempt whose
   bootstrap token does not exist, has been used, has expired, or is
   scoped to a different client than the requesting installation
@@ -348,11 +394,12 @@ unaffected.
   the same OS user on multiple machines also produces multiple
   Installations. Attributes: opaque installation identifier, client
   app (inherited from the consuming bootstrap token's scope), OS
-  user identifier (from the descriptor), machine identifier (from
-  the descriptor), install GUID (from the descriptor), full
-  installation descriptor as submitted, registration timestamp,
-  current status (active / revoked), and revocation timestamp
-  where applicable.
+  user identifier (from the descriptor; server-opaque), machine
+  identifier (from the descriptor; server-opaque), install GUID (from
+  the descriptor), optional app version (from the descriptor; null if
+  omitted), full installation descriptor as submitted, registration
+  timestamp, current status (active / revoked), and revocation
+  timestamp where applicable.
 - **Installation API Credential** — the long-lived authentication
   secret bound to one Installation. Attributes: opaque credential
   identifier, owning Installation reference, mint timestamp, status
@@ -365,10 +412,10 @@ unaffected.
 - **Registration Event** — the audit-trail record of a registration
   attempt (success or failure). Attributes: timestamp, claimed
   client app, claimed OS user identifier, claimed machine
-  identifier, source IP, full installation descriptor as submitted,
-  outcome (success or which failure category — recorded
-  server-side; never disclosed to the client), and on success the
-  resulting Installation identifier.
+  identifier, claimed app version (nullable), source IP, full
+  installation descriptor as submitted, outcome (success or which
+  failure category — recorded server-side; never disclosed to the
+  client), and on success the resulting Installation identifier.
 
 ## Success Criteria *(mandatory)*
 
