@@ -310,11 +310,17 @@ public class VariableMapperTests
     {
         var entity = new VariableEntity
         {
-            Id = 50, DictionaryId = 1, Name = "Allarmi",
-            AddressHigh = 0x00, AddressLow = 0x06,
-            DataTypeKind = DataTypeKind.Bitmapped, DataTypeParam = 2,
-            DataTypeRaw = "Bitmapped[2]", AccessMode = AccessMode.ReadOnly,
-            IsEnabled = true, WordSize = 16
+            Id = 50,
+            DictionaryId = 1,
+            Name = "Allarmi",
+            AddressHigh = 0x00,
+            AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.Bitmapped,
+            DataTypeParam = 2,
+            DataTypeRaw = "Bitmapped[2]",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            WordSize = 16
         };
 
         var result = VariableMapper.ToDomain(entity);
@@ -327,10 +333,16 @@ public class VariableMapperTests
     {
         var entity = new VariableEntity
         {
-            Id = 51, DictionaryId = 1, Name = "Test",
-            AddressHigh = 0x00, AddressLow = 0x00,
-            DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
-            AccessMode = AccessMode.ReadOnly, IsEnabled = true, WordSize = null
+            Id = 51,
+            DictionaryId = 1,
+            Name = "Test",
+            AddressHigh = 0x00,
+            AddressLow = 0x00,
+            DataTypeKind = DataTypeKind.UInt16,
+            DataTypeRaw = "uint16_t",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            WordSize = null
         };
 
         var result = VariableMapper.ToDomain(entity);
@@ -355,10 +367,16 @@ public class VariableMapperTests
     {
         var entity = new VariableEntity
         {
-            Id = 52, DictionaryId = 1, Name = "Old",
-            AddressHigh = 0x00, AddressLow = 0x06,
-            DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
-            AccessMode = AccessMode.ReadOnly, IsEnabled = true, WordSize = null
+            Id = 52,
+            DictionaryId = 1,
+            Name = "Old",
+            AddressHigh = 0x00,
+            AddressLow = 0x06,
+            DataTypeKind = DataTypeKind.UInt16,
+            DataTypeRaw = "uint16_t",
+            AccessMode = AccessMode.ReadOnly,
+            IsEnabled = true,
+            WordSize = null
         };
         var domain = new Variable("Allarmi", 0x00, 0x06,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",

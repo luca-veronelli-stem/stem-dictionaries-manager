@@ -27,8 +27,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _showValidation;
 
     /// <summary>
-    /// Se valorizzato, la view Ë in modalit‡ DictionaryContext: campi variabile read-only,
-    /// WordGroups editabili con DictionaryId. Null = modalit‡ Normal.
+    /// Se valorizzato, la view √® in modalit√† DictionaryContext: campi variabile read-only,
+    /// WordGroups editabili con DictionaryId. Null = modalit√† Normal.
     /// </summary>
     private int? _dictionaryContextId;
 
@@ -227,12 +227,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsNew => _editingId is null;
 
     /// <summary>
-    /// True se in modalit‡ DictionaryContext (campi variabile read-only, solo bit editabili).
+    /// True se in modalit√† DictionaryContext (campi variabile read-only, solo bit editabili).
     /// </summary>
     public bool IsDictionaryContext => _dictionaryContextId.HasValue;
 
     /// <summary>
-    /// True se i campi variabile sono editabili (modalit‡ Normal).
+    /// True se i campi variabile sono editabili (modalit√† Normal).
     /// </summary>
     public bool IsNotDictionaryContext => !IsDictionaryContext;
 
@@ -244,7 +244,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         ? "?? Salva Override" : "?? Salva";
 
     /// <summary>
-    /// True se il DataTypeKind selezionato Ë Other (mostra TextBox custom).
+    /// True se il DataTypeKind selezionato √® Other (mostra TextBox custom).
     /// </summary>
     public bool IsDataTypeOther => SelectedDataTypeKind == DataTypeKind.Other;
 
@@ -255,12 +255,12 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
-    /// True se Ë Bitmapped (mostra Word Size selector).
+    /// True se √® Bitmapped (mostra Word Size selector).
     /// </summary>
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
 
     /// <summary>
-    /// True se Ë Bitmapped e WordSize Ë stato selezionato (mostra WordGroups).
+    /// True se √® Bitmapped e WordSize √® stato selezionato (mostra WordGroups).
     /// </summary>
     public bool HasWordSize => IsBitmapped && SelectedWordSize.HasValue;
 
@@ -320,7 +320,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     public bool IsMinMaxValid => !MinValue.HasValue || !MaxValue.HasValue || MinValue.Value <= MaxValue.Value;
 
-    // === Propriet‡ di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+    // === Propriet√† di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsAddressLowInvalid => _showValidation && string.IsNullOrWhiteSpace(AddressLowHex);
@@ -328,7 +328,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsDataTypeParamInvalid => _showValidation && RequiresDataTypeParam && !DataTypeParam.HasValue;
 
     /// <summary>
-    /// True se ci sono almeno 2 word (la rimozione Ë possibile).
+    /// True se ci sono almeno 2 word (la rimozione √® possibile).
     /// </summary>
     public bool CanRemoveWord => IsBitmapped && WordGroups.Count > 1;
     public bool IsCustomDataTypeInvalid => _showValidation && IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType);
@@ -350,7 +350,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private static bool IsValidHex(string hex)
     {
-        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto Ë ok
+        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto √® ok
         return hex.All(c => char.IsAsciiHexDigit(c));
     }
 
@@ -463,7 +463,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isInitialized = true;
             HasChanges = false;
 
-            // Se nuovo e tipo Ë Bitmapped con WordSize gi‡ impostato, crea Word 0
+            // Se nuovo e tipo √® Bitmapped con WordSize gi√† impostato, crea Word 0
             if (HasWordSize && WordGroups.Count == 0)
                 CreateInitialWordGroup();
 
@@ -486,7 +486,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        // AddressHighHex Ë computed automaticamente da _isStandardDictionary
+        // AddressHighHex √® computed automaticamente da _isStandardDictionary
         AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
         DataTypeParam = v.DataTypeParam;
@@ -499,7 +499,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         IsEnabled = v.IsEnabled;
         SelectedWordSize = v.WordSize;
 
-        // Imposta custom type se Ë Other
+        // Imposta custom type se √® Other
         if (v.DataTypeKind == DataTypeKind.Other)
         {
             CustomDataType = v.DataTypeRaw;
@@ -510,7 +510,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     {
         _showValidation = true;
 
-        // Notifica tutte le propriet‡ di validazione
+        // Notifica tutte le propriet√† di validazione
         OnPropertyChanged(nameof(IsNameInvalid));
         OnPropertyChanged(nameof(IsAddressLowInvalid));
         OnPropertyChanged(nameof(IsDescriptionInvalid));
@@ -777,7 +777,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     /// <summary>
     /// Rigenera i WordGroups per il wordCount specificato.
-    /// Preserva gli items esistenti per le word che gi‡ esistono.
+    /// Preserva gli items esistenti per le word che gi√† esistono.
     /// </summary>
     private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
     {

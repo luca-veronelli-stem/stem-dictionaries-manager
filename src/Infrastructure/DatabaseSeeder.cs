@@ -92,7 +92,7 @@ public static class DatabaseSeeder
 
             // 0x07 - Aggiorna pagina bootloader
             Cmd("Aggiorna pagina bootloader", 0x00, 0x07, false,
-                "2|Firmware type", "4|Numero pagina", "4|Dimensione pagina", "4|Reserved", 
+                "2|Firmware type", "4|Numero pagina", "4|Dimensione pagina", "4|Reserved",
                 "N|Valori (Come da dimensione pagina)"),
             Cmd("Aggiorna pagina bootloader risposta", 0x80, 0x07, true,
                 "2|Firmware type", "4|Numero pagina", "4|Dimensione pagina", "4|Reserved", "1|Risultato (0 = ok, !0 = codice errore)"),
@@ -145,9 +145,9 @@ public static class DatabaseSeeder
 
             // 0x15 - Configura telemetria
             Cmd("Configura telemetria", 0x00, 0x15, false, "4|Tipo di telemetria (codice univoco deciso dall'amministratore)",
-                "4|Indirizzo di destinazione (indirizzo di protocollo STEM a cui inviare la telemetria)", 
+                "4|Indirizzo di destinazione (indirizzo di protocollo STEM a cui inviare la telemetria)",
                 "1|Istanza telemetria (numero del task che ospita la telemetria)", "2|Periodo (ms)",
-                "4|Indirizzo scheda (indirizzo del protocollo STEM da cui rilevare la telemetria)", 
+                "4|Indirizzo scheda (indirizzo del protocollo STEM da cui rilevare la telemetria)",
                 "N|Indirizzi logici (2 bytes ciascuno al massimo SP_TEL_N_VARS, variabile definita nel firmware)"),
             Cmd("Configura telemetria risposta", 0x80, 0x15, true),
 
@@ -163,7 +163,7 @@ public static class DatabaseSeeder
             Cmd("Pacchetto di telemetria", 0x00, 0x18, false,"4|Tipo di telemetria", "N|Dati"),
 
             // 0x19 - Configura log
-            Cmd("Configura log", 0x00, 0x19, false, "4|Tipo di log (codice univoco deciso dall'amministratore)", 
+            Cmd("Configura log", 0x00, 0x19, false, "4|Tipo di log (codice univoco deciso dall'amministratore)",
                 "1|Istanza log", "4|Indirizzo scheda evento", "2|Indirizzo logico evento",
                 "4|Soglia evento", "1|Tipo trigger", "1|Direzione trigger", "2|Periodo (ms)",
                 "4|Indirizzo scheda", "N|Indirizzi logici (2 bytes ciascuno al massimo SP_TEL_N_VARS, variabile definita nel firmware)"),
@@ -3189,13 +3189,15 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = finecorsa.Id,
-                WordIndex = 0, BitIndex = 0,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Finecorsa piano esteso"
             },
             new BitInterpretationEntity
             {
                 VariableId = finecorsa.Id,
-                WordIndex = 0, BitIndex = 1,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Finecorsa piano chiuso"
             });
 
@@ -3205,17 +3207,23 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 0, Meaning = "B"
+                WordIndex = 0,
+                BitIndex = 0,
+                Meaning = "B"
             },
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 1, Meaning = "G"
+                WordIndex = 0,
+                BitIndex = 1,
+                Meaning = "G"
             },
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 2, Meaning = "R"
+                WordIndex = 0,
+                BitIndex = 2,
+                Meaning = "R"
             });
 
         // Link board Madre (FW=17) di Optimus-XP
@@ -3263,57 +3271,75 @@ public static class DatabaseSeeder
             // Word 0
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Sovracorrente pompa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Circuito aperto pompa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Sovracorrente EV 1"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "Circuito aperto EV 1"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Sovracorrente EV 2"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Circuito aperto EV 2"
             },
             // Word 1
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 2,
                 Meaning = "Low battery"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 4,
                 Meaning = "Errore interno routine software"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 5,
                 Meaning = "Errore hardware EEPROM esterna"
             });
 
@@ -3323,38 +3349,50 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Ingresso barella"
             },
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Costa sensibile"
             },
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Comando tastiera led"
             },
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 8,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 8,
                 Meaning = "Comando tastiera molleggio"
             },
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 9,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 9,
                 Meaning = "Comando tastiera tutto su"
             },
             new BitInterpretationEntity
             {
-                VariableId = ingressi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 11,
+                VariableId = ingressi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 11,
                 Meaning = "Comando tastiera stop"
             });
 
@@ -3364,33 +3402,51 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0, Meaning = "EVA"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
+                Meaning = "EVA"
             },
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1, Meaning = "EVB"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
+                Meaning = "EVB"
             },
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2, Meaning = "PUMP"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
+                Meaning = "PUMP"
             },
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 9, Meaning = "LEDB"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 9,
+                Meaning = "LEDB"
             },
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 10, Meaning = "LEDG"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 10,
+                Meaning = "LEDG"
             },
             new BitInterpretationEntity
             {
-                VariableId = uscite.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 11, Meaning = "LEDR"
+                VariableId = uscite.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 11,
+                Meaning = "LEDR"
             });
 
         await context.SaveChangesAsync();
@@ -3403,7 +3459,7 @@ public static class DatabaseSeeder
     /// 34 variabili (0x8000-0x8017 + 0x802E-0x8037), 10 abilitate.
     /// </summary>
     private static async Task<DictionaryEntity> SeedTopLiftMDictionaryAsync(
-        AppDbContext context, BoardEntity[] boards, DeviceEntity topLiftMDevice)    
+        AppDbContext context, BoardEntity[] boards, DeviceEntity topLiftMDevice)
     {
         var dictionary = new DictionaryEntity
         {
@@ -3601,59 +3657,127 @@ public static class DatabaseSeeder
         var statoIO = variables.First(v => v.AddressLow == 0x36);
         context.Set<BitInterpretationEntity>().AddRange(
             // Word 0 — Ingressi
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 0,
-                Meaning = "Stato fine corsa piano chiuso" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 1,
-                Meaning = "Stato fine corsa piano aperto" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 2,
-                Meaning = "Stato comando Up" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 3,
-                Meaning = "Stato comando Down" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 4,
-                Meaning = "Stato comando Mem" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 5,
-                Meaning = "Stato comando Stop" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 6,
-                Meaning = "Stato comando P1" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 7,
-                Meaning = "Stato comando P2" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 8,
-                Meaning = "Stato comando P3" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 9,
-                Meaning = "Stato selettore inclina" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 0, BitIndex = 10,
-                Meaning = "Stato selettore va orizzontale" },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 0,
+                Meaning = "Stato fine corsa piano chiuso"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 1,
+                Meaning = "Stato fine corsa piano aperto"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 2,
+                Meaning = "Stato comando Up"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 3,
+                Meaning = "Stato comando Down"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 4,
+                Meaning = "Stato comando Mem"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 5,
+                Meaning = "Stato comando Stop"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 6,
+                Meaning = "Stato comando P1"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 7,
+                Meaning = "Stato comando P2"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 8,
+                Meaning = "Stato comando P3"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 9,
+                Meaning = "Stato selettore inclina"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 0,
+                BitIndex = 10,
+                Meaning = "Stato selettore va orizzontale"
+            },
             // Word 1 — Uscite
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 0,
-                Meaning = "Stato elettrovalvola 1" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 1,
-                Meaning = "Stato elettrovalvola 2" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 2,
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 0,
+                Meaning = "Stato elettrovalvola 1"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 1,
+                Meaning = "Stato elettrovalvola 2"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 2,
                 Meaning = "Stato elettrovalvola 3 "
-                    + "(non presente in top lift)" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 3,
-                Meaning = "Stato elettrovalvola 7" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 4,
-                Meaning = "Stato elettrovalvola 8" },
-            new BitInterpretationEntity { VariableId = statoIO.Id,
-                WordIndex = 1, BitIndex = 5,
-                Meaning = "Stato relè motore" });
+                    + "(non presente in top lift)"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 3,
+                Meaning = "Stato elettrovalvola 7"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 4,
+                Meaning = "Stato elettrovalvola 8"
+            },
+            new BitInterpretationEntity
+            {
+                VariableId = statoIO.Id,
+                WordIndex = 1,
+                BitIndex = 5,
+                Meaning = "Stato relè motore"
+            });
 
         // Link board Madre (FW=3) di TopLift-M
         foreach (var board in boards)
@@ -4135,13 +4259,15 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = finecorsa.Id,
-                WordIndex = 0, BitIndex = 0,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Finecorsa piano esteso"
             },
             new BitInterpretationEntity
             {
                 VariableId = finecorsa.Id,
-                WordIndex = 0, BitIndex = 1,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Finecorsa piano chiuso"
             });
 
@@ -4151,17 +4277,23 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 0, Meaning = "B"
+                WordIndex = 0,
+                BitIndex = 0,
+                Meaning = "B"
             },
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 1, Meaning = "G"
+                WordIndex = 0,
+                BitIndex = 1,
+                Meaning = "G"
             },
             new BitInterpretationEntity
             {
                 VariableId = luci.Id,
-                WordIndex = 0, BitIndex = 2, Meaning = "R"
+                WordIndex = 0,
+                BitIndex = 2,
+                Meaning = "R"
             });
 
         // Link board Madre (FW=14) di TopLift-A2
@@ -4213,135 +4345,179 @@ public static class DatabaseSeeder
             // Word 0
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Sovracorrente pompa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Circuito aperto pompa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Sovracorrente EV 1"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "Circuito aperto EV 1"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Sovracorrente EV 2"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Circuito aperto EV 2"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 6,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 6,
                 Meaning = "Sovracorrente EV 3"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 7,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 7,
                 Meaning = "Circuito aperto EV 3"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 8,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 8,
                 Meaning = "Sovracorrente EV 4"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 9,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 9,
                 Meaning = "Circuito aperto EV 4"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 10,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 10,
                 Meaning = "Sovracorrente EV 5"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 11,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 11,
                 Meaning = "Circuito aperto EV 5"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 12,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 12,
                 Meaning = "Sovracorrente EV 6"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 13,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 13,
                 Meaning = "Circuito aperto EV 6"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 14,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 14,
                 Meaning = "Sovracorrente EV 7"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 15,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 15,
                 Meaning = "Circuito aperto EV 7"
             },
             // Word 1
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 0,
                 Meaning = "Sovracorrente EV 8"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 1,
                 Meaning = "Circuito aperto EV 8"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 2,
                 Meaning = "Low battery"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 3,
                 Meaning = "Costa sensibile"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 4,
                 Meaning = "Errore interno routine software"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 5,
                 Meaning = "Errore hardware EEPROM esterna"
             });
 
@@ -4555,92 +4731,122 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Errore generico"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Fan broken"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "No comm ozone sensor"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Locked button"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Low ozone"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 6,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 6,
                 Meaning = "High ozone"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 7,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 7,
                 Meaning = "Ozone cell temp low"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 8,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 8,
                 Meaning = "Temperature high"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 9,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 9,
                 Meaning = "Ozone cell temp high"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 10,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 10,
                 Meaning = "Humidity high"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 11,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 11,
                 Meaning = "Power supply high"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 12,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 12,
                 Meaning = "Power supply low"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 13,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 13,
                 Meaning = "CAN Egicon"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 14,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 14,
                 Meaning = "CAN ozone"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 15,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 15,
                 Meaning = "Man inside"
             });
 
@@ -4840,33 +5046,43 @@ public static class DatabaseSeeder
             // Word 0: Allarmi
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Errore CAN"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Tensione troppo bassa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Errore touch"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "Errore sensore 10G (se vedo "
                     + "Vricarica senza vedere 10G)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Sovraccarico celle (quando sono "
                     + "a tensione batteria massima ma ho "
                     + "ancora corrente)"
@@ -4874,64 +5090,82 @@ public static class DatabaseSeeder
             // Word 1: Avvisi
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 0,
                 Meaning = "Tensione bassa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 1,
                 Meaning = "NFC non presente "
                     + "(se barellino agganciato)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 2,
                 Meaning = "NFC non riconosciuto "
                     + "(se barellino agganciato)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 3,
                 Meaning = "Barellino non agganciato "
                     + "(se NFC presente)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 4,
                 Meaning = "Mancanza di Vricarica "
                     + "con 10G agganciato"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 5,
                 Meaning = "Celle sbilanciate (quando sono "
                     + "in ricarica ma non ho corrente "
                     + "di ricarica)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 6,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 6,
                 Meaning = "Perdita di stabilità della "
                     + "barella (da giroscopio)"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 7,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 7,
                 Meaning = "Incoerenza leva/pulsante "
                     + "in carico"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 1, BitIndex = 8,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 1,
+                BitIndex = 8,
                 Meaning = "Incoerenza leva/pulsante "
                     + "in scarico"
             });
@@ -6101,25 +6335,29 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = fcMaster.Id,
-                WordIndex = 0, BitIndex = 0,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "FC di corrente Low"
             },
             new BitInterpretationEntity
             {
                 VariableId = fcMaster.Id,
-                WordIndex = 0, BitIndex = 1,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "FC di corrente High"
             },
             new BitInterpretationEntity
             {
                 VariableId = fcMaster.Id,
-                WordIndex = 0, BitIndex = 2,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "FC di posizione Low"
             },
             new BitInterpretationEntity
             {
                 VariableId = fcMaster.Id,
-                WordIndex = 0, BitIndex = 3,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "FC di posizione High"
             });
 
@@ -6130,49 +6368,57 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 0,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "TESTA GIU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 1,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "TUTTO GIU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 2,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "TUTTO SU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 3,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "TESTA SU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 4,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "PIEDI SU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 5,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "PIEDI GIU"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 6,
+                WordIndex = 0,
+                BitIndex = 6,
                 Meaning = "STOP"
             },
             new BitInterpretationEntity
             {
                 VariableId = vKeyboard.Id,
-                WordIndex = 0, BitIndex = 7,
+                WordIndex = 0,
+                BitIndex = 7,
                 Meaning = "LUCI"
             });
 
@@ -6222,50 +6468,66 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Sovracorrente motore testa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Circuito aperto motore testa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Sovracorrente motore piedi"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "Circuito aperto motore piedi"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Low battery"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Costa sensibile"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 6,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 6,
                 Meaning = "Errore interno routine software"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 7,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 7,
                 Meaning = "Errore hardware EEPROM esterna"
             });
 
@@ -6413,31 +6675,36 @@ public static class DatabaseSeeder
             new BitInterpretationEntity
             {
                 VariableId = ioSlave.Id,
-                WordIndex = 0, BitIndex = 0,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "FC di corrente Low"
             },
             new BitInterpretationEntity
             {
                 VariableId = ioSlave.Id,
-                WordIndex = 0, BitIndex = 1,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "FC di corrente High"
             },
             new BitInterpretationEntity
             {
                 VariableId = ioSlave.Id,
-                WordIndex = 0, BitIndex = 2,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "FC di posizione Low"
             },
             new BitInterpretationEntity
             {
                 VariableId = ioSlave.Id,
-                WordIndex = 0, BitIndex = 3,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "FC di posizione High"
             },
             new BitInterpretationEntity
             {
                 VariableId = ioSlave.Id,
-                WordIndex = 0, BitIndex = 4,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Pulsante down filtrato"
             });
 
@@ -6487,50 +6754,66 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 0,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 0,
                 Meaning = "Sovracorrente motore testa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 1,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 1,
                 Meaning = "Circuito aperto motore testa"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 2,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 2,
                 Meaning = "Sovracorrente motore piedi"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 3,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 3,
                 Meaning = "Circuito aperto motore piedi"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 4,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 4,
                 Meaning = "Low battery"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 5,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 5,
                 Meaning = "Costa sensibile"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 6,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 6,
                 Meaning = "Errore interno routine software"
             },
             new BitInterpretationEntity
             {
-                VariableId = allarmi.Id, DictionaryId = dictId,
-                WordIndex = 0, BitIndex = 7,
+                VariableId = allarmi.Id,
+                DictionaryId = dictId,
+                WordIndex = 0,
+                BitIndex = 7,
                 Meaning = "Errore hardware EEPROM esterna"
             });
 

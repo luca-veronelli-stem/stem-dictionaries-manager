@@ -115,7 +115,8 @@ public class BoardMapperTests
 
     private static BoardEntity CreateEntity(bool isPrimary, int? dictionaryId = null) => new()
     {
-        Id = 10, DeviceId = 10,
+        Id = 10,
+        DeviceId = 10,
         Name = "Test Board",
         FirmwareType = 17,
         BoardNumber = 1,

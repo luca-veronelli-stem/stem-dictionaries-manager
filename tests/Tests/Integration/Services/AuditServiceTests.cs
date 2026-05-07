@@ -198,7 +198,7 @@ public class AuditServiceTests : IntegrationTestBase
     public async Task GetByUserAsync_FiltersCorrectly()
     {
         var otherUser = new UserEntity
-            { Username = "other", DisplayName = "Other User" };
+        { Username = "other", DisplayName = "Other User" };
         Context.Users.Add(otherUser);
         await Context.SaveChangesAsync();
 
@@ -253,22 +253,28 @@ public class AuditServiceTests : IntegrationTestBase
         var repo = new AuditEntryRepository(Context);
         await repo.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 1,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 1,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });
         await repo.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 2,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 2,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });
         await repo.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 3,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 3,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 12, 31, 23, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });

@@ -234,14 +234,20 @@ public class DeviceServiceTests : IntegrationTestBase
         Context.Boards.AddRange(
             new BoardEntity
             {
-                DeviceId = device1.Id, Name = "Puls 1", FirmwareType = 4,
-                BoardNumber = 1, DictionaryId = dict.Id,
+                DeviceId = device1.Id,
+                Name = "Puls 1",
+                FirmwareType = 4,
+                BoardNumber = 1,
+                DictionaryId = dict.Id,
                 ProtocolAddress = Board.CalculateAddress(77, 4, 1)
             },
             new BoardEntity
             {
-                DeviceId = device2.Id, Name = "Puls 1", FirmwareType = 4,
-                BoardNumber = 1, DictionaryId = dict.Id,
+                DeviceId = device2.Id,
+                Name = "Puls 1",
+                FirmwareType = 4,
+                BoardNumber = 1,
+                DictionaryId = dict.Id,
                 ProtocolAddress = Board.CalculateAddress(78, 4, 1)
             });
         await Context.SaveChangesAsync();

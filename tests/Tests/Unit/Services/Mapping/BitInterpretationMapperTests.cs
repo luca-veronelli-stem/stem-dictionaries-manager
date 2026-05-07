@@ -152,8 +152,12 @@ public class BitInterpretationMapperTests
     {
         var entity = new BitInterpretationEntity
         {
-            Id = 1, VariableId = 10, DictionaryId = 5,
-            WordIndex = 0, BitIndex = 0, Meaning = "Test"
+            Id = 1,
+            VariableId = 10,
+            DictionaryId = 5,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Test"
         };
 
         var result = BitInterpretationMapper.ToDomain(entity);
@@ -166,8 +170,12 @@ public class BitInterpretationMapperTests
     {
         var entity = new BitInterpretationEntity
         {
-            Id = 1, VariableId = 10, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Test"
+            Id = 1,
+            VariableId = 10,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Test"
         };
 
         var result = BitInterpretationMapper.ToDomain(entity);
@@ -200,8 +208,12 @@ public class BitInterpretationMapperTests
     {
         var entity = new BitInterpretationEntity
         {
-            Id = 1, VariableId = 10, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Old"
+            Id = 1,
+            VariableId = 10,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Old"
         };
         var domain = BitInterpretation.Restore(1, 10, 0, 0, "New", dictionaryId: 3);
 
@@ -215,8 +227,12 @@ public class BitInterpretationMapperTests
     {
         var original = new BitInterpretationEntity
         {
-            Id = 42, VariableId = 100, DictionaryId = 7,
-            WordIndex = 2, BitIndex = 15, Meaning = "Dictionary Override"
+            Id = 42,
+            VariableId = 100,
+            DictionaryId = 7,
+            WordIndex = 2,
+            BitIndex = 15,
+            Meaning = "Dictionary Override"
         };
 
         var domain = BitInterpretationMapper.ToDomain(original);
@@ -230,8 +246,12 @@ public class BitInterpretationMapperTests
     {
         var original = new BitInterpretationEntity
         {
-            Id = 42, VariableId = 100, DictionaryId = null,
-            WordIndex = 2, BitIndex = 15, Meaning = "Common"
+            Id = 42,
+            VariableId = 100,
+            DictionaryId = null,
+            WordIndex = 2,
+            BitIndex = 15,
+            Meaning = "Common"
         };
 
         var domain = BitInterpretationMapper.ToDomain(original);

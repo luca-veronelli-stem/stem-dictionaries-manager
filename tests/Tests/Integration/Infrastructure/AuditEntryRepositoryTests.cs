@@ -158,22 +158,28 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         // Arrange
         await _repository.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 1,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 1,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });
         await _repository.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 2,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 2,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });
         await _repository.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 3,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 3,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 12, 31, 23, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });
@@ -195,8 +201,10 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         var exactDate = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc);
         await _repository.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 1,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 1,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = exactDate,
             NewValue = "{}"
         });
@@ -214,8 +222,10 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         // Arrange
         await _repository.AddAsync(new AuditEntryEntity
         {
-            EntityType = AuditEntityType.Variable, EntityId = 1,
-            Operation = AuditOperation.Create, ChangedById = _testUser.Id,
+            EntityType = AuditEntityType.Variable,
+            EntityId = 1,
+            Operation = AuditOperation.Create,
+            ChangedById = _testUser.Id,
             ChangedAt = new DateTime(2026, 6, 15, 12, 0, 0, DateTimeKind.Utc),
             NewValue = "{}"
         });

@@ -132,12 +132,14 @@ public class CommandRepositoryTests : IntegrationTestBase
         Context.CommandDeviceStates.AddRange(
             new CommandDeviceStateEntity
             {
-                CommandId = command.Id, DeviceId = 10,
+                CommandId = command.Id,
+                DeviceId = 10,
                 IsEnabled = true
             },
             new CommandDeviceStateEntity
             {
-                CommandId = command.Id, DeviceId = 3,
+                CommandId = command.Id,
+                DeviceId = 3,
                 IsEnabled = false
             }
         );

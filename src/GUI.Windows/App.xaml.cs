@@ -1,4 +1,4 @@
-﻿using GUI.Windows.ViewModels;
+using GUI.Windows.ViewModels;
 using GUI.Windows.Views;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;

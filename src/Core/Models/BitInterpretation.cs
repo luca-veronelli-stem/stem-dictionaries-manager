@@ -4,7 +4,7 @@ namespace Core.Models;
 /// Interpretazione di un bit per variabili bitmapped.
 /// v7: DictionaryId? sostituisce DeviceId? (scope per-dizionario).
 /// DictionaryId = null ? definita nel template Standard (default/fallback).
-/// DictionaryId valorizzato ? override per dizionario specifico (BR-018: priorit‡ su template).
+/// DictionaryId valorizzato ? override per dizionario specifico (BR-018: priorit√† su template).
 /// </summary>
 public class BitInterpretation
 {

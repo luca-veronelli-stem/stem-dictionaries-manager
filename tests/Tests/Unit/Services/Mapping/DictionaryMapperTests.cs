@@ -128,7 +128,10 @@ public class DictionaryMapperTests
     {
         var entity = new DictionaryEntity
         {
-            Id = 1, Name = "old-name", Description = "Old description", IsStandard = false
+            Id = 1,
+            Name = "old-name",
+            Description = "Old description",
+            IsStandard = false
         };
 
         var domain = Dictionary.Restore(1, "new-name", "New description", true, []);
@@ -163,7 +166,10 @@ public class DictionaryMapperTests
     {
         var originalEntity = new DictionaryEntity
         {
-            Id = 42, Name = "roundtrip-dict", Description = "RoundTrip Test", IsStandard = true
+            Id = 42,
+            Name = "roundtrip-dict",
+            Description = "RoundTrip Test",
+            IsStandard = true
         };
 
         var domain = DictionaryMapper.ToDomain(originalEntity);

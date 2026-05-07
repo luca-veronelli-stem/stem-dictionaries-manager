@@ -72,18 +72,27 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceId = 10, Name = "Board1",
-            FirmwareType = 17, BoardNumber = 1, ProtocolAddress = 0x000A0441
+            DeviceId = 10,
+            Name = "Board1",
+            FirmwareType = 17,
+            BoardNumber = 1,
+            ProtocolAddress = 0x000A0441
         });
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceId = 10, Name = "Board2",
-            FirmwareType = 4, BoardNumber = 2, ProtocolAddress = 0x000A0102
+            DeviceId = 10,
+            Name = "Board2",
+            FirmwareType = 4,
+            BoardNumber = 2,
+            ProtocolAddress = 0x000A0102
         });
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceId = 3, Name = "EdenBoard",
-            FirmwareType = 18, BoardNumber = 1, ProtocolAddress = 0x00030481
+            DeviceId = 3,
+            Name = "EdenBoard",
+            FirmwareType = 18,
+            BoardNumber = 1,
+            ProtocolAddress = 0x00030481
         });
 
         var result = await _repository.GetByDeviceIdAsync(10);
@@ -104,8 +113,11 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceId = 7, Name = "SparkBoard",
-            FirmwareType = 20, BoardNumber = 1, ProtocolAddress = 0x00070501
+            DeviceId = 7,
+            Name = "SparkBoard",
+            FirmwareType = 20,
+            BoardNumber = 1,
+            ProtocolAddress = 0x00070501
         });
 
         var result = await _repository.GetByProtocolAddressAsync(0x00070501);
@@ -130,8 +142,11 @@ public class BoardRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new BoardEntity
         {
-            DeviceId = 11, Name = "R3lBoard",
-            FirmwareType = 11, BoardNumber = 1, ProtocolAddress = 0x000B02C1,
+            DeviceId = 11,
+            Name = "R3lBoard",
+            FirmwareType = 11,
+            BoardNumber = 1,
+            ProtocolAddress = 0x000B02C1,
             DictionaryId = dict.Id
         });
 
@@ -147,8 +162,11 @@ public class BoardRepositoryTests : IntegrationTestBase
     {
         var board = new BoardEntity
         {
-            DeviceId = 7, Name = "ToDelete",
-            FirmwareType = 20, BoardNumber = 1, ProtocolAddress = 0x00060501
+            DeviceId = 7,
+            Name = "ToDelete",
+            FirmwareType = 20,
+            BoardNumber = 1,
+            ProtocolAddress = 0x00060501
         };
         await _repository.AddAsync(board);
 

@@ -293,7 +293,7 @@ public class AuditTrailTests : IntegrationTestBase
         // Crea dizionario standard + variabile standard
         var stdDict = await dictRepo.AddAsync(
             new DictionaryEntity
-                { Name = "Standard", IsStandard = true });
+            { Name = "Standard", IsStandard = true });
         var stdVar = new Variable(
             "StdVar", 0x00, 0x01, DataTypeKind.UInt16,
             AccessMode.ReadWrite, "UInt16");
@@ -302,7 +302,7 @@ public class AuditTrailTests : IntegrationTestBase
         // Crea dizionario non-standard
         var myDict = await dictRepo.AddAsync(
             new DictionaryEntity
-                { Name = "MyDict", IsStandard = false });
+            { Name = "MyDict", IsStandard = false });
 
         // Setta override
         await varService.SetOverrideAsync(

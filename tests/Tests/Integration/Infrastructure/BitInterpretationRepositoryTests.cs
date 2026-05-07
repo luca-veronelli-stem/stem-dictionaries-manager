@@ -407,13 +407,19 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+            VariableId = _testVariable.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Dictionary override"
+            VariableId = _testVariable.Id,
+            DictionaryId = dictionary.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dictionary override"
         });
 
         var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
@@ -431,13 +437,19 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         // Pre-existing: common + dictionary-specific
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+            VariableId = _testVariable.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Old dictionary"
+            VariableId = _testVariable.Id,
+            DictionaryId = dictionary.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Old dictionary"
         });
 
         // Sync only dictionary-specific: replace with new interpretation
@@ -471,13 +483,19 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         // Pre-existing: common + dictionary-specific
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Old common"
+            VariableId = _testVariable.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Old common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = dictionary.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Dictionary specific"
+            VariableId = _testVariable.Id,
+            DictionaryId = dictionary.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dictionary specific"
         });
 
         // Sync common: replace
@@ -510,18 +528,27 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         // Common, Dict1, Dict2 — all word0 bit0 but different DictionaryId
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Common"
+            VariableId = _testVariable.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = dict1.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Dict1 override"
+            VariableId = _testVariable.Id,
+            DictionaryId = dict1.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dict1 override"
         });
         await _repository.AddAsync(new BitInterpretationEntity
         {
-            VariableId = _testVariable.Id, DictionaryId = dict2.Id,
-            WordIndex = 0, BitIndex = 0, Meaning = "Dict2 override"
+            VariableId = _testVariable.Id,
+            DictionaryId = dict2.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dict2 override"
         });
 
         var all = await _repository.GetByVariableIdAsync(_testVariable.Id);

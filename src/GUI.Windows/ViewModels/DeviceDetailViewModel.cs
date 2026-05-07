@@ -167,7 +167,7 @@ public partial class DeviceDetailViewModel : ObservableObject
             // Aggiungi entry "Comandi" con conteggio reale
             var allCommands = await _commandService.GetAllAsync();
             sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", allCommands.Count)
-                { IsCommandsEntry = true });
+            { IsCommandsEntry = true });
 
             Dictionaries = new ObservableCollection<DictionaryItem>(sortedItems);
         }

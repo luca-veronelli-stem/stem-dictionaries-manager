@@ -35,7 +35,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 10,
+            CommandId = _testCommand.Id,
+            DeviceId = 10,
             IsEnabled = true
         };
 
@@ -51,7 +52,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 3,
+            CommandId = _testCommand.Id,
+            DeviceId = 3,
             IsEnabled = false
         };
         await _repository.AddAsync(state);
@@ -76,7 +78,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 7,
+            CommandId = _testCommand.Id,
+            DeviceId = 7,
             IsEnabled = true
         });
 
@@ -100,17 +103,20 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         // Arrange - aggiungi stati per diversi device
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 10,
+            CommandId = _testCommand.Id,
+            DeviceId = 10,
             IsEnabled = true
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 3,
+            CommandId = _testCommand.Id,
+            DeviceId = 3,
             IsEnabled = false
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 7,
+            CommandId = _testCommand.Id,
+            DeviceId = 7,
             IsEnabled = true
         });
 
@@ -134,7 +140,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 4,
+            CommandId = _testCommand.Id,
+            DeviceId = 4,
             IsEnabled = false
         };
         await _repository.AddAsync(state);
@@ -151,7 +158,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     {
         var state = new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 5,
+            CommandId = _testCommand.Id,
+            DeviceId = 5,
             IsEnabled = true
         };
         await _repository.AddAsync(state);
@@ -177,12 +185,14 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         // Arrange — stati per Spark e EdenXp
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 7,
+            CommandId = _testCommand.Id,
+            DeviceId = 7,
             IsEnabled = false
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 3,
+            CommandId = _testCommand.Id,
+            DeviceId = 3,
             IsEnabled = true
         });
 
@@ -211,12 +221,14 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
 
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = _testCommand.Id, DeviceId = 10,
+            CommandId = _testCommand.Id,
+            DeviceId = 10,
             IsEnabled = true
         });
         await _repository.AddAsync(new CommandDeviceStateEntity
         {
-            CommandId = cmd2.Id, DeviceId = 10,
+            CommandId = cmd2.Id,
+            DeviceId = 10,
             IsEnabled = false
         });
 

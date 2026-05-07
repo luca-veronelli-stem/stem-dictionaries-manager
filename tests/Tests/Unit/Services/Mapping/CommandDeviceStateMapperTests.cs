@@ -15,7 +15,8 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 1,
-            CommandId = 10, DeviceId = 10,
+            CommandId = 10,
+            DeviceId = 10,
             IsEnabled = true
         };
 
@@ -33,7 +34,8 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 2,
-            CommandId = 20, DeviceId = 3,
+            CommandId = 20,
+            DeviceId = 3,
             IsEnabled = false
         };
 
@@ -75,7 +77,8 @@ public class CommandDeviceStateMapperTests
         var entity = new CommandDeviceStateEntity
         {
             Id = 1,
-            CommandId = 10, DeviceId = 4,
+            CommandId = 10,
+            DeviceId = 4,
             IsEnabled = false
         };
         var domain = CommandDeviceState.Restore(1, 20, 5, true);
@@ -137,7 +140,8 @@ public class CommandDeviceStateMapperTests
         var original = new CommandDeviceStateEntity
         {
             Id = 42,
-            CommandId = 100, DeviceId = 11,
+            CommandId = 100,
+            DeviceId = 11,
             IsEnabled = true
         };
 

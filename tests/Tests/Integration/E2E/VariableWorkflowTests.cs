@@ -191,20 +191,29 @@ public class VariableWorkflowTests : IntegrationTestBase
         // Common interpretations (DictionaryId = null)
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Fusibile aperto"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Fusibile aperto"
         });
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 1, Meaning = "Sovracorrente"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "Sovracorrente"
         });
 
         // Dictionary-specific override for bit 1 only
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = nonStdDict.Id,
-            WordIndex = 0, BitIndex = 1, Meaning = "Sovracorrente relè"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = nonStdDict.Id,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "Sovracorrente relè"
         });
 
         // GetByVariableAndDictionary returns common + dictionary-specific
@@ -250,8 +259,11 @@ public class VariableWorkflowTests : IntegrationTestBase
         // Seed common
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 0, Meaning = "Common bit 0"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit 0"
         });
 
         // Sync dictionary-specific (should NOT touch common)
@@ -305,18 +317,27 @@ public class VariableWorkflowTests : IntegrationTestBase
         // Same word/bit, different dictionaries
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = null,
-            WordIndex = 0, BitIndex = 2, Meaning = "Batteria scarica"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = null,
+            WordIndex = 0,
+            BitIndex = 2,
+            Meaning = "Batteria scarica"
         });
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = edenDict.Id,
-            WordIndex = 0, BitIndex = 2, Meaning = "Batteria scarica (Eden)"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = edenDict.Id,
+            WordIndex = 0,
+            BitIndex = 2,
+            Meaning = "Batteria scarica (Eden)"
         });
         await bitRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = bitmappedVar.Id, DictionaryId = sparkDict.Id,
-            WordIndex = 0, BitIndex = 2, Meaning = "Sovracorrente EV1 (Spark)"
+            VariableId = bitmappedVar.Id,
+            DictionaryId = sparkDict.Id,
+            WordIndex = 0,
+            BitIndex = 2,
+            Meaning = "Sovracorrente EV1 (Spark)"
         });
 
         // Eden sees common + eden override

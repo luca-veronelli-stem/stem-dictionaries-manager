@@ -932,18 +932,27 @@ public class VariableServiceTests : IntegrationTestBase
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit 0",
+            DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dictionary bit 0",
+            DictionaryId = nonStdDict.Id
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
-            Meaning = "Common bit 1", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "Common bit 1",
+            DictionaryId = null
         });
 
         // Act — normal mode (no dictionary)
@@ -975,19 +984,28 @@ public class VariableServiceTests : IntegrationTestBase
         // Bit comuni (DictionaryId = null)
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit 0",
+            DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 1,
-            Meaning = "Common bit 1", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 1,
+            Meaning = "Common bit 1",
+            DictionaryId = null
         });
         // Override per dizionario: solo bit 0
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dictionary bit 0",
+            DictionaryId = nonStdDict.Id
         });
 
         // Act
@@ -1011,8 +1029,11 @@ public class VariableServiceTests : IntegrationTestBase
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common only", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common only",
+            DictionaryId = null
         });
 
         // Act
@@ -1040,13 +1061,19 @@ public class VariableServiceTests : IntegrationTestBase
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Common bit 0", DictionaryId = null
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Common bit 0",
+            DictionaryId = null
         });
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
-            VariableId = created.Id, WordIndex = 0, BitIndex = 0,
-            Meaning = "Dictionary bit 0", DictionaryId = nonStdDict.Id
+            VariableId = created.Id,
+            WordIndex = 0,
+            BitIndex = 0,
+            Meaning = "Dictionary bit 0",
+            DictionaryId = nonStdDict.Id
         });
 
         // Act
