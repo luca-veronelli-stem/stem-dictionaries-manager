@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Variabile serializzata per API (BR-API-004: null omessi).
+/// Variable serialized for the API (BR-API-004: nulls omitted).
 /// </summary>
 public record VariableDto(
     string Name,

@@ -6,14 +6,14 @@ using Services.Interfaces;
 namespace API.Endpoints;
 
 /// <summary>
-/// Endpoint dispositivi: GET /api/devices, GET /api/devices/{id}, GET /api/devices/{id}/boards
+/// Device endpoints: GET /api/devices, GET /api/devices/{id}, GET /api/devices/{id}/boards
 /// </summary>
 public static class DeviceEndpoints
 {
     public static void MapDeviceEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app.MapGroup("/api/devices")
-            .WithTags("Dispositivi");
+            .WithTags("Devices");
 
         group.MapGet("/", GetAll).WithName("GetDevices");
         group.MapGet("/{id:int}", GetById).WithName("GetDevice");

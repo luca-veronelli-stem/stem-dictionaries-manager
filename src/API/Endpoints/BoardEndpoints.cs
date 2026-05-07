@@ -6,22 +6,22 @@ using Services.Interfaces;
 namespace API.Endpoints;
 
 /// <summary>
-/// Endpoint board definition: GET /api/boards/{id}/definition (BR-API-005).
+/// Board definition endpoints: GET /api/boards/{id}/definition (BR-API-005).
 /// </summary>
 public static class BoardEndpoints
 {
     public static void MapBoardEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app.MapGroup("/api/boards")
-            .WithTags("Schede");
+            .WithTags("Boards");
 
         group.MapGet("/{id:int}/definition", GetDefinition)
             .WithName("GetBoardDefinition");
     }
 
     /// <summary>
-    /// Board definition — formato compatibile Production.Tracker.
-    /// Variabili risolte (standard con override + specifiche), solo abilitate.
+    /// Board definition — Production.Tracker-compatible format.
+    /// Resolved variables (standard with overrides + device-specific), enabled only.
     /// </summary>
     private static async Task<IResult> GetDefinition(
         int id, IBoardService boardService, IDeviceService deviceService,
@@ -42,7 +42,7 @@ public static class BoardEndpoints
 
         if (board.DictionaryId is null)
         {
-            return Results.NotFound(new { error = "La scheda non ha un dizionario associato." });
+            return Results.NotFound(new { error = "The board has no associated dictionary." });
         }
 
         Dictionary? dictionary = await dictionaryService.GetByIdAsync(board.DictionaryId.Value, ct);
@@ -53,7 +53,7 @@ public static class BoardEndpoints
 
         var variables = new List<VariableDto>();
 
-        // 1. Variabili standard risolte (con override BR-009/020)
+        // 1. Resolved standard variables (with overrides BR-009/020)
         Dictionary? standardDict = await dictionaryService.GetStandardDictionaryAsync(ct);
         if (standardDict is not null)
         {
@@ -85,7 +85,7 @@ public static class BoardEndpoints
             }
         }
 
-        // 2. Variabili specifiche del dizionario (solo abilitate)
+        // 2. Dictionary-specific variables (enabled only)
         IReadOnlyList<Variable> specificVars = await variableService.GetByDictionaryIdAsync(
             board.DictionaryId.Value, ct);
         foreach (Variable? v in specificVars.Where(v => v.IsEnabled))
@@ -93,7 +93,7 @@ public static class BoardEndpoints
             variables.Add(ApiMapper.ToVariableDto(v));
         }
 
-        // Ordina per indirizzo
+        // Sort by address
         variables = [.. variables.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
         var dto = new BoardDefinitionDto(

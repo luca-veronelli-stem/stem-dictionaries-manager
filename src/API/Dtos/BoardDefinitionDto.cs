@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Board definition — formato compatibile Production.Tracker (BR-API-005).
+/// Board definition — Production.Tracker-compatible format (BR-API-005).
 /// </summary>
 public record BoardDefinitionDto(
     string DeviceName,

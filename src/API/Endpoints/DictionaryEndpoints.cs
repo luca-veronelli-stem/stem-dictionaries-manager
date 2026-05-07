@@ -6,14 +6,14 @@ using Services.Interfaces;
 namespace API.Endpoints;
 
 /// <summary>
-/// Endpoint dizionari: GET /api/dictionaries, /standard, /{id}, /{id}/resolved
+/// Dictionary endpoints: GET /api/dictionaries, /standard, /{id}, /{id}/resolved
 /// </summary>
 public static class DictionaryEndpoints
 {
     public static void MapDictionaryEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app.MapGroup("/api/dictionaries")
-            .WithTags("Dizionari");
+            .WithTags("Dictionaries");
 
         group.MapGet("/", GetAll).WithName("GetDictionaries");
         group.MapGet("/standard", GetStandard).WithName("GetStandardDictionary");
@@ -91,7 +91,7 @@ public static class DictionaryEndpoints
     }
 
     /// <summary>
-    /// Variabili risolte: standard (con override BR-009/020) + specifiche, solo abilitate.
+    /// Resolved variables: standard (with overrides BR-009/020) + device-specific, enabled only.
     /// </summary>
     private static async Task<IResult> GetResolved(
         int id, IDictionaryService dictionaryService,
@@ -103,15 +103,15 @@ public static class DictionaryEndpoints
             return Results.NotFound();
         }
 
-        // Se è standard, restituisce le sue variabili direttamente
+        // If standard, return its variables directly
         if (dictionary.IsStandard)
         {
-            return Results.BadRequest(new { error = "Usa /api/dictionaries/standard per il dizionario standard." });
+            return Results.BadRequest(new { error = "Use /api/dictionaries/standard for the standard dictionary." });
         }
 
         var resolved = new List<ResolvedVariableDto>();
 
-        // 1. Variabili standard risolte (con override BR-009/020)
+        // 1. Resolved standard variables (with overrides BR-009/020)
         Dictionary? standardDict = await dictionaryService.GetStandardDictionaryAsync(ct);
         if (standardDict is not null)
         {
@@ -133,14 +133,14 @@ public static class DictionaryEndpoints
             }
         }
 
-        // 2. Variabili specifiche del dizionario (solo abilitate)
+        // 2. Dictionary-specific variables (enabled only)
         IReadOnlyList<Variable> specificVars = await variableService.GetByDictionaryIdAsync(dictionary.Id, ct);
         foreach (Variable? v in specificVars.Where(v => v.IsEnabled))
         {
             resolved.Add(ApiMapper.ToResolvedDto(v, isStandard: false));
         }
 
-        // Ordina per indirizzo completo
+        // Sort by full address
         resolved = [.. resolved.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
         var dto = new DictionaryResolvedDto(
@@ -152,7 +152,7 @@ public static class DictionaryEndpoints
         return Results.Ok(dto);
     }
 
-    /// <summary>BR-009: stato effettivo variabile standard per un dizionario.</summary>
+    /// <summary>BR-009: effective enabled state of a standard variable for a dictionary.</summary>
     private static bool ResolveEnabled(Variable variable, StandardVariableOverride? ov)
     {
         if (!variable.IsEnabled)
@@ -163,7 +163,7 @@ public static class DictionaryEndpoints
         return ov?.IsEnabled ?? variable.IsEnabled;
     }
 
-    /// <summary>BR-020: descrizione effettiva.</summary>
+    /// <summary>BR-020: effective description.</summary>
     private static string? ResolveDescription(Variable variable, StandardVariableOverride? ov)
     {
         if (ov?.Description is not null)

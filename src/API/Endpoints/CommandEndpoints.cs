@@ -5,14 +5,14 @@ using Services.Interfaces;
 namespace API.Endpoints;
 
 /// <summary>
-/// Endpoint comandi: GET /api/commands, GET /api/commands/device/{deviceId}
+/// Command endpoints: GET /api/commands, GET /api/commands/device/{deviceId}
 /// </summary>
 public static class CommandEndpoints
 {
     public static void MapCommandEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app.MapGroup("/api/commands")
-            .WithTags("Comandi");
+            .WithTags("Commands");
 
         group.MapGet("/", GetAll).WithName("GetCommands");
         group.MapGet("/device/{deviceId:int}", GetByDevice).WithName("GetDeviceCommands");
@@ -27,7 +27,7 @@ public static class CommandEndpoints
     }
 
     /// <summary>
-    /// Comandi abilitati per device (BR-API-003: default=true, solo abilitati).
+    /// Commands enabled for a device (BR-API-003: default=true, enabled only).
     /// </summary>
     private static async Task<IResult> GetByDevice(
         int deviceId, IDeviceService deviceService,

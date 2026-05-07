@@ -76,7 +76,7 @@ public class DatabaseExceptionMiddlewareTests
         context.Response.Body.Position = 0;
         JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
         Assert.True(json.RootElement.TryGetProperty("error", out JsonElement errorProp));
-        Assert.Contains("Database non raggiungibile", errorProp.GetString());
+        Assert.Contains("Database unavailable", errorProp.GetString());
     }
 
     [Fact]

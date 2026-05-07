@@ -1,8 +1,8 @@
 namespace API.Middleware;
 
 /// <summary>
-/// Middleware per gestione eccezioni DB (API-004).
-/// Cattura errori di connessione e ritorna 503 Service Unavailable con JSON strutturato.
+/// Middleware that handles DB exceptions (API-004).
+/// Catches connection errors and returns 503 Service Unavailable with a structured JSON body.
 /// </summary>
 public class DatabaseExceptionMiddleware
 {
@@ -32,7 +32,7 @@ public class DatabaseExceptionMiddleware
             {
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    error = "Database non raggiungibile. Riprovare tra qualche minuto.",
+                    error = "Database unavailable. Please retry in a few minutes.",
                     detail = ex.Message
                 });
             }
@@ -40,15 +40,15 @@ public class DatabaseExceptionMiddleware
             {
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    error = "Database non raggiungibile. Riprovare tra qualche minuto."
+                    error = "Database unavailable. Please retry in a few minutes."
                 });
             }
         }
     }
 
     /// <summary>
-    /// Verifica se l'eccezione è relativa a un problema di connessione DB.
-    /// Controlla tipo e InnerException per coprire i wrapper EF Core.
+    /// Returns true if the exception relates to a DB connection problem.
+    /// Checks the type and InnerException to cover EF Core wrappers.
     /// </summary>
     private static bool IsDatabaseException(Exception ex) =>
         ex is TimeoutException

@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Scheda — summary per lista e dettaglio device.
+/// Board — summary used in list and device-detail views.
 /// </summary>
 public record BoardSummaryDto(
     int Id,

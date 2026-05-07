@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Dizionario — dettaglio con variabili proprie (solo abilitate).
+/// Dictionary — detail with its own variables (enabled only).
 /// </summary>
 public record DictionaryDetailDto(
     int Id,

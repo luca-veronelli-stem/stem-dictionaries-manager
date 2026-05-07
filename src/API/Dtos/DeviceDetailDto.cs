@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Dispositivo — dettaglio con board.
+/// Device — detail with boards.
 /// </summary>
 public record DeviceDetailDto(
     int Id,

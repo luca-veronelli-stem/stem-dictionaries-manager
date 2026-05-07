@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Dizionario — lista.
+/// Dictionary — list view.
 /// </summary>
 public record DictionarySummaryDto(
     int Id,

@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Dispositivo — lista.
+/// Device — list view.
 /// </summary>
 public record DeviceSummaryDto(
     int Id,
