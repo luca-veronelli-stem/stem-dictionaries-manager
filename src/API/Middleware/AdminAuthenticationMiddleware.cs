@@ -54,9 +54,11 @@ public class AdminAuthenticationMiddleware
         if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out StringValues providedKey) ||
             !_adminKeys.Contains(providedKey.ToString()))
         {
+            // Same body as ApiKeyMiddleware so admin/non-admin failures are
+            // indistinguishable from outside, per the admin endpoint contracts.
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { error = "Admin API key required." });
+            await context.Response.WriteAsJsonAsync(new { error = "API key missing or invalid." });
             return;
         }
 

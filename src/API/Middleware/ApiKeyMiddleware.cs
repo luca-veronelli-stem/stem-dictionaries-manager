@@ -20,9 +20,14 @@ public class ApiKeyMiddleware
     {
         _next = next;
 
-        IConfigurationSection keysSection = configuration.GetSection("ApiKeys");
-        _validKeys = [.. keysSection.GetChildren()
-            .Select(c => c.Value!)
+        // Treat both ApiKeys and AdminApiKeys as authoritative here — admin
+        // keys must be able to reach the downstream AdminAuthenticationMiddleware,
+        // which then enforces the stricter admin-only partition for /api/admin/*.
+        IEnumerable<string> apiKeys = configuration.GetSection("ApiKeys")
+            .GetChildren().Select(c => c.Value!);
+        IEnumerable<string> adminKeys = configuration.GetSection("AdminApiKeys")
+            .GetChildren().Select(c => c.Value!);
+        _validKeys = [.. apiKeys.Concat(adminKeys)
             .Where(v => !string.IsNullOrWhiteSpace(v))];
     }
 
