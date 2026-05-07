@@ -4,6 +4,8 @@
 
 > **Ultimo aggiornamento:** 2026-04-10
 
+> ⚠️ **Open items migrated to GitHub Issues (2026-05-06).** This in-tree file is being retired as part of the upcoming `llm-settings v1.2.1` standards-adoption PR. Map: SVC-005 → [#9](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/9), SVC-006 → [#10](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/10), SVC-007 → [#11](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/11).
+
 ---
 
 ## Riepilogo

@@ -2,6 +2,23 @@
 
 > **Ultimo aggiornamento:** 2026-04-13
 
+> ⚠️ **Migrated to GitHub Issues (2026-05-06).** All 17 open items have been exported to GitHub and this in-tree tracker is being retired as part of the upcoming `llm-settings v1.2.1` standards-adoption PR. New work should be filed and tracked on GitHub. Historical (resolved) entries are preserved here for context only.
+>
+> Migration map (old ID → GitHub issue):
+>
+> | Old ID | GitHub | Old ID | GitHub |
+> |---|---|---|---|
+> | T-007 | [#2](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/2) | API-001 | [#12](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/12) |
+> | T-003 | [#3](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/3) | API-002 | [#13](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/13) |
+> | CORE-003 | [#4](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/4) | API-003 | [#14](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/14) |
+> | CORE-004 | [#5](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/5) | GUI-002 | [#15](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/15) |
+> | CORE-005 | [#6](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/6) | GUI-003 | [#16](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/16) |
+> | INFRA-005 | [#7](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/7) | TEST-011 | [#17](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/17) |
+> | INFRA-006 | [#8](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/8) | TEST-006 | [#18](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/18) |
+> | SVC-005 | [#9](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/9) | | |
+> | SVC-006 | [#10](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/10) | | |
+> | SVC-007 | [#11](https://github.com/luca-veronelli-stem/stem-dictionaries-manager/issues/11) | | |
+
 ---
 
 ## Riepilogo Globale
