@@ -1,4 +1,5 @@
 using Core.Enums.Auth;
+using Core.Models.Auth;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
 using Infrastructure.Repositories.Auth;
@@ -15,7 +16,8 @@ public class RegistrationServiceTests : IntegrationTestBase
     private readonly FakeTimeProvider _time = new(
         new DateTime(2026, 5, 7, 12, 0, 0, DateTimeKind.Utc));
 
-    private RegistrationService BuildSut(IRegistrationEventRepository? eventsOverride = null)
+    private RegistrationService BuildSut(IRegistrationEventRepository? eventsOverride = null,
+        IBootstrapTokenService? bootstrapSvcOverride = null)
     {
         var bootstrapRepo = new BootstrapTokenRepository(Context);
         var installationRepo = new InstallationRepository(Context);
@@ -23,7 +25,8 @@ public class RegistrationServiceTests : IntegrationTestBase
         IRegistrationEventRepository eventsRepo = eventsOverride
             ?? new RegistrationEventRepository(Context);
 
-        var bootstrapSvc = new BootstrapTokenService(bootstrapRepo, _hasher);
+        IBootstrapTokenService bootstrapSvc = bootstrapSvcOverride
+            ?? new BootstrapTokenService(bootstrapRepo, _hasher);
         var credentialSvc = new InstallationCredentialService(credentialRepo, _generator, _hasher);
 
         return new RegistrationService(Context, bootstrapSvc, credentialSvc,
@@ -197,6 +200,60 @@ public class RegistrationServiceTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task RegisterAsync_RaceLoserAfterLookup_ReturnsFailureAndRollsBackInstall()
+    {
+        // SC-003 / data-model invariant 1: when a concurrent /register on the
+        // same token wins the MarkUsed race, this caller's MarkUsedAsync
+        // throws BootstrapTokenStateException(FoundStatus=Used). RegistrationService
+        // must roll back the in-flight install + credential and emit a
+        // TokenAlreadyUsed audit so the endpoint responds with the unified 401.
+        const string plaintext = "stbt_race-token";
+        BootstrapTokenEntity tokenEntity = await SeedTokenAsync("ButtonPanelTester", plaintext);
+
+        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher);
+        RaceLosingBootstrapTokenService raceSvc = new(realSvc,
+            throwWith: BootstrapTokenStatus.Used);
+        RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(0, await Context.Installations.CountAsync());
+        Assert.Equal(0, await Context.InstallationApiCredentials.CountAsync());
+        // Token row is intact (rolled back; the simulated winner would have
+        // committed in a real concurrent flow but this test only exercises the
+        // loser's path).
+        BootstrapTokenEntity? unchanged = await Context.BootstrapTokens.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == tokenEntity.Id);
+        Assert.NotNull(unchanged);
+        Assert.Equal(BootstrapTokenStatus.Issued, unchanged!.Status);
+
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, evt.Outcome);
+        Assert.Null(evt.ResultingInstallationId);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_RaceLoserOnRevokedToken_AuditsAsTokenRevoked()
+    {
+        // FoundStatus=Revoked must surface as TokenRevoked in the audit row
+        // (still 401 to the client, but forensically distinct from AlreadyUsed).
+        const string plaintext = "stbt_race-revoked";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+
+        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher);
+        RaceLosingBootstrapTokenService raceSvc = new(realSvc,
+            throwWith: BootstrapTokenStatus.Revoked);
+        RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        Assert.IsType<RegistrationResult.Failure>(result);
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenRevoked, evt.Outcome);
+    }
+
+    [Fact]
     public async Task RegisterAsync_AuditWriteFailureOnSuccessPath_RollsBackInstallationAndCredential()
     {
         // FR-013: a thrown audit-write must propagate up; the endpoint maps to
@@ -235,4 +292,32 @@ internal sealed class ThrowingRegistrationEventRepository : IRegistrationEventRe
     public Task<IReadOnlyList<RegistrationEventEntity>> ListBySourceAsync(string sourceIp,
         DateTime since, CancellationToken ct = default)
         => Task.FromResult<IReadOnlyList<RegistrationEventEntity>>([]);
+}
+
+/// <summary>
+/// Decorator that delegates <see cref="LookupAsync"/> to a real
+/// <see cref="IBootstrapTokenService"/> (so the registration flow validates
+/// the token and reaches CommitSuccessAsync) and then synthesises the
+/// race-loser failure mode by throwing
+/// <see cref="BootstrapTokenStateException"/> from <see cref="MarkUsedAsync"/>.
+/// </summary>
+internal sealed class RaceLosingBootstrapTokenService : IBootstrapTokenService
+{
+    private readonly IBootstrapTokenService _inner;
+    private readonly BootstrapTokenStatus _throwWith;
+
+    public RaceLosingBootstrapTokenService(IBootstrapTokenService inner,
+        BootstrapTokenStatus throwWith)
+    {
+        _inner = inner;
+        _throwWith = throwWith;
+    }
+
+    public Task<BootstrapToken?> LookupAsync(string plaintext, CancellationToken ct = default)
+        => _inner.LookupAsync(plaintext, ct);
+
+    public Task MarkUsedAsync(int tokenId, int installationId, DateTime usedAt,
+        CancellationToken ct = default)
+        => throw new BootstrapTokenStateException(_throwWith,
+            $"Race-loser test fake: token observed in {_throwWith} state.");
 }

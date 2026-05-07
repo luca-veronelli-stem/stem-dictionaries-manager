@@ -145,8 +145,28 @@ public class RegistrationService : IRegistrationService
 
         (_, string plaintext) = await _credentials
             .IssueAsync(installEntity.Id, now, ct).ConfigureAwait(false);
-        await _bootstrapTokens.MarkUsedAsync(token.Id, installEntity.Id, now, ct)
-            .ConfigureAwait(false);
+
+        try
+        {
+            await _bootstrapTokens.MarkUsedAsync(token.Id, installEntity.Id, now, ct)
+                .ConfigureAwait(false);
+        }
+        catch (BootstrapTokenStateException ex)
+        {
+            // Race-loser: a concurrent /register on the same token already
+            // flipped the row out of Issued between our LookupAsync read and
+            // the MarkUsedAsync re-read inside this transaction. Roll back
+            // the in-flight installation + credential, then write a unified
+            // failure audit so the endpoint emits the FR-002 401 (SC-003 —
+            // exactly one installation per token).
+            await txn.RollbackAsync(ct).ConfigureAwait(false);
+            _db.ChangeTracker.Clear();
+            RegistrationOutcome raceOutcome = ex.FoundStatus == BootstrapTokenStatus.Revoked
+                ? RegistrationOutcome.TokenRevoked
+                : RegistrationOutcome.TokenAlreadyUsed;
+            return await CommitFailureAsync(request, now, raceOutcome, ct)
+                .ConfigureAwait(false);
+        }
 
         RegistrationEventEntity successEvent = BuildEvent(request, now,
             RegistrationOutcome.Success, installEntity.Id);
