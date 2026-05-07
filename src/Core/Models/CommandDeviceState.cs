@@ -1,8 +1,8 @@
 namespace Core.Models;
 
 /// <summary>
-/// Stato di un comando per un Device specifico (abilitato/disabilitato).
-/// SESSION_035: DeviceType enum → DeviceId FK a Device entity.
+/// State of a command for a specific Device (enabled/disabled).
+/// SESSION_035: DeviceType enum → DeviceId FK to Device entity.
 /// </summary>
 public class CommandDeviceState
 {
@@ -19,7 +19,7 @@ public class CommandDeviceState
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static CommandDeviceState Restore(int id, int commandId, int deviceId, bool isEnabled)
     {

@@ -1,7 +1,7 @@
 namespace Core.Enums;
 
 /// <summary>
-/// Tipo di entità modificata, per l'audit trail.
+/// Type of entity modified, for the audit trail.
 /// v7: +StandardVariableOverride, -VariableDeviceState.
 /// </summary>
 public enum AuditEntityType

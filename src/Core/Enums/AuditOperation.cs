@@ -1,7 +1,7 @@
 namespace Core.Enums;
 
 /// <summary>
-/// Tipo di operazione tracciata nell'audit trail.
+/// Type of operation tracked in the audit trail.
 /// </summary>
 public enum AuditOperation
 {

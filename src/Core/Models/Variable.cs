@@ -3,7 +3,7 @@ using Core.Enums;
 namespace Core.Models;
 
 /// <summary>
-/// Variabile nel dizionario.
+/// Variable in the dictionary.
 /// </summary>
 public class Variable
 {
@@ -12,13 +12,13 @@ public class Variable
     public byte AddressHigh { get; private set; }
     public byte AddressLow { get; private set; }
 
-    /// <summary>Tipo di dato strutturato.</summary>
+    /// <summary>Structured data type.</summary>
     public DataTypeKind DataTypeKind { get; private set; }
 
-    /// <summary>Parametro opzionale per il tipo (es. 20 per String[20], wordCount per Bitmapped).</summary>
+    /// <summary>Optional type parameter (e.g. 20 for String[20], wordCount for Bitmapped).</summary>
     public int? DataTypeParam { get; private set; }
 
-    /// <summary>Valore originale del tipo dall'Excel (per export e riferimento).</summary>
+    /// <summary>Original raw type value from the Excel (for export and reference).</summary>
     public string DataTypeRaw { get; private set; }
 
     public string? Format { get; private set; }
@@ -31,12 +31,12 @@ public class Variable
     public bool IsEnabled { get; private set; }
 
     /// <summary>
-    /// Dimensione in bit di ogni word per variabili Bitmapped (8, 16 o 32).
-    /// Null per tutti gli altri tipi. BR-019.
+    /// Bit width of each word for Bitmapped variables (8, 16 or 32).
+    /// Null for all other types. BR-019.
     /// </summary>
     public int? WordSize { get; private set; }
 
-    /// <summary>Valori ammessi per WordSize (BR-019).</summary>
+    /// <summary>Allowed values for WordSize (BR-019).</summary>
     public static readonly int[] AllowedWordSizes = [8, 16, 32];
 
     /// <summary>
@@ -45,7 +45,7 @@ public class Variable
     public ushort FullAddress => (ushort)((AddressHigh << 8) | AddressLow);
 
     /// <summary>
-    /// Categoria derivata dall'AddressHigh (0x00 = Standard, 0x80 = DeviceSpecific).
+    /// Category derived from AddressHigh (0x00 = Standard, 0x80 = DeviceSpecific).
     /// </summary>
     public VariableCategory Category => AddressHigh switch
     {
@@ -104,7 +104,7 @@ public class Variable
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static Variable Restore(
         int id,

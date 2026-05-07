@@ -1,27 +1,27 @@
 namespace Core.Models;
 
 /// <summary>
-/// Override per-dizionario di una variabile standard.
-/// Ogni dizionario non-standard eredita TUTTE le variabili del template Standard.
-/// L'override permette di cambiare IsEnabled e Description per quel contesto.
-/// Se assente → la variabile standard usa i valori del template.
+/// Per-dictionary override of a standard variable.
+/// Every non-standard dictionary inherits ALL variables from the Standard template.
+/// The override allows changing IsEnabled and Description for that context.
+/// If absent → the standard variable uses the template values.
 /// BR-010: max 1 per (DictionaryId, StandardVariableId).
-/// BR-011: override IsEnabled=true vietato se Variable.IsEnabled=false.
+/// BR-011: override IsEnabled=true forbidden when Variable.IsEnabled=false.
 /// </summary>
 public class StandardVariableOverride
 {
     public int Id { get; private set; }
 
-    /// <summary>FK verso Dictionary (non-standard).</summary>
+    /// <summary>FK to Dictionary (non-standard).</summary>
     public int DictionaryId { get; private set; }
 
-    /// <summary>FK verso Variable (nel dizionario Standard).</summary>
+    /// <summary>FK to Variable (in the Standard dictionary).</summary>
     public int StandardVariableId { get; private set; }
 
-    /// <summary>Override di Variable.IsEnabled per questo dizionario.</summary>
+    /// <summary>Override of Variable.IsEnabled for this dictionary.</summary>
     public bool IsEnabled { get; private set; }
 
-    /// <summary>Override opzionale della descrizione (null = usa template).</summary>
+    /// <summary>Optional description override (null = use template).</summary>
     public string? Description { get; private set; }
 
     public StandardVariableOverride(int dictionaryId, int standardVariableId,
@@ -34,7 +34,7 @@ public class StandardVariableOverride
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static StandardVariableOverride Restore(int id, int dictionaryId,
         int standardVariableId, bool isEnabled, string? description)

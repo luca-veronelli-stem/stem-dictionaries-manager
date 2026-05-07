@@ -1,7 +1,7 @@
 namespace Core.Enums;
 
 /// <summary>
-/// Tipo di dato di una variabile.
+/// Data type of a variable.
 /// </summary>
 public enum DataTypeKind
 {
@@ -14,15 +14,15 @@ public enum DataTypeKind
     Float,
     Bool,
 
-    /// <summary>Stringa con lunghezza massima (es. String[20])</summary>
+    /// <summary>String with maximum length (e.g. String[20])</summary>
     String,
 
-    /// <summary>Valore bitmapped con N word (es. "due word uint16_t bitmapped")</summary>
+    /// <summary>Bitmapped value with N words (e.g. "two word uint16_t bitmapped")</summary>
     Bitmapped,
 
-    /// <summary>Array di elementi (es. "3*uint32_t")</summary>
+    /// <summary>Array of elements (e.g. "3*uint32_t")</summary>
     Array,
 
-    /// <summary>Tipo non riconosciuto (fallback)</summary>
+    /// <summary>Unrecognized type (fallback)</summary>
     Other
 }

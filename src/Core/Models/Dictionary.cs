@@ -1,9 +1,9 @@
 namespace Core.Models;
 
 /// <summary>
-/// Dizionario: set di variabili.
-/// IsStandard = variabili comuni a tutti (0x00xx), max 1 nel sistema (BR-004).
-/// La semantica (Standard/Dedicated/Shared/Orphan) è derivata dai Board che lo referenziano.
+/// Dictionary: a set of variables.
+/// IsStandard = variables common to all devices (0x00xx), max 1 in the system (BR-004).
+/// The semantics (Standard/Dedicated/Shared/Orphan) is derived from the Boards that reference it.
 /// </summary>
 public class Dictionary
 {
@@ -12,7 +12,7 @@ public class Dictionary
     public string? Description { get; private set; }
 
     /// <summary>
-    /// True se è il dizionario delle variabili comuni (0x00xx). Max 1 nel sistema.
+    /// True if this is the dictionary of common variables (0x00xx). Max 1 in the system.
     /// </summary>
     public bool IsStandard { get; private set; }
 
@@ -29,8 +29,8 @@ public class Dictionary
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
-    /// Valida unicità indirizzi (fail-fast su dati corrotti).
+    /// Factory method to reconstruct from the DB.
+    /// Validates address uniqueness (fail-fast on corrupted data).
     /// </summary>
     public static Dictionary Restore(int id, string name, string? description,
         bool isStandard, IEnumerable<Variable> variables)
@@ -57,7 +57,7 @@ public class Dictionary
     {
         ArgumentNullException.ThrowIfNull(variable);
 
-        // Verifica unicità indirizzo
+        // Check address uniqueness
         if (_variables.Any(v => v.FullAddress == variable.FullAddress))
         {
             throw new InvalidOperationException(
@@ -73,7 +73,7 @@ public class Dictionary
     }
 
     /// <summary>
-    /// Verifica che tutti gli indirizzi siano univoci.
+    /// Verifies that all addresses are unique.
     /// </summary>
     public bool HasUniqueAddresses()
     {

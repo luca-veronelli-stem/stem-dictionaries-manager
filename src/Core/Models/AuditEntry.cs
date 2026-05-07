@@ -3,7 +3,7 @@ using Core.Enums;
 namespace Core.Models;
 
 /// <summary>
-/// Entry dell'audit trail. Traccia ogni modifica con JSON completo.
+/// Audit trail entry. Tracks every modification with the full JSON payload.
 /// </summary>
 public class AuditEntry
 {
@@ -38,7 +38,7 @@ public class AuditEntry
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static AuditEntry Restore(
         int id,
@@ -60,7 +60,7 @@ public class AuditEntry
     }
 
     /// <summary>
-    /// Crea entry per operazione CREATE.
+    /// Creates an entry for a CREATE operation.
     /// </summary>
     public static AuditEntry ForCreate(AuditEntityType entityType, int entityId,
         int changedById, string newValueJson, string? notes = null)
@@ -70,7 +70,7 @@ public class AuditEntry
     }
 
     /// <summary>
-    /// Crea entry per operazione UPDATE.
+    /// Creates an entry for an UPDATE operation.
     /// </summary>
     public static AuditEntry ForUpdate(AuditEntityType entityType, int entityId,
         int changedById, string previousValueJson, string newValueJson, string? notes = null)
@@ -80,7 +80,7 @@ public class AuditEntry
     }
 
     /// <summary>
-    /// Crea entry per operazione DELETE.
+    /// Creates an entry for a DELETE operation.
     /// </summary>
     public static AuditEntry ForDelete(AuditEntityType entityType, int entityId,
         int changedById, string previousValueJson, string? notes = null)
