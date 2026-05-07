@@ -1,5 +1,7 @@
 using Infrastructure.Interfaces;
+using Infrastructure.Interfaces.Auth;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,6 +44,12 @@ public static class DependencyInjection
         services.AddScoped<IBitInterpretationRepository, BitInterpretationRepository>();
         services.AddScoped<ICommandDeviceStateRepository, CommandDeviceStateRepository>();
         services.AddScoped<IStandardVariableOverrideRepository, StandardVariableOverrideRepository>();
+
+        // Bootstrap registration repositories (spec 001)
+        services.AddScoped<IBootstrapTokenRepository, BootstrapTokenRepository>();
+        services.AddScoped<IInstallationRepository, InstallationRepository>();
+        services.AddScoped<IInstallationApiCredentialRepository, InstallationApiCredentialRepository>();
+        services.AddScoped<IRegistrationEventRepository, RegistrationEventRepository>();
 
         return services;
     }

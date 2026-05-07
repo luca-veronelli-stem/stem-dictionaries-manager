@@ -1,4 +1,5 @@
 using Infrastructure.Entities;
+using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -21,6 +22,12 @@ public class AppDbContext : DbContext
     public DbSet<CommandDeviceStateEntity> CommandDeviceStates => Set<CommandDeviceStateEntity>();
     public DbSet<StandardVariableOverrideEntity> StandardVariableOverrides => Set<StandardVariableOverrideEntity>();
     public DbSet<AuditEntryEntity> AuditEntries => Set<AuditEntryEntity>();
+
+    // Bootstrap registration (spec 001)
+    public DbSet<BootstrapTokenEntity> BootstrapTokens => Set<BootstrapTokenEntity>();
+    public DbSet<InstallationEntity> Installations => Set<InstallationEntity>();
+    public DbSet<InstallationApiCredentialEntity> InstallationApiCredentials => Set<InstallationApiCredentialEntity>();
+    public DbSet<RegistrationEventEntity> RegistrationEvents => Set<RegistrationEventEntity>();
 
     public override int SaveChanges()
     {
@@ -221,6 +228,68 @@ public class AppDbContext : DbContext
                   .WithMany(u => u.AuditEntries)
                   .HasForeignKey(e => e.ChangedById)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // BootstrapToken (spec 001)
+        modelBuilder.Entity<BootstrapTokenEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ClientApp).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.SecretHash).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.SecretHash).IsUnique();
+            // Invariant 1 (data-model.md): at most one Installation per consumed token.
+            entity.HasIndex(e => e.ConsumedByInstallationId)
+                  .IsUnique()
+                  .HasFilter("[ConsumedByInstallationId] IS NOT NULL");
+            entity.HasOne(e => e.ConsumedByInstallation)
+                  .WithOne()
+                  .HasForeignKey<BootstrapTokenEntity>(e => e.ConsumedByInstallationId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Installation (spec 001)
+        modelBuilder.Entity<InstallationEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ClientApp).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.OsUserId).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.MachineId).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.AppVersion).HasMaxLength(50);
+            entity.Property(e => e.DescriptorJson).IsRequired();
+            entity.HasIndex(e => new { e.ClientApp, e.OsUserId, e.MachineId });
+            entity.HasIndex(e => e.InstallGuid).IsUnique();
+            entity.HasOne(e => e.Credential)
+                  .WithOne(c => c.Installation)
+                  .HasForeignKey<InstallationApiCredentialEntity>(c => c.InstallationId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // InstallationApiCredential (spec 001)
+        modelBuilder.Entity<InstallationApiCredentialEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SecretHash).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => e.InstallationId);
+            entity.HasIndex(e => e.SecretHash).IsUnique();
+        });
+
+        // RegistrationEvent (spec 001)
+        modelBuilder.Entity<RegistrationEventEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ClaimedClientApp).HasMaxLength(100);
+            entity.Property(e => e.ClaimedOsUserId).HasMaxLength(200);
+            entity.Property(e => e.ClaimedMachineId).HasMaxLength(200);
+            entity.Property(e => e.ClaimedAppVersion).HasMaxLength(50);
+            entity.Property(e => e.SourceIp).HasMaxLength(45).IsRequired();
+            entity.HasIndex(e => e.OccurredAt);
+            entity.HasIndex(e => new { e.ClaimedClientApp, e.OccurredAt });
+            entity.HasIndex(e => e.SourceIp);
+            entity.HasOne(e => e.ResultingInstallation)
+                  .WithMany()
+                  .HasForeignKey(e => e.ResultingInstallationId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }
