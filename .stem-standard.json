@@ -1,0 +1,11 @@
+{
+  "app": "DictionariesManager",
+  "repo": "stem-dictionaries-manager",
+  "archetype": "A",
+  "owner": "luca-veronelli-stem",
+  "lucaUser": "luca-veronelli-stem",
+  "standardVersion": "v1.3.2",
+  "author": "Luca Veronelli",
+  "description": "Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers",
+  "year": "2026"
+}
