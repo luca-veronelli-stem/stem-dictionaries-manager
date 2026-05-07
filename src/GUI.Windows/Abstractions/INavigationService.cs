@@ -1,7 +1,7 @@
 namespace GUI.Windows.Abstractions;
 
 /// <summary>
-/// Identificatori dei tipi di view per la navigazione.
+/// View-type identifiers for navigation.
 /// </summary>
 public enum ViewType
 {
@@ -20,81 +20,81 @@ public enum ViewType
 }
 
 /// <summary>
-/// Parametri di navigazione per passare dati tra view.
+/// Navigation parameters for passing data between views.
 /// </summary>
 public record NavigationParameter
 {
     /// <summary>
-    /// ID dell'entità da editare (null = nuova entità).
+    /// ID of the entity to edit (null = new entity).
     /// </summary>
     public int? EntityId { get; init; }
 
     /// <summary>
-    /// ID del parent (es. DictionaryId per VariableList).
+    /// Parent ID (e.g., DictionaryId for VariableList).
     /// </summary>
     public int? ParentId { get; init; }
 
     /// <summary>
-    /// ID del dispositivo per filtro (es. DeviceDetail).
+    /// Device ID used as a filter (e.g., DeviceDetail).
     /// </summary>
     public int? DeviceId { get; init; }
 
     /// <summary>
-    /// Parametri aggiuntivi.
+    /// Additional parameters.
     /// </summary>
     public IReadOnlyDictionary<string, object>? Extra { get; init; }
 }
 
 /// <summary>
-/// Servizio di navigazione tra view.
-/// Gestisce la history e il passaggio di parametri.
+/// Navigation service between views.
+/// Manages history and parameter passing.
 /// </summary>
 public interface INavigationService
 {
     /// <summary>
-    /// View correntemente visualizzata.
+    /// Currently displayed view.
     /// </summary>
     ViewType CurrentView { get; }
 
     /// <summary>
-    /// Parametro di navigazione corrente.
+    /// Current navigation parameter.
     /// </summary>
     NavigationParameter? CurrentParameter { get; }
 
     /// <summary>
-    /// Indica se è possibile tornare indietro.
+    /// Indicates whether backward navigation is possible.
     /// </summary>
     bool CanGoBack { get; }
 
     /// <summary>
-    /// ViewModel ripristinato dal GoBack (null se navigazione forward).
+    /// ViewModel restored by GoBack (null on forward navigation).
     /// </summary>
     object? CachedViewModel { get; }
 
     /// <summary>
-    /// Registra il ViewModel corrente per il caching nella history.
+    /// Registers the current ViewModel for caching in the history.
     /// </summary>
     void SetCurrentViewModel(object? viewModel);
 
     /// <summary>
-    /// Naviga verso una view specifica.
+    /// Navigates to a specific view.
     /// </summary>
     void NavigateTo(ViewType viewType, NavigationParameter? parameter = null);
 
     /// <summary>
-    /// Torna alla view precedente.
+    /// Navigates to the previous view.
     /// </summary>
-    /// <returns>True se la navigazione è avvenuta, false se non c'è history.</returns>
+    /// <returns>True if navigation occurred, false if there is no history.</returns>
     bool GoBack();
 
     /// <summary>
-    /// Resetta lo stato di navigazione alla view iniziale.
-    /// Pulisce history e cached ViewModel.
+    /// Resets the navigation state to the initial view.
+    /// Clears history and cached ViewModel.
     /// </summary>
     void Reset();
 
     /// <summary>
-    /// Evento sollevato quando cambia la view corrente.
+    /// Event raised when the current view changes.
     /// </summary>
     event EventHandler<ViewType>? CurrentViewChanged;
 }

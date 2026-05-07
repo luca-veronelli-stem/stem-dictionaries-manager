@@ -4,12 +4,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Gruppo di BitInterpretationItem per una singola word.
-/// La dimensione massima è configurabile (8, 16 o 32 bit).
+/// Group of BitInterpretationItem entries belonging to a single word.
+/// The maximum size is configurable (8, 16 or 32 bits).
 /// </summary>
 public partial class WordBitGroup : ObservableObject
 {
-    /// <summary>Dimensione massima della word in bit.</summary>
+    /// <summary>Maximum word size in bits.</summary>
     public int MaxBitsPerWord { get; }
 
     [ObservableProperty]
@@ -28,17 +28,17 @@ public partial class WordBitGroup : ObservableObject
     public bool CanAddBit => ItemCount < MaxBitsPerWord;
 
     /// <summary>
-    /// True se ci sono almeno 2 bit (rimozione possibile).
+    /// True if there are at least 2 bits (removal allowed).
     /// </summary>
     public bool CanRemoveBit => ItemCount > 1;
 
     /// <summary>
-    /// True se almeno un item ha un Meaning non vuoto.
+    /// True if at least one item has a non-empty Meaning.
     /// </summary>
     public bool HasNonEmptyMeanings => Items.Any(i => !string.IsNullOrWhiteSpace(i.Meaning));
 
     /// <summary>
-    /// Stato espansione della word (per collapse/expand in UI).
+    /// Word expansion state (for collapse/expand in the UI).
     /// </summary>
     [ObservableProperty]
     private bool _isExpanded = true;
@@ -50,7 +50,7 @@ public partial class WordBitGroup : ObservableObject
     }
 
     /// <summary>
-    /// Aggiunge un bit con BitIndex incrementale.
+    /// Adds a bit with an incremental BitIndex.
     /// </summary>
     public bool TryAddBit()
     {
@@ -79,7 +79,7 @@ public partial class WordBitGroup : ObservableObject
     }
 
     /// <summary>
-    /// Rimuove un bit specifico.
+    /// Removes a specific bit.
     /// </summary>
     public bool TryRemoveBit(BitInterpretationItem item)
     {
@@ -93,7 +93,7 @@ public partial class WordBitGroup : ObservableObject
     }
 
     /// <summary>
-    /// Rimuove l'ultimo bit della word.
+    /// Removes the last bit of the word.
     /// </summary>
     public bool TryRemoveLastBit()
     {
@@ -109,7 +109,7 @@ public partial class WordBitGroup : ObservableObject
     }
 
     /// <summary>
-    /// Aggiunge un item esistente (da DB).
+    /// Adds an existing item (from the DB).
     /// </summary>
     public void AddExisting(BitInterpretationItem item)
     {

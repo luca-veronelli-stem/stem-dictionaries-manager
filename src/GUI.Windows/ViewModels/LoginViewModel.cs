@@ -6,7 +6,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la schermata di login (selezione utente).
+/// ViewModel for the login screen (user selection).
 /// </summary>
 public partial class LoginViewModel : ObservableObject
 {
@@ -27,7 +27,7 @@ public partial class LoginViewModel : ObservableObject
     private User? _selectedUser;
 
     /// <summary>
-    /// Evento fired quando l'utente conferma il login.
+    /// Event fired when the user confirms the login.
     /// </summary>
     public event Action<User>? LoginConfirmed;
 
@@ -37,7 +37,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Carica gli utenti dal database.
+    /// Loads users from the database.
     /// </summary>
     public async Task LoadUsersAsync()
     {
@@ -51,12 +51,12 @@ public partial class LoginViewModel : ObservableObject
 
             if (AvailableUsers.Count == 0)
             {
-                ErrorMessage = "Nessun utente disponibile. Contattare l'amministratore.";
+                ErrorMessage = "No users available. Contact the administrator.";
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Errore nel caricamento utenti: {ex.Message}";
+            ErrorMessage = $"Error loading users: {ex.Message}";
         }
         finally
         {
@@ -76,7 +76,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Pulisce le sottoscrizioni agli eventi per evitare chiamate duplicate.
+    /// Clears event subscriptions to avoid duplicate invocations.
     /// </summary>
     public void ClearSubscriptions()
     {

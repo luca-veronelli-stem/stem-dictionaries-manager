@@ -7,8 +7,8 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la creazione/modifica di un dispositivo.
-/// Campi: Name, MachineCode, Description.
+/// ViewModel for creating/editing a device.
+/// Fields: Name, MachineCode, Description.
 /// </summary>
 public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -30,7 +30,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi editabili ===
+    // === Editable fields ===
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
@@ -44,12 +44,12 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     private string _description = string.Empty;
 
     /// <summary>
-    /// Nota informativa sotto il campo MachineCode (visibile solo in creazione).
+    /// Informational hint shown under the MachineCode field (visible only on create).
     /// </summary>
     [ObservableProperty]
     private string? _machineCodeHint;
 
-    // === Validazione ===
+    // === Validation ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsMachineCodeInvalid => _showValidation
@@ -77,7 +77,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             Device? device = await _deviceService.GetByIdAsync(deviceId.Value);
             if (device is null)
             {
-                ErrorMessage = $"Dispositivo #{deviceId} non trovato.";
+                ErrorMessage = $"Device #{deviceId} not found.";
                 return;
             }
 
@@ -88,10 +88,10 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         }
         else
         {
-            // Pre-compila con il primo MachineCode disponibile
+            // Pre-fill with the first available MachineCode
             int nextCode = await _deviceService.GetNextAvailableMachineCodeAsync();
             MachineCode = nextCode.ToString();
-            MachineCodeHint = $"Primo valore disponibile suggerito ({nextCode})";
+            MachineCodeHint = $"First available value suggested ({nextCode})";
         }
 
         HasChanges = false;
@@ -109,7 +109,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 
         if (IsNameInvalid || IsMachineCodeInvalid)
         {
-            _messageService.Show("Compilare tutti i campi obbligatori.",
+            _messageService.Show("Fill in all required fields.",
                 MessageSeverity.Warning);
             return false;
         }
@@ -136,7 +136,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             {
                 var device = new Device(Name.Trim(), code, desc);
                 await _deviceService.AddAsync(device);
-                _messageService.Show($"Dispositivo '{Name}' creato.",
+                _messageService.Show($"Device '{Name}' created.",
                     MessageSeverity.Success, autoHideSeconds: 3);
             }
             else
@@ -144,7 +144,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
                 var device = Device.Restore(_editingId.Value, Name.Trim(),
                     code, desc);
                 await _deviceService.UpdateAsync(device);
-                _messageService.Show($"Dispositivo '{Name}' aggiornato.",
+                _messageService.Show($"Device '{Name}' updated.",
                     MessageSeverity.Success, autoHideSeconds: 3);
             }
 
@@ -153,7 +153,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore salvataggio: {ex.Message}",
+            _messageService.Show($"Save error: {ex.Message}",
                 MessageSeverity.Error);
         }
         finally
@@ -170,7 +170,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             return;
         }
 
-        // Calcola conteggi per il warning
+        // Compute counts for the warning
         IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(_editingId.Value);
         int boardCount = boards.Count;
         int dictCount = boards
@@ -179,17 +179,17 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             .Distinct()
             .Count();
 
-        string message = $"Eliminare il dispositivo '{Name}'?\n" +
-            $"Verranno eliminate {boardCount} schede";
+        string message = $"Delete device '{Name}'?\n" +
+            $"{boardCount} boards will be deleted";
         if (dictCount > 0)
         {
-            message += $" e i dizionari dedicati associati";
+            message += $" along with the associated dedicated dictionaries";
         }
 
         message += ".";
 
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Elimina dispositivo", message);
+            "Delete device", message);
 
         if (result != Abstractions.DialogResult.Yes)
         {
@@ -200,13 +200,13 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         {
             await _deviceService.DeleteAsync(_editingId.Value);
             HasChanges = false;
-            _messageService.Show($"Dispositivo '{Name}' eliminato.",
+            _messageService.Show($"Device '{Name}' deleted.",
                 MessageSeverity.Success, autoHideSeconds: 3);
             _navigationService.GoBack();
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore eliminazione: {ex.Message}",
+            _messageService.Show($"Delete error: {ex.Message}",
                 MessageSeverity.Error);
         }
     }
@@ -217,8 +217,8 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         if (HasChanges)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Annulla modifiche",
-                "Ci sono modifiche non salvate. Uscire senza salvare?");
+                "Discard changes",
+                "There are unsaved changes. Exit without saving?");
             if (result != DialogResult.Yes)
             {
                 return;

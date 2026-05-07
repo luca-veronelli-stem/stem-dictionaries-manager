@@ -1,7 +1,7 @@
 namespace GUI.Windows.Abstractions;
 
 /// <summary>
-/// Risultato di un dialog di conferma.
+/// Result of a confirmation dialog.
 /// </summary>
 public enum DialogResult
 {
@@ -12,33 +12,33 @@ public enum DialogResult
 }
 
 /// <summary>
-/// Servizio per visualizzare dialog modali.
-/// Disaccoppia i ViewModel dalla UI di WPF.
+/// Service for displaying modal dialogs.
+/// Decouples ViewModels from the WPF UI.
 /// </summary>
 public interface IDialogService
 {
     /// <summary>
-    /// Mostra un dialog di conferma con pulsanti Sì/No.
+    /// Shows a confirmation dialog with Yes/No buttons.
     /// </summary>
     Task<DialogResult> ShowConfirmAsync(string title, string message);
 
     /// <summary>
-    /// Mostra un dialog di conferma con pulsanti Ok/Annulla.
+    /// Shows a confirmation dialog with Ok/Cancel buttons.
     /// </summary>
     Task<DialogResult> ShowOkCancelAsync(string title, string message);
 
     /// <summary>
-    /// Mostra un messaggio di errore.
+    /// Shows an error message.
     /// </summary>
     Task ShowErrorAsync(string title, string message);
 
     /// <summary>
-    /// Mostra un messaggio informativo.
+    /// Shows an informational message.
     /// </summary>
     Task ShowInfoAsync(string title, string message);
 
     /// <summary>
-    /// Mostra un messaggio di warning.
+    /// Shows a warning message.
     /// </summary>
     Task ShowWarningAsync(string title, string message);
 }

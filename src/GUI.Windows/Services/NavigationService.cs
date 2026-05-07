@@ -3,8 +3,8 @@ using GUI.Windows.Abstractions;
 namespace GUI.Windows.Services;
 
 /// <summary>
-/// Implementazione di INavigationService.
-/// Gestisce la navigazione tra view con history stack.
+/// INavigationService implementation.
+/// Manages navigation between views with a history stack.
 /// </summary>
 public sealed class NavigationService : INavigationService
 {
@@ -16,21 +16,21 @@ public sealed class NavigationService : INavigationService
     public ViewType CurrentView => _currentView;
 
     /// <summary>
-    /// Parametro della navigazione corrente.
+    /// Current navigation parameter.
     /// </summary>
     public NavigationParameter? CurrentParameter => _currentParameter;
 
     public bool CanGoBack => _history.Count > 0;
 
     /// <summary>
-    /// ViewModel ripristinato dal GoBack (null se navigazione forward).
+    /// ViewModel restored by GoBack (null on forward navigation).
     /// </summary>
     public object? CachedViewModel { get; private set; }
 
     public event EventHandler<ViewType>? CurrentViewChanged;
 
     /// <summary>
-    /// Registra il ViewModel corrente per il caching nella history.
+    /// Registers the current ViewModel for caching in the history.
     /// </summary>
     public void SetCurrentViewModel(object? viewModel)
     {
@@ -39,10 +39,10 @@ public sealed class NavigationService : INavigationService
 
     public void NavigateTo(ViewType viewType, NavigationParameter? parameter = null)
     {
-        // Salva la view corrente nella history (con il ViewModel cached)
+        // Save the current view in the history (with the cached ViewModel)
         _history.Push((_currentView, _currentParameter, _currentViewModel));
 
-        // Naviga alla nuova view (forward = no cache)
+        // Navigate to the new view (forward = no cache)
         _currentView = viewType;
         _currentParameter = parameter;
         _currentViewModel = null;
@@ -69,8 +69,8 @@ public sealed class NavigationService : INavigationService
     }
 
     /// <summary>
-    /// Resetta lo stato di navigazione alla view iniziale (DeviceList).
-    /// Pulisce history e cached ViewModel.
+    /// Resets the navigation state to the initial view (DeviceList).
+    /// Clears history and cached ViewModel.
     /// </summary>
     public void Reset()
     {

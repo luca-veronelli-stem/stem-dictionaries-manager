@@ -5,7 +5,7 @@ using GUI.Windows.ViewModels;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per le impostazioni dell'applicazione (stub).
+/// View for the application settings (stub).
 /// </summary>
 public partial class SettingsView : UserControl
 {

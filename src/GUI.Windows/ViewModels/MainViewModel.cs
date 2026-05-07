@@ -7,8 +7,8 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel principale dell'applicazione.
-/// Gestisce la shell e la navigazione tra le view.
+/// Main application ViewModel.
+/// Manages the shell and navigation between views.
 /// </summary>
 public partial class MainViewModel : ObservableObject
 {
@@ -31,7 +31,7 @@ public partial class MainViewModel : ObservableObject
     private bool _canGoBack;
 
     [ObservableProperty]
-    private string _pageTitle = "Dizionari";
+    private string _pageTitle = "Dictionaries";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLoggedIn))]
@@ -39,30 +39,30 @@ public partial class MainViewModel : ObservableObject
     private User? _currentUser;
 
     /// <summary>
-    /// True se l'utente ha effettuato il login.
+    /// True if the user has logged in.
     /// </summary>
     public bool IsLoggedIn => CurrentUser is not null;
 
     /// <summary>
-    /// Nome visualizzato dell'utente corrente per la sidebar.
+    /// Display name of the current user for the sidebar.
     /// </summary>
     public string CurrentUserDisplayName => CurrentUser?.DisplayName ?? "—";
 
     /// <summary>
-    /// Messaggio corrente della status bar.
+    /// Current status-bar message.
     /// </summary>
     [ObservableProperty]
     private string? _statusMessage;
 
     /// <summary>
-    /// Severità del messaggio corrente.
+    /// Severity of the current message.
     /// </summary>
     [ObservableProperty]
     private MessageSeverity _statusSeverity;
 
     /// <summary>
-    /// Evento fired quando l'utente effettua il logout.
-    /// App.xaml.cs lo usa per mostrare di nuovo la LoginView.
+    /// Event fired when the user logs out.
+    /// App.xaml.cs uses it to show the LoginView again.
     /// </summary>
     public event Action? LoggedOut;
 
@@ -79,10 +79,10 @@ public partial class MainViewModel : ObservableObject
         _serviceProvider = serviceProvider;
         _currentUserProvider = currentUserProvider;
 
-        // Sottoscrivi ai cambiamenti di navigazione
+        // Subscribe to navigation changes
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
 
-        // Sottoscrivi ai messaggi della status bar
+        // Subscribe to status-bar messages
         _messageService.MessageChanged += OnMessageChanged;
     }
 
@@ -93,21 +93,21 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Imposta l'utente corrente e naviga alla view iniziale.
+    /// Sets the current user and navigates to the initial view.
     /// </summary>
     public void SetUserAndNavigate(User user)
     {
         CurrentUser = user;
         _currentUserProvider.CurrentUserId = user.Id;
 
-        // Reset navigazione: ogni sessione utente parte pulita
+        // Reset navigation: each user session starts clean
         _navigationService.Reset();
         NavigateToView(_navigationService.CurrentView, null);
     }
 
     private void OnCurrentViewChanged(object? sender, ViewType viewType)
     {
-        // Recupera il parametro dal NavigationService
+        // Retrieve the parameter from the NavigationService
         NavigationParameter? parameter = _navigationService.CurrentParameter;
         NavigateToView(viewType, parameter);
         CanGoBack = _navigationService.CanGoBack;
@@ -117,7 +117,7 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            // GoBack: riusa il ViewModel cached (preserva stato utente)
+            // GoBack: reuse the cached ViewModel (preserves user state)
             object? cached = _navigationService.CachedViewModel;
             if (cached is not null)
             {
@@ -156,7 +156,7 @@ public partial class MainViewModel : ObservableObject
                 return;
             }
 
-            // Forward: crea nuovo ViewModel
+            // Forward: create a new ViewModel
             object? viewModel = CreateViewModel(viewType);
 
             if (viewModel is not null)
@@ -173,7 +173,7 @@ public partial class MainViewModel : ObservableObject
             CurrentViewModel = null;
             UpdateTitle(viewType);
             _messageService.Show(
-                $"Errore durante la navigazione: {ex.Message}",
+                $"Error during navigation: {ex.Message}",
                 Abstractions.MessageSeverity.Error,
                 autoHideSeconds: 0);
         }
@@ -203,7 +203,7 @@ public partial class MainViewModel : ObservableObject
     {
         switch (viewModel)
         {
-            // List ViewModels - caricano i dati iniziali
+            // List ViewModels - load initial data
             case DeviceListViewModel vm:
                 await vm.LoadAsync();
                 break;
@@ -224,22 +224,22 @@ public partial class MainViewModel : ObservableObject
                 await vm.InitializeAsync();
                 break;
 
-            // Device Detail - carica dizionari per il device selezionato
+            // Device Detail - load dictionaries for the selected device
             case DeviceDetailViewModel vm when parameter?.DeviceId is not null:
                 await vm.LoadAsync(parameter.DeviceId.Value);
                 break;
 
-            // Device Edit - crea o modifica dispositivo
+            // Device Edit - create or edit a device
             case DeviceEditViewModel vm:
                 await vm.InitializeAsync(parameter?.EntityId);
                 break;
 
-            // Device Commands - carica comandi con stato per device
+            // Device Commands - load commands with per-device state
             case DeviceCommandsViewModel vm when parameter?.DeviceId is not null:
                 await vm.LoadAsync(parameter.DeviceId.Value);
                 break;
 
-            // Edit ViewModels - caricano entità esistente o preparano per nuova
+            // Edit ViewModels - load existing entity or prepare a new one
             case DictionaryEditViewModel vm:
                 await vm.InitializeAsync(parameter?.EntityId, parameter?.DeviceId);
                 break;
@@ -262,18 +262,18 @@ public partial class MainViewModel : ObservableObject
     {
         PageTitle = viewType switch
         {
-            ViewType.DeviceList => "Dispositivi",
-            ViewType.DeviceDetail => "Dettaglio Dispositivo",
-            ViewType.DeviceEdit => "Modifica Dispositivo",
-            ViewType.DeviceCommands => "Comandi Dispositivo",
-            ViewType.DictionaryList => "Dizionari",
-            ViewType.DictionaryEdit => "Dizionario",
-            ViewType.VariableEdit => "Modifica Variabile",
-            ViewType.CommandList => "Comandi",
-            ViewType.CommandEdit => "Modifica Comando",
-            ViewType.BoardEdit => "Modifica Scheda",
-            ViewType.UserList => "Utenti",
-            ViewType.Settings => "Impostazioni",
+            ViewType.DeviceList => "Devices",
+            ViewType.DeviceDetail => "Device Detail",
+            ViewType.DeviceEdit => "Edit Device",
+            ViewType.DeviceCommands => "Device Commands",
+            ViewType.DictionaryList => "Dictionaries",
+            ViewType.DictionaryEdit => "Dictionary",
+            ViewType.VariableEdit => "Edit Variable",
+            ViewType.CommandList => "Commands",
+            ViewType.CommandEdit => "Edit Command",
+            ViewType.BoardEdit => "Edit Board",
+            ViewType.UserList => "Users",
+            ViewType.Settings => "Settings",
             _ => "Stem Dictionaries Manager"
         };
 
@@ -295,7 +295,7 @@ public partial class MainViewModel : ObservableObject
             if (standard is null)
             {
                 _messageService.Show(
-                    "Nessun dizionario standard configurato.",
+                    "No standard dictionary configured.",
                     MessageSeverity.Warning, autoHideSeconds: 0);
                 return;
             }
@@ -308,7 +308,7 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             _messageService.Show(
-                $"Errore: {ex.Message}",
+                $"Error: {ex.Message}",
                 MessageSeverity.Error, autoHideSeconds: 0);
         }
     }
@@ -328,12 +328,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task GoBackAsync()
     {
-        // Se il ViewModel corrente ha modifiche non salvate, avvisa
+        // If the current ViewModel has unsaved changes, warn the user
         if (CurrentViewModel is IEditableViewModel { HasChanges: true })
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Modifiche non salvate",
-                "Ci sono modifiche non salvate. Vuoi tornare indietro senza salvare?");
+                "Unsaved changes",
+                "There are unsaved changes. Go back without saving?");
 
             if (result != DialogResult.Yes)
             {
@@ -348,21 +348,21 @@ public partial class MainViewModel : ObservableObject
     private async Task LogoutAsync()
     {
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Conferma logout",
-            "Vuoi cambiare utente?");
+            "Confirm logout",
+            "Switch user?");
 
         if (result != Abstractions.DialogResult.Yes)
         {
             return;
         }
 
-        // Pulisci utente corrente
+        // Clear current user
         CurrentUser = null;
         _currentUserProvider.CurrentUserId = null;
         CurrentViewModel = null;
         PageTitle = "Login";
 
-        // Notifica App.xaml.cs per mostrare la LoginView
+        // Notify App.xaml.cs to display the LoginView
         LoggedOut?.Invoke();
     }
 }

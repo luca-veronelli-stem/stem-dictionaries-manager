@@ -3,7 +3,7 @@ using System.Windows;
 namespace GUI.Windows;
 
 /// <summary>
-/// Shell principale dell'applicazione.
+/// Main application shell.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -15,7 +15,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        // Chiude l'applicazione quando la MainWindow viene chiusa
+        // Shut down the application when MainWindow is closed
         Application.Current.Shutdown();
     }
 }

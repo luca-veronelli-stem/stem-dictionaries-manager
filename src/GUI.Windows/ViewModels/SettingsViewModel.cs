@@ -5,8 +5,8 @@ using GUI.Windows.Abstractions;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per le impostazioni dell'applicazione.
-/// TODO: Da implementare con le funzionalità specifiche.
+/// ViewModel for the application settings.
+/// TODO: implement specific features.
 /// </summary>
 public partial class SettingsViewModel : ObservableObject
 {
@@ -28,11 +28,11 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Inizializza il ViewModel.
+    /// Initializes the ViewModel.
     /// </summary>
     public Task InitializeAsync()
     {
-        // TODO: Caricare impostazioni reali
+        // TODO: load real settings
         DatabasePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
             + @"\Stem.Dictionaries.Manager\dictionaries.db";
 

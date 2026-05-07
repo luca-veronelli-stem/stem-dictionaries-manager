@@ -46,7 +46,7 @@ public class VariableEditViewModelTests
 
         // Assert
         Assert.True(_viewModel.IsNew);
-        Assert.Equal("Nuova Variabile", _viewModel.FormTitle);
+        Assert.Equal("New Variable", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class VariableEditViewModelTests
 
         // Assert
         Assert.False(_viewModel.IsNew);
-        Assert.Equal("Modifica Variabile", _viewModel.FormTitle);
+        Assert.Equal("Edit Variable", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -670,7 +670,7 @@ public class VariableEditViewModelTests
         _viewModel.AddWordCommand.Execute(null);
         Assert.Equal(3, _viewModel.WordGroups.Count);
 
-        // Rimuovi Word 1 (mezzo)
+        // Remove Word 1 (middle)
         await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[1]);
 
         Assert.Equal(2, _viewModel.WordGroups.Count);
@@ -747,7 +747,7 @@ public class VariableEditViewModelTests
         // Word 2 items have WordIndex = 2
         Assert.Equal(2, _viewModel.WordGroups[2].Items[0].WordIndex);
 
-        // Rimuovi Word 0
+        // Remove Word 0
         await _viewModel.RemoveWordCommand.ExecuteAsync(_viewModel.WordGroups[0]);
 
         // Ex-Word 2 è ora Word 1
@@ -954,7 +954,7 @@ public class VariableEditViewModelTests
 
         Assert.True(_viewModel.IsAddressLowInvalid);
         Assert.Contains(_messageService.Messages, m =>
-            m.Severity == MessageSeverity.Warning && m.Message.Contains("Indirizzo"));
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Address"));
     }
 
     [Fact]
@@ -969,7 +969,7 @@ public class VariableEditViewModelTests
 
         Assert.True(_viewModel.IsDescriptionInvalid);
         Assert.Contains(_messageService.Messages, m =>
-            m.Severity == MessageSeverity.Warning && m.Message.Contains("Descrizione"));
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Description"));
     }
 
     [Fact]
@@ -1006,15 +1006,15 @@ public class VariableEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         var warningMsg = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
-        Assert.Contains("Nome", warningMsg.Message);
-        Assert.Contains("Indirizzo", warningMsg.Message);
-        Assert.Contains("Descrizione", warningMsg.Message);
+        Assert.Contains("Name", warningMsg.Message);
+        Assert.Contains("Address", warningMsg.Message);
+        Assert.Contains("Description", warningMsg.Message);
     }
 
     [Fact]
     public async Task ValidationProperties_FalseAfterSave_WhenFieldsValid()
     {
-        // Arrange - tutti i campi compilati correttamente
+        // Arrange - all fields filled correctly
         await _viewModel.InitializeAsync(null, 1);
         _viewModel.Name = "ValidVar";
         _viewModel.AddressLowHex = "01";
@@ -1074,7 +1074,7 @@ public class VariableEditViewModelTests
 
         await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        Assert.Equal("Override Variabile Standard", _viewModel.FormTitle);
+        Assert.Equal("Override Standard Variable", _viewModel.FormTitle);
     }
 
     [Fact]

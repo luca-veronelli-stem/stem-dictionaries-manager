@@ -7,7 +7,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista variabili integrata nella vista dizionario.
+/// Item for the variable list embedded in the dictionary view.
 /// </summary>
 public record VariableListItem
 {
@@ -21,8 +21,8 @@ public record VariableListItem
 }
 
 /// <summary>
-/// Item read-only per la sezione variabili standard ereditate.
-/// Mostra lo stato effettivo (template + override). L'editing avviene in VariableEdit.
+/// Read-only item for the inherited standard-variables section.
+/// Shows the effective state (template + override). Editing happens in VariableEdit.
 /// </summary>
 public record StandardVariableItem
 {
@@ -37,8 +37,8 @@ public record StandardVariableItem
 }
 
 /// <summary>
-/// ViewModel per la creazione/modifica di un dizionario.
-/// Vista unificata: form dizionario in alto + lista variabili in basso.
+/// ViewModel for creating/editing a dictionary.
+/// Unified view: dictionary form on top + variable list at the bottom.
 /// </summary>
 public partial class DictionaryEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -65,7 +65,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi dizionario ===
+    // === Dictionary fields ===
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
@@ -78,20 +78,20 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     private bool _isStandard;
 
     /// <summary>
-    /// True se la checkbox "Standard" deve essere visibile.
-    /// Visibile solo se questo dizionario È già standard, oppure non esiste ancora uno standard.
+    /// True if the "Standard" checkbox should be visible.
+    /// Visible only when this dictionary already IS the standard, or when no standard exists yet.
     /// </summary>
     [ObservableProperty]
     private bool _canSetStandard;
 
     public bool IsNew => _editingId is null;
-    public string FormTitle => IsNew ? "Nuovo Dizionario" : "Modifica Dizionario";
+    public string FormTitle => IsNew ? "New Dictionary" : "Edit Dictionary";
 
-    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+    // === Per-field validation properties (visible only after the first save attempt) ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
 
-    // === Lista variabili ===
+    // === Variable list ===
 
     private List<VariableListItem> _allVariables = [];
 
@@ -107,7 +107,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [ObservableProperty]
     private bool _showOnlyEnabled;
 
-    // === Sezione variabili standard (editabile per override) ===
+    // === Standard-variables section (editable through overrides) ===
 
     private List<StandardVariableItem> _allStandardVariables = [];
 
@@ -121,19 +121,19 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     private StandardVariableItem? _selectedStandardVariable;
 
     /// <summary>
-    /// True se la sezione variabili specifiche (0x80xx) è espansa.
-    /// Default: true (aperta alla creazione/modifica).
+    /// True if the specific-variables section (0x80xx) is expanded.
+    /// Default: true (open on create/edit).
     /// </summary>
     [ObservableProperty]
     private bool _isSpecificExpanded = true;
 
     /// <summary>
-    /// True se la sezione standard collapsible deve essere visibile.
-    /// Visibile solo per dizionari non-standard già esistenti.
+    /// True if the collapsible standard section should be visible.
+    /// Visible only for existing non-standard dictionaries.
     /// </summary>
     public bool ShowStandardSection => !IsStandard && !IsNew;
 
-    // === Selezione scheda (per dizionari non-standard) ===
+    // === Board selection (for non-standard dictionaries) ===
 
     [ObservableProperty]
     private List<BoardSelectItem> _availableBoards = [];
@@ -143,8 +143,8 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     private BoardSelectItem? _selectedBoard;
 
     /// <summary>
-    /// True se la ComboBox scheda deve essere visibile.
-    /// Visibile solo per dizionari non-standard.
+    /// True if the board ComboBox should be visible.
+    /// Visible only for non-standard dictionaries.
     /// </summary>
     public bool ShowBoardSelector => !IsStandard;
 
@@ -196,7 +196,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 Dictionary? dictionary = await _dictionaryService.GetByIdAsync(dictionaryId.Value);
                 if (dictionary is null)
                 {
-                    await _dialogService.ShowErrorAsync("Errore", "Dizionario non trovato.");
+                    await _dialogService.ShowErrorAsync("Error", "Dictionary not found.");
                     _navigationService.GoBack();
                     return;
                 }
@@ -207,13 +207,13 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
                 await LoadVariablesAsync();
 
-                // Per dizionari non-standard, carica le variabili standard come sezione collapsible
+                // For non-standard dictionaries, load the standard variables as a collapsible section
                 if (!dictionary.IsStandard)
                 {
                     await LoadStandardVariablesAsync();
                 }
 
-                // Deriva il DeviceId dalla board che referenzia questo dizionario
+                // Derive DeviceId from the board that references this dictionary
                 if (!dictionary.IsStandard && _deviceId is null)
                 {
                     IReadOnlyList<Board> allBoards = await _boardService.GetAllAsync();
@@ -226,14 +226,14 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 }
             }
 
-            // Carica le board del device per la ComboBox (solo per non-standard)
+            // Load the device's boards for the ComboBox (non-standard only)
             if (_deviceId.HasValue)
             {
                 await LoadAvailableBoardsAsync(_deviceId.Value, dictionaryId);
             }
 
-            // Determina se la checkbox Standard è visibile:
-            // visibile se questo dizionario è già standard, oppure non ne esiste ancora uno
+            // Decide whether the Standard checkbox is visible:
+            // visible if this dictionary is already standard, or no standard exists yet
             Dictionary? existingStandard = await _dictionaryService.GetStandardDictionaryAsync();
             CanSetStandard = IsStandard || existingStandard is null;
 
@@ -249,7 +249,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile caricare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to load: {ex.Message}");
         }
         finally
         {
@@ -258,7 +258,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     }
 
     /// <summary>
-    /// Ricarica variabili specifiche e standard (usato dal GoBack per preservare lo stato dizionario).
+    /// Reloads specific and standard variables (used after GoBack to preserve dictionary state).
     /// </summary>
     public async Task ReloadVariablesAsync()
     {
@@ -303,13 +303,13 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore caricamento variabili: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error loading variables: {ex.Message}", MessageSeverity.Error);
         }
     }
 
     /// <summary>
-    /// Carica le variabili del dizionario standard con merge degli override per-dizionario.
-    /// BR-009: stato effettivo = template + override.
+    /// Loads variables of the standard dictionary, merging in the per-dictionary overrides.
+    /// BR-009: effective state = template + override.
     /// </summary>
     private async Task LoadStandardVariablesAsync()
     {
@@ -323,7 +323,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
             _standardDictionaryId = standardDict.Id;
 
-            // Carica override esistenti per questo dizionario
+            // Load the existing overrides for this dictionary
             IReadOnlyList<StandardVariableOverride> overrides = _editingId.HasValue
                 ? await _variableService.GetOverridesByDictionaryAsync(_editingId.Value)
                 : [];
@@ -352,12 +352,12 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore caricamento variabili standard: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error loading standard variables: {ex.Message}", MessageSeverity.Error);
         }
     }
 
     /// <summary>
-    /// Carica le board del device per la ComboBox selezione scheda.
+    /// Loads the device's boards for the board-selection ComboBox.
     /// </summary>
     private async Task LoadAvailableBoardsAsync(int deviceId, int? currentDictionaryId)
     {
@@ -372,7 +372,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                     Name = $"{b.Name} (FW={b.FirmwareType}, N°{b.BoardNumber})"
                 })];
 
-            // Preseleziona la board che referenzia questo dizionario
+            // Preselect the board that references this dictionary
             if (currentDictionaryId.HasValue)
             {
                 Board? linkedBoard = boards.FirstOrDefault(b => b.DictionaryId == currentDictionaryId.Value);
@@ -385,7 +385,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore caricamento schede: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error loading boards: {ex.Message}", MessageSeverity.Error);
         }
     }
 
@@ -411,18 +411,18 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 Dictionary created = await _dictionaryService.AddAsync(dictionary);
                 _editingId = created.Id;
 
-                // Linka la board selezionata al nuovo dizionario
+                // Link the selected board to the new dictionary
                 if (!IsStandard && SelectedBoard is not null)
                 {
                     await LinkBoardToDictionaryAsync(SelectedBoard.Id, created.Id);
                 }
 
-                _messageService.Show($"Dizionario '{Name}' creato", MessageSeverity.Success);
+                _messageService.Show($"Dictionary '{Name}' created", MessageSeverity.Success);
 
                 OnPropertyChanged(nameof(IsNew));
                 OnPropertyChanged(nameof(FormTitle));
 
-                // Carica le variabili standard ereditate per il nuovo dizionario
+                // Load the inherited standard variables for the new dictionary
                 if (!IsStandard)
                 {
                     await LoadStandardVariablesAsync();
@@ -434,7 +434,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 Dictionary? existing = await _dictionaryService.GetByIdAsync(_editingId!.Value);
                 if (existing is null)
                 {
-                    await _dialogService.ShowErrorAsync("Errore", "Dizionario non trovato.");
+                    await _dialogService.ShowErrorAsync("Error", "Dictionary not found.");
                     return;
                 }
 
@@ -447,29 +447,29 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
                 await _dictionaryService.UpdateAsync(updated);
 
-                // Aggiorna il link board se cambiato
+                // Update the board link if it changed
                 if (!IsStandard && SelectedBoard is not null
                     && SelectedBoard.Id != _originalBoardId)
                 {
-                    // Scollega la vecchia board
+                    // Unlink the old board
                     if (_originalBoardId.HasValue)
                     {
                         await UnlinkBoardFromDictionaryAsync(_originalBoardId.Value);
                     }
 
-                    // Collega la nuova board
+                    // Link the new board
                     await LinkBoardToDictionaryAsync(SelectedBoard.Id, _editingId!.Value);
                     _originalBoardId = SelectedBoard.Id;
                 }
 
-                _messageService.Show($"Dizionario '{Name}' aggiornato", MessageSeverity.Success);
+                _messageService.Show($"Dictionary '{Name}' updated", MessageSeverity.Success);
             }
 
             HasChanges = false;
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore salvataggio", ex.Message);
+            await _dialogService.ShowErrorAsync("Save error", ex.Message);
         }
         finally
         {
@@ -486,8 +486,8 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
 
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"L'eliminazione del dizionario '{Name}' e di tutte le sue variabili è irreversibile. Continuare?");
+            "Confirm deletion",
+            $"Deleting dictionary '{Name}' and all its variables is irreversible. Continue?");
 
         if (result != Abstractions.DialogResult.Yes)
         {
@@ -498,14 +498,14 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         {
             IsBusy = true;
             await _dictionaryService.DeleteAsync(_editingId.Value);
-            _messageService.Show($"Dizionario '{Name}' eliminato", MessageSeverity.Success);
+            _messageService.Show($"Dictionary '{Name}' deleted", MessageSeverity.Success);
             HasChanges = false;
             _navigationService.GoBack();
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore",
-                $"Impossibile eliminare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error",
+                $"Unable to delete: {ex.Message}");
         }
         finally
         {
@@ -565,8 +565,8 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         if (HasChanges)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Annulla modifiche",
-                "Sei sicuro di voler annullare le modifiche?");
+                "Discard changes",
+                "Are you sure you want to discard the changes?");
 
             if (result != Abstractions.DialogResult.Yes)
             {
@@ -615,17 +615,17 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            missing.Add("Nome");
+            missing.Add("Name");
         }
 
         if (!IsStandard && SelectedBoard is null)
         {
-            missing.Add("Scheda");
+            missing.Add("Board");
         }
 
         if (missing.Count > 0)
         {
-            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            _messageService.Show($"Required fields missing: {string.Join(", ", missing)}", MessageSeverity.Warning);
             return false;
         }
 
@@ -633,7 +633,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     }
 
     /// <summary>
-    /// Aggiorna Board.DictionaryId per collegare una board a un dizionario.
+    /// Updates Board.DictionaryId to link a board to a dictionary.
     /// </summary>
     private async Task LinkBoardToDictionaryAsync(int boardId, int dictionaryId)
     {
@@ -652,7 +652,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     }
 
     /// <summary>
-    /// Rimuove il link Board.DictionaryId (setta a null).
+    /// Removes the Board.DictionaryId link (sets it to null).
     /// </summary>
     private async Task UnlinkBoardFromDictionaryAsync(int boardId)
     {
@@ -672,7 +672,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 }
 
 /// <summary>
-/// Item per il dropdown di selezione scheda nel DictionaryEdit.
+/// Item for the board-selection dropdown in DictionaryEdit.
 /// </summary>
 public class BoardSelectItem
 {

@@ -4,8 +4,8 @@ using GUI.Windows.Views;
 namespace GUI.Windows.Services;
 
 /// <summary>
-/// Implementazione WPF di IDialogService.
-/// Usa DarkDialog custom (dark theme).
+/// WPF implementation of IDialogService.
+/// Uses the custom DarkDialog (dark theme).
 /// </summary>
 public sealed class DialogService : IDialogService
 {

@@ -85,7 +85,7 @@ public class DictionaryListViewModelTests
         // Assert
         Assert.Equal("Database error", _viewModel.ErrorMessage);
         Assert.Contains(_messageService.Messages, m =>
-            m.Message.Contains("Errore") && m.Severity == MessageSeverity.Error);
+            m.Message.Contains("Error") && m.Severity == MessageSeverity.Error);
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class DictionaryListViewModelTests
 
         // Assert
         var item = _viewModel.Dictionaries.First();
-        Assert.Equal("Specifico", item.SemanticDisplay);
+        Assert.Equal("Specific", item.SemanticDisplay);
     }
 
     [Fact]

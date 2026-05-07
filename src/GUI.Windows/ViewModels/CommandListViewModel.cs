@@ -7,7 +7,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista comandi.
+/// Item for the command list.
 /// </summary>
 public record CommandListItem
 {
@@ -19,7 +19,7 @@ public record CommandListItem
 }
 
 /// <summary>
-/// ViewModel per la lista dei comandi.
+/// ViewModel for the command list.
 /// </summary>
 public partial class CommandListViewModel : ObservableObject
 {
@@ -60,7 +60,7 @@ public partial class CommandListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Carica i dati iniziali. Da chiamare dopo la navigazione.
+    /// Loads the initial data. Call after navigating to the view.
     /// </summary>
     [RelayCommand]
     public async Task LoadAsync()
@@ -90,12 +90,12 @@ public partial class CommandListViewModel : ObservableObject
                 .OrderBy(c => c.Code)];
 
             ApplyFilter();
-            _messageService.Show($"Caricati {_allCommands.Count} comandi", MessageSeverity.Success);
+            _messageService.Show($"Loaded {_allCommands.Count} commands", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            _messageService.Show($"Errore: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error: {ex.Message}", MessageSeverity.Error);
         }
         finally
         {

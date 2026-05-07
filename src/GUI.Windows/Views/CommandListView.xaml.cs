@@ -5,7 +5,7 @@ using GUI.Windows.ViewModels;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per la lista dei comandi protocollo.
+/// View for the protocol-command list.
 /// </summary>
 public partial class CommandListView : UserControl
 {

@@ -8,7 +8,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la creazione/modifica di un comando.
+/// ViewModel for creating/editing a command.
 /// </summary>
 public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -30,15 +30,15 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi editabili ===
+    // === Editable fields ===
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
     private string _name = string.Empty;
 
     /// <summary>
-    /// CodeHigh calcolato automaticamente da IsResponse.
-    /// 0x80 = risposta, 0x00 = comando.
+    /// CodeHigh derived automatically from IsResponse.
+    /// 0x80 = response, 0x00 = command.
     /// </summary>
     public string CodeHighHex => IsResponse ? "80" : "00";
 
@@ -56,22 +56,22 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     private bool _isResponse;
 
     /// <summary>
-    /// Parametri strutturati per la DataGrid.
+    /// Structured parameters for the DataGrid.
     /// </summary>
     public ObservableCollection<CommandParameterItem> ParameterItems { get; } = [];
 
     /// <summary>
-    /// True se ci sono parametri da visualizzare.
+    /// True if there are parameters to display.
     /// </summary>
     public bool HasParameters => ParameterItems.Count > 0;
 
     // === Computed Properties ===
 
     public bool IsNew => _editingId is null;
-    public string FormTitle => IsNew ? "Nuovo Comando" : "Modifica Comando";
+    public string FormTitle => IsNew ? "New Command" : "Edit Command";
     public string FullCodeDisplay => $"0x{(CodeHigh << 8 | CodeLow):X4}";
 
-    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+    // === Per-field validation properties (visible only after the first save attempt) ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsCodeLowInvalid => _showValidation && string.IsNullOrWhiteSpace(CodeLowHex);
@@ -89,7 +89,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     }
 
     /// <summary>
-    /// Inizializza il ViewModel.
+    /// Initializes the ViewModel.
     /// </summary>
     public async Task InitializeAsync(int? commandId)
     {
@@ -108,7 +108,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
                 Command? command = await _commandService.GetByIdAsync(commandId.Value);
                 if (command is null)
                 {
-                    await _dialogService.ShowErrorAsync("Errore", "Comando non trovato.");
+                    await _dialogService.ShowErrorAsync("Error", "Command not found.");
                     _navigationService.GoBack();
                     return;
                 }
@@ -125,7 +125,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile caricare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to load: {ex.Message}");
         }
         finally
         {
@@ -136,11 +136,11 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     private void LoadFromCommand(Command c)
     {
         Name = c.Name;
-        // CodeHighHex è computed automaticamente da IsResponse
+        // CodeHighHex is computed automatically from IsResponse
         CodeLowHex = c.CodeLow.ToString("X2");
         IsResponse = c.IsResponse;
 
-        // Carica parametri strutturati
+        // Load structured parameters
         ParameterItems.Clear();
         foreach ((string? p, int i) in c.Parameters.Select((p, i) => (p, i)))
         {
@@ -164,17 +164,17 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            missing.Add("Nome");
+            missing.Add("Name");
         }
 
         if (string.IsNullOrWhiteSpace(CodeLowHex))
         {
-            missing.Add("Codice");
+            missing.Add("Code");
         }
 
         if (missing.Count > 0)
         {
-            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            _messageService.Show($"Required fields missing: {string.Join(", ", missing)}", MessageSeverity.Warning);
             return false;
         }
 
@@ -207,7 +207,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
                     parameters: parameters);
 
                 await _commandService.AddAsync(command);
-                _messageService.Show($"Comando '{Name}' creato", MessageSeverity.Success);
+                _messageService.Show($"Command '{Name}' created", MessageSeverity.Success);
             }
             else
             {
@@ -220,7 +220,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
                     parameters: parameters);
 
                 await _commandService.UpdateAsync(existing);
-                _messageService.Show($"Comando '{Name}' aggiornato", MessageSeverity.Success);
+                _messageService.Show($"Command '{Name}' updated", MessageSeverity.Success);
             }
 
             HasChanges = false;
@@ -228,7 +228,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile salvare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally
         {
@@ -245,8 +245,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         }
 
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare il comando '{Name}'?\nQuesta operazione non può essere annullata.");
+            "Confirm deletion",
+            $"Delete command '{Name}'?\nThis operation cannot be undone.");
 
         if (result != DialogResult.Yes)
         {
@@ -257,12 +257,12 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         {
             IsBusy = true;
             await _commandService.DeleteAsync(_editingId!.Value);
-            _messageService.Show($"Comando '{Name}' eliminato", MessageSeverity.Success);
+            _messageService.Show($"Command '{Name}' deleted", MessageSeverity.Success);
             _navigationService.GoBack();
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to delete: {ex.Message}");
         }
         finally
         {
@@ -276,8 +276,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         if (HasChanges)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Annulla modifiche",
-                "Sei sicuro di voler annullare le modifiche?");
+                "Discard changes",
+                "Are you sure you want to discard the changes?");
             if (result != DialogResult.Yes)
             {
                 return;
@@ -288,7 +288,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     }
 
     /// <summary>
-    /// Aggiunge un nuovo parametro alla lista.
+    /// Adds a new parameter to the list.
     /// </summary>
     [RelayCommand]
     private void AddParameter()
@@ -301,7 +301,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     }
 
     /// <summary>
-    /// Rimuove l'ultimo parametro dalla lista.
+    /// Removes the last parameter from the list.
     /// </summary>
     [RelayCommand]
     private void RemoveLastParameter()

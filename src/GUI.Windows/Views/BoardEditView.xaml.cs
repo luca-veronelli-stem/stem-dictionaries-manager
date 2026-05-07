@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per la creazione/modifica di una scheda.
+/// View for creating/editing a board.
 /// </summary>
 public partial class BoardEditView : UserControl
 {
@@ -15,6 +15,6 @@ public partial class BoardEditView : UserControl
 
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        // L'inizializzazione viene gestita dal MainViewModel
+        // Initialization is handled by MainViewModel
     }
 }

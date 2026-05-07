@@ -6,22 +6,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace GUI.Windows;
 
 /// <summary>
-/// Extension methods per la registrazione dei servizi GUI nel DI container.
+/// Extension methods for registering GUI services in the DI container.
 /// </summary>
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registra tutti i servizi del layer GUI.
-    /// Richiede che Infrastructure e Services siano già registrati.
+    /// Registers every service of the GUI layer.
+    /// Requires Infrastructure and Services to be already registered.
     /// </summary>
     public static IServiceCollection AddGUI(this IServiceCollection services)
     {
-        // UI Services (Singleton - condivisi tra tutti i ViewModel)
+        // UI Services (Singleton - shared across every ViewModel)
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IMessageService, MessageService>();
 
-        // ViewModels (Transient - nuova istanza per ogni navigazione)
+        // ViewModels (Transient - new instance per navigation)
         services.AddTransient<MainViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<DeviceListViewModel>();

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per la gestione stato comandi per un device.
+/// View for managing per-device command state.
 /// </summary>
 public partial class DeviceCommandsView : UserControl
 {

@@ -7,9 +7,9 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la creazione/modifica di una scheda.
+/// ViewModel for creating/editing a board.
 /// SESSION_035: DeviceType enum → int DeviceId.
-/// DeviceId bloccato quando si arriva da DeviceDetail.
+/// DeviceId is locked when arriving from DeviceDetail.
 /// </summary>
 public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -35,7 +35,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi editabili ===
+    // === Editable fields ===
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNameInvalid))]
@@ -45,13 +45,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private int _deviceId;
 
     /// <summary>
-    /// Nome del dispositivo (per display read-only).
+    /// Device name (for read-only display).
     /// </summary>
     [ObservableProperty]
     private string _deviceDisplayName = string.Empty;
 
     /// <summary>
-    /// True se il DeviceId è bloccato (arrivo da DeviceDetail).
+    /// True if DeviceId is locked (arrived from DeviceDetail).
     /// </summary>
     [ObservableProperty]
     private bool _isDeviceIdLocked;
@@ -71,15 +71,15 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private bool _isPrimary;
 
     /// <summary>
-    /// Nota informativa sotto il campo FirmwareType (visibile solo in creazione).
+    /// Informational hint shown under the FirmwareType field (visible only on create).
     /// </summary>
     [ObservableProperty]
     private string? _firmwareTypeHint;
 
     public bool IsNew => _editingId is null;
-    public string FormTitle => IsNew ? "Nuova Scheda" : "Modifica Scheda";
+    public string FormTitle => IsNew ? "New Board" : "Edit Board";
 
-    // === Validazione
+    // === Validation
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsFirmwareTypeInvalid => _showValidation && FirmwareType <= 0;
@@ -119,13 +119,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             IsBusy = true;
             _editingId = boardId;
 
-            // Preset e lock DeviceId se arriva da DeviceDetail
+            // Preset and lock DeviceId if arriving from DeviceDetail
             if (presetDeviceId.HasValue)
             {
                 DeviceId = presetDeviceId.Value;
                 IsDeviceIdLocked = true;
 
-                // Carica MachineCode dal Device per ProtocolAddress
+                // Load MachineCode from the Device for ProtocolAddress
                 Device? device = await _deviceService.GetByIdAsync(presetDeviceId.Value);
                 _machineCode = device?.MachineCode ?? 0;
                 DeviceDisplayName = device?.Name ?? $"Device #{presetDeviceId}";
@@ -136,7 +136,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 Board? board = await _boardService.GetByIdAsync(boardId.Value);
                 if (board is null)
                 {
-                    await _dialogService.ShowErrorAsync("Errore", "Scheda non trovata.");
+                    await _dialogService.ShowErrorAsync("Error", "Board not found.");
                     _navigationService.GoBack();
                     return;
                 }
@@ -145,10 +145,10 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             }
             else
             {
-                // Pre-compila con il primo FirmwareType disponibile
+                // Pre-fill with the first available FirmwareType
                 int nextFw = await _boardService.GetNextAvailableFirmwareTypeAsync();
                 FirmwareType = nextFw;
-                FirmwareTypeHint = $"Primo valore disponibile suggerito ({nextFw})";
+                FirmwareTypeHint = $"First available value suggested ({nextFw})";
             }
 
             _isInitialized = true;
@@ -160,7 +160,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile caricare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to load: {ex.Message}");
         }
         finally
         {
@@ -194,7 +194,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            missing.Add("Nome");
+            missing.Add("Name");
         }
 
         if (FirmwareType <= 0)
@@ -204,13 +204,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
         if (BoardNumber < 1 || BoardNumber > 63)
         {
-            missing.Add("Numero Scheda (1-63)");
+            missing.Add("Board Number (1-63)");
         }
 
         if (missing.Count > 0)
         {
             _messageService.Show(
-                $"Campi obbligatori mancanti: {string.Join(", ", missing)}",
+                $"Required fields missing: {string.Join(", ", missing)}",
                 MessageSeverity.Warning);
             return false;
         }
@@ -242,7 +242,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     isPrimary: IsPrimary);
 
                 await _boardService.AddAsync(board);
-                _messageService.Show($"Scheda '{Name}' creata", MessageSeverity.Success);
+                _messageService.Show($"Board '{Name}' created", MessageSeverity.Success);
             }
             else
             {
@@ -258,7 +258,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     machineCode: _machineCode);
 
                 await _boardService.UpdateAsync(existing);
-                _messageService.Show($"Scheda '{Name}' aggiornata", MessageSeverity.Success);
+                _messageService.Show($"Board '{Name}' updated", MessageSeverity.Success);
             }
 
             HasChanges = false;
@@ -266,7 +266,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile salvare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally
         {
@@ -283,12 +283,12 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         }
 
         string message = _existingDictionaryName is not null
-            ? $"Eliminare la scheda '{Name}'?\n" +
-              $"Il dizionario '{_existingDictionaryName}' associato potrebbe essere eliminato."
-            : $"Eliminare la scheda '{Name}'?";
+            ? $"Delete board '{Name}'?\n" +
+              $"The associated dictionary '{_existingDictionaryName}' may also be deleted."
+            : $"Delete board '{Name}'?";
 
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione", message);
+            "Confirm deletion", message);
 
         if (result != DialogResult.Yes)
         {
@@ -299,14 +299,14 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         {
             IsBusy = true;
             await _boardService.DeleteAsync(_editingId.Value);
-            _messageService.Show($"Scheda '{Name}' eliminata", MessageSeverity.Success);
+            _messageService.Show($"Board '{Name}' deleted", MessageSeverity.Success);
             HasChanges = false;
             _navigationService.GoBack();
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore",
-                $"Impossibile eliminare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error",
+                $"Unable to delete: {ex.Message}");
         }
         finally
         {
@@ -320,8 +320,8 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         if (HasChanges)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Annulla modifiche",
-                "Sei sicuro di voler annullare le modifiche?");
+                "Discard changes",
+                "Are you sure you want to discard the changes?");
             if (result != DialogResult.Yes)
             {
                 return;

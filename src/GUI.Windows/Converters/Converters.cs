@@ -6,7 +6,7 @@ using System.Windows.Media;
 namespace GUI.Windows.Converters;
 
 /// <summary>
-/// Converte un booleano in Visibility.
+/// Converts a boolean to Visibility.
 /// true -> Visible, false -> Collapsed
 /// </summary>
 public class BoolToVisibilityConverter : IValueConverter
@@ -15,7 +15,7 @@ public class BoolToVisibilityConverter : IValueConverter
     {
         if (value is bool boolValue)
         {
-            // Se parameter è "Inverse", inverte la logica
+            // If parameter is "Inverse", invert the logic
             if (parameter is string param && param == "Inverse")
             {
                 return boolValue ? Visibility.Collapsed : Visibility.Visible;
@@ -38,7 +38,7 @@ public class BoolToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Inverte un booleano.
+/// Inverts a boolean.
 /// </summary>
 public class InverseBoolConverter : IValueConverter
 {
@@ -64,7 +64,7 @@ public class InverseBoolConverter : IValueConverter
 }
 
 /// <summary>
-/// Converte null in Visibility.
+/// Converts null to Visibility.
 /// null -> Collapsed, not null -> Visible
 /// </summary>
 public class NullToVisibilityConverter : IValueConverter
@@ -73,7 +73,7 @@ public class NullToVisibilityConverter : IValueConverter
     {
         bool isVisible = value is not null;
 
-        // Se parameter è "Inverse", inverte la logica
+        // If parameter is "Inverse", invert the logic
         if (parameter is string param && param == "Inverse")
         {
             isVisible = !isVisible;
@@ -89,8 +89,8 @@ public class NullToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converte un booleano in un Brush per il bordo dei campi con errore.
-/// true (invalid) → rosso, false (valid) → colore bordo di default.
+/// Converts a boolean to a Brush for the border of fields in error.
+/// true (invalid) → red, false (valid) → default border color.
 /// </summary>
 public class BoolToErrorBrushConverter : IValueConverter
 {
@@ -105,10 +105,10 @@ public class BoolToErrorBrushConverter : IValueConverter
 }
 
 /// <summary>
-/// Converte (isVisible, isExpanded) in GridLength per righe con Expander.
-/// Visibile + espanso → Star (riempie lo spazio disponibile),
-/// visibile + collassato → Auto (solo header),
-/// non visibile → Auto (0 effettivo con Expander Collapsed).
+/// Converts (isVisible, isExpanded) into a GridLength for rows hosting an Expander.
+/// Visible + expanded → Star (fills the available space),
+/// visible + collapsed → Auto (header only),
+/// not visible → Auto (effectively 0 when the Expander is Collapsed).
 /// </summary>
 public class ExpandedRowHeightConverter : IMultiValueConverter
 {
