@@ -56,11 +56,16 @@ public class Board
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (firmwareType < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(firmwareType),
                 "FirmwareType must be non-negative.");
+        }
+
         if (boardNumber < 1 || boardNumber > 63)
+        {
             throw new ArgumentOutOfRangeException(nameof(boardNumber),
                 "BoardNumber must be between 1 and 63 (BR-008).");
+        }
 
         DeviceId = deviceId;
         Name = name;

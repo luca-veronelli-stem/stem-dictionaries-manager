@@ -24,7 +24,7 @@ public class UserRepositoryTests : IntegrationTestBase
             DisplayName = "Luca V."
         };
 
-        var result = await _repository.AddAsync(user);
+        UserEntity result = await _repository.AddAsync(user);
 
         Assert.True(result.Id > 0);
         Assert.Equal("luca", result.Username);
@@ -36,7 +36,7 @@ public class UserRepositoryTests : IntegrationTestBase
         var user = new UserEntity { Username = "test", DisplayName = "Test" };
         await _repository.AddAsync(user);
 
-        var result = await _repository.GetByIdAsync(user.Id);
+        UserEntity? result = await _repository.GetByIdAsync(user.Id);
 
         Assert.NotNull(result);
         Assert.Equal("test", result.Username);
@@ -45,7 +45,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        UserEntity? result = await _repository.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -56,7 +56,7 @@ public class UserRepositoryTests : IntegrationTestBase
         var user = new UserEntity { Username = "findme", DisplayName = "Find Me" };
         await _repository.AddAsync(user);
 
-        var result = await _repository.GetByUsernameAsync("findme");
+        UserEntity? result = await _repository.GetByUsernameAsync("findme");
 
         Assert.NotNull(result);
         Assert.Equal("Find Me", result.DisplayName);
@@ -68,7 +68,7 @@ public class UserRepositoryTests : IntegrationTestBase
         var user = new UserEntity { Username = "lowercase", DisplayName = "Test" };
         await _repository.AddAsync(user);
 
-        var result = await _repository.GetByUsernameAsync("LOWERCASE");
+        UserEntity? result = await _repository.GetByUsernameAsync("LOWERCASE");
 
         Assert.NotNull(result);
     }
@@ -79,7 +79,7 @@ public class UserRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new UserEntity { Username = "user1", DisplayName = "User 1" });
         await _repository.AddAsync(new UserEntity { Username = "user2", DisplayName = "User 2" });
 
-        var result = await _repository.GetAllAsync();
+        IReadOnlyList<UserEntity> result = await _repository.GetAllAsync();
 
         Assert.Equal(2, result.Count);
     }
@@ -93,7 +93,7 @@ public class UserRepositoryTests : IntegrationTestBase
         user.DisplayName = "After";
         await _repository.UpdateAsync(user);
 
-        var result = await _repository.GetByIdAsync(user.Id);
+        UserEntity? result = await _repository.GetByIdAsync(user.Id);
         Assert.Equal("After", result!.DisplayName);
     }
 
@@ -105,7 +105,7 @@ public class UserRepositoryTests : IntegrationTestBase
 
         await _repository.DeleteAsync(user.Id);
 
-        var result = await _repository.GetByIdAsync(user.Id);
+        UserEntity? result = await _repository.GetByIdAsync(user.Id);
         Assert.Null(result);
     }
 

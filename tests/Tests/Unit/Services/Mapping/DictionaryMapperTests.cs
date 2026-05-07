@@ -1,6 +1,6 @@
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
-using Core.Enums;
 using Services.Mapping;
 
 namespace Tests.Unit.Services.Mapping;
@@ -22,7 +22,7 @@ public class DictionaryMapperTests
             IsStandard = false
         };
 
-        var result = DictionaryMapper.ToDomain(entity);
+        Dictionary result = DictionaryMapper.ToDomain(entity);
 
         Assert.Equal(1, result.Id);
         Assert.Equal("optimus-xp", result.Name);
@@ -41,7 +41,7 @@ public class DictionaryMapperTests
             IsStandard = true
         };
 
-        var result = DictionaryMapper.ToDomain(entity);
+        Dictionary result = DictionaryMapper.ToDomain(entity);
 
         Assert.True(result.IsStandard);
     }
@@ -73,7 +73,7 @@ public class DictionaryMapperTests
             ]
         };
 
-        var result = DictionaryMapper.ToDomainWithVariables(entity);
+        Dictionary result = DictionaryMapper.ToDomainWithVariables(entity);
 
         Assert.Equal(3, result.Variables.Count);
     }
@@ -99,7 +99,7 @@ public class DictionaryMapperTests
     {
         var dictionary = Dictionary.Restore(10, "test-dictionary", "Test description", false, []);
 
-        var result = DictionaryMapper.ToEntity(dictionary);
+        DictionaryEntity result = DictionaryMapper.ToEntity(dictionary);
 
         Assert.Equal(10, result.Id);
         Assert.Equal("test-dictionary", result.Name);
@@ -112,7 +112,7 @@ public class DictionaryMapperTests
     {
         var dictionary = Dictionary.Restore(1, "standard", "Standard variables", true, []);
 
-        var result = DictionaryMapper.ToEntity(dictionary);
+        DictionaryEntity result = DictionaryMapper.ToEntity(dictionary);
 
         Assert.True(result.IsStandard);
     }
@@ -154,7 +154,7 @@ public class DictionaryMapperTests
             new() { Id = 3, Name = "dict3", Description = null }
         };
 
-        var result = DictionaryMapper.ToDomainList(entities);
+        IReadOnlyList<Dictionary> result = DictionaryMapper.ToDomainList(entities);
 
         Assert.Equal(3, result.Count);
         Assert.True(result[0].IsStandard);
@@ -172,8 +172,8 @@ public class DictionaryMapperTests
             IsStandard = true
         };
 
-        var domain = DictionaryMapper.ToDomain(originalEntity);
-        var resultEntity = DictionaryMapper.ToEntity(domain);
+        Dictionary domain = DictionaryMapper.ToDomain(originalEntity);
+        DictionaryEntity resultEntity = DictionaryMapper.ToEntity(domain);
 
         Assert.Equal(originalEntity.Id, resultEntity.Id);
         Assert.Equal(originalEntity.Name, resultEntity.Name);

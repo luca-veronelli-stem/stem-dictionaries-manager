@@ -48,13 +48,13 @@ public class VariableService : IVariableService
 
     public async Task<Variable?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        VariableEntity? entity = await _repository.GetByIdAsync(id, ct);
         return entity is null ? null : VariableMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Variable>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _repository.GetAllAsync(ct);
+        IReadOnlyList<VariableEntity> entities = await _repository.GetAllAsync(ct);
         return VariableMapper.ToDomainList(entities);
     }
 
@@ -63,22 +63,26 @@ public class VariableService : IVariableService
         ArgumentNullException.ThrowIfNull(variable);
 
         // Verifica che il dizionario esista
-        var dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
+        bool dictionaryExists = await _dictionaryRepository.ExistsAsync(dictionaryId, ct);
         if (!dictionaryExists)
+        {
             throw new KeyNotFoundException(
                 $"Dictionary (Id={dictionaryId}) not found.");
+        }
 
         // Verifica unicità indirizzo nel dizionario
-        var existingByAddress = await _repository.GetByAddressAsync(
+        VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
             dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
         if (existingByAddress is not null)
+        {
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                 $"already exists in this dictionary.");
+        }
 
-        var entity = VariableMapper.ToEntity(variable, dictionaryId);
-        var created = await _repository.AddAsync(entity, ct);
-        var result = VariableMapper.ToDomain(created);
+        VariableEntity entity = VariableMapper.ToEntity(variable, dictionaryId);
+        VariableEntity created = await _repository.AddAsync(entity, ct);
+        Variable result = VariableMapper.ToDomain(created);
 
         await _audit.LogCreateAsync(AuditEntityType.Variable, result.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -91,23 +95,25 @@ public class VariableService : IVariableService
     {
         ArgumentNullException.ThrowIfNull(variable);
 
-        var entity = await _repository.GetByIdAsync(variable.Id, ct)
+        VariableEntity entity = await _repository.GetByIdAsync(variable.Id, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable '{variable.Name}' (Id={variable.Id}) not found.");
 
         // Verifica unicità indirizzo (se cambiato)
         if (entity.AddressHigh != variable.AddressHigh || entity.AddressLow != variable.AddressLow)
         {
-            var existingByAddress = await _repository.GetByAddressAsync(
+            VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
                 entity.DictionaryId, variable.AddressHigh, variable.AddressLow, ct);
             if (existingByAddress is not null && existingByAddress.Id != variable.Id)
+            {
                 throw new InvalidOperationException(
                     $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                     $"already exists in this dictionary.");
+            }
         }
 
-        var previous = VariableMapper.ToDomain(entity);
-        var prevJson = JsonSerializer.Serialize(previous);
+        Variable previous = VariableMapper.ToDomain(entity);
+        string prevJson = JsonSerializer.Serialize(previous);
 
         VariableMapper.UpdateEntity(entity, variable);
         await _repository.UpdateAsync(entity, ct);
@@ -119,10 +125,10 @@ public class VariableService : IVariableService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        VariableEntity? entity = await _repository.GetByIdAsync(id, ct);
         if (entity is not null)
         {
-            var previous = VariableMapper.ToDomain(entity);
+            Variable previous = VariableMapper.ToDomain(entity);
             await _repository.DeleteAsync(id, ct);
             await _audit.LogDeleteAsync(AuditEntityType.Variable, id,
                 _userProvider.CurrentUserId ?? 0,
@@ -138,14 +144,14 @@ public class VariableService : IVariableService
 
     public async Task<IReadOnlyList<Variable>> GetByDictionaryIdAsync(int dictionaryId, CancellationToken ct = default)
     {
-        var entities = await _repository.GetByDictionaryIdAsync(dictionaryId, ct);
+        IReadOnlyList<VariableEntity> entities = await _repository.GetByDictionaryIdAsync(dictionaryId, ct);
         return VariableMapper.ToDomainList(entities);
     }
 
     public async Task<Variable?> GetByAddressAsync(int dictionaryId, byte addressHigh, byte addressLow,
         CancellationToken ct = default)
     {
-        var entity = await _repository.GetByAddressAsync(dictionaryId, addressHigh, addressLow, ct);
+        VariableEntity? entity = await _repository.GetByAddressAsync(dictionaryId, addressHigh, addressLow, ct);
         return entity is null ? null : VariableMapper.ToDomain(entity);
     }
 
@@ -155,12 +161,14 @@ public class VariableService : IVariableService
         CancellationToken ct = default)
     {
         // Verifica che la variabile esista
-        var variableExists = await _repository.ExistsAsync(variableId, ct);
+        bool variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
+        {
             throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
+        }
 
-        var entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
+        IReadOnlyList<BitInterpretationEntity> entities = await _bitInterpretationRepository.GetByVariableIdAsync(variableId, ct);
 
         // Ritorna solo le interpretazioni template (DictionaryId = null)
         var template = BitInterpretationMapper.ToDomainList(entities)
@@ -173,15 +181,17 @@ public class VariableService : IVariableService
     public async Task<IReadOnlyList<BitInterpretation>> GetBitInterpretationsForDictionaryAsync(
         int variableId, int dictionaryId, CancellationToken ct = default)
     {
-        var variableExists = await _repository.ExistsAsync(variableId, ct);
+        bool variableExists = await _repository.ExistsAsync(variableId, ct);
         if (!variableExists)
+        {
             throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
+        }
 
-        var entities = await _bitInterpretationRepository
+        IReadOnlyList<BitInterpretationEntity> entities = await _bitInterpretationRepository
             .GetByVariableAndDictionaryAsync(variableId, dictionaryId, ct);
 
-        var allBits = BitInterpretationMapper.ToDomainList(entities);
+        IReadOnlyList<BitInterpretation> allBits = BitInterpretationMapper.ToDomainList(entities);
 
         // BR-018: per ogni (WordIndex, BitIndex), per-dizionario ha priorità su template
         var merged = allBits
@@ -200,18 +210,20 @@ public class VariableService : IVariableService
         ArgumentNullException.ThrowIfNull(interpretation);
 
         // Verifica che la variabile esista ed sia bitmapped
-        var variable = await _repository.GetByIdAsync(variableId, ct)
+        VariableEntity variable = await _repository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
 
         if (variable.DataTypeKind != DataTypeKind.Bitmapped)
+        {
             throw new InvalidOperationException(
                 $"Variable '{variable.Name}' is not bitmapped. Cannot add bit interpretation.");
+        }
 
-        var entity = BitInterpretationMapper.ToEntity(interpretation);
+        BitInterpretationEntity entity = BitInterpretationMapper.ToEntity(interpretation);
         entity.VariableId = variableId;
 
-        var created = await _bitInterpretationRepository.AddAsync(entity, ct);
+        BitInterpretationEntity created = await _bitInterpretationRepository.AddAsync(entity, ct);
 
         return BitInterpretationMapper.ToDomain(created);
     }
@@ -228,31 +240,40 @@ public class VariableService : IVariableService
     {
         ArgumentNullException.ThrowIfNull(interpretations);
 
-        var variable = await _repository.GetByIdAsync(variableId, ct)
+        VariableEntity variable = await _repository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
 
         if (variable.DataTypeKind != DataTypeKind.Bitmapped)
+        {
             throw new InvalidOperationException(
                 $"Variable '{variable.Name}' is not bitmapped. Cannot update bit interpretations.");
+        }
 
         var incoming = interpretations.ToList();
 
         // Validazione: nessun duplicato (WordIndex, BitIndex)
         var keys = incoming.Select(i => (i.WordIndex, i.BitIndex)).ToList();
         if (keys.Distinct().Count() != keys.Count)
+        {
             throw new InvalidOperationException(
                 "Duplicate (WordIndex, BitIndex) found in incoming interpretations.");
+        }
 
         // Validazione: BitIndex 0-15, WordIndex >= 0
-        foreach (var i in incoming)
+        foreach (BitInterpretation? i in incoming)
         {
             if (i.BitIndex is < 0 or > 15)
+            {
                 throw new ArgumentOutOfRangeException(
                     nameof(interpretations), $"BitIndex must be between 0 and 15, got {i.BitIndex}.");
+            }
+
             if (i.WordIndex < 0)
+            {
                 throw new ArgumentOutOfRangeException(
                     nameof(interpretations), $"WordIndex must be non-negative, got {i.WordIndex}.");
+            }
         }
 
         var entities = incoming.Select(BitInterpretationMapper.ToEntity).ToList();
@@ -265,30 +286,32 @@ public class VariableService : IVariableService
         string? description = null, CancellationToken ct = default)
     {
         // Verifica che la variabile standard esista
-        var variable = await _repository.GetByIdAsync(standardVariableId, ct)
+        VariableEntity variable = await _repository.GetByIdAsync(standardVariableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={standardVariableId}) not found.");
 
         // BR-011: override isEnabled=true vietato se Variable.IsEnabled=false
         if (!variable.IsEnabled && isEnabled)
+        {
             throw new InvalidOperationException(
                 $"Cannot enable variable '{variable.Name}' for dictionary {dictionaryId}: " +
                 "variable is deprecated globally (IsEnabled=false).");
+        }
 
         // Cerca override esistente
-        var existing = await _overrideRepository
+        StandardVariableOverrideEntity? existing = await _overrideRepository
             .GetByDictionaryAndVariableAsync(dictionaryId, standardVariableId, ct);
 
         if (existing is not null)
         {
-            var prevOverride = StandardVariableOverrideMapper.ToDomain(existing);
-            var prevJson = JsonSerializer.Serialize(prevOverride);
+            StandardVariableOverride prevOverride = StandardVariableOverrideMapper.ToDomain(existing);
+            string prevJson = JsonSerializer.Serialize(prevOverride);
 
             existing.IsEnabled = isEnabled;
             existing.Description = description;
             await _overrideRepository.UpdateAsync(existing, ct);
 
-            var updated = StandardVariableOverrideMapper.ToDomain(existing);
+            StandardVariableOverride updated = StandardVariableOverrideMapper.ToDomain(existing);
             await _audit.LogUpdateAsync(
                 AuditEntityType.StandardVariableOverride, existing.Id,
                 _userProvider.CurrentUserId ?? 0,
@@ -303,9 +326,9 @@ public class VariableService : IVariableService
                 IsEnabled = isEnabled,
                 Description = description
             };
-            var created = await _overrideRepository.AddAsync(newOverride, ct);
+            StandardVariableOverrideEntity created = await _overrideRepository.AddAsync(newOverride, ct);
 
-            var domain = StandardVariableOverrideMapper.ToDomain(created);
+            StandardVariableOverride domain = StandardVariableOverrideMapper.ToDomain(created);
             await _audit.LogCreateAsync(
                 AuditEntityType.StandardVariableOverride, created.Id,
                 _userProvider.CurrentUserId ?? 0,
@@ -316,7 +339,7 @@ public class VariableService : IVariableService
     public async Task<StandardVariableOverride?> GetOverrideAsync(int dictionaryId,
         int standardVariableId, CancellationToken ct = default)
     {
-        var entity = await _overrideRepository
+        StandardVariableOverrideEntity? entity = await _overrideRepository
             .GetByDictionaryAndVariableAsync(dictionaryId, standardVariableId, ct);
 
         return entity is null ? null : StandardVariableOverrideMapper.ToDomain(entity);
@@ -325,14 +348,14 @@ public class VariableService : IVariableService
     public async Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByDictionaryAsync(
         int dictionaryId, CancellationToken ct = default)
     {
-        var entities = await _overrideRepository.GetByDictionaryIdAsync(dictionaryId, ct);
+        IReadOnlyList<StandardVariableOverrideEntity> entities = await _overrideRepository.GetByDictionaryIdAsync(dictionaryId, ct);
         return StandardVariableOverrideMapper.ToDomainList(entities);
     }
 
     public async Task<IReadOnlyList<StandardVariableOverride>> GetOverridesByVariableAsync(
         int standardVariableId, CancellationToken ct = default)
     {
-        var entities = await _overrideRepository.GetByVariableIdAsync(standardVariableId, ct);
+        IReadOnlyList<StandardVariableOverrideEntity> entities = await _overrideRepository.GetByVariableIdAsync(standardVariableId, ct);
         return StandardVariableOverrideMapper.ToDomainList(entities);
     }
 }

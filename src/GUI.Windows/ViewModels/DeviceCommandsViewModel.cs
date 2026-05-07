@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -56,17 +57,17 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
 
         try
         {
-            var allCommands = await _commandService.GetAllAsync();
-            var deviceStates = await _commandService.GetDeviceStatesForDeviceAsync(deviceId);
+            IReadOnlyList<Command> allCommands = await _commandService.GetAllAsync();
+            IReadOnlyList<CommandDeviceState> deviceStates = await _commandService.GetDeviceStatesForDeviceAsync(deviceId);
 
             var stateMap = deviceStates.ToDictionary(s => s.CommandId, s => s.IsEnabled);
 
-            var items = allCommands
+            IEnumerable<CommandDeviceItem> items = allCommands
                 .OrderBy(c => c.CodeLow)
                 .ThenBy(c => c.IsResponse)
                 .Select(c =>
                 {
-                    var isEnabled = !stateMap.TryGetValue(c.Id, out var overrideEnabled) || overrideEnabled;
+                    bool isEnabled = !stateMap.TryGetValue(c.Id, out bool overrideEnabled) || overrideEnabled;
 
                     return new CommandDeviceItem
                     {
@@ -105,14 +106,16 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
 
         try
         {
-            foreach (var item in changedItems)
+            foreach (CommandDeviceItem? item in changedItems)
             {
                 await _commandService.SetDeviceStateAsync(
                     item.CommandId, DeviceId!.Value, item.IsEnabled);
             }
 
             if (DeviceId is not null)
+            {
                 await LoadAsync(DeviceId.Value, DeviceName);
+            }
 
             _messageService.Show(
                 $"Salvati {changedItems.Count} stati comando.",

@@ -10,7 +10,7 @@ public class AuditOperationTests
     [Fact]
     public void AuditOperation_HasExpectedCount()
     {
-        var values = Enum.GetValues<AuditOperation>();
+        AuditOperation[] values = Enum.GetValues<AuditOperation>();
         Assert.Equal(3, values.Length);
     }
 

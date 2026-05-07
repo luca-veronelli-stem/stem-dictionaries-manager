@@ -30,7 +30,9 @@ public class Command
         IsResponse = isResponse;
 
         if (parameters != null)
+        {
             _parameters.AddRange(parameters);
+        }
     }
 
     /// <summary>

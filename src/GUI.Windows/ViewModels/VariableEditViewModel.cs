@@ -1,10 +1,10 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
-using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -151,13 +151,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     private async Task HandleWordSizeReductionAsync(int? previousWordSize, int newWordSize)
     {
-        var hasNonEmptyOverflow = WordGroups.Any(g =>
+        bool hasNonEmptyOverflow = WordGroups.Any(g =>
             g.Items.Any(i => i.BitIndex >= newWordSize
                 && !string.IsNullOrWhiteSpace(i.Meaning)));
 
         if (hasNonEmptyOverflow)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Riduzione Word Size",
                 $"Alcune word contengono bit con indice ? {newWordSize} " +
                 "che hanno definizioni. Questi bit verranno eliminati. Continuare?");
@@ -181,14 +181,16 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     private void TruncateBitsToWordSize(int wordSize)
     {
-        foreach (var group in WordGroups)
+        foreach (WordBitGroup group in WordGroups)
         {
             var toRemove = group.Items
                 .Where(i => i.BitIndex >= wordSize)
                 .ToList();
 
-            foreach (var item in toRemove)
+            foreach (BitInterpretationItem? item in toRemove)
+            {
                 group.TryRemoveBit(item);
+            }
         }
     }
 
@@ -296,15 +298,19 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                     : CustomDataType;
             }
 
-            var baseName = SelectedDataTypeKind.ToString();
+            string baseName = SelectedDataTypeKind.ToString();
 
             // Bitmapped: parametro derivato da WordGroups.Count
             if (IsBitmapped && WordGroups.Count > 0)
+            {
                 return $"{baseName}[{WordGroups.Count}]";
+            }
 
             // Array/String: parametro dal TextBox
             if (RequiresDataTypeParam && DataTypeParam.HasValue)
+            {
                 return $"{baseName}[{DataTypeParam.Value}]";
+            }
 
             return baseName;
         }
@@ -340,8 +346,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     {
         get
         {
-            var high = ParseHexByte(AddressHighHex);
-            var low = ParseHexByte(AddressLowHex);
+            byte high = ParseHexByte(AddressHighHex);
+            byte low = ParseHexByte(AddressLowHex);
             return $"0x{(high << 8 | low):X4}";
         }
     }
@@ -350,15 +356,26 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private static bool IsValidHex(string hex)
     {
-        if (string.IsNullOrWhiteSpace(hex)) return true; // vuoto è ok
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return true; // vuoto è ok
+        }
+
         return hex.All(c => char.IsAsciiHexDigit(c));
     }
 
     private static byte ParseHexByte(string hex)
     {
-        if (string.IsNullOrWhiteSpace(hex)) return 0;
-        if (byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var result))
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return 0;
+        }
+
+        if (byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out byte result))
+        {
             return result;
+        }
+
         return 0;
     }
 
@@ -367,7 +384,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     public static string FilterHexInput(string input)
     {
-        if (string.IsNullOrEmpty(input)) return input;
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
         return new string([.. input.Where(char.IsAsciiHexDigit)]).ToUpperInvariant();
     }
 
@@ -396,7 +417,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     public async Task InitializeAsync(int? variableId, int dictionaryId, int? dictionaryContextId = null)
     {
-        if (_isInitialized) return;
+        if (_isInitialized)
+        {
+            return;
+        }
 
         try
         {
@@ -407,7 +431,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _dictionaryContextId = dictionaryContextId;
 
             // Carica il dizionario per determinare AddressHigh
-            var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
+            Dictionary? dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
             _isStandardDictionary = dictionary?.IsStandard ?? false;
             OnPropertyChanged(nameof(AddressHighHex));
             OnPropertyChanged(nameof(FullAddressDisplay));
@@ -416,7 +440,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             if (variableId.HasValue)
             {
-                var variable = await _variableService.GetByIdAsync(variableId.Value);
+                Variable? variable = await _variableService.GetByIdAsync(variableId.Value);
                 if (variable is null)
                 {
                     await _dialogService.ShowErrorAsync("Errore", "Variabile non trovata.");
@@ -429,13 +453,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 // DictionaryContext: sovrascrive IsEnabled e Description con l'override per dizionario
                 if (_dictionaryContextId.HasValue)
                 {
-                    var overrideState = await _variableService.GetOverrideAsync(
+                    StandardVariableOverride? overrideState = await _variableService.GetOverrideAsync(
                         _dictionaryContextId.Value, variableId.Value);
                     if (overrideState is not null)
                     {
                         IsEnabled = overrideState.IsEnabled;
                         if (overrideState.Description is not null)
+                        {
                             Description = overrideState.Description;
+                        }
                     }
                 }
 
@@ -443,7 +469,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 {
                     // DictionaryContext: carica interpretazioni per dizionario (con fallback a template)
                     // Normal: carica tutte le interpretazioni template
-                    var bits = _dictionaryContextId.HasValue
+                    IReadOnlyList<BitInterpretation> bits = _dictionaryContextId.HasValue
                         ? await _variableService.GetBitInterpretationsForDictionaryAsync(
                             variableId.Value, _dictionaryContextId.Value)
                         : await _variableService.GetBitInterpretationsAsync(variableId.Value);
@@ -465,7 +491,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             // Se nuovo e tipo è Bitmapped con WordSize già impostato, crea Word 0
             if (HasWordSize && WordGroups.Count == 0)
+            {
                 CreateInitialWordGroup();
+            }
 
             OnPropertyChanged(nameof(IsNew));
             OnPropertyChanged(nameof(FormTitle));
@@ -520,14 +548,45 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
-        if (string.IsNullOrWhiteSpace(AddressLowHex)) missing.Add("Indirizzo");
-        if (string.IsNullOrWhiteSpace(Description)) missing.Add("Descrizione");
-        if (RequiresDataTypeParam && !DataTypeParam.HasValue) missing.Add(DataTypeParamLabel.TrimEnd(' ', '*'));
-        if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType)) missing.Add("Tipo dato custom");
-        if (IsBitmapped && !SelectedWordSize.HasValue) missing.Add("Word Size (bits)");
-        if (!IsAddressLowValid) missing.Add("Indirizzo (formato hex non valido)");
-        if (!IsMinMaxValid) missing.Add("Min/Max (Min deve essere ? Max)");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            missing.Add("Nome");
+        }
+
+        if (string.IsNullOrWhiteSpace(AddressLowHex))
+        {
+            missing.Add("Indirizzo");
+        }
+
+        if (string.IsNullOrWhiteSpace(Description))
+        {
+            missing.Add("Descrizione");
+        }
+
+        if (RequiresDataTypeParam && !DataTypeParam.HasValue)
+        {
+            missing.Add(DataTypeParamLabel.TrimEnd(' ', '*'));
+        }
+
+        if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType))
+        {
+            missing.Add("Tipo dato custom");
+        }
+
+        if (IsBitmapped && !SelectedWordSize.HasValue)
+        {
+            missing.Add("Word Size (bits)");
+        }
+
+        if (!IsAddressLowValid)
+        {
+            missing.Add("Indirizzo (formato hex non valido)");
+        }
+
+        if (!IsMinMaxValid)
+        {
+            missing.Add("Min/Max (Min deve essere ? Max)");
+        }
 
         if (missing.Count > 0)
         {
@@ -554,7 +613,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             else
             {
                 // Normal: salva variabile + bit comuni
-                if (!Validate()) return;
+                if (!Validate())
+                {
+                    return;
+                }
+
                 await SaveVariableAsync();
                 await SaveCommonBitInterpretationsAsync();
             }
@@ -574,10 +637,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private async Task SaveVariableAsync()
     {
-        var addressHigh = ParseHexByte(AddressHighHex);
-        var addressLow = ParseHexByte(AddressLowHex);
-        var dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
-        var wordSize = IsBitmapped ? SelectedWordSize : null;
+        byte addressHigh = ParseHexByte(AddressHighHex);
+        byte addressLow = ParseHexByte(AddressLowHex);
+        int? dataTypeParam = IsBitmapped ? WordGroups.Count : DataTypeParam;
+        int? wordSize = IsBitmapped ? SelectedWordSize : null;
 
         if (IsNew)
         {
@@ -598,7 +661,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 description: Description,
                 wordSize: wordSize);
 
-            var created = await _variableService.AddAsync(_dictionaryId, variable);
+            Variable created = await _variableService.AddAsync(_dictionaryId, variable);
             _editingId = created.Id;
             _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
         }
@@ -629,7 +692,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private async Task SaveCommonBitInterpretationsAsync()
     {
-        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped)
+        {
+            return;
+        }
 
         var bitsToSave = WordGroups
             .SelectMany(g => g.Items)
@@ -645,7 +711,10 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private async Task SaveBitInterpretationsForDictionaryAsync()
     {
-        if (SelectedDataTypeKind != DataTypeKind.Bitmapped) return;
+        if (SelectedDataTypeKind != DataTypeKind.Bitmapped)
+        {
+            return;
+        }
 
         var bitsToSave = WordGroups
             .SelectMany(g => g.Items)
@@ -662,7 +731,11 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
     private async Task SaveOverrideAsync()
     {
-        if (_dictionaryContextId is null || _editingId is null) return;
+        if (_dictionaryContextId is null || _editingId is null)
+        {
+            return;
+        }
+
         await _variableService.SetOverrideAsync(
             _dictionaryContextId.Value, _editingId.Value, IsEnabled, Description);
         _messageService.Show("Override variabile per dizionario salvato", MessageSeverity.Success);
@@ -673,10 +746,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     {
         if (HasChanges)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Annulla modifiche",
                 "Sei sicuro di voler annullare le modifiche?");
-            if (result != DialogResult.Yes) return;
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
         }
 
         _navigationService.GoBack();
@@ -685,10 +761,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private void AddBitToWord(WordBitGroup? group)
     {
-        if (group is null) return;
+        if (group is null)
+        {
+            return;
+        }
+
         if (group.TryAddBit())
         {
-            var newItem = group.Items[^1];
+            BitInterpretationItem newItem = group.Items[^1];
             newItem.PropertyChanged += (_, _) => HasChanges = true;
             HasChanges = true;
         }
@@ -697,18 +777,30 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private void RemoveBitFromWord(BitInterpretationItem? item)
     {
-        if (item is null) return;
-        var group = WordGroups.FirstOrDefault(g => g.WordIndex == item.WordIndex);
+        if (item is null)
+        {
+            return;
+        }
+
+        WordBitGroup? group = WordGroups.FirstOrDefault(g => g.WordIndex == item.WordIndex);
         if (group?.TryRemoveBit(item) == true)
+        {
             HasChanges = true;
+        }
     }
 
     [RelayCommand]
     private void RemoveLastBitFromWord(WordBitGroup? group)
     {
-        if (group is null) return;
+        if (group is null)
+        {
+            return;
+        }
+
         if (group.TryRemoveLastBit())
+        {
             HasChanges = true;
+        }
     }
 
     /// <summary>
@@ -732,14 +824,20 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [RelayCommand]
     private async Task RemoveWordAsync(WordBitGroup? group)
     {
-        if (group is null || !CanRemoveWord) return;
+        if (group is null || !CanRemoveWord)
+        {
+            return;
+        }
 
         if (group.HasNonEmptyMeanings)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Rimuovi Word",
                 $"La {group.Label} contiene definizioni. Sei sicuro di volerla rimuovere?");
-            if (result != DialogResult.Yes) return;
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
         }
 
         WordGroups.Remove(group);
@@ -767,11 +865,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     /// </summary>
     private void ReindexWordGroups()
     {
-        for (var i = 0; i < WordGroups.Count; i++)
+        for (int i = 0; i < WordGroups.Count; i++)
         {
             WordGroups[i].WordIndex = i;
-            foreach (var item in WordGroups[i].Items)
+            foreach (BitInterpretationItem item in WordGroups[i].Items)
+            {
                 item.WordIndex = i;
+            }
         }
     }
 
@@ -785,7 +885,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         WordGroups.Clear();
 
-        for (var w = 0; w < wordCount; w++)
+        for (int w = 0; w < wordCount; w++)
         {
             var group = new WordBitGroup(w, SelectedWordSize ?? 16);
             var wordItems = existingItems
@@ -795,7 +895,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             if (wordItems.Count > 0)
             {
-                foreach (var item in wordItems)
+                foreach (BitInterpretationItem? item in wordItems)
                 {
                     item.PropertyChanged += (_, _) => HasChanges = true;
                     group.AddExisting(item);

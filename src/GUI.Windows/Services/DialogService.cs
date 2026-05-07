@@ -11,13 +11,13 @@ public sealed class DialogService : IDialogService
 {
     public Task<DialogResult> ShowConfirmAsync(string title, string message)
     {
-        var result = DarkDialog.ShowConfirm(title, message);
+        bool result = DarkDialog.ShowConfirm(title, message);
         return Task.FromResult(result ? DialogResult.Yes : DialogResult.No);
     }
 
     public Task<DialogResult> ShowOkCancelAsync(string title, string message)
     {
-        var result = DarkDialog.ShowOkCancel(title, message);
+        bool result = DarkDialog.ShowOkCancel(title, message);
         return Task.FromResult(result ? DialogResult.Ok : DialogResult.Cancel);
     }
 

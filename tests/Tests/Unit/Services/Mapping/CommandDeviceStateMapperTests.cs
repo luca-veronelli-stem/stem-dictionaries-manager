@@ -20,7 +20,7 @@ public class CommandDeviceStateMapperTests
             IsEnabled = true
         };
 
-        var result = CommandDeviceStateMapper.ToDomain(entity);
+        CommandDeviceState result = CommandDeviceStateMapper.ToDomain(entity);
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.CommandId);
@@ -39,7 +39,7 @@ public class CommandDeviceStateMapperTests
             IsEnabled = false
         };
 
-        var result = CommandDeviceStateMapper.ToDomain(entity);
+        CommandDeviceState result = CommandDeviceStateMapper.ToDomain(entity);
 
         Assert.False(result.IsEnabled);
     }
@@ -56,7 +56,7 @@ public class CommandDeviceStateMapperTests
     {
         var domain = CommandDeviceState.Restore(1, 10, 7, true);
 
-        var result = CommandDeviceStateMapper.ToEntity(domain);
+        CommandDeviceStateEntity result = CommandDeviceStateMapper.ToEntity(domain);
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.CommandId);
@@ -118,7 +118,7 @@ public class CommandDeviceStateMapperTests
             new() { Id = 3, CommandId = 10, DeviceId = 7, IsEnabled = true }
         };
 
-        var result = CommandDeviceStateMapper.ToDomainList(entities);
+        IReadOnlyList<CommandDeviceState> result = CommandDeviceStateMapper.ToDomainList(entities);
 
         Assert.Equal(3, result.Count);
         Assert.True(result[0].IsEnabled);
@@ -129,7 +129,7 @@ public class CommandDeviceStateMapperTests
     [Fact]
     public void ToDomainList_EmptyList_ReturnsEmptyList()
     {
-        var result = CommandDeviceStateMapper.ToDomainList([]);
+        IReadOnlyList<CommandDeviceState> result = CommandDeviceStateMapper.ToDomainList([]);
 
         Assert.Empty(result);
     }
@@ -145,8 +145,8 @@ public class CommandDeviceStateMapperTests
             IsEnabled = true
         };
 
-        var domain = CommandDeviceStateMapper.ToDomain(original);
-        var roundTrip = CommandDeviceStateMapper.ToEntity(domain);
+        CommandDeviceState domain = CommandDeviceStateMapper.ToDomain(original);
+        CommandDeviceStateEntity roundTrip = CommandDeviceStateMapper.ToEntity(domain);
 
         Assert.Equal(original.Id, roundTrip.Id);
         Assert.Equal(original.CommandId, roundTrip.CommandId);

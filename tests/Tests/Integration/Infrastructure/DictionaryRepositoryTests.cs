@@ -28,7 +28,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
             IsStandard = false
         };
 
-        var result = await _dictionaryRepo.AddAsync(dictionary);
+        DictionaryEntity result = await _dictionaryRepo.AddAsync(dictionary);
 
         Assert.True(result.Id > 0);
         Assert.False(result.IsStandard);
@@ -44,7 +44,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         };
         await _dictionaryRepo.AddAsync(dictionary);
 
-        var result = await _dictionaryRepo.GetStandardDictionaryAsync();
+        DictionaryEntity? result = await _dictionaryRepo.GetStandardDictionaryAsync();
 
         Assert.NotNull(result);
         Assert.True(result.IsStandard);
@@ -71,7 +71,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         await _variableRepo.AddAsync(variable);
 
         // Act
-        var result = await _dictionaryRepo.GetWithVariablesAsync(dictionary.Id);
+        DictionaryEntity? result = await _dictionaryRepo.GetWithVariablesAsync(dictionary.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -137,7 +137,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         await _variableRepo.AddAsync(variable);
 
         // Act
-        var result = await _variableRepo.GetByAddressAsync(dictionary.Id, 0x80, 0x15);
+        VariableEntity? result = await _variableRepo.GetByAddressAsync(dictionary.Id, 0x80, 0x15);
 
         // Assert
         Assert.NotNull(result);
@@ -152,7 +152,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         await _dictionaryRepo.AddAsync(new DictionaryEntity { Name = "dict1", IsStandard = true });
         await _dictionaryRepo.AddAsync(new DictionaryEntity { Name = "dict2" });
 
-        var result = await _dictionaryRepo.GetAllWithVariablesAsync();
+        IReadOnlyList<DictionaryEntity> result = await _dictionaryRepo.GetAllWithVariablesAsync();
 
         Assert.Equal(2, result.Count);
     }
@@ -160,7 +160,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetAllWithVariablesAsync_EmptyDb_ReturnsEmptyList()
     {
-        var result = await _dictionaryRepo.GetAllWithVariablesAsync();
+        IReadOnlyList<DictionaryEntity> result = await _dictionaryRepo.GetAllWithVariablesAsync();
 
         Assert.Empty(result);
     }
@@ -171,7 +171,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         var dictionary = new DictionaryEntity { Name = "exists-test" };
         await _dictionaryRepo.AddAsync(dictionary);
 
-        var result = await _dictionaryRepo.ExistsAsync(dictionary.Id);
+        bool result = await _dictionaryRepo.ExistsAsync(dictionary.Id);
 
         Assert.True(result);
     }
@@ -179,7 +179,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task ExistsAsync_NonExistingId_ReturnsFalse()
     {
-        var result = await _dictionaryRepo.ExistsAsync(999);
+        bool result = await _dictionaryRepo.ExistsAsync(999);
 
         Assert.False(result);
     }
@@ -205,7 +205,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         };
         await _variableRepo.AddAsync(variable);
 
-        var result = await _variableRepo.ExistsAsync(variable.Id);
+        bool result = await _variableRepo.ExistsAsync(variable.Id);
 
         Assert.True(result);
     }
@@ -213,7 +213,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task Variable_ExistsAsync_NonExistingId_ReturnsFalse()
     {
-        var result = await _variableRepo.ExistsAsync(999);
+        bool result = await _variableRepo.ExistsAsync(999);
 
         Assert.False(result);
     }
@@ -255,7 +255,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         // Act
-        var result = await _variableRepo.GetWithBitInterpretationsAsync(variable.Id);
+        VariableEntity? result = await _variableRepo.GetWithBitInterpretationsAsync(variable.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -265,7 +265,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetWithBitInterpretationsAsync_NotFound_ReturnsNull()
     {
-        var result = await _variableRepo.GetWithBitInterpretationsAsync(999);
+        VariableEntity? result = await _variableRepo.GetWithBitInterpretationsAsync(999);
 
         Assert.Null(result);
     }
@@ -291,7 +291,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
         await _variableRepo.AddAsync(variable);
 
         // Act
-        var result = await _variableRepo.GetWithBitInterpretationsAsync(variable.Id);
+        VariableEntity? result = await _variableRepo.GetWithBitInterpretationsAsync(variable.Id);
 
         // Assert
         Assert.NotNull(result);

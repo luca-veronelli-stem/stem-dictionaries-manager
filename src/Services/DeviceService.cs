@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Core.Enums;
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -41,13 +42,13 @@ public class DeviceService : IDeviceService
 
     public async Task<Device?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        DeviceEntity? entity = await _repository.GetByIdAsync(id, ct);
         return entity is null ? null : DeviceMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Device>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _repository.GetAllAsync(ct);
+        IReadOnlyList<DeviceEntity> entities = await _repository.GetAllAsync(ct);
         return DeviceMapper.ToDomainList(entities);
     }
 
@@ -56,20 +57,24 @@ public class DeviceService : IDeviceService
         ArgumentNullException.ThrowIfNull(device);
 
         // Unicità nome
-        var existing = await _repository.GetByNameAsync(device.Name, ct);
+        DeviceEntity? existing = await _repository.GetByNameAsync(device.Name, ct);
         if (existing is not null)
+        {
             throw new InvalidOperationException(
                 $"Un dispositivo con nome '{device.Name}' esiste già.");
+        }
 
         // Unicità MachineCode
-        var byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
+        DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
         if (byCode is not null)
+        {
             throw new InvalidOperationException(
                 $"Un dispositivo con MachineCode {device.MachineCode} esiste già.");
+        }
 
-        var entity = DeviceMapper.ToEntity(device);
-        var created = await _repository.AddAsync(entity, ct);
-        var result = DeviceMapper.ToDomain(created);
+        DeviceEntity entity = DeviceMapper.ToEntity(device);
+        DeviceEntity created = await _repository.AddAsync(entity, ct);
+        Device result = DeviceMapper.ToDomain(created);
 
         await _audit.LogCreateAsync(AuditEntityType.Device, result.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -82,24 +87,28 @@ public class DeviceService : IDeviceService
     {
         ArgumentNullException.ThrowIfNull(device);
 
-        var entity = await _repository.GetByIdAsync(device.Id, ct)
+        DeviceEntity entity = await _repository.GetByIdAsync(device.Id, ct)
             ?? throw new KeyNotFoundException(
                 $"Device '{device.Name}' (Id={device.Id}) not found.");
 
         // Unicità nome (esclude se stesso)
-        var byName = await _repository.GetByNameAsync(device.Name, ct);
+        DeviceEntity? byName = await _repository.GetByNameAsync(device.Name, ct);
         if (byName is not null && byName.Id != device.Id)
+        {
             throw new InvalidOperationException(
                 $"Un dispositivo con nome '{device.Name}' esiste già.");
+        }
 
         // Unicità MachineCode (esclude se stesso)
-        var byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
+        DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
         if (byCode is not null && byCode.Id != device.Id)
+        {
             throw new InvalidOperationException(
                 $"Un dispositivo con MachineCode {device.MachineCode} esiste già.");
+        }
 
-        var previous = DeviceMapper.ToDomain(entity);
-        var prevJson = JsonSerializer.Serialize(previous);
+        Device previous = DeviceMapper.ToDomain(entity);
+        string prevJson = JsonSerializer.Serialize(previous);
 
         DeviceMapper.UpdateEntity(entity, device);
         await _repository.UpdateAsync(entity, ct);
@@ -111,49 +120,58 @@ public class DeviceService : IDeviceService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var deviceEntity = await _repository.GetByIdAsync(id, ct);
-        var previousJson = deviceEntity is not null
+        DeviceEntity? deviceEntity = await _repository.GetByIdAsync(id, ct);
+        string? previousJson = deviceEntity is not null
             ? JsonSerializer.Serialize(DeviceMapper.ToDomain(deviceEntity))
             : null;
 
         // Cascade delete: elimina dizionari dedicati delle board del device
-        var boards = await _boardRepository.GetByDeviceIdAsync(id, ct);
-        var allBoards = await _boardRepository.GetAllAsync(ct);
+        IReadOnlyList<BoardEntity> boards = await _boardRepository.GetByDeviceIdAsync(id, ct);
+        IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
 
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
-            if (board.DictionaryId is not int dictId) continue;
+            if (board.DictionaryId is not int dictId)
+            {
+                continue;
+            }
 
             // Se il dizionario è referenziato solo da board di questo device, eliminalo
-            var refCount = allBoards.Count(b => b.DictionaryId == dictId);
-            var refsInThisDevice = boards.Count(b => b.DictionaryId == dictId);
+            int refCount = allBoards.Count(b => b.DictionaryId == dictId);
+            int refsInThisDevice = boards.Count(b => b.DictionaryId == dictId);
             if (refCount == refsInThisDevice)
+            {
                 await _dictionaryRepository.DeleteAsync(dictId, ct);
+            }
         }
 
         // EF cascade elimina le board rimanenti
         await _repository.DeleteAsync(id, ct);
 
         if (previousJson is not null)
+        {
             await _audit.LogDeleteAsync(AuditEntityType.Device, id,
                 _userProvider.CurrentUserId ?? 0, previousJson, ct: ct);
+        }
     }
 
     public async Task<Device?> GetByNameAsync(string name, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByNameAsync(name, ct);
+        DeviceEntity? entity = await _repository.GetByNameAsync(name, ct);
         return entity is null ? null : DeviceMapper.ToDomain(entity);
     }
 
     public async Task<int> GetNextAvailableMachineCodeAsync(CancellationToken ct = default)
     {
-        var all = await _repository.GetAllAsync(ct);
-        var maxCode = all.Count > 0 ? all.Max(d => d.MachineCode) : 0;
-        var next = maxCode + 1;
+        IReadOnlyList<DeviceEntity> all = await _repository.GetAllAsync(ct);
+        int maxCode = all.Count > 0 ? all.Max(d => d.MachineCode) : 0;
+        int next = maxCode + 1;
 
         // Salta MachineCode 6 riservato per BLE Module (BR-015)
         if (next == Device.ReservedBleModuleMachineCode)
+        {
             next++;
+        }
 
         return next;
     }

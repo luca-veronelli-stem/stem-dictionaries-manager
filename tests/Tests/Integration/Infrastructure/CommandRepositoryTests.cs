@@ -27,7 +27,7 @@ public class CommandRepositoryTests : IntegrationTestBase
             ParametersJson = "[\"address\", \"length\"]"
         };
 
-        var result = await _repository.AddAsync(command);
+        CommandEntity result = await _repository.AddAsync(command);
 
         Assert.True(result.Id > 0);
         Assert.Equal("READ_VARIABLE", result.Name);
@@ -47,7 +47,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(command);
 
-        var result = await _repository.GetByIdAsync(command.Id);
+        CommandEntity? result = await _repository.GetByIdAsync(command.Id);
 
         Assert.NotNull(result);
         Assert.Equal("TestCommand", result.Name);
@@ -56,7 +56,7 @@ public class CommandRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        CommandEntity? result = await _repository.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -73,7 +73,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(command);
 
-        var result = await _repository.GetByCodeAsync(0x01, 0x01, false);
+        CommandEntity? result = await _repository.GetByCodeAsync(0x01, 0x01, false);
 
         Assert.NotNull(result);
         Assert.Equal("WRITE_VARIABLE", result.Name);
@@ -99,8 +99,8 @@ public class CommandRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(request);
         await _repository.AddAsync(response);
 
-        var requestResult = await _repository.GetByCodeAsync(0x03, 0x00, false);
-        var responseResult = await _repository.GetByCodeAsync(0x03, 0x00, true);
+        CommandEntity? requestResult = await _repository.GetByCodeAsync(0x03, 0x00, false);
+        CommandEntity? responseResult = await _repository.GetByCodeAsync(0x03, 0x00, true);
 
         Assert.NotNull(requestResult);
         Assert.Equal("CMD_REQUEST", requestResult.Name);
@@ -111,7 +111,7 @@ public class CommandRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCodeAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByCodeAsync(0xFF, 0xFF, false);
+        CommandEntity? result = await _repository.GetByCodeAsync(0xFF, 0xFF, false);
 
         Assert.Null(result);
     }
@@ -145,7 +145,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         );
         await Context.SaveChangesAsync();
 
-        var result = await _repository.GetWithDeviceStatesAsync(command.Id);
+        CommandEntity? result = await _repository.GetWithDeviceStatesAsync(command.Id);
 
         Assert.NotNull(result);
         Assert.Equal(2, result.DeviceStates.Count);
@@ -165,7 +165,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(command);
 
-        var result = await _repository.GetWithDeviceStatesAsync(command.Id);
+        CommandEntity? result = await _repository.GetWithDeviceStatesAsync(command.Id);
 
         Assert.NotNull(result);
         Assert.Empty(result.DeviceStates);
@@ -174,7 +174,7 @@ public class CommandRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetWithDeviceStatesAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetWithDeviceStatesAsync(999);
+        CommandEntity? result = await _repository.GetWithDeviceStatesAsync(999);
 
         Assert.Null(result);
     }
@@ -197,7 +197,7 @@ public class CommandRepositoryTests : IntegrationTestBase
             IsResponse = false
         });
 
-        var result = await _repository.GetAllAsync();
+        IReadOnlyList<CommandEntity> result = await _repository.GetAllAsync();
 
         Assert.Equal(2, result.Count);
     }
@@ -216,7 +216,7 @@ public class CommandRepositoryTests : IntegrationTestBase
 
         await _repository.DeleteAsync(command.Id);
 
-        var result = await _repository.GetByIdAsync(command.Id);
+        CommandEntity? result = await _repository.GetByIdAsync(command.Id);
         Assert.Null(result);
     }
 
@@ -242,7 +242,7 @@ public class CommandRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByNameAsync("UNIQUE_NAME");
+        CommandEntity? result = await _repository.GetByNameAsync("UNIQUE_NAME");
 
         // Assert
         Assert.NotNull(result);
@@ -252,7 +252,7 @@ public class CommandRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByNameAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByNameAsync("NONEXISTENT");
+        CommandEntity? result = await _repository.GetByNameAsync("NONEXISTENT");
         Assert.Null(result);
     }
 
@@ -269,8 +269,8 @@ public class CommandRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var exact = await _repository.GetByNameAsync("CaseSensitive");
-        var lower = await _repository.GetByNameAsync("casesensitive");
+        CommandEntity? exact = await _repository.GetByNameAsync("CaseSensitive");
+        CommandEntity? lower = await _repository.GetByNameAsync("casesensitive");
 
         // Assert — SQL Server/SQLite sono case-insensitive by default
         Assert.NotNull(exact);

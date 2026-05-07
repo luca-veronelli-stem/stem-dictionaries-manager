@@ -1,7 +1,7 @@
-using GUI.Windows.Abstractions;
-using GUI.Windows.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
+using GUI.Windows.Abstractions;
+using GUI.Windows.ViewModels;
 
 namespace GUI.Windows.Views;
 
@@ -23,7 +23,7 @@ public partial class DictionaryEditView : UserControl
         {
             // Recupera il parametro di navigazione
             var navigationService = App.Services.GetService(typeof(INavigationService)) as Services.NavigationService;
-            var entityId = navigationService?.CurrentParameter?.EntityId;
+            int? entityId = navigationService?.CurrentParameter?.EntityId;
 
             await viewModel.InitializeAsync(entityId);
         }

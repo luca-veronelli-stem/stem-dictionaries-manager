@@ -107,7 +107,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     {
         DeviceId = deviceId;
 
-        var device = await _deviceService.GetByIdAsync(deviceId);
+        Device? device = await _deviceService.GetByIdAsync(deviceId);
         DeviceName = device?.Name ?? $"Device #{deviceId}";
 
         await LoadDataAsync();
@@ -118,11 +118,14 @@ public partial class DeviceDetailViewModel : ObservableObject
     /// </summary>
     public async Task ReloadBoardsAsync()
     {
-        if (DeviceId is null) return;
+        if (DeviceId is null)
+        {
+            return;
+        }
 
         try
         {
-            var boards = await _boardService.GetByDeviceIdAsync(DeviceId.Value);
+            IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(DeviceId.Value);
             PopulateBoards(boards);
         }
         catch (Exception ex)
@@ -134,17 +137,20 @@ public partial class DeviceDetailViewModel : ObservableObject
 
     private async Task LoadDataAsync()
     {
-        if (DeviceId is null) return;
+        if (DeviceId is null)
+        {
+            return;
+        }
 
         IsLoading = true;
         ErrorMessage = null;
 
         try
         {
-            var id = DeviceId.Value;
+            int id = DeviceId.Value;
 
             // Carica board di questo device
-            var boards = await _boardService.GetByDeviceIdAsync(id);
+            IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(id);
             PopulateBoards(boards);
 
             // Popola sezione dizionari (derivati da board)
@@ -152,12 +158,12 @@ public partial class DeviceDetailViewModel : ObservableObject
                 boards.Where(b => b.DictionaryId.HasValue)
                       .Select(b => b.DictionaryId!.Value));
 
-            var allDicts = await _dictionaryService.GetAllAsync();
+            IReadOnlyList<Dictionary> allDicts = await _dictionaryService.GetAllAsync();
             var relevantDicts = allDicts
                 .Where(d => !d.IsStandard && linkedDictIds.Contains(d.Id))
                 .ToList();
 
-            var items = relevantDicts.Select(d =>
+            IEnumerable<DictionaryItem> items = relevantDicts.Select(d =>
             {
                 return new DictionaryItem(d.Id, d.Name, "Specifico", d.Variables.Count);
             });
@@ -165,7 +171,7 @@ public partial class DeviceDetailViewModel : ObservableObject
             var sortedItems = items.OrderBy(d => d.Name).ToList();
 
             // Aggiungi entry "Comandi" con conteggio reale
-            var allCommands = await _commandService.GetAllAsync();
+            IReadOnlyList<Command> allCommands = await _commandService.GetAllAsync();
             sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", allCommands.Count)
             { IsCommandsEntry = true });
 
@@ -201,7 +207,10 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void EditDevice()
     {
-        if (DeviceId is null) return;
+        if (DeviceId is null)
+        {
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.DeviceEdit, new NavigationParameter
         {
@@ -212,7 +221,10 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void OpenDictionary()
     {
-        if (SelectedDictionary is null) return;
+        if (SelectedDictionary is null)
+        {
+            return;
+        }
 
         if (SelectedDictionary.IsCommandsEntry)
         {
@@ -232,7 +244,10 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void AddDictionary()
     {
-        if (DeviceId is null) return;
+        if (DeviceId is null)
+        {
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.DictionaryEdit, new NavigationParameter
         {
@@ -244,7 +259,10 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void AddBoard()
     {
-        if (DeviceId is null) return;
+        if (DeviceId is null)
+        {
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
         {
@@ -256,7 +274,10 @@ public partial class DeviceDetailViewModel : ObservableObject
     [RelayCommand]
     private void EditBoard(BoardListItem? item)
     {
-        if (item is null) return;
+        if (item is null)
+        {
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.BoardEdit, new NavigationParameter
         {

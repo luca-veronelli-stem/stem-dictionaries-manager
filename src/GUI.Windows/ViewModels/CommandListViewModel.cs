@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -75,7 +76,7 @@ public partial class CommandListViewModel : ObservableObject
             IsBusy = true;
             ErrorMessage = null;
 
-            var commands = await _commandService.GetAllAsync();
+            IReadOnlyList<Command> commands = await _commandService.GetAllAsync();
 
             _allCommands = [.. commands
                 .Select(c => new CommandListItem
@@ -111,7 +112,11 @@ public partial class CommandListViewModel : ObservableObject
     [RelayCommand]
     private void Edit(CommandListItem? item)
     {
-        if (item is null) return;
+        if (item is null)
+        {
+            return;
+        }
+
         _navigationService.NavigateTo(ViewType.CommandEdit, new NavigationParameter { EntityId = item.Id });
     }
 
@@ -123,7 +128,7 @@ public partial class CommandListViewModel : ObservableObject
             return;
         }
 
-        var term = SearchText.Trim();
+        string term = SearchText.Trim();
         Commands = [.. _allCommands.Where(c =>
             c.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             c.Code.Contains(term, StringComparison.OrdinalIgnoreCase))];

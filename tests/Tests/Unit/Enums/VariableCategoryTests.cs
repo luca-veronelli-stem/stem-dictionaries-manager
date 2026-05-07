@@ -10,7 +10,7 @@ public class VariableCategoryTests
     [Fact]
     public void VariableCategory_HasExpectedCount()
     {
-        var values = Enum.GetValues<VariableCategory>();
+        VariableCategory[] values = Enum.GetValues<VariableCategory>();
         Assert.Equal(2, values.Length);
     }
 

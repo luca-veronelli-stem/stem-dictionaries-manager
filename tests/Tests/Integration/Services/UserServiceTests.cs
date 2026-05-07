@@ -24,7 +24,7 @@ public class UserServiceTests : IntegrationTestBase
         var user = new User("testuser", "Test User");
 
         // Act
-        var result = await _service.AddAsync(user);
+        User result = await _service.AddAsync(user);
 
         // Assert
         Assert.True(result.Id > 0);
@@ -39,7 +39,7 @@ public class UserServiceTests : IntegrationTestBase
         await _service.AddAsync(new User("duplicate", "First"));
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddAsync(new User("duplicate", "Second")));
         Assert.Contains("already exists", exception.Message);
     }
@@ -48,10 +48,10 @@ public class UserServiceTests : IntegrationTestBase
     public async Task GetByIdAsync_ExistingUser_ReturnsUser()
     {
         // Arrange
-        var created = await _service.AddAsync(new User("findme", "Find Me"));
+        User created = await _service.AddAsync(new User("findme", "Find Me"));
 
         // Act
-        var result = await _service.GetByIdAsync(created.Id);
+        User? result = await _service.GetByIdAsync(created.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -61,7 +61,7 @@ public class UserServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NonExistingUser_ReturnsNull()
     {
-        var result = await _service.GetByIdAsync(999);
+        User? result = await _service.GetByIdAsync(999);
         Assert.Null(result);
     }
 
@@ -72,7 +72,7 @@ public class UserServiceTests : IntegrationTestBase
         await _service.AddAsync(new User("byname", "By Name"));
 
         // Act
-        var result = await _service.GetByUsernameAsync("byname");
+        User? result = await _service.GetByUsernameAsync("byname");
 
         // Assert
         Assert.NotNull(result);
@@ -86,7 +86,7 @@ public class UserServiceTests : IntegrationTestBase
         await _service.AddAsync(new User("lowercase", "Test"));
 
         // Act
-        var result = await _service.GetByUsernameAsync("LOWERCASE");
+        User? result = await _service.GetByUsernameAsync("LOWERCASE");
 
         // Assert
         Assert.NotNull(result);
@@ -95,7 +95,7 @@ public class UserServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByUsernameAsync_NonExistingUser_ReturnsNull()
     {
-        var result = await _service.GetByUsernameAsync("nonexistent");
+        User? result = await _service.GetByUsernameAsync("nonexistent");
         Assert.Null(result);
     }
 
@@ -108,7 +108,7 @@ public class UserServiceTests : IntegrationTestBase
         await _service.AddAsync(new User("user3", "User Three"));
 
         // Act
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<User> result = await _service.GetAllAsync();
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -118,14 +118,14 @@ public class UserServiceTests : IntegrationTestBase
     public async Task UpdateAsync_ExistingUser_UpdatesUser()
     {
         // Arrange
-        var created = await _service.AddAsync(new User("update", "Before"));
+        User created = await _service.AddAsync(new User("update", "Before"));
         var updated = User.Restore(created.Id, "update", "After");
 
         // Act
         await _service.UpdateAsync(updated);
 
         // Assert
-        var result = await _service.GetByIdAsync(created.Id);
+        User? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("After", result!.DisplayName);
     }
 
@@ -145,12 +145,12 @@ public class UserServiceTests : IntegrationTestBase
     {
         // Arrange
         await _service.AddAsync(new User("existing", "Existing"));
-        var toUpdate = await _service.AddAsync(new User("toupdate", "To Update"));
+        User toUpdate = await _service.AddAsync(new User("toupdate", "To Update"));
 
         var conflicting = User.Restore(toUpdate.Id, "existing", "Conflicting");
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateAsync(conflicting));
         Assert.Contains("already exists", exception.Message);
     }
@@ -159,13 +159,13 @@ public class UserServiceTests : IntegrationTestBase
     public async Task DeleteAsync_ExistingUser_RemovesUser()
     {
         // Arrange
-        var created = await _service.AddAsync(new User("delete", "To Delete"));
+        User created = await _service.AddAsync(new User("delete", "To Delete"));
 
         // Act
         await _service.DeleteAsync(created.Id);
 
         // Assert
-        var result = await _service.GetByIdAsync(created.Id);
+        User? result = await _service.GetByIdAsync(created.Id);
         Assert.Null(result);
     }
 
@@ -183,7 +183,7 @@ public class UserServiceTests : IntegrationTestBase
         await _service.AddAsync(new User("exists", "Test"));
 
         // Act
-        var result = await _service.UsernameExistsAsync("exists");
+        bool result = await _service.UsernameExistsAsync("exists");
 
         // Assert
         Assert.True(result);
@@ -192,7 +192,7 @@ public class UserServiceTests : IntegrationTestBase
     [Fact]
     public async Task UsernameExistsAsync_NonExistingUsername_ReturnsFalse()
     {
-        var result = await _service.UsernameExistsAsync("doesnotexist");
+        bool result = await _service.UsernameExistsAsync("doesnotexist");
         Assert.False(result);
     }
 }

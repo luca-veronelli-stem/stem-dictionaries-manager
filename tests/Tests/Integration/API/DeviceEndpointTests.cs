@@ -1,5 +1,7 @@
+using API.Dtos;
 using API.Endpoints;
 using API.Mapping;
+using Core.Models;
 
 namespace Tests.Integration.API;
 
@@ -14,7 +16,7 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDevices_Empty_ReturnsEmptyList()
     {
-        var devices = await DeviceService.GetAllAsync();
+        IReadOnlyList<Device> devices = await DeviceService.GetAllAsync();
         var dtos = devices.Select(ApiMapper.ToDeviceSummaryDto).ToList();
 
         Assert.Empty(dtos);
@@ -26,7 +28,7 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
         await DeviceService.AddAsync(new Core.Models.Device("Optimus-XP", 10));
         await DeviceService.AddAsync(new Core.Models.Device("Spark", 7));
 
-        var devices = await DeviceService.GetAllAsync();
+        IReadOnlyList<Device> devices = await DeviceService.GetAllAsync();
         var dtos = devices.Select(ApiMapper.ToDeviceSummaryDto).ToList();
 
         Assert.Equal(2, dtos.Count);
@@ -40,8 +42,8 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
         await DeviceService.AddAsync(
             new Core.Models.Device("Eden-XP", 3, "Piano di trattamento"));
 
-        var devices = await DeviceService.GetAllAsync();
-        var dto = devices.Select(ApiMapper.ToDeviceSummaryDto).First();
+        IReadOnlyList<Device> devices = await DeviceService.GetAllAsync();
+        DeviceSummaryDto dto = devices.Select(ApiMapper.ToDeviceSummaryDto).First();
 
         Assert.Equal("Eden-XP", dto.Name);
         Assert.Equal(3, dto.MachineCode);
@@ -53,7 +55,7 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDevice_NotFound_ReturnsNull()
     {
-        var device = await DeviceService.GetByIdAsync(999);
+        Device? device = await DeviceService.GetByIdAsync(999);
 
         Assert.Null(device);
     }
@@ -61,10 +63,10 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDevice_WithBoards_ReturnsDeviceWithBoards()
     {
-        var (deviceId, _, _, _) = await SeedFullScenarioAsync();
+        (int deviceId, int _, int _, int _) = await SeedFullScenarioAsync();
 
-        var device = await DeviceService.GetByIdAsync(deviceId);
-        var boards = await BoardService.GetByDeviceIdAsync(deviceId);
+        Device? device = await DeviceService.GetByIdAsync(deviceId);
+        IReadOnlyList<Board> boards = await BoardService.GetByDeviceIdAsync(deviceId);
 
         Assert.NotNull(device);
         Assert.Equal("Optimus-XP", device!.Name);
@@ -77,13 +79,13 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDeviceBoards_ReturnsBoards()
     {
-        var (deviceId, _, _, _) = await SeedFullScenarioAsync();
+        (int deviceId, int _, int _, int _) = await SeedFullScenarioAsync();
 
-        var boards = await BoardService.GetByDeviceIdAsync(deviceId);
+        IReadOnlyList<Board> boards = await BoardService.GetByDeviceIdAsync(deviceId);
         var dtos = boards.Select(ApiMapper.ToBoardSummaryDto).ToList();
 
         Assert.Single(dtos);
-        var dto = dtos[0];
+        BoardSummaryDto dto = dtos[0];
         Assert.Equal("Madre", dto.Name);
         Assert.True(dto.IsPrimary);
         Assert.Equal(5, dto.FirmwareType);
@@ -93,10 +95,10 @@ public class DeviceEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDeviceBoards_NoBoards_ReturnsEmpty()
     {
-        var device = await DeviceService.AddAsync(
+        Device device = await DeviceService.AddAsync(
             new Core.Models.Device("Solo", 15));
 
-        var boards = await BoardService.GetByDeviceIdAsync(device.Id);
+        IReadOnlyList<Board> boards = await BoardService.GetByDeviceIdAsync(device.Id);
 
         Assert.Empty(boards);
     }

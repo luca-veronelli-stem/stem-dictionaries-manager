@@ -31,7 +31,7 @@ public class DeviceServiceTests : IntegrationTestBase
     {
         var device = new Device("Eden-XP", 3, "Supporto barella");
 
-        var result = await _service.AddAsync(device);
+        Device result = await _service.AddAsync(device);
 
         Assert.True(result.Id > 0);
         Assert.Equal("Eden-XP", result.Name);
@@ -60,9 +60,9 @@ public class DeviceServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_Existing_ReturnsDevice()
     {
-        var created = await _service.AddAsync(new Device("Spyke", 5));
+        Device created = await _service.AddAsync(new Device("Spyke", 5));
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Device? result = await _service.GetByIdAsync(created.Id);
 
         Assert.NotNull(result);
         Assert.Equal("Spyke", result.Name);
@@ -81,7 +81,7 @@ public class DeviceServiceTests : IntegrationTestBase
         await _service.AddAsync(new Device("B", 2));
         await _service.AddAsync(new Device("C", 3));
 
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<Device> result = await _service.GetAllAsync();
 
         Assert.Equal(3, result.Count);
     }
@@ -89,12 +89,12 @@ public class DeviceServiceTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_ExistingDevice_UpdatesProperties()
     {
-        var created = await _service.AddAsync(new Device("Before", 50));
+        Device created = await _service.AddAsync(new Device("Before", 50));
 
         var updated = Device.Restore(created.Id, "After", 51, "New desc");
         await _service.UpdateAsync(updated);
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Device? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("After", result!.Name);
         Assert.Equal(51, result.MachineCode);
         Assert.Equal("New desc", result.Description);
@@ -113,7 +113,7 @@ public class DeviceServiceTests : IntegrationTestBase
     public async Task UpdateAsync_DuplicateName_ThrowsInvalidOperationException()
     {
         await _service.AddAsync(new Device("Existing", 1));
-        var created = await _service.AddAsync(new Device("ToUpdate", 2));
+        Device created = await _service.AddAsync(new Device("ToUpdate", 2));
 
         var conflicting = Device.Restore(created.Id, "Existing", 2, null);
 
@@ -125,7 +125,7 @@ public class DeviceServiceTests : IntegrationTestBase
     public async Task UpdateAsync_DuplicateMachineCode_ThrowsInvalidOperationException()
     {
         await _service.AddAsync(new Device("Device A", 10));
-        var created = await _service.AddAsync(new Device("Device B", 20));
+        Device created = await _service.AddAsync(new Device("Device B", 20));
 
         var conflicting = Device.Restore(created.Id, "Device B", 10, null);
 
@@ -136,31 +136,31 @@ public class DeviceServiceTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_KeepSameName_IsAllowed()
     {
-        var created = await _service.AddAsync(new Device("KeepName", 30));
+        Device created = await _service.AddAsync(new Device("KeepName", 30));
 
         var updated = Device.Restore(created.Id, "KeepName", 31, "Updated");
         await _service.UpdateAsync(updated);
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Device? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal(31, result!.MachineCode);
     }
 
     [Fact]
     public async Task UpdateAsync_KeepSameMachineCode_IsAllowed()
     {
-        var created = await _service.AddAsync(new Device("Original", 40));
+        Device created = await _service.AddAsync(new Device("Original", 40));
 
         var updated = Device.Restore(created.Id, "Renamed", 40, null);
         await _service.UpdateAsync(updated);
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Device? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("Renamed", result!.Name);
     }
 
     [Fact]
     public async Task DeleteAsync_ExistingDevice_RemovesIt()
     {
-        var created = await _service.AddAsync(new Device("ToDelete", 77));
+        Device created = await _service.AddAsync(new Device("ToDelete", 77));
 
         await _service.DeleteAsync(created.Id);
 
@@ -179,7 +179,7 @@ public class DeviceServiceTests : IntegrationTestBase
     {
         await _service.AddAsync(new Device("R3L-XP", 11));
 
-        var result = await _service.GetByNameAsync("R3L-XP");
+        Device? result = await _service.GetByNameAsync("R3L-XP");
 
         Assert.NotNull(result);
         Assert.Equal(11, result.MachineCode);
@@ -197,7 +197,7 @@ public class DeviceServiceTests : IntegrationTestBase
     public async Task DeleteAsync_WithBoardsAndDedicatedDict_DeletesDictionary()
     {
         // Arrange: device con 1 board che ha un dizionario dedicato
-        var device = await _service.AddAsync(new Device("TestDevice", 77));
+        Device device = await _service.AddAsync(new Device("TestDevice", 77));
         var dict = new DictionaryEntity { Name = "TestDict" };
         Context.Dictionaries.Add(dict);
         await Context.SaveChangesAsync();
@@ -225,8 +225,8 @@ public class DeviceServiceTests : IntegrationTestBase
     public async Task DeleteAsync_WithSharedDict_KeepsDictionary()
     {
         // Arrange: 2 device, dizionario condiviso
-        var device1 = await _service.AddAsync(new Device("Device1", 77));
-        var device2 = await _service.AddAsync(new Device("Device2", 78));
+        Device device1 = await _service.AddAsync(new Device("Device1", 77));
+        Device device2 = await _service.AddAsync(new Device("Device2", 78));
         var dict = new DictionaryEntity { Name = "Pulsantiere" };
         Context.Dictionaries.Add(dict);
         await Context.SaveChangesAsync();
@@ -265,7 +265,7 @@ public class DeviceServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetNextAvailableMachineCodeAsync_NoDevices_Returns1()
     {
-        var next = await _service.GetNextAvailableMachineCodeAsync();
+        int next = await _service.GetNextAvailableMachineCodeAsync();
 
         Assert.Equal(1, next);
     }
@@ -276,7 +276,7 @@ public class DeviceServiceTests : IntegrationTestBase
         await _service.AddAsync(new Device("A", 3));
         await _service.AddAsync(new Device("B", 7));
 
-        var next = await _service.GetNextAvailableMachineCodeAsync();
+        int next = await _service.GetNextAvailableMachineCodeAsync();
 
         Assert.Equal(8, next);
     }
@@ -286,7 +286,7 @@ public class DeviceServiceTests : IntegrationTestBase
     {
         await _service.AddAsync(new Device("A", 5));
 
-        var next = await _service.GetNextAvailableMachineCodeAsync();
+        int next = await _service.GetNextAvailableMachineCodeAsync();
 
         // 5 + 1 = 6 riservato BLE → salta a 7
         Assert.Equal(7, next);

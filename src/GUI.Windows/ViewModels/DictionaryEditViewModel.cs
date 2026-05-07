@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
 
@@ -179,7 +180,10 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     public async Task InitializeAsync(int? dictionaryId, int? deviceId = null)
     {
-        if (_isInitialized) return;
+        if (_isInitialized)
+        {
+            return;
+        }
 
         try
         {
@@ -189,7 +193,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
             if (dictionaryId.HasValue)
             {
-                var dictionary = await _dictionaryService.GetByIdAsync(dictionaryId.Value);
+                Dictionary? dictionary = await _dictionaryService.GetByIdAsync(dictionaryId.Value);
                 if (dictionary is null)
                 {
                     await _dialogService.ShowErrorAsync("Errore", "Dizionario non trovato.");
@@ -205,13 +209,15 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
                 // Per dizionari non-standard, carica le variabili standard come sezione collapsible
                 if (!dictionary.IsStandard)
+                {
                     await LoadStandardVariablesAsync();
+                }
 
                 // Deriva il DeviceId dalla board che referenzia questo dizionario
                 if (!dictionary.IsStandard && _deviceId is null)
                 {
-                    var allBoards = await _boardService.GetAllAsync();
-                    var linkedBoard = allBoards.FirstOrDefault(b => b.DictionaryId == dictionaryId.Value);
+                    IReadOnlyList<Board> allBoards = await _boardService.GetAllAsync();
+                    Board? linkedBoard = allBoards.FirstOrDefault(b => b.DictionaryId == dictionaryId.Value);
                     if (linkedBoard is not null)
                     {
                         _deviceId = linkedBoard.DeviceId;
@@ -222,11 +228,13 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
             // Carica le board del device per la ComboBox (solo per non-standard)
             if (_deviceId.HasValue)
+            {
                 await LoadAvailableBoardsAsync(_deviceId.Value, dictionaryId);
+            }
 
             // Determina se la checkbox Standard è visibile:
             // visibile se questo dizionario è già standard, oppure non ne esiste ancora uno
-            var existingStandard = await _dictionaryService.GetStandardDictionaryAsync();
+            Dictionary? existingStandard = await _dictionaryService.GetStandardDictionaryAsync();
             CanSetStandard = IsStandard || existingStandard is null;
 
             _isInitialized = true;
@@ -254,20 +262,29 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     /// </summary>
     public async Task ReloadVariablesAsync()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
+
         await LoadVariablesAsync();
 
         if (!IsStandard)
+        {
             await LoadStandardVariablesAsync();
+        }
     }
 
     private async Task LoadVariablesAsync()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
 
         try
         {
-            var variables = await _variableService.GetByDictionaryIdAsync(_editingId.Value);
+            IReadOnlyList<Variable> variables = await _variableService.GetByDictionaryIdAsync(_editingId.Value);
 
             _allVariables = [.. variables
                 .Select(v => new VariableListItem
@@ -298,13 +315,16 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     {
         try
         {
-            var standardDict = await _dictionaryService.GetStandardDictionaryAsync();
-            if (standardDict is null) return;
+            Dictionary? standardDict = await _dictionaryService.GetStandardDictionaryAsync();
+            if (standardDict is null)
+            {
+                return;
+            }
 
             _standardDictionaryId = standardDict.Id;
 
             // Carica override esistenti per questo dizionario
-            var overrides = _editingId.HasValue
+            IReadOnlyList<StandardVariableOverride> overrides = _editingId.HasValue
                 ? await _variableService.GetOverridesByDictionaryAsync(_editingId.Value)
                 : [];
 
@@ -314,7 +334,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                     .OrderBy(v => v.FullAddress)
                     .Select(v =>
                     {
-                        var hasOverride = overrideMap.TryGetValue(v.Id, out var ov);
+                        bool hasOverride = overrideMap.TryGetValue(v.Id, out StandardVariableOverride? ov);
                         return new StandardVariableItem
                         {
                             VariableId = v.Id,
@@ -343,7 +363,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     {
         try
         {
-            var boards = await _boardService.GetByDeviceIdAsync(deviceId);
+            IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(deviceId);
             AvailableBoards = [.. boards
                 .OrderBy(b => b.BoardNumber)
                 .Select(b => new BoardSelectItem
@@ -355,7 +375,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
             // Preseleziona la board che referenzia questo dizionario
             if (currentDictionaryId.HasValue)
             {
-                var linkedBoard = boards.FirstOrDefault(b => b.DictionaryId == currentDictionaryId.Value);
+                Board? linkedBoard = boards.FirstOrDefault(b => b.DictionaryId == currentDictionaryId.Value);
                 if (linkedBoard is not null)
                 {
                     SelectedBoard = AvailableBoards.FirstOrDefault(b => b.Id == linkedBoard.Id);
@@ -372,7 +392,10 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
+        if (!Validate())
+        {
+            return;
+        }
 
         try
         {
@@ -385,12 +408,14 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                     string.IsNullOrWhiteSpace(Description) ? null : Description,
                     IsStandard);
 
-                var created = await _dictionaryService.AddAsync(dictionary);
+                Dictionary created = await _dictionaryService.AddAsync(dictionary);
                 _editingId = created.Id;
 
                 // Linka la board selezionata al nuovo dizionario
                 if (!IsStandard && SelectedBoard is not null)
+                {
                     await LinkBoardToDictionaryAsync(SelectedBoard.Id, created.Id);
+                }
 
                 _messageService.Show($"Dizionario '{Name}' creato", MessageSeverity.Success);
 
@@ -406,7 +431,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
             }
             else
             {
-                var existing = await _dictionaryService.GetByIdAsync(_editingId!.Value);
+                Dictionary? existing = await _dictionaryService.GetByIdAsync(_editingId!.Value);
                 if (existing is null)
                 {
                     await _dialogService.ShowErrorAsync("Errore", "Dizionario non trovato.");
@@ -428,7 +453,9 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
                 {
                     // Scollega la vecchia board
                     if (_originalBoardId.HasValue)
+                    {
                         await UnlinkBoardFromDictionaryAsync(_originalBoardId.Value);
+                    }
 
                     // Collega la nuova board
                     await LinkBoardToDictionaryAsync(SelectedBoard.Id, _editingId!.Value);
@@ -453,13 +480,19 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private async Task DeleteDictionaryAsync()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
 
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Conferma eliminazione",
             $"L'eliminazione del dizionario '{Name}' e di tutte le sue variabili è irreversibile. Continuare?");
 
-        if (result != Abstractions.DialogResult.Yes) return;
+        if (result != Abstractions.DialogResult.Yes)
+        {
+            return;
+        }
 
         try
         {
@@ -483,7 +516,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private void AddVariable()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
+
         _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
         {
             EntityId = null,
@@ -494,7 +531,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private void EditVariable(VariableListItem? item)
     {
-        if (item is null || _editingId is null) return;
+        if (item is null || _editingId is null)
+        {
+            return;
+        }
+
         _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
         {
             EntityId = item.Id,
@@ -505,7 +546,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     [RelayCommand]
     private void EditStandardVariable(StandardVariableItem? item)
     {
-        if (item is null || _standardDictionaryId is null) return;
+        if (item is null || _standardDictionaryId is null)
+        {
+            return;
+        }
+
         _navigationService.NavigateTo(ViewType.VariableEdit, new NavigationParameter
         {
             EntityId = item.VariableId,
@@ -519,12 +564,14 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     {
         if (HasChanges)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Annulla modifiche",
                 "Sei sicuro di voler annullare le modifiche?");
 
             if (result != Abstractions.DialogResult.Yes)
+            {
                 return;
+            }
         }
 
         _navigationService.GoBack();
@@ -532,7 +579,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
     private void ApplyVariableFilter()
     {
-        var source = ShowOnlyEnabled
+        IEnumerable<VariableListItem> source = ShowOnlyEnabled
             ? _allVariables.Where(v => v.IsEnabled)
             : _allVariables;
 
@@ -542,7 +589,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
             return;
         }
 
-        var term = VariableSearchText.Trim();
+        string term = VariableSearchText.Trim();
         Variables = [.. source.Where(v =>
             v.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             v.Address.Contains(term, StringComparison.OrdinalIgnoreCase) ||
@@ -566,8 +613,15 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
-        if (!IsStandard && SelectedBoard is null) missing.Add("Scheda");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            missing.Add("Nome");
+        }
+
+        if (!IsStandard && SelectedBoard is null)
+        {
+            missing.Add("Scheda");
+        }
 
         if (missing.Count > 0)
         {
@@ -583,8 +637,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     /// </summary>
     private async Task LinkBoardToDictionaryAsync(int boardId, int dictionaryId)
     {
-        var board = await _boardService.GetByIdAsync(boardId);
-        if (board is null) return;
+        Board? board = await _boardService.GetByIdAsync(boardId);
+        if (board is null)
+        {
+            return;
+        }
 
         var updated = Core.Models.Board.Restore(
             board.Id, board.DeviceId, board.Name,
@@ -599,8 +656,11 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     /// </summary>
     private async Task UnlinkBoardFromDictionaryAsync(int boardId)
     {
-        var board = await _boardService.GetByIdAsync(boardId);
-        if (board is null) return;
+        Board? board = await _boardService.GetByIdAsync(boardId);
+        if (board is null)
+        {
+            return;
+        }
 
         var updated = Core.Models.Board.Restore(
             board.Id, board.DeviceId, board.Name,

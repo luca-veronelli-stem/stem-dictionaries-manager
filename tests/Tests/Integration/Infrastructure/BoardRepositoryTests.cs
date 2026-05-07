@@ -33,7 +33,7 @@ public class BoardRepositoryTests : IntegrationTestBase
             PartNumber = "DIS0020477"
         };
 
-        var result = await _repository.AddAsync(board);
+        BoardEntity result = await _repository.AddAsync(board);
 
         Assert.True(result.Id > 0);
         Assert.Equal("Madre", result.Name);
@@ -53,7 +53,7 @@ public class BoardRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(board);
 
-        var result = await _repository.GetByIdAsync(board.Id);
+        BoardEntity? result = await _repository.GetByIdAsync(board.Id);
 
         Assert.NotNull(result);
         Assert.Equal("TestBoard", result.Name);
@@ -63,7 +63,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        BoardEntity? result = await _repository.GetByIdAsync(999);
         Assert.Null(result);
     }
 
@@ -95,7 +95,7 @@ public class BoardRepositoryTests : IntegrationTestBase
             ProtocolAddress = 0x00030481
         });
 
-        var result = await _repository.GetByDeviceIdAsync(10);
+        IReadOnlyList<BoardEntity> result = await _repository.GetByDeviceIdAsync(10);
 
         Assert.Equal(2, result.Count);
         Assert.All(result, b => Assert.Equal(10, b.DeviceId));
@@ -104,7 +104,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByDeviceIdAsync_NoMatch_ReturnsEmptyList()
     {
-        var result = await _repository.GetByDeviceIdAsync(5);
+        IReadOnlyList<BoardEntity> result = await _repository.GetByDeviceIdAsync(5);
         Assert.Empty(result);
     }
 
@@ -120,7 +120,7 @@ public class BoardRepositoryTests : IntegrationTestBase
             ProtocolAddress = 0x00070501
         });
 
-        var result = await _repository.GetByProtocolAddressAsync(0x00070501);
+        BoardEntity? result = await _repository.GetByProtocolAddressAsync(0x00070501);
 
         Assert.NotNull(result);
         Assert.Equal("SparkBoard", result.Name);
@@ -129,7 +129,7 @@ public class BoardRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByProtocolAddressAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByProtocolAddressAsync(0xFFFFFFFF);
+        BoardEntity? result = await _repository.GetByProtocolAddressAsync(0xFFFFFFFF);
         Assert.Null(result);
     }
 
@@ -150,7 +150,7 @@ public class BoardRepositoryTests : IntegrationTestBase
             DictionaryId = dict.Id
         });
 
-        var boards = await _repository.GetByDeviceIdAsync(11);
+        IReadOnlyList<BoardEntity> boards = await _repository.GetByDeviceIdAsync(11);
 
         Assert.Single(boards);
         Assert.NotNull(boards[0].Dictionary);

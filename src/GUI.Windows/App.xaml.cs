@@ -1,3 +1,5 @@
+using System.IO;
+using System.Windows;
 using GUI.Windows.ViewModels;
 using GUI.Windows.Views;
 using Infrastructure;
@@ -6,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Services;
-using System.IO;
-using System.Windows;
 
 namespace GUI.Windows;
 
@@ -32,10 +32,10 @@ public partial class App : Application
             {
                 // Legge provider e connection string da appsettings.json / User Secrets
                 // Default: SqlServer (produzione). Per sviluppo, appsettings.json sovrascrive con "Sqlite".
-                var provider = context.Configuration["DatabaseProvider"] ?? "SqlServer";
-                var useSqlServer = provider.Equals("SqlServer",
+                string provider = context.Configuration["DatabaseProvider"] ?? "SqlServer";
+                bool useSqlServer = provider.Equals("SqlServer",
                     StringComparison.OrdinalIgnoreCase);
-                var connectionString = Infrastructure.DependencyInjection.ResolveConnectionString(
+                string connectionString = Infrastructure.DependencyInjection.ResolveConnectionString(
                     context.Configuration.GetConnectionString(
                         useSqlServer ? "SqlServer" : "Sqlite"),
                     useSqlServer);
@@ -67,23 +67,27 @@ public partial class App : Application
         {
             try
             {
-                using var scope = _host.Services.CreateScope();
-                var dbContext = scope.ServiceProvider
+                using IServiceScope scope = _host.Services.CreateScope();
+                AppDbContext dbContext = scope.ServiceProvider
                     .GetRequiredService<AppDbContext>();
 
                 // SQL Server: applica migrations versionati
                 // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
                 if (dbContext.Database.IsSqlServer())
+                {
                     await dbContext.Database.MigrateAsync();
+                }
                 else
+                {
                     await dbContext.Database.EnsureCreatedAsync();
+                }
 
                 await DatabaseSeeder.SeedAsync(dbContext);
                 break;
             }
             catch (Exception ex)
             {
-                var retry = DarkDialog.ShowConfirm(
+                bool retry = DarkDialog.ShowConfirm(
                     "Errore connessione database",
                     "Impossibile connettersi al database.\n\n"
                     + ex.Message
@@ -98,9 +102,9 @@ public partial class App : Application
         }
 
         // Configura MainWindow
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        MainWindow mainWindow = _host.Services.GetRequiredService<MainWindow>();
         MainWindow = mainWindow; // Esplicito: evita che un DarkDialog di startup resti come MainWindow
-        var mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
+        MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
         mainWindow.DataContext = mainViewModel;
 
         // Sottoscrivi all'evento di logout per mostrare di nuovo la LoginView
@@ -119,8 +123,8 @@ public partial class App : Application
     /// </summary>
     private async void ShowLoginView(MainViewModel mainViewModel)
     {
-        var loginViewModel = _host.Services.GetRequiredService<LoginViewModel>();
-        var loginView = _host.Services.GetRequiredService<LoginView>();
+        LoginViewModel loginViewModel = _host.Services.GetRequiredService<LoginViewModel>();
+        LoginView loginView = _host.Services.GetRequiredService<LoginView>();
         loginView.DataContext = loginViewModel;
 
         // Pulisce sottoscrizioni precedenti per evitare chiamate duplicate

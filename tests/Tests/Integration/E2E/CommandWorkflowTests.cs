@@ -38,7 +38,7 @@ public class CommandWorkflowTests : IntegrationTestBase
         await cmdRepo.AddAsync(command);
 
         // Default: comando abilitato per tutti (nessun override)
-        var states = await stateRepo.GetByDeviceIdAsync(device1.Id);
+        IReadOnlyList<CommandDeviceStateEntity> states = await stateRepo.GetByDeviceIdAsync(device1.Id);
         Assert.Empty(states);
 
         // Disabilita per Eden-XP
@@ -50,8 +50,8 @@ public class CommandWorkflowTests : IntegrationTestBase
         });
 
         // Verifica
-        var edenState = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device1.Id);
-        var sparkState = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device2.Id);
+        CommandDeviceStateEntity? edenState = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device1.Id);
+        CommandDeviceStateEntity? sparkState = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device2.Id);
 
         Assert.NotNull(edenState);
         Assert.False(edenState.IsEnabled);
@@ -88,7 +88,7 @@ public class CommandWorkflowTests : IntegrationTestBase
         await cmdRepo.AddAsync(response);
 
         // Verify: posso trovare la coppia per CodeLow
-        var byCode = await Context.Commands
+        List<CommandEntity> byCode = await Context.Commands
             .Where(c => c.CodeLow == 0x01)
             .ToListAsync();
 
@@ -118,12 +118,12 @@ public class CommandWorkflowTests : IntegrationTestBase
         await cmdRepo.AddAsync(command);
 
         // Verify
-        var loaded = await cmdRepo.GetByIdAsync(command.Id);
+        CommandEntity? loaded = await cmdRepo.GetByIdAsync(command.Id);
         Assert.NotNull(loaded);
         Assert.NotNull(loaded.ParametersJson);
 
         // Parse JSON
-        var params_ = System.Text.Json.JsonSerializer.Deserialize<List<string>>(loaded.ParametersJson);
+        List<string>? params_ = System.Text.Json.JsonSerializer.Deserialize<List<string>>(loaded.ParametersJson);
         Assert.NotNull(params_);
         Assert.Equal(3, params_.Count);
         Assert.Equal("2|Indirizzo memoria", params_[0]);

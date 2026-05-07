@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Primitives;
+
 namespace API.Middleware;
 
 /// <summary>
@@ -14,7 +16,7 @@ public class ApiKeyMiddleware
     {
         _next = next;
 
-        var keysSection = configuration.GetSection("ApiKeys");
+        IConfigurationSection keysSection = configuration.GetSection("ApiKeys");
         _validKeys = [.. keysSection.GetChildren()
             .Select(c => c.Value!)
             .Where(v => !string.IsNullOrWhiteSpace(v))];
@@ -23,7 +25,7 @@ public class ApiKeyMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         // Swagger/OpenAPI, health check e version senza autenticazione
-        var path = context.Request.Path.Value ?? "";
+        string path = context.Request.Path.Value ?? "";
         if (path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
@@ -33,7 +35,7 @@ public class ApiKeyMiddleware
             return;
         }
 
-        if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out var providedKey) ||
+        if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out StringValues providedKey) ||
             !_validKeys.Contains(providedKey.ToString()))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;

@@ -67,10 +67,10 @@ public class DeviceWorkflowTests : IntegrationTestBase
         await boardRepo.AddAsync(peripheral);
 
         // 4. Verifica
-        var boards = await boardRepo.GetByDeviceIdAsync(device.Id);
+        IReadOnlyList<BoardEntity> boards = await boardRepo.GetByDeviceIdAsync(device.Id);
         Assert.Equal(2, boards.Count);
 
-        var primary = boards.FirstOrDefault(b => b.IsPrimary);
+        BoardEntity? primary = boards.FirstOrDefault(b => b.IsPrimary);
         Assert.NotNull(primary);
         Assert.Equal("Madre", primary.Name);
         Assert.Equal(mainDict.Id, primary.DictionaryId);
@@ -116,7 +116,7 @@ public class DeviceWorkflowTests : IntegrationTestBase
         });
 
         // Query: dizionari visibili per questo device
-        var deviceBoards = await Context.Boards
+        List<BoardEntity> deviceBoards = await Context.Boards
             .Where(b => b.DeviceId == device.Id)
             .ToListAsync();
         var linkedDictIds = deviceBoards
@@ -124,7 +124,7 @@ public class DeviceWorkflowTests : IntegrationTestBase
             .Select(b => b.DictionaryId!.Value)
             .Distinct()
             .ToList();
-        var standardDict = await dictRepo.GetStandardDictionaryAsync();
+        DictionaryEntity? standardDict = await dictRepo.GetStandardDictionaryAsync();
 
         // Verify: deve vedere Master, Slave, Standard
         Assert.Equal(2, linkedDictIds.Count);
@@ -173,8 +173,8 @@ public class DeviceWorkflowTests : IntegrationTestBase
         });
 
         // Verify
-        var state1 = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device1.Id);
-        var state2 = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device2.Id);
+        CommandDeviceStateEntity? state1 = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device1.Id);
+        CommandDeviceStateEntity? state2 = await stateRepo.GetByCommandAndDeviceAsync(command.Id, device2.Id);
 
         Assert.NotNull(state1);
         Assert.False(state1.IsEnabled);
@@ -221,8 +221,8 @@ public class DeviceWorkflowTests : IntegrationTestBase
         });
 
         // Verify
-        var override1 = await overrideRepo.GetByDictionaryAndVariableAsync(edenDict.Id, variable.Id);
-        var override2 = await overrideRepo.GetByDictionaryAndVariableAsync(sparkDict.Id, variable.Id);
+        StandardVariableOverrideEntity? override1 = await overrideRepo.GetByDictionaryAndVariableAsync(edenDict.Id, variable.Id);
+        StandardVariableOverrideEntity? override2 = await overrideRepo.GetByDictionaryAndVariableAsync(sparkDict.Id, variable.Id);
 
         Assert.NotNull(override1);
         Assert.False(override1.IsEnabled);
@@ -261,7 +261,7 @@ public class DeviceWorkflowTests : IntegrationTestBase
         await deviceRepo.DeleteAsync(device.Id);
 
         // Verify
-        var boards = await Context.Boards.Where(b => b.DeviceId == device.Id).ToListAsync();
+        List<BoardEntity> boards = await Context.Boards.Where(b => b.DeviceId == device.Id).ToListAsync();
         Assert.Empty(boards);
     }
 

@@ -29,7 +29,7 @@ public class AuditEntryMapperTests
         };
 
         // Act
-        var result = AuditEntryMapper.ToDomain(entity);
+        AuditEntry result = AuditEntryMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(1, result.Id);
@@ -68,7 +68,7 @@ public class AuditEntryMapperTests
         };
 
         // Act
-        var result = AuditEntryMapper.ToDomain(entity);
+        AuditEntry result = AuditEntryMapper.ToDomain(entity);
 
         // Assert
         Assert.Null(result.PreviousValue);
@@ -93,7 +93,7 @@ public class AuditEntryMapperTests
             notes: "Rimosso dizionario");
 
         // Act
-        var result = AuditEntryMapper.ToEntity(domain);
+        AuditEntryEntity result = AuditEntryMapper.ToEntity(domain);
 
         // Assert
         Assert.Equal(AuditEntityType.Dictionary, result.EntityType);
@@ -129,7 +129,7 @@ public class AuditEntryMapperTests
             notes: null);
 
         // Act
-        var result = AuditEntryMapper.ToEntity(domain);
+        AuditEntryEntity result = AuditEntryMapper.ToEntity(domain);
 
         // Assert — Id non mappato (default 0), sarà assegnato da EF
         Assert.Equal(0, result.Id);
@@ -154,8 +154,8 @@ public class AuditEntryMapperTests
         };
 
         // Act
-        var domain = AuditEntryMapper.ToDomain(original);
-        var roundTripped = AuditEntryMapper.ToEntity(domain);
+        AuditEntry domain = AuditEntryMapper.ToDomain(original);
+        AuditEntryEntity roundTripped = AuditEntryMapper.ToEntity(domain);
 
         // Assert — tutti i campi preservati tranne Id
         Assert.Equal(original.EntityType, roundTripped.EntityType);
@@ -189,7 +189,7 @@ public class AuditEntryMapperTests
         };
 
         // Act
-        var result = AuditEntryMapper.ToDomainList(entities);
+        IReadOnlyList<AuditEntry> result = AuditEntryMapper.ToDomainList(entities);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -200,7 +200,7 @@ public class AuditEntryMapperTests
     [Fact]
     public void ToDomainList_EmptyList_ReturnsEmpty()
     {
-        var result = AuditEntryMapper.ToDomainList([]);
+        IReadOnlyList<AuditEntry> result = AuditEntryMapper.ToDomainList([]);
         Assert.Empty(result);
     }
 

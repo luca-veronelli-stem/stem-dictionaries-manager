@@ -1,4 +1,5 @@
 using Core.Enums;
+using Core.Models;
 using Infrastructure;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
@@ -29,7 +30,7 @@ public abstract class ApiIntegrationTestBase : IDisposable
         _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(_connection)
             .Options;
 
@@ -70,11 +71,11 @@ public abstract class ApiIntegrationTestBase : IDisposable
         SeedFullScenarioAsync()
     {
         // Device
-        var device = await DeviceService.AddAsync(
+        Device device = await DeviceService.AddAsync(
             new Core.Models.Device("Optimus-XP", 10, "Piano oleodinamico"));
 
         // Standard dictionary + variabili
-        var stdDict = await DictionaryService.AddAsync(
+        Dictionary stdDict = await DictionaryService.AddAsync(
             new Core.Models.Dictionary("Standard", "Variabili comuni", isStandard: true));
 
         await DictionaryService.AddVariableAsync(stdDict.Id,
@@ -93,7 +94,7 @@ public abstract class ApiIntegrationTestBase : IDisposable
                 isEnabled: false, description: "Variabile deprecata"));
 
         // Dizionario specifico + variabili
-        var specDict = await DictionaryService.AddAsync(
+        Dictionary specDict = await DictionaryService.AddAsync(
             new Core.Models.Dictionary("Optimus-XP", "Variabili Optimus"));
 
         await DictionaryService.AddVariableAsync(specDict.Id,
@@ -107,14 +108,14 @@ public abstract class ApiIntegrationTestBase : IDisposable
                 isEnabled: false, description: "Variabile disabilitata"));
 
         // Board
-        var board = await BoardService.AddAsync(
+        Board board = await BoardService.AddAsync(
             new Core.Models.Board(device.Id, "Madre", firmwareType: 5,
                 boardNumber: 1, isPrimary: true, dictionaryId: specDict.Id,
                 machineCode: 10));
 
         // Override: disabilita Matricola per questo dizionario
-        var stdVars = await VariableService.GetByDictionaryIdAsync(stdDict.Id);
-        var matricola = stdVars.First(v => v.Name == "Matricola");
+        IReadOnlyList<Variable> stdVars = await VariableService.GetByDictionaryIdAsync(stdDict.Id);
+        Variable matricola = stdVars.First(v => v.Name == "Matricola");
         await VariableService.SetOverrideAsync(specDict.Id, matricola.Id,
             isEnabled: false, description: "Non usato su Optimus");
 

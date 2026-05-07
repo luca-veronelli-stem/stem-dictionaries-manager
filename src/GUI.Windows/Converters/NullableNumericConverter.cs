@@ -18,9 +18,11 @@ public class NullableIntConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string str || string.IsNullOrWhiteSpace(str))
+        {
             return null;
+        }
 
-        return int.TryParse(str, out var result) ? result : Binding.DoNothing;
+        return int.TryParse(str, out int result) ? result : Binding.DoNothing;
     }
 }
 
@@ -39,11 +41,13 @@ public class NullableDoubleConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string str || string.IsNullOrWhiteSpace(str))
+        {
             return null;
+        }
 
         // Accept both '.' and ',' as decimal separators (mixed input from EU keyboards).
         str = str.Replace(',', '.');
-        return double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
+        return double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out double result)
             ? result
             : Binding.DoNothing;
     }

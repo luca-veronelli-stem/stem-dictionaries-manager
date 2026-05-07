@@ -38,13 +38,13 @@ public class CommandService : ICommandService
 
     public async Task<Command?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        CommandEntity? entity = await _repository.GetByIdAsync(id, ct);
         return entity is null ? null : CommandMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Command>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _repository.GetAllAsync(ct);
+        IReadOnlyList<CommandEntity> entities = await _repository.GetAllAsync(ct);
         return CommandMapper.ToDomainList(entities);
     }
 
@@ -53,22 +53,26 @@ public class CommandService : ICommandService
         ArgumentNullException.ThrowIfNull(command);
 
         // Verifica unicità nome
-        var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+        CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
         if (existingByName is not null)
+        {
             throw new InvalidOperationException(
                 $"Command with name '{command.Name}' already exists.");
+        }
 
         // Verifica unicità codice
-        var existing = await _repository.GetByCodeAsync(
+        CommandEntity? existing = await _repository.GetByCodeAsync(
             command.CodeHigh, command.CodeLow, command.IsResponse, ct);
         if (existing is not null)
+        {
             throw new InvalidOperationException(
                 $"Command with code 0x{command.CodeHigh:X2}{command.CodeLow:X2} " +
                 $"(IsResponse={command.IsResponse}) already exists ('{existing.Name}').");
+        }
 
-        var entity = CommandMapper.ToEntity(command);
-        var created = await _repository.AddAsync(entity, ct);
-        var result = CommandMapper.ToDomain(created);
+        CommandEntity entity = CommandMapper.ToEntity(command);
+        CommandEntity created = await _repository.AddAsync(entity, ct);
+        Command result = CommandMapper.ToDomain(created);
 
         await _audit.LogCreateAsync(AuditEntityType.Command, result.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -81,20 +85,22 @@ public class CommandService : ICommandService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var entity = await _repository.GetByIdAsync(command.Id, ct)
+        CommandEntity entity = await _repository.GetByIdAsync(command.Id, ct)
             ?? throw new KeyNotFoundException($"Command '{command.Name}' (Id={command.Id}) not found.");
 
         // Verifica unicità nome (se cambiato)
         if (!entity.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
         {
-            var existingByName = await _repository.GetByNameAsync(command.Name, ct);
+            CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
             if (existingByName is not null)
+            {
                 throw new InvalidOperationException(
                     $"Command with name '{command.Name}' already exists.");
+            }
         }
 
-        var previous = CommandMapper.ToDomain(entity);
-        var prevJson = JsonSerializer.Serialize(previous);
+        Command previous = CommandMapper.ToDomain(entity);
+        string prevJson = JsonSerializer.Serialize(previous);
 
         CommandMapper.UpdateEntity(entity, command);
         await _repository.UpdateAsync(entity, ct);
@@ -106,10 +112,10 @@ public class CommandService : ICommandService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        CommandEntity? entity = await _repository.GetByIdAsync(id, ct);
         if (entity is not null)
         {
-            var previous = CommandMapper.ToDomain(entity);
+            Command previous = CommandMapper.ToDomain(entity);
             await _repository.DeleteAsync(id, ct);
             await _audit.LogDeleteAsync(AuditEntityType.Command, id,
                 _userProvider.CurrentUserId ?? 0,
@@ -126,7 +132,7 @@ public class CommandService : ICommandService
     public async Task<Command?> GetByCodeAsync(byte codeHigh, byte codeLow, bool isResponse,
         CancellationToken ct = default)
     {
-        var entity = await _repository.GetByCodeAsync(codeHigh, codeLow, isResponse, ct);
+        CommandEntity? entity = await _repository.GetByCodeAsync(codeHigh, codeLow, isResponse, ct);
         return entity is null ? null : CommandMapper.ToDomain(entity);
     }
 
@@ -134,11 +140,13 @@ public class CommandService : ICommandService
 
     public async Task<Command?> GetWithDeviceStatesAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetWithDeviceStatesAsync(id, ct);
+        CommandEntity? entity = await _repository.GetWithDeviceStatesAsync(id, ct);
         if (entity is null)
+        {
             return null;
+        }
 
-        var command = CommandMapper.ToDomain(entity);
+        Command command = CommandMapper.ToDomain(entity);
         // Nota: DeviceStates sono caricati ma non esposti nel Domain Model Command.
         // Per accedere agli stati, usare GetDeviceStateAsync o SetDeviceStateAsync.
         return command;
@@ -148,12 +156,12 @@ public class CommandService : ICommandService
         CancellationToken ct = default)
     {
         // Verifica che il comando esista
-        var cmd = await _repository.GetByIdAsync(commandId, ct)
+        CommandEntity cmd = await _repository.GetByIdAsync(commandId, ct)
             ?? throw new KeyNotFoundException(
                 $"Command (Id={commandId}) not found.");
 
         // Cerca stato esistente
-        var existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
+        CommandDeviceStateEntity? existingState = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         if (existingState is not null)
         {
@@ -175,7 +183,7 @@ public class CommandService : ICommandService
     public async Task<CommandDeviceState?> GetDeviceStateAsync(int commandId, int deviceId,
         CancellationToken ct = default)
     {
-        var entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
+        CommandDeviceStateEntity? entity = await _deviceStateRepository.GetByCommandAndDeviceAsync(commandId, deviceId, ct);
 
         return entity is null ? null : CommandDeviceStateMapper.ToDomain(entity);
     }
@@ -183,7 +191,7 @@ public class CommandService : ICommandService
     public async Task<IReadOnlyList<CommandDeviceState>> GetDeviceStatesForDeviceAsync(
         int deviceId, CancellationToken ct = default)
     {
-        var entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
+        IReadOnlyList<CommandDeviceStateEntity> entities = await _deviceStateRepository.GetByDeviceIdAsync(deviceId, ct);
         return [.. entities.Select(CommandDeviceStateMapper.ToDomain)];
     }
 }

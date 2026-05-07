@@ -46,7 +46,7 @@ public partial class LoginViewModel : ObservableObject
             IsLoading = true;
             ErrorMessage = null;
 
-            var users = await _userService.GetAllAsync();
+            IReadOnlyList<User> users = await _userService.GetAllAsync();
             AvailableUsers = [.. users];
 
             if (AvailableUsers.Count == 0)

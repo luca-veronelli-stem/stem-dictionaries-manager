@@ -22,9 +22,13 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
         {
             if (useSqlServer)
+            {
                 options.UseSqlServer(connectionString);
+            }
             else
+            {
                 options.UseSqlite(connectionString);
+            }
         });
 
         // Repositories
@@ -69,8 +73,8 @@ public static class DependencyInjection
     /// </summary>
     public static string GetDefaultSqlitePath()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, "STEM", "DictionariesManager");
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string folder = Path.Combine(appData, "STEM", "DictionariesManager");
         Directory.CreateDirectory(folder);
         return Path.Combine(folder, SqliteDatabaseFileName);
     }

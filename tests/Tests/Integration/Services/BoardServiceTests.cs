@@ -36,7 +36,7 @@ public class BoardServiceTests : IntegrationTestBase
         // DeviceId=9 → Optimus-XP, MachineCode=10
         var board = new Board(9, "TestBoard", 17, 1, 10, "DIS001");
 
-        var result = await _service.AddAsync(board);
+        Board result = await _service.AddAsync(board);
 
         Assert.True(result.Id > 0);
         Assert.Equal("TestBoard", result.Name);
@@ -51,7 +51,7 @@ public class BoardServiceTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         var board = new Board(3, "Madre", 18, 1, dictionaryId: dict.Id, machineCode: 3);
-        var result = await _service.AddAsync(board);
+        Board result = await _service.AddAsync(board);
 
         Assert.Equal(dict.Id, result.DictionaryId);
     }
@@ -69,9 +69,9 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task GetByIdAsync_ExistingBoard_ReturnsBoard()
     {
         // DeviceId=6 → Spark, MachineCode=7
-        var created = await _service.AddAsync(new Board(6, "FindMe", 20, 1, machineCode: 7));
+        Board created = await _service.AddAsync(new Board(6, "FindMe", 20, 1, machineCode: 7));
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Board? result = await _service.GetByIdAsync(created.Id);
 
         Assert.NotNull(result);
         Assert.Equal("FindMe", result.Name);
@@ -91,7 +91,7 @@ public class BoardServiceTests : IntegrationTestBase
         await _service.AddAsync(new Board(10, "R3L-2", 12, 2, machineCode: 11));
         await _service.AddAsync(new Board(3, "Eden-1", 18, 1, machineCode: 3));
 
-        var result = await _service.GetByDeviceIdAsync(10);
+        IReadOnlyList<Board> result = await _service.GetByDeviceIdAsync(10);
 
         Assert.Equal(2, result.Count);
         Assert.All(result, b => Assert.Equal(10, b.DeviceId));
@@ -102,9 +102,9 @@ public class BoardServiceTests : IntegrationTestBase
     {
         // DeviceId=9 → Optimus-XP, MachineCode=10
         var board = new Board(9, "ByAddress", 17, 1, machineCode: 10);
-        var created = await _service.AddAsync(board);
+        Board created = await _service.AddAsync(board);
 
-        var result = await _service.GetByProtocolAddressAsync(created.ProtocolAddress);
+        Board? result = await _service.GetByProtocolAddressAsync(created.ProtocolAddress);
 
         Assert.NotNull(result);
         Assert.Equal("ByAddress", result.Name);
@@ -113,12 +113,12 @@ public class BoardServiceTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_ExistingBoard_UpdatesBoard()
     {
-        var created = await _service.AddAsync(new Board(4, "Before", 5, 1, machineCode: 4));
+        Board created = await _service.AddAsync(new Board(4, "Before", 5, 1, machineCode: 4));
         var updated = Board.Restore(created.Id, 4, "After", 5, 1, "NEW-PN", false, null, machineCode: 4);
 
         await _service.UpdateAsync(updated);
 
-        var result = await _service.GetByIdAsync(created.Id);
+        Board? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("After", result!.Name);
         Assert.Equal("NEW-PN", result.PartNumber);
     }
@@ -135,7 +135,7 @@ public class BoardServiceTests : IntegrationTestBase
     [Fact]
     public async Task DeleteAsync_ExistingBoard_RemovesBoard()
     {
-        var created = await _service.AddAsync(new Board(6, "Delete", 20, 1, machineCode: 7));
+        Board created = await _service.AddAsync(new Board(6, "Delete", 20, 1, machineCode: 7));
 
         await _service.DeleteAsync(created.Id);
 
@@ -155,7 +155,7 @@ public class BoardServiceTests : IntegrationTestBase
         await _service.AddAsync(new Board(1, "Board1", 20, 1, machineCode: 1));
         await _service.AddAsync(new Board(9, "Board2", 17, 1, machineCode: 10));
 
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<Board> result = await _service.GetAllAsync();
 
         Assert.Equal(2, result.Count);
     }
@@ -167,7 +167,7 @@ public class BoardServiceTests : IntegrationTestBase
     {
         var board = new Board(4, "Principale", 5, 1, isPrimary: true, machineCode: 4);
 
-        var created = await _service.AddAsync(board);
+        Board created = await _service.AddAsync(board);
 
         Assert.True(created.IsPrimary);
     }
@@ -186,7 +186,7 @@ public class BoardServiceTests : IntegrationTestBase
     {
         await _service.AddAsync(new Board(5, "Spyke Main", 20, 1, isPrimary: true, machineCode: 5));
 
-        var second = await _service.AddAsync(
+        Board second = await _service.AddAsync(
             new Board(6, "Spark Main", 20, 1, isPrimary: true, machineCode: 7));
 
         Assert.True(second.IsPrimary);
@@ -196,7 +196,7 @@ public class BoardServiceTests : IntegrationTestBase
     public async Task UpdateAsync_SetPrimaryWhenAnotherExists_ThrowsInvalidOperationException()
     {
         await _service.AddAsync(new Board(8, "Display", 10, 1, isPrimary: true, machineCode: 9));
-        var peripheral = await _service.AddAsync(
+        Board peripheral = await _service.AddAsync(
             new Board(8, "Periferica", 4, 2, machineCode: 9));
 
         var updated = Board.Restore(
@@ -209,7 +209,7 @@ public class BoardServiceTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_KeepSamePrimary_IsAllowed()
     {
-        var primary = await _service.AddAsync(
+        Board primary = await _service.AddAsync(
             new Board(11, "Madre", 19, 1, isPrimary: true, machineCode: 12));
 
         var updated = Board.Restore(
@@ -217,7 +217,7 @@ public class BoardServiceTests : IntegrationTestBase
 
         await _service.UpdateAsync(updated);
 
-        var result = await _service.GetByIdAsync(primary.Id);
+        Board? result = await _service.GetByIdAsync(primary.Id);
         Assert.Equal("Madre Rinominata", result!.Name);
         Assert.True(result.IsPrimary);
     }
@@ -227,7 +227,7 @@ public class BoardServiceTests : IntegrationTestBase
     {
         await _service.AddAsync(new Board(7, "Madre", 17, 1, isPrimary: true, machineCode: 8));
 
-        var peripheral = await _service.AddAsync(
+        Board peripheral = await _service.AddAsync(
             new Board(7, "Tastiera", 4, 2, isPrimary: false, machineCode: 8));
 
         Assert.False(peripheral.IsPrimary);
@@ -247,7 +247,7 @@ public class BoardServiceTests : IntegrationTestBase
             dictionaryId: dict.Id, machineCode: 3));
 
         // Act: nuova board FW=4 SENZA dizionario
-        var newBoard = await _service.AddAsync(
+        Board newBoard = await _service.AddAsync(
             new Board(3, "Pulsantiera 2", 4, 2, machineCode: 3));
 
         // Assert: eredita il dizionario
@@ -266,7 +266,7 @@ public class BoardServiceTests : IntegrationTestBase
             dictionaryId: dict.Id, machineCode: 3));
 
         // Act: nuova board FW=5 (diverso) senza dizionario
-        var newBoard = await _service.AddAsync(
+        Board newBoard = await _service.AddAsync(
             new Board(3, "Madre", 5, 2, machineCode: 3));
 
         // Assert: NON eredita il dizionario
@@ -283,14 +283,14 @@ public class BoardServiceTests : IntegrationTestBase
         Context.Dictionaries.Add(dict);
         await Context.SaveChangesAsync();
 
-        var board = await _service.AddAsync(new Board(3, "Madre", 5, 1,
+        Board board = await _service.AddAsync(new Board(3, "Madre", 5, 1,
             dictionaryId: dict.Id, machineCode: 3));
 
         // Act
         await _service.DeleteAsync(board.Id);
 
         // Assert: dizionario eliminato
-        var dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
+        DictionaryEntity? dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
         Assert.Null(dictAfter);
     }
 
@@ -302,7 +302,7 @@ public class BoardServiceTests : IntegrationTestBase
         Context.Dictionaries.Add(dict);
         await Context.SaveChangesAsync();
 
-        var board1 = await _service.AddAsync(new Board(3, "Pulsantiera 1", 4, 1,
+        Board board1 = await _service.AddAsync(new Board(3, "Pulsantiera 1", 4, 1,
             dictionaryId: dict.Id, machineCode: 3));
         await _service.AddAsync(new Board(3, "Pulsantiera 2", 4, 2,
             dictionaryId: dict.Id, machineCode: 3));
@@ -311,7 +311,7 @@ public class BoardServiceTests : IntegrationTestBase
         await _service.DeleteAsync(board1.Id);
 
         // Assert: dizionario ancora presente
-        var dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
+        DictionaryEntity? dictAfter = await Context.Dictionaries.FindAsync(dict.Id);
         Assert.NotNull(dictAfter);
     }
 
@@ -320,7 +320,7 @@ public class BoardServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetNextAvailableFirmwareTypeAsync_NoBoards_Returns1()
     {
-        var next = await _service.GetNextAvailableFirmwareTypeAsync();
+        int next = await _service.GetNextAvailableFirmwareTypeAsync();
 
         Assert.Equal(1, next);
     }
@@ -332,7 +332,7 @@ public class BoardServiceTests : IntegrationTestBase
         await _service.AddAsync(new Board(5, "HMI", 11, 1, machineCode: 5));
         await _service.AddAsync(new Board(5, "Gateway", 20, 2, machineCode: 5));
 
-        var next = await _service.GetNextAvailableFirmwareTypeAsync();
+        int next = await _service.GetNextAvailableFirmwareTypeAsync();
 
         Assert.Equal(21, next);
     }

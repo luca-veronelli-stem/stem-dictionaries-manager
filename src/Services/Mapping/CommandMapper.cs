@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Core.Models;
 using Infrastructure.Entities;
-using System.Text.Json;
 
 namespace Services.Mapping;
 
@@ -17,7 +17,7 @@ public static class CommandMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var parameters = DeserializeParameters(entity.ParametersJson);
+        IReadOnlyList<string> parameters = DeserializeParameters(entity.ParametersJson);
 
         return Command.Restore(
             entity.Id,
@@ -74,7 +74,9 @@ public static class CommandMapper
     private static IReadOnlyList<string> DeserializeParameters(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
+        {
             return [];
+        }
 
         try
         {
@@ -89,7 +91,9 @@ public static class CommandMapper
     private static string SerializeParameters(IReadOnlyList<string> parameters)
     {
         if (parameters == null || parameters.Count == 0)
+        {
             return "[]";
+        }
 
         return JsonSerializer.Serialize(parameters);
     }

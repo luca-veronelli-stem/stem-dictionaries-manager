@@ -108,7 +108,7 @@ public partial class MainViewModel : ObservableObject
     private void OnCurrentViewChanged(object? sender, ViewType viewType)
     {
         // Recupera il parametro dal NavigationService
-        var parameter = _navigationService.CurrentParameter;
+        NavigationParameter? parameter = _navigationService.CurrentParameter;
         NavigateToView(viewType, parameter);
         CanGoBack = _navigationService.CanGoBack;
     }
@@ -118,21 +118,38 @@ public partial class MainViewModel : ObservableObject
         try
         {
             // GoBack: riusa il ViewModel cached (preserva stato utente)
-            var cached = _navigationService.CachedViewModel;
+            object? cached = _navigationService.CachedViewModel;
             if (cached is not null)
             {
                 if (cached is DictionaryEditViewModel dictEditVm)
+                {
                     await dictEditVm.ReloadVariablesAsync();
+                }
+
                 if (cached is DeviceDetailViewModel deviceDetailVm && deviceDetailVm.DeviceId.HasValue)
+                {
                     await deviceDetailVm.LoadAsync(deviceDetailVm.DeviceId.Value);
+                }
+
                 if (cached is CommandListViewModel cmdListVm)
+                {
                     await cmdListVm.LoadAsync();
+                }
+
                 if (cached is DictionaryListViewModel dictListVm)
+                {
                     await dictListVm.LoadAsync();
+                }
+
                 if (cached is UserListViewModel userListVm)
+                {
                     await userListVm.LoadAsync();
+                }
+
                 if (cached is DeviceListViewModel deviceListVm)
+                {
                     await deviceListVm.LoadAsync();
+                }
 
                 CurrentViewModel = cached;
                 UpdateTitle(viewType);
@@ -140,7 +157,7 @@ public partial class MainViewModel : ObservableObject
             }
 
             // Forward: crea nuovo ViewModel
-            var viewModel = CreateViewModel(viewType);
+            object? viewModel = CreateViewModel(viewType);
 
             if (viewModel is not null)
             {
@@ -274,7 +291,7 @@ public partial class MainViewModel : ObservableObject
         {
             var dictionaryService = _serviceProvider.GetService(typeof(IDictionaryService))
                 as IDictionaryService;
-            var standard = await dictionaryService!.GetStandardDictionaryAsync();
+            Dictionary? standard = await dictionaryService!.GetStandardDictionaryAsync();
             if (standard is null)
             {
                 _messageService.Show(
@@ -314,12 +331,14 @@ public partial class MainViewModel : ObservableObject
         // Se il ViewModel corrente ha modifiche non salvate, avvisa
         if (CurrentViewModel is IEditableViewModel { HasChanges: true })
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Modifiche non salvate",
                 "Ci sono modifiche non salvate. Vuoi tornare indietro senza salvare?");
 
             if (result != DialogResult.Yes)
+            {
                 return;
+            }
         }
 
         _navigationService.GoBack();
@@ -328,11 +347,14 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Conferma logout",
             "Vuoi cambiare utente?");
 
-        if (result != Abstractions.DialogResult.Yes) return;
+        if (result != Abstractions.DialogResult.Yes)
+        {
+            return;
+        }
 
         // Pulisci utente corrente
         CurrentUser = null;

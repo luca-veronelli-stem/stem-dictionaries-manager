@@ -18,7 +18,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddInfrastructure(TestConnectionString);
+        IServiceCollection result = services.AddInfrastructure(TestConnectionString);
 
         // Assert
         Assert.Same(services, result);
@@ -32,10 +32,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var context = provider.GetService<AppDbContext>();
+        AppDbContext? context = provider.GetService<AppDbContext>();
         Assert.NotNull(context);
     }
 
@@ -47,10 +47,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IUserRepository>();
+        IUserRepository? repository = provider.GetService<IUserRepository>();
         Assert.NotNull(repository);
     }
 
@@ -62,10 +62,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IBoardRepository>();
+        IBoardRepository? repository = provider.GetService<IBoardRepository>();
         Assert.NotNull(repository);
     }
 
@@ -77,10 +77,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IDictionaryRepository>();
+        IDictionaryRepository? repository = provider.GetService<IDictionaryRepository>();
         Assert.NotNull(repository);
     }
 
@@ -92,10 +92,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IVariableRepository>();
+        IVariableRepository? repository = provider.GetService<IVariableRepository>();
         Assert.NotNull(repository);
     }
 
@@ -107,10 +107,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<ICommandRepository>();
+        ICommandRepository? repository = provider.GetService<ICommandRepository>();
         Assert.NotNull(repository);
     }
 
@@ -122,10 +122,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IAuditEntryRepository>();
+        IAuditEntryRepository? repository = provider.GetService<IAuditEntryRepository>();
         Assert.NotNull(repository);
     }
 
@@ -137,10 +137,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IBitInterpretationRepository>();
+        IBitInterpretationRepository? repository = provider.GetService<IBitInterpretationRepository>();
         Assert.NotNull(repository);
     }
 
@@ -152,10 +152,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<ICommandDeviceStateRepository>();
+        ICommandDeviceStateRepository? repository = provider.GetService<ICommandDeviceStateRepository>();
         Assert.NotNull(repository);
     }
 
@@ -167,10 +167,10 @@ public class DependencyInjectionTests
 
         // Act
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert
-        var repository = provider.GetService<IStandardVariableOverrideRepository>();
+        IStandardVariableOverrideRepository? repository = provider.GetService<IStandardVariableOverrideRepository>();
         Assert.NotNull(repository);
     }
 
@@ -180,13 +180,13 @@ public class DependencyInjectionTests
         // Arrange
         var services = new ServiceCollection();
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Act - Create two scopes and verify different instances
-        using var scope1 = provider.CreateScope();
-        using var scope2 = provider.CreateScope();
-        var repo1 = scope1.ServiceProvider.GetService<IUserRepository>();
-        var repo2 = scope2.ServiceProvider.GetService<IUserRepository>();
+        using IServiceScope scope1 = provider.CreateScope();
+        using IServiceScope scope2 = provider.CreateScope();
+        IUserRepository? repo1 = scope1.ServiceProvider.GetService<IUserRepository>();
+        IUserRepository? repo2 = scope2.ServiceProvider.GetService<IUserRepository>();
 
         // Assert - Different scopes should have different instances
         Assert.NotSame(repo1, repo2);
@@ -198,12 +198,12 @@ public class DependencyInjectionTests
         // Arrange
         var services = new ServiceCollection();
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
         // Act - Get same service twice from same scope
-        using var scope = provider.CreateScope();
-        var repo1 = scope.ServiceProvider.GetService<IUserRepository>();
-        var repo2 = scope.ServiceProvider.GetService<IUserRepository>();
+        using IServiceScope scope = provider.CreateScope();
+        IUserRepository? repo1 = scope.ServiceProvider.GetService<IUserRepository>();
+        IUserRepository? repo2 = scope.ServiceProvider.GetService<IUserRepository>();
 
         // Assert - Same scope should return same instance
         Assert.Same(repo1, repo2);
@@ -214,10 +214,10 @@ public class DependencyInjectionTests
     {
         var services = new ServiceCollection();
         services.AddInfrastructure(TestConnectionString);
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
-        using var scope = provider.CreateScope();
-        var repository = scope.ServiceProvider.GetService<IDeviceRepository>();
+        using IServiceScope scope = provider.CreateScope();
+        IDeviceRepository? repository = scope.ServiceProvider.GetService<IDeviceRepository>();
 
         Assert.NotNull(repository);
     }

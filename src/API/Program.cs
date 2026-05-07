@@ -7,12 +7,12 @@ using Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Services;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Database — logica di risoluzione centralizzata in Infrastructure
-var provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
-var useSqlServer = !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
-var connString = Infrastructure.DependencyInjection.ResolveConnectionString(
+string provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
+bool useSqlServer = !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
+string connString = Infrastructure.DependencyInjection.ResolveConnectionString(
     builder.Configuration.GetConnectionString(useSqlServer ? "SqlServer" : "Sqlite"),
     useSqlServer);
 
@@ -33,7 +33,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Swagger UI solo in Development
 if (app.Environment.IsDevelopment())

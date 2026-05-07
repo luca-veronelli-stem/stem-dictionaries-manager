@@ -19,10 +19,15 @@ public class BitInterpretation
         string? meaning, int? dictionaryId, int maxBitIndex = 15)
     {
         if (wordIndex < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(wordIndex), "WordIndex must be non-negative.");
+        }
+
         if (bitIndex < 0 || bitIndex > maxBitIndex)
+        {
             throw new ArgumentOutOfRangeException(nameof(bitIndex),
                 $"BitIndex must be between 0 and {maxBitIndex}.");
+        }
 
         VariableId = variableId;
         DictionaryId = dictionaryId;

@@ -43,9 +43,11 @@ public class Dictionary
         var varList = variables.ToList();
         var duplicates = varList.GroupBy(v => v.FullAddress).Where(g => g.Count() > 1).ToList();
         if (duplicates.Count > 0)
+        {
             throw new InvalidOperationException(
                 $"Duplicate FullAddress found in dictionary '{name}': " +
                 string.Join(", ", duplicates.Select(g => $"0x{g.Key:X4}")));
+        }
 
         dictionary._variables.AddRange(varList);
         return dictionary;
@@ -57,8 +59,10 @@ public class Dictionary
 
         // Verifica unicità indirizzo
         if (_variables.Any(v => v.FullAddress == variable.FullAddress))
+        {
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.FullAddress:X4} already exists in dictionary.");
+        }
 
         _variables.Add(variable);
     }

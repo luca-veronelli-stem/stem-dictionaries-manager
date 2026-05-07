@@ -14,16 +14,27 @@ public static class DatabaseSeeder
     {
         // Se esistono già dati, non fare nulla
         if (await context.Users.AnyAsync())
+        {
             return;
+        }
+
         if (await context.Devices.AnyAsync())
+        {
             return;
+        }
+
         if (await context.Commands.AnyAsync())
+        {
             return;
+        }
+
         if (await context.Boards.AnyAsync())
+        {
             return;
+        }
 
         // === Utenti del team firmware STEM ===
-        var users = new[]
+        UserEntity[] users = new[]
         {
             new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" },
             new UserEntity { Username = "alessandro.goldoni", DisplayName = "Alessandro Goldoni" },
@@ -35,7 +46,7 @@ public static class DatabaseSeeder
 
         // === Dispositivi STEM ===
         // MachineCode 6 è riservato per BLE Module (BR-015)
-        var devices = new[]
+        DeviceEntity[] devices = new[]
         {
             new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" },
             new DeviceEntity { Name = "TopLift-M", MachineCode = 2, Description = "Sollevatori oleodinamici serie civile" },
@@ -53,7 +64,7 @@ public static class DatabaseSeeder
 
         // === Comandi protocollo STEM (da comandi.csv) ===
         // Regola: CodeHigh = 0x00 per comandi, 0x80 per risposte
-        var commands = new[]
+        CommandEntity[] commands = new[]
         {
             // 0x00 - Versione protocollo
             Cmd("Versione protocollo", 0x00, 0x00, false),
@@ -242,7 +253,7 @@ public static class DatabaseSeeder
         // ProtocolAddress: (MACHINE << 16) | ((FW & 0x3FF) << 6) | (BOARD_NUMBER & 0x3F)
         // DictionaryId: assegnato dopo il seed dei dizionari
         // BLE Module (MC=6): skippato (BR-015)
-        var boards = new[]
+        BoardEntity[] boards = new[]
         {
             // Sherpa Slim (MC=1)
             Brd(1, devices[0].Id, "Azionamento",    1, 1, true),
@@ -306,17 +317,17 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === Dizionario Standard (da dati_standard.CSV) ===
-        var standardVariables = await SeedStandardDictionaryAsync(context);
+        VariableEntity[] standardVariables = await SeedStandardDictionaryAsync(context);
 
         // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
-        var pulsantiereDictionary = await SeedPulsantiereDictionaryAsync(context, boards);
+        DictionaryEntity pulsantiereDictionary = await SeedPulsantiereDictionaryAsync(context, boards);
 
         // === Override variabili standard per-dizionario ===
         await SeedPulsantiereStandardOverridesAsync(
             context, pulsantiereDictionary, standardVariables);
 
         // === Dizionario Display Spyke (da hmi_spyke.CSV) ===
-        var displaySpykeDictionary = await SeedDisplaySpykeDictionaryAsync(
+        DictionaryEntity displaySpykeDictionary = await SeedDisplaySpykeDictionaryAsync(
             context, boards, devices[4]);
 
         // === Override variabili standard per Display Spyke ===
@@ -324,7 +335,7 @@ public static class DatabaseSeeder
             context, displaySpykeDictionary, standardVariables);
 
         // === Dizionario Gateway Spyke (da gateway_spyke.CSV) ===
-        var gatewaySpykeDictionary = await SeedGatewaySpykeDictionaryAsync(
+        DictionaryEntity gatewaySpykeDictionary = await SeedGatewaySpykeDictionaryAsync(
             context, boards, devices[4]);
 
         // === Override variabili standard per Gateway Spyke ===
@@ -332,7 +343,7 @@ public static class DatabaseSeeder
             context, gatewaySpykeDictionary, standardVariables);
 
         // === Dizionario Gradino (da gradino.CSV) ===
-        var gradinoDictionary = await SeedGradinoDictionaryAsync(
+        DictionaryEntity gradinoDictionary = await SeedGradinoDictionaryAsync(
             context, boards, devices[3]);
 
         // === Override variabili standard per Gradino ===
@@ -340,7 +351,7 @@ public static class DatabaseSeeder
             context, gradinoDictionary, standardVariables);
 
         // === Dizionario Eden-XP (da eden-xp.CSV) ===
-        var edenXPDictionary = await SeedEdenXPDictionaryAsync(
+        DictionaryEntity edenXPDictionary = await SeedEdenXPDictionaryAsync(
             context, boards, devices[2]);
 
         // === Override variabili standard per Eden-XP ===
@@ -348,7 +359,7 @@ public static class DatabaseSeeder
             context, edenXPDictionary, standardVariables);
 
         // === Dizionario Sherpa Slim (da sherpa-slim.CSV) ===
-        var sherpaSlimDictionary = await SeedSherpaSlimDictionaryAsync(
+        DictionaryEntity sherpaSlimDictionary = await SeedSherpaSlimDictionaryAsync(
             context, boards, devices[0]);
 
         // === Override variabili standard per Sherpa Slim ===
@@ -356,7 +367,7 @@ public static class DatabaseSeeder
             context, sherpaSlimDictionary, standardVariables);
 
         // === Dizionario Optimus-XP (da optimus-xp.CSV) ===
-        var optimusXPDictionary = await SeedOptimusXPDictionaryAsync(
+        DictionaryEntity optimusXPDictionary = await SeedOptimusXPDictionaryAsync(
             context, boards, devices[8]);
 
         // === Override variabili standard per Optimus-XP ===
@@ -364,7 +375,7 @@ public static class DatabaseSeeder
             context, optimusXPDictionary, standardVariables);
 
         // === Dizionario TopLift-M (da toplift-m.CSV) ===
-        var topLiftMDictionary = await SeedTopLiftMDictionaryAsync(
+        DictionaryEntity topLiftMDictionary = await SeedTopLiftMDictionaryAsync(
             context, boards, devices[1]);
 
         // === Override variabili standard per TopLift-M ===
@@ -372,7 +383,7 @@ public static class DatabaseSeeder
             context, topLiftMDictionary, standardVariables);
 
         // === Dizionario TopLift-A2 (da toplift-a2.CSV) ===
-        var topLiftA2Dictionary = await SeedTopLiftA2DictionaryAsync(
+        DictionaryEntity topLiftA2Dictionary = await SeedTopLiftA2DictionaryAsync(
             context, boards, devices[6]);
 
         // === Override variabili standard per TopLift-A2 ===
@@ -380,7 +391,7 @@ public static class DatabaseSeeder
             context, topLiftA2Dictionary, standardVariables);
 
         // === Dizionario O3Z-Tech (da o3z-tech.CSV) ===
-        var o3zTechDictionary = await SeedO3ZTechDictionaryAsync(
+        DictionaryEntity o3zTechDictionary = await SeedO3ZTechDictionaryAsync(
             context, boards, devices[7]);
 
         // === Override variabili standard per O3Z-Tech ===
@@ -388,7 +399,7 @@ public static class DatabaseSeeder
             context, o3zTechDictionary, standardVariables);
 
         // === Dizionario HMI Spark (da hmi_spark.CSV) ===
-        var hmiSparkDictionary = await SeedHmiSparkDictionaryAsync(
+        DictionaryEntity hmiSparkDictionary = await SeedHmiSparkDictionaryAsync(
             context, boards, devices[5]);
 
         // === Override variabili standard per HMI Spark ===
@@ -396,7 +407,7 @@ public static class DatabaseSeeder
             context, hmiSparkDictionary, standardVariables);
 
         // === Dizionario Eden-BS8 (da eden-bs8.CSV) ===
-        var edenBS8Dictionary = await SeedEdenBS8DictionaryAsync(
+        DictionaryEntity edenBS8Dictionary = await SeedEdenBS8DictionaryAsync(
             context, boards, devices[10]);
 
         // === Override variabili standard per Eden-BS8 ===
@@ -404,7 +415,7 @@ public static class DatabaseSeeder
             context, edenBS8Dictionary, standardVariables);
 
         // === Dizionario R3L-XP Master (da r3l-xp_master.CSV) ===
-        var r3lXPMasterDictionary = await SeedR3LXPMasterDictionaryAsync(
+        DictionaryEntity r3lXPMasterDictionary = await SeedR3LXPMasterDictionaryAsync(
                 context, boards, devices[9]);
 
         // === Override variabili standard per R3L-XP Master ===
@@ -412,7 +423,7 @@ public static class DatabaseSeeder
             context, r3lXPMasterDictionary, standardVariables);
 
         // === Dizionario R3L-XP Slave (da r3l-xp_slave.CSV) ===
-        var r3lXPSlaveDictionary = await SeedR3LXPSlaveDictionaryAsync(
+        DictionaryEntity r3lXPSlaveDictionary = await SeedR3LXPSlaveDictionaryAsync(
                 context, boards, devices[9]);
 
         // === Override variabili standard per R3L-XP Slave ===
@@ -437,7 +448,7 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var variables = new[]
+        VariableEntity[] variables = new[]
         {
             // 0x0000 — Firmware macchina
             Var(dictionary.Id, "Firmware macchina", 0x00,
@@ -608,7 +619,7 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var variables = new[]
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Foto Tasti
             Var(dictionary.Id, "Foto Tasti", 0x80, 0x00,
@@ -655,13 +666,13 @@ public static class DatabaseSeeder
         // === BitInterpretations per Comando Led Verde / Rosso / Buzzer ===
         // Big-endian: Word 3 = BYTE 0 (attivazione, bit interpretati)
         // Word 0/1/2: valori interi con interpretazione a bit 0
-        var ledVerde = variables[2];
-        var ledRosso = variables[3];
-        var buzzer = variables[4];
+        VariableEntity ledVerde = variables[2];
+        VariableEntity ledRosso = variables[3];
+        VariableEntity buzzer = variables[4];
 
         var bitInterpretations = new List<BitInterpretationEntity>();
 
-        foreach (var varId in new[] { ledVerde.Id, ledRosso.Id, buzzer.Id })
+        foreach (int varId in new[] { ledVerde.Id, ledRosso.Id, buzzer.Id })
         {
             bitInterpretations.AddRange(TimingWordBits(varId));
         }
@@ -678,7 +689,7 @@ public static class DatabaseSeeder
         // Aggiorna le board pulsantiera per puntare a questo dizionario.
         // Tutte le board con FirmwareType=4 sono pulsantiere (FW=4 nel protocollo STEM)
         // più le pulsantiere TopLift-A2 con FirmwareType=15.
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.FirmwareType is 4 or 15
                 && board.Name.Contains("Pulsantiera", StringComparison.OrdinalIgnoreCase))
@@ -702,7 +713,7 @@ public static class DatabaseSeeder
         DictionaryEntity pulsantiereDictionary,
         VariableEntity[] standardVariables)
     {
-        var overrides = standardVariables
+        StandardVariableOverrideEntity[] overrides = standardVariables
             .Where(v => v.AddressLow is not 0x00 and not 0x01)
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -734,8 +745,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Stato pulsanti
             Var(id, "Stato pulsanti", 0x80, 0x00,
@@ -903,10 +914,12 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
 
         // Link board Display (FW=8) di Spyke
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 8)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -925,11 +938,11 @@ public static class DatabaseSeeder
         DictionaryEntity displaySpykeDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = displaySpykeDictionary.Id;
+        int dictId = displaySpykeDictionary.Id;
 
         // === Override IsEnabled ===
         // Disabilita Temperatura scheda (0x08), Secondi motore parziale/totale (0x09, 0x0A)
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow is 0x08 or 0x09 or 0x0A)
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -950,7 +963,7 @@ public static class DatabaseSeeder
             [0x0E] = "Numero agganci al 10G non resettabile "
                 + "dopo ciclo Sherpa?",
         };
-        var cicliOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> cicliOverrides = standardVariables
             .Where(v => cicliDescriptions.ContainsKey(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -965,7 +978,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation per-dizionario per Allarmi (0x06) ===
-        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+        VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var bits = new BitInterpretationEntity[]
         {
             // Word 0: Allarmi
@@ -1034,8 +1047,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Gancio 10G
             Var(id, "Gancio 10G", 0x80, 0x00,
@@ -1078,10 +1091,12 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
 
         // Link board Gateway (FW=7) di Spyke
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 7)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -1100,11 +1115,11 @@ public static class DatabaseSeeder
         DictionaryEntity gatewaySpykeDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = gatewaySpykeDictionary.Id;
+        int dictId = gatewaySpykeDictionary.Id;
 
         // === Override IsEnabled ===
         // Disabilita 0x08-0x0F + 0x17
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => (v.AddressLow >= 0x08 && v.AddressLow <= 0x0F)
                 || v.AddressLow == 0x17)
             .Select(v => new StandardVariableOverrideEntity
@@ -1118,7 +1133,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation per-dizionario per Allarmi (0x06) ===
-        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+        VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var bits = new BitInterpretationEntity[]
         {
             // Word 0: Allarmi
@@ -1157,8 +1172,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Stato keyboard 1 (R/W="N" nel CSV, disabilitata)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
@@ -1351,7 +1366,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretations per Salva i valori (0x8019) ===
-        var salvaValori = variables.First(v => v.AddressLow == 0x19);
+        VariableEntity salvaValori = variables.First(v => v.AddressLow == 0x19);
         var salvaBits = new BitInterpretationEntity[]
         {
             new() { VariableId = salvaValori.Id, WordIndex = 0, BitIndex = 0,
@@ -1364,10 +1379,12 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(salvaBits);
 
         // Link board Azionamento (FW=6) di Gradino
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == gradinoDevice.Id && board.FirmwareType == 6)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -1386,13 +1403,13 @@ public static class DatabaseSeeder
         DictionaryEntity gradinoDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = gradinoDictionary.Id;
+        int dictId = gradinoDictionary.Id;
 
         // === Override IsEnabled + Descrizione ===
         var overrides = new List<StandardVariableOverrideEntity>();
 
         // Disabilita 0x05 (Stato) con descrizione enum
-        var stato = standardVariables.First(v => v.AddressLow == 0x05);
+        VariableEntity stato = standardVariables.First(v => v.AddressLow == 0x05);
         overrides.Add(new StandardVariableOverrideEntity
         {
             DictionaryId = dictId,
@@ -1407,10 +1424,10 @@ public static class DatabaseSeeder
         });
 
         // Disabilita 0x07-0x0F + 0x17
-        var disabledAddresses = standardVariables
+        IEnumerable<VariableEntity> disabledAddresses = standardVariables
             .Where(v => (v.AddressLow >= 0x07 && v.AddressLow <= 0x0F)
                 || v.AddressLow == 0x17);
-        foreach (var v in disabledAddresses)
+        foreach (VariableEntity? v in disabledAddresses)
         {
             overrides.Add(new StandardVariableOverrideEntity
             {
@@ -1424,8 +1441,8 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation per-dizionario ===
-        var ingressi = standardVariables.First(v => v.AddressLow == 0x15);
-        var uscite = standardVariables.First(v => v.AddressLow == 0x16);
+        VariableEntity ingressi = standardVariables.First(v => v.AddressLow == 0x15);
+        VariableEntity uscite = standardVariables.First(v => v.AddressLow == 0x16);
 
         var bits = new BitInterpretationEntity[]
         {
@@ -1465,8 +1482,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Stato keyboard 1 (R/W="N" nel CSV, disabilitata)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
@@ -2099,7 +2116,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretations per Stato finecorsa (0x800F) ===
-        var statoFinecorsa = variables.First(v => v.AddressLow == 0x0F);
+        VariableEntity statoFinecorsa = variables.First(v => v.AddressLow == 0x0F);
         var finecorsaBits = new BitInterpretationEntity[]
         {
             new() { VariableId = statoFinecorsa.Id, WordIndex = 0, BitIndex = 0,
@@ -2110,7 +2127,7 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(finecorsaBits);
 
         // === BitInterpretations per Stato Luci (0x8041) ===
-        var statoLuci = variables.First(v => v.AddressLow == 0x41);
+        VariableEntity statoLuci = variables.First(v => v.AddressLow == 0x41);
         var luciBits = new BitInterpretationEntity[]
         {
             new() { VariableId = statoLuci.Id, WordIndex = 0, BitIndex = 0, Meaning = "B" },
@@ -2120,7 +2137,7 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(luciBits);
 
         // === BitInterpretations per Virtual keyboard (0x8080) ===
-        var virtualKb = variables.First(v => v.AddressLow == 0x80);
+        VariableEntity virtualKb = variables.First(v => v.AddressLow == 0x80);
         var kbBits = new BitInterpretationEntity[]
         {
             new() { VariableId = virtualKb.Id, WordIndex = 0, BitIndex = 0, Meaning = "TESTA SU" },
@@ -2135,10 +2152,12 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(kbBits);
 
         // Link board Madre (FW=5) di Eden-XP
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == edenXPDevice.Id && board.FirmwareType == 5)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -2157,10 +2176,10 @@ public static class DatabaseSeeder
         DictionaryEntity edenXPDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = edenXPDictionary.Id;
+        int dictId = edenXPDictionary.Id;
 
         // === Override IsEnabled: Disabilita 0x05 (Stato) ===
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow == 0x05)
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -2172,7 +2191,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation per-dizionario per Allarmi (0x06) ===
-        var allarmi = standardVariables.First(v => v.AddressLow == 0x06);
+        VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var allarmiBits = new BitInterpretationEntity[]
         {
             // Word 0: Allarmi
@@ -2226,7 +2245,7 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(allarmiBits);
 
         // === BitInterpretation per-dizionario per Stato ingressi fisici (0x15) ===
-        var ingressi = standardVariables.First(v => v.AddressLow == 0x15);
+        VariableEntity ingressi = standardVariables.First(v => v.AddressLow == 0x15);
         var ingressiBits = new BitInterpretationEntity[]
         {
             new() { VariableId = ingressi.Id, DictionaryId = dictId,
@@ -2257,7 +2276,7 @@ public static class DatabaseSeeder
         context.Set<BitInterpretationEntity>().AddRange(ingressiBits);
 
         // === BitInterpretation per-dizionario per Stato uscite fisiche (0x16) ===
-        var uscite = standardVariables.First(v => v.AddressLow == 0x16);
+        VariableEntity uscite = standardVariables.First(v => v.AddressLow == 0x16);
         var usciteBits = new BitInterpretationEntity[]
         {
             new() { VariableId = uscite.Id, DictionaryId = dictId,
@@ -2307,8 +2326,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // ============================================================
             // DATI AZIONAMENTO (0x8000-0x8017)
@@ -2620,10 +2639,12 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // Link board Azionamento (FW=1) di Sherpa Slim
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == sherpaSlimDevice.Id && board.FirmwareType == 1)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -2640,10 +2661,10 @@ public static class DatabaseSeeder
         DictionaryEntity sherpaSlimDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = sherpaSlimDictionary.Id;
+        int dictId = sherpaSlimDictionary.Id;
 
         // === Override IsEnabled: Disabilita 0x05 (Stato) ===
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow == 0x05)
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -2673,8 +2694,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // === Stato keyboard 1-3 (0x8000-0x8002, disabilitate) ===
             Var(id, "Stato keyboard 1", 0x80, 0x00,
@@ -3184,7 +3205,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation: Stato finecorsa (0x8011) ===
-        var finecorsa = variables.First(v => v.AddressLow == 0x11);
+        VariableEntity finecorsa = variables.First(v => v.AddressLow == 0x11);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
@@ -3202,7 +3223,7 @@ public static class DatabaseSeeder
             });
 
         // === BitInterpretation: Stato Luci (0x8043) ===
-        var luci = variables.First(v => v.AddressLow == 0x43);
+        VariableEntity luci = variables.First(v => v.AddressLow == 0x43);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
@@ -3227,11 +3248,13 @@ public static class DatabaseSeeder
             });
 
         // Link board Madre (FW=17) di Optimus-XP
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == optimusXPDevice.Id
                 && board.FirmwareType == 17)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -3250,11 +3273,11 @@ public static class DatabaseSeeder
         DictionaryEntity optimusXPDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = optimusXPDictionary.Id;
+        int dictId = optimusXPDictionary.Id;
 
         // === Override: Disabilita 0x05, 0x08 ===
-        var disabledAddresses = new byte[] { 0x05, 0x08 };
-        var disabledOverrides = standardVariables
+        byte[] disabledAddresses = new byte[] { 0x05, 0x08 };
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses.Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -3265,7 +3288,7 @@ public static class DatabaseSeeder
         context.StandardVariableOverrides.AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             // Word 0
@@ -3344,7 +3367,7 @@ public static class DatabaseSeeder
             });
 
         // === BitInterpretation: Stato ingressi fisici (0x15) ===
-        var ingressi = standardVariables
+        VariableEntity ingressi = standardVariables
             .First(v => v.AddressLow == 0x15);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -3397,7 +3420,7 @@ public static class DatabaseSeeder
             });
 
         // === BitInterpretation: Stato uscite fisiche (0x16) ===
-        var uscite = standardVariables
+        VariableEntity uscite = standardVariables
             .First(v => v.AddressLow == 0x16);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -3470,8 +3493,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // ============================================================
             // DATI AZIONAMENTO (0x8000-0x8017)
@@ -3654,7 +3677,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation: Stato IO (0x8036) ===
-        var statoIO = variables.First(v => v.AddressLow == 0x36);
+        VariableEntity statoIO = variables.First(v => v.AddressLow == 0x36);
         context.Set<BitInterpretationEntity>().AddRange(
             // Word 0 — Ingressi
             new BitInterpretationEntity
@@ -3780,11 +3803,13 @@ public static class DatabaseSeeder
             });
 
         // Link board Madre (FW=3) di TopLift-M
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == topLiftMDevice.Id
                 && board.FirmwareType == 3)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -3802,11 +3827,11 @@ public static class DatabaseSeeder
         DictionaryEntity topLiftMDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = topLiftMDictionary.Id;
+        int dictId = topLiftMDictionary.Id;
 
-        var disabledAddresses = new byte[]
+        byte[] disabledAddresses = new byte[]
             { 0x04, 0x15, 0x16, 0x17 };
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses.Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
             {
@@ -3838,8 +3863,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // === Stato keyboard 1-3 (0x8000-0x8002, disabilitate) ===
             Var(id, "Stato keyboard1", 0x80, 0x00,
@@ -4253,7 +4278,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretation: Stato finecorsa (0x8011) ===
-        var finecorsa = variables.First(
+        VariableEntity finecorsa = variables.First(
             v => v.AddressLow == 0x11);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -4272,7 +4297,7 @@ public static class DatabaseSeeder
             });
 
         // === BitInterpretation: Stato Luci (0x8043) ===
-        var luci = variables.First(v => v.AddressLow == 0x43);
+        VariableEntity luci = variables.First(v => v.AddressLow == 0x43);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
             {
@@ -4297,11 +4322,13 @@ public static class DatabaseSeeder
             });
 
         // Link board Madre (FW=14) di TopLift-A2
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == topLiftA2Device.Id
                 && board.FirmwareType == 14)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -4321,12 +4348,12 @@ public static class DatabaseSeeder
         DictionaryEntity topLiftA2Dictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = topLiftA2Dictionary.Id;
+        int dictId = topLiftA2Dictionary.Id;
 
         // === Override: Disabilita 0x05, 0x08, 0x15, 0x16, 0x17 ===
-        var disabledAddresses = new byte[]
+        byte[] disabledAddresses = new byte[]
             { 0x05, 0x08, 0x15, 0x16, 0x17 };
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses
                 .Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
@@ -4339,7 +4366,7 @@ public static class DatabaseSeeder
             .AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             // Word 0
@@ -4544,8 +4571,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — On
             Var(id, "On", 0x80, 0x00,
@@ -4685,11 +4712,13 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
 
         // Link board Display (FW=16) di O3Z-Tech
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == o3zTechDevice.Id
                 && board.FirmwareType == 16)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -4707,10 +4736,10 @@ public static class DatabaseSeeder
         DictionaryEntity o3zTechDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = o3zTechDictionary.Id;
+        int dictId = o3zTechDictionary.Id;
 
         // === Override: Disabilita 0x08-0x0D, 0x0F, 0x16, 0x17 ===
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v =>
                 (v.AddressLow >= 0x08 && v.AddressLow <= 0x0D)
                 || v.AddressLow == 0x0F
@@ -4726,7 +4755,7 @@ public static class DatabaseSeeder
             .AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) Word 0 ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -4873,8 +4902,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Stato pulsanti
             Var(id, "Stato pulsanti", 0x80, 0x00,
@@ -4997,11 +5026,13 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
 
         // Link board HMI (FW=11) di Spark
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == sparkDevice.Id
                 && board.FirmwareType == 11)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -5022,12 +5053,12 @@ public static class DatabaseSeeder
         DictionaryEntity hmiSparkDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = hmiSparkDictionary.Id;
+        int dictId = hmiSparkDictionary.Id;
 
         // === Override: Disabilita 0x08, 0x09, 0x0A, 0x17 ===
-        var disabledAddresses = new byte[]
+        byte[] disabledAddresses = new byte[]
             { 0x08, 0x09, 0x0A, 0x17 };
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses
                 .Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
@@ -5040,7 +5071,7 @@ public static class DatabaseSeeder
             .AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             // Word 0: Allarmi
@@ -5193,8 +5224,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Stato keyboard 1 (R/W="N", disabilitata)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
@@ -5955,7 +5986,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretations: Stato finecorsa (0x800F) ===
-        var statoFinecorsa = variables.First(
+        VariableEntity statoFinecorsa = variables.First(
             v => v.AddressLow == 0x0F);
         var finecorsaBits = new BitInterpretationEntity[]
         {
@@ -5970,7 +6001,7 @@ public static class DatabaseSeeder
             .AddRange(finecorsaBits);
 
         // === BitInterpretations: Stato Luci (0x8041) ===
-        var statoLuci = variables.First(
+        VariableEntity statoLuci = variables.First(
             v => v.AddressLow == 0x41);
         var luciBits = new BitInterpretationEntity[]
         {
@@ -5985,11 +6016,13 @@ public static class DatabaseSeeder
             .AddRange(luciBits);
 
         // Link board Madre (FW=19) di Eden-BS8
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == edenBS8Device.Id
                 && board.FirmwareType == 19)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -6009,10 +6042,10 @@ public static class DatabaseSeeder
         DictionaryEntity edenBS8Dictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = edenBS8Dictionary.Id;
+        int dictId = edenBS8Dictionary.Id;
 
         // === BitInterpretation: Allarmi (0x06) ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         var allarmiBits = new BitInterpretationEntity[]
         {
@@ -6111,7 +6144,7 @@ public static class DatabaseSeeder
             .AddRange(allarmiBits);
 
         // === BitInterpretation: Stato ingressi (0x15) ===
-        var ingressi = standardVariables
+        VariableEntity ingressi = standardVariables
             .First(v => v.AddressLow == 0x15);
         var ingressiBits = new BitInterpretationEntity[]
         {
@@ -6168,7 +6201,7 @@ public static class DatabaseSeeder
             .AddRange(ingressiBits);
 
         // === BitInterpretation: Stato uscite (0x16) ===
-        var uscite = standardVariables
+        VariableEntity uscite = standardVariables
             .First(v => v.AddressLow == 0x16);
         var usciteBits = new BitInterpretationEntity[]
         {
@@ -6247,8 +6280,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 \u2014 Stato keyboard1 (R/W=\"N\", disabilitata)
             Var(id, "Stato keyboard1", 0x80, 0x00,
@@ -6329,7 +6362,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretations: FC Master (0x8008) ===
-        var fcMaster = variables.First(
+        VariableEntity fcMaster = variables.First(
             v => v.AddressLow == 0x08);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -6362,7 +6395,7 @@ public static class DatabaseSeeder
             });
 
         // === BitInterpretations: Virtual keyboard (0x800A) ===
-        var vKeyboard = variables.First(
+        VariableEntity vKeyboard = variables.First(
             v => v.AddressLow == 0x0A);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -6423,11 +6456,13 @@ public static class DatabaseSeeder
             });
 
         // Link board Master (FW=18) di R3L-XP
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == r3lXPDevice.Id
                 && board.FirmwareType == 18)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -6445,12 +6480,12 @@ public static class DatabaseSeeder
         DictionaryEntity r3lXPMasterDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = r3lXPMasterDictionary.Id;
+        int dictId = r3lXPMasterDictionary.Id;
 
         // === Override: Disabilita 6 variabili standard ===
-        var disabledAddresses = new byte[]
+        byte[] disabledAddresses = new byte[]
             { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses
                 .Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
@@ -6463,7 +6498,7 @@ public static class DatabaseSeeder
             .AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) Word 0 ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -6554,8 +6589,8 @@ public static class DatabaseSeeder
         context.Dictionaries.Add(dictionary);
         await context.SaveChangesAsync();
 
-        var id = dictionary.Id;
-        var variables = new[]
+        int id = dictionary.Id;
+        VariableEntity[] variables = new[]
         {
             // 0x8000 — Non usato (disabilitata)
             Var(id, "Non usato", 0x80, 0x00,
@@ -6669,7 +6704,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         // === BitInterpretations: IOSlave (0x8009) ===
-        var ioSlave = variables.First(
+        VariableEntity ioSlave = variables.First(
             v => v.AddressLow == 0x09);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -6709,11 +6744,13 @@ public static class DatabaseSeeder
             });
 
         // Link board Slave (FW=20) di R3L-XP
-        foreach (var board in boards)
+        foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == r3lXPDevice.Id
                 && board.FirmwareType == 20)
+            {
                 board.DictionaryId = dictionary.Id;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -6731,12 +6768,12 @@ public static class DatabaseSeeder
         DictionaryEntity r3lXPSlaveDictionary,
         VariableEntity[] standardVariables)
     {
-        var dictId = r3lXPSlaveDictionary.Id;
+        int dictId = r3lXPSlaveDictionary.Id;
 
         // === Override: Disabilita 6 variabili standard ===
-        var disabledAddresses = new byte[]
+        byte[] disabledAddresses = new byte[]
             { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
-        var disabledOverrides = standardVariables
+        IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses
                 .Contains(v.AddressLow))
             .Select(v => new StandardVariableOverrideEntity
@@ -6749,7 +6786,7 @@ public static class DatabaseSeeder
             .AddRange(disabledOverrides);
 
         // === BitInterpretation: Allarmi (0x06) Word 0 ===
-        var allarmi = standardVariables
+        VariableEntity allarmi = standardVariables
             .First(v => v.AddressLow == 0x06);
         context.Set<BitInterpretationEntity>().AddRange(
             new BitInterpretationEntity
@@ -6905,7 +6942,7 @@ public static class DatabaseSeeder
         params string[] parameters)
     {
         // Serializza i parametri come JSON array
-        var paramsJson = parameters.Length > 0
+        string paramsJson = parameters.Length > 0
             ? "[" + string.Join(",", parameters.Select(p => $"\"{p}\"")) + "]"
             : "[]";
 
@@ -6926,7 +6963,7 @@ public static class DatabaseSeeder
     private static BoardEntity Brd(int machineCode, int deviceId, string name,
         int fwType, int boardNumber, bool isPrimary)
     {
-        var address = (uint)((machineCode << 16)
+        uint address = (uint)((machineCode << 16)
             | ((fwType & 0x3FF) << 6)
             | (boardNumber & 0x3F));
 

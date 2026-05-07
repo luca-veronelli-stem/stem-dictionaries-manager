@@ -20,7 +20,7 @@ public class DeviceMapperTests
             Description = "Supporto barella"
         };
 
-        var result = DeviceMapper.ToDomain(entity);
+        Device result = DeviceMapper.ToDomain(entity);
 
         Assert.Equal(3, result.Id);
         Assert.Equal("Eden-XP", result.Name);
@@ -39,7 +39,7 @@ public class DeviceMapperTests
             Description = null
         };
 
-        var result = DeviceMapper.ToDomain(entity);
+        Device result = DeviceMapper.ToDomain(entity);
 
         Assert.Null(result.Description);
     }
@@ -56,7 +56,7 @@ public class DeviceMapperTests
     {
         var device = Device.Restore(5, "Spyke", 5, "Barella con caricamento");
 
-        var result = DeviceMapper.ToEntity(device);
+        DeviceEntity result = DeviceMapper.ToEntity(device);
 
         Assert.Equal(5, result.Id);
         Assert.Equal("Spyke", result.Name);
@@ -69,7 +69,7 @@ public class DeviceMapperTests
     {
         var device = Device.Restore(1, "Spark", 7, null);
 
-        var result = DeviceMapper.ToEntity(device);
+        DeviceEntity result = DeviceMapper.ToEntity(device);
 
         Assert.Null(result.Description);
     }
@@ -121,14 +121,14 @@ public class DeviceMapperTests
     [Fact]
     public void ToDomainList_MultipleEntities_ReturnsAllDevices()
     {
-        var entities = new[]
+        DeviceEntity[] entities = new[]
         {
             new DeviceEntity { Id = 1, Name = "A", MachineCode = 1 },
             new DeviceEntity { Id = 2, Name = "B", MachineCode = 2 },
             new DeviceEntity { Id = 3, Name = "C", MachineCode = 3 }
         };
 
-        var result = DeviceMapper.ToDomainList(entities);
+        IReadOnlyList<Device> result = DeviceMapper.ToDomainList(entities);
 
         Assert.Equal(3, result.Count);
         Assert.Equal("A", result[0].Name);
@@ -138,7 +138,7 @@ public class DeviceMapperTests
     [Fact]
     public void ToDomainList_EmptyList_ReturnsEmpty()
     {
-        var result = DeviceMapper.ToDomainList([]);
+        IReadOnlyList<Device> result = DeviceMapper.ToDomainList([]);
 
         Assert.Empty(result);
     }
@@ -154,8 +154,8 @@ public class DeviceMapperTests
             Description = "Supporto barella elettromeccanico"
         };
 
-        var domain = DeviceMapper.ToDomain(original);
-        var roundTripped = DeviceMapper.ToEntity(domain);
+        Device domain = DeviceMapper.ToDomain(original);
+        DeviceEntity roundTripped = DeviceMapper.ToEntity(domain);
 
         Assert.Equal(original.Id, roundTripped.Id);
         Assert.Equal(original.Name, roundTripped.Name);

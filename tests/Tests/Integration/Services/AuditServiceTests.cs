@@ -1,4 +1,5 @@
 using Core.Enums;
+using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Services;
@@ -37,7 +38,7 @@ public class AuditServiceTests : IntegrationTestBase
             "{\"name\":\"TestVar\"}");
 
         // Assert
-        var entries = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> entries = await _service.GetByEntityAsync(
             AuditEntityType.Variable, 1);
         Assert.Single(entries);
         Assert.Equal(AuditOperation.Create, entries[0].Operation);
@@ -52,7 +53,7 @@ public class AuditServiceTests : IntegrationTestBase
             AuditEntityType.Dictionary, 5, _testUser.Id,
             "{}", "Creato dizionario Standard");
 
-        var entries = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> entries = await _service.GetByEntityAsync(
             AuditEntityType.Dictionary, 5);
         Assert.Equal("Creato dizionario Standard", entries[0].Notes);
     }
@@ -82,7 +83,7 @@ public class AuditServiceTests : IntegrationTestBase
             AuditEntityType.Command, 3, _testUser.Id,
             "{\"name\":\"old\"}", "{\"name\":\"new\"}");
 
-        var entries = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> entries = await _service.GetByEntityAsync(
             AuditEntityType.Command, 3);
         Assert.Single(entries);
         Assert.Equal(AuditOperation.Update, entries[0].Operation);
@@ -117,7 +118,7 @@ public class AuditServiceTests : IntegrationTestBase
             AuditEntityType.Board, 7, _testUser.Id,
             "{\"name\":\"Madre\"}");
 
-        var entries = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> entries = await _service.GetByEntityAsync(
             AuditEntityType.Board, 7);
         Assert.Single(entries);
         Assert.Equal(AuditOperation.Delete, entries[0].Operation);
@@ -141,8 +142,8 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogCreateAsync(
             AuditEntityType.Variable, 10, _testUser.Id, "{}");
 
-        var all = await _service.GetRecentAsync(1);
-        var result = await _service.GetByIdAsync(all[0].Id);
+        IReadOnlyList<AuditEntry> all = await _service.GetRecentAsync(1);
+        AuditEntry? result = await _service.GetByIdAsync(all[0].Id);
 
         Assert.NotNull(result);
         Assert.Equal(AuditEntityType.Variable, result.EntityType);
@@ -152,7 +153,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _service.GetByIdAsync(999);
+        AuditEntry? result = await _service.GetByIdAsync(999);
         Assert.Null(result);
     }
 
@@ -168,7 +169,7 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogCreateAsync(
             AuditEntityType.Command, 42, _testUser.Id, "{}");
 
-        var result = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> result = await _service.GetByEntityAsync(
             AuditEntityType.Variable, 42);
 
         Assert.Equal(2, result.Count);
@@ -185,7 +186,7 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogUpdateAsync(
             AuditEntityType.Variable, 1, _testUser.Id, "{}", "{\"v\":2}");
 
-        var result = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> result = await _service.GetByEntityAsync(
             AuditEntityType.Variable, 1);
 
         Assert.Equal(AuditOperation.Update, result[0].Operation);
@@ -209,7 +210,7 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogCreateAsync(
             AuditEntityType.Command, 1, _testUser.Id, "{}");
 
-        var result = await _service.GetByUserAsync(_testUser.Id);
+        IReadOnlyList<AuditEntry> result = await _service.GetByUserAsync(_testUser.Id);
 
         Assert.Equal(2, result.Count);
         Assert.All(result, e => Assert.Equal(_testUser.Id, e.ChangedById));
@@ -221,10 +222,12 @@ public class AuditServiceTests : IntegrationTestBase
     public async Task GetRecentAsync_ReturnsLimitedCount()
     {
         for (int i = 0; i < 5; i++)
+        {
             await _service.LogCreateAsync(
                 AuditEntityType.Variable, i, _testUser.Id, "{}");
+        }
 
-        var result = await _service.GetRecentAsync(3);
+        IReadOnlyList<AuditEntry> result = await _service.GetRecentAsync(3);
 
         Assert.Equal(3, result.Count);
     }
@@ -238,7 +241,7 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogCreateAsync(
             AuditEntityType.Variable, 2, _testUser.Id, "{\"second\":true}");
 
-        var result = await _service.GetRecentAsync(10);
+        IReadOnlyList<AuditEntry> result = await _service.GetRecentAsync(10);
 
         Assert.Equal(2, result[0].EntityId);
         Assert.Equal(1, result[1].EntityId);
@@ -280,7 +283,7 @@ public class AuditServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetByDateRangeAsync(
+        IReadOnlyList<AuditEntry> result = await _service.GetByDateRangeAsync(
             new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc));
 
@@ -305,7 +308,7 @@ public class AuditServiceTests : IntegrationTestBase
         await _service.LogCreateAsync(
             AuditEntityType.Variable, 1, _testUser.Id, "{}");
 
-        var result = await _service.GetByDateRangeAsync(
+        IReadOnlyList<AuditEntry> result = await _service.GetByDateRangeAsync(
             new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(2020, 12, 31, 0, 0, 0, DateTimeKind.Utc));
 
@@ -334,7 +337,7 @@ public class AuditServiceTests : IntegrationTestBase
             "{\"name\":\"TestVar_v2\"}", "Rimossa variabile");
 
         // Assert
-        var trail = await _service.GetByEntityAsync(
+        IReadOnlyList<AuditEntry> trail = await _service.GetByEntityAsync(
             AuditEntityType.Variable, 50);
 
         Assert.Equal(3, trail.Count);

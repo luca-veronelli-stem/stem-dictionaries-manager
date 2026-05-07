@@ -76,13 +76,13 @@ public partial class DeviceListViewModel : ObservableObject
         try
         {
             IsLoading = true;
-            var devices = await _deviceService.GetAllAsync();
+            IReadOnlyList<Device> devices = await _deviceService.GetAllAsync();
 
             // Carica tutte le board per derivare conteggi per device
             var boardsByDevice = new Dictionary<int, List<Core.Models.Board>>();
-            foreach (var device in devices)
+            foreach (Device device in devices)
             {
-                var boards = await _boardService.GetByDeviceIdAsync(device.Id);
+                IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(device.Id);
                 boardsByDevice[device.Id] = [.. boards];
             }
 
@@ -90,9 +90,9 @@ public partial class DeviceListViewModel : ObservableObject
                 .OrderBy(d => d.MachineCode)
                 .Select(d =>
                 {
-                    var boards = boardsByDevice.GetValueOrDefault(d.Id, []);
-                    var boardCount = boards.Count;
-                    var dictionaryCount = boards
+                    List<Board> boards = boardsByDevice.GetValueOrDefault(d.Id, []);
+                    int boardCount = boards.Count;
+                    int dictionaryCount = boards
                         .Where(b => b.DictionaryId.HasValue)
                         .Select(b => b.DictionaryId!.Value)
                         .Distinct()
@@ -124,7 +124,7 @@ public partial class DeviceListViewModel : ObservableObject
         }
         else
         {
-            var filtered = _allDevices.Where(d =>
+            IEnumerable<DeviceItem> filtered = _allDevices.Where(d =>
                 d.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                 d.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
             Devices = new ObservableCollection<DeviceItem>(filtered);
@@ -140,8 +140,11 @@ public partial class DeviceListViewModel : ObservableObject
     [RelayCommand]
     private void OpenDevice(DeviceItem? device)
     {
-        var target = device ?? SelectedDevice;
-        if (target == null) return;
+        DeviceItem? target = device ?? SelectedDevice;
+        if (target == null)
+        {
+            return;
+        }
 
         _navigationService.NavigateTo(ViewType.DeviceDetail, new NavigationParameter
         {

@@ -13,7 +13,9 @@ public class ApiKeyMiddlewareTests
     {
         var dict = new Dictionary<string, string?>();
         for (int i = 0; i < keys.Length; i++)
+        {
             dict[$"ApiKeys:Key{i}"] = keys[i];
+        }
 
         return new ConfigurationBuilder()
             .AddInMemoryCollection(dict)
@@ -23,15 +25,15 @@ public class ApiKeyMiddlewareTests
     private static ApiKeyMiddleware CreateMiddleware(
         RequestDelegate next, params string[] keys)
     {
-        var config = CreateConfig(keys);
+        IConfiguration config = CreateConfig(keys);
         return new ApiKeyMiddleware(next, config);
     }
 
     [Fact]
     public async Task MissingApiKey_Returns401()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/devices";
@@ -45,8 +47,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task InvalidApiKey_Returns401()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/devices";
@@ -61,8 +63,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task ValidApiKey_CallsNext()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/devices";
@@ -76,8 +78,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task SwaggerPath_BypassesAuthentication()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/swagger/index.html";
@@ -90,8 +92,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task OpenApiPath_BypassesAuthentication()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/openapi/v1.json";
@@ -104,8 +106,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task EmptyApiKey_Returns401()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "VALID-KEY");
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/dictionaries";
@@ -120,8 +122,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task MultipleValidKeys_AcceptsAny()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; },
             "KEY-ONE", "KEY-TWO");
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/commands";
@@ -135,8 +137,8 @@ public class ApiKeyMiddlewareTests
     [Fact]
     public async Task NoKeysConfigured_AllRequestsRejected()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; });
+        bool called = false;
+        ApiKeyMiddleware middleware = CreateMiddleware(_ => { called = true; return Task.CompletedTask; });
         var context = new DefaultHttpContext();
         context.Request.Path = "/api/devices";
         context.Request.Headers["X-Api-Key"] = "ANY-KEY";

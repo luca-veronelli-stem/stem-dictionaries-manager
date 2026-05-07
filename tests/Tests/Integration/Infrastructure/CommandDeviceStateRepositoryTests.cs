@@ -40,7 +40,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
             IsEnabled = true
         };
 
-        var result = await _repository.AddAsync(state);
+        CommandDeviceStateEntity result = await _repository.AddAsync(state);
 
         Assert.True(result.Id > 0);
         Assert.Equal(10, result.DeviceId);
@@ -58,7 +58,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(state);
 
-        var result = await _repository.GetByIdAsync(state.Id);
+        CommandDeviceStateEntity? result = await _repository.GetByIdAsync(state.Id);
 
         Assert.NotNull(result);
         Assert.Equal(3, result.DeviceId);
@@ -68,7 +68,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        CommandDeviceStateEntity? result = await _repository.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -83,7 +83,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
             IsEnabled = true
         });
 
-        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
+        CommandDeviceStateEntity? result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
 
         Assert.NotNull(result);
         Assert.True(result.IsEnabled);
@@ -92,7 +92,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCommandAndDeviceAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
+        CommandDeviceStateEntity? result = await _repository.GetByCommandAndDeviceAsync(_testCommand.Id, 7);
 
         Assert.Null(result);
     }
@@ -121,7 +121,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByCommandIdAsync(_testCommand.Id);
+        IReadOnlyList<CommandDeviceStateEntity> result = await _repository.GetByCommandIdAsync(_testCommand.Id);
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -130,7 +130,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCommandIdAsync_NoStates_ReturnsEmptyList()
     {
-        var result = await _repository.GetByCommandIdAsync(999);
+        IReadOnlyList<CommandDeviceStateEntity> result = await _repository.GetByCommandIdAsync(999);
 
         Assert.Empty(result);
     }
@@ -149,7 +149,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         state.IsEnabled = true;
         await _repository.UpdateAsync(state);
 
-        var result = await _repository.GetByIdAsync(state.Id);
+        CommandDeviceStateEntity? result = await _repository.GetByIdAsync(state.Id);
         Assert.True(result!.IsEnabled);
     }
 
@@ -166,7 +166,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
 
         await _repository.DeleteAsync(state.Id);
 
-        var result = await _repository.GetByIdAsync(state.Id);
+        CommandDeviceStateEntity? result = await _repository.GetByIdAsync(state.Id);
         Assert.Null(result);
     }
 
@@ -197,7 +197,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByDeviceIdAsync(7);
+        IReadOnlyList<CommandDeviceStateEntity> result = await _repository.GetByDeviceIdAsync(7);
 
         // Assert — solo Spark
         Assert.Single(result);
@@ -233,7 +233,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByDeviceIdAsync(10);
+        IReadOnlyList<CommandDeviceStateEntity> result = await _repository.GetByDeviceIdAsync(10);
 
         // Assert — entrambi i comandi per OptimusXp
         Assert.Equal(2, result.Count);
@@ -243,7 +243,7 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByDeviceIdAsync_NoStates_ReturnsEmptyList()
     {
-        var result = await _repository.GetByDeviceIdAsync(4);
+        IReadOnlyList<CommandDeviceStateEntity> result = await _repository.GetByDeviceIdAsync(4);
 
         Assert.Empty(result);
     }

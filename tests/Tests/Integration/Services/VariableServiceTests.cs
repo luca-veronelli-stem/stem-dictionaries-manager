@@ -1,7 +1,7 @@
+using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
-using Core.Enums;
 using Services;
 using Services.Interfaces;
 
@@ -65,7 +65,7 @@ public class VariableServiceTests : IntegrationTestBase
         await _variableRepo.AddAsync(entity);
 
         // Act
-        var result = await _service.GetByIdAsync(entity.Id);
+        Variable? result = await _service.GetByIdAsync(entity.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -76,7 +76,7 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _service.GetByIdAsync(999);
+        Variable? result = await _service.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -111,7 +111,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<Variable> result = await _service.GetAllAsync();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -120,7 +120,7 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetAllAsync_EmptyDb_ReturnsEmptyList()
     {
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<Variable> result = await _service.GetAllAsync();
 
         Assert.Empty(result);
     }
@@ -142,7 +142,7 @@ public class VariableServiceTests : IntegrationTestBase
             description: "Description");
 
         // Act
-        var result = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable result = await _service.AddAsync(_testDictionary.Id, variable);
 
         // Assert
         Assert.True(result.Id > 0);
@@ -161,7 +161,7 @@ public class VariableServiceTests : IntegrationTestBase
             accessMode: AccessMode.ReadOnly,
             dataTypeRaw: "uint8_t");
 
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+        KeyNotFoundException exception = await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddAsync(999, variable));
         Assert.Contains("Dictionary", exception.Message);
     }
@@ -191,7 +191,7 @@ public class VariableServiceTests : IntegrationTestBase
             dataTypeRaw: "uint16_t");
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddAsync(_testDictionary.Id, variable));
         Assert.Contains("already exists", exception.Message);
     }
@@ -243,7 +243,7 @@ public class VariableServiceTests : IntegrationTestBase
         await _service.UpdateAsync(updated);
 
         // Assert
-        var result = await _service.GetByIdAsync(entity.Id);
+        Variable? result = await _service.GetByIdAsync(entity.Id);
         Assert.NotNull(result);
         Assert.Equal("Updated", result.Name);
         Assert.Equal(DataTypeKind.UInt16, result.DataTypeKind);
@@ -324,7 +324,7 @@ public class VariableServiceTests : IntegrationTestBase
             description: null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateAsync(conflicting));
         Assert.Contains("already exists", exception.Message);
     }
@@ -359,7 +359,7 @@ public class VariableServiceTests : IntegrationTestBase
         await _service.DeleteAsync(entity.Id);
 
         // Assert
-        var result = await _service.GetByIdAsync(entity.Id);
+        Variable? result = await _service.GetByIdAsync(entity.Id);
         Assert.Null(result);
     }
 
@@ -403,7 +403,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetByDictionaryIdAsync(_testDictionary.Id);
+        IReadOnlyList<Variable> result = await _service.GetByDictionaryIdAsync(_testDictionary.Id);
 
         // Assert
         Assert.Single(result);
@@ -429,7 +429,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetByAddressAsync(_testDictionary.Id, 0x80, 0x90);
+        Variable? result = await _service.GetByAddressAsync(_testDictionary.Id, 0x80, 0x90);
 
         // Assert
         Assert.NotNull(result);
@@ -439,7 +439,7 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByAddressAsync_NotFound_ReturnsNull()
     {
-        var result = await _service.GetByAddressAsync(_testDictionary.Id, 0xFF, 0xFF);
+        Variable? result = await _service.GetByAddressAsync(_testDictionary.Id, 0xFF, 0xFF);
 
         Assert.Null(result);
     }
@@ -479,7 +479,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsAsync(variable.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsAsync(variable.Id);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -514,7 +514,7 @@ public class VariableServiceTests : IntegrationTestBase
             meaning: "Pump Active", dictionaryId: null);
 
         // Act
-        var result = await _service.AddBitInterpretationAsync(variable.Id, interpretation);
+        BitInterpretation result = await _service.AddBitInterpretationAsync(variable.Id, interpretation);
 
         // Assert
         Assert.True(result.Id > 0);
@@ -555,7 +555,7 @@ public class VariableServiceTests : IntegrationTestBase
             meaning: "Test", dictionaryId: null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddBitInterpretationAsync(variable.Id, interpretation));
         Assert.Contains("not bitmapped", exception.Message);
     }
@@ -623,7 +623,7 @@ public class VariableServiceTests : IntegrationTestBase
 
         // Act
         await _service.UpdateBitInterpretationsAsync(variable.Id, newInterpretations);
-        var result = await _service.GetBitInterpretationsAsync(variable.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsAsync(variable.Id);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -666,7 +666,7 @@ public class VariableServiceTests : IntegrationTestBase
             new(variable.Id, 0, 0, "Test", null)
         };
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateBitInterpretationsAsync(variable.Id, interpretations));
         Assert.Contains("not bitmapped", ex.Message);
     }
@@ -694,7 +694,7 @@ public class VariableServiceTests : IntegrationTestBase
             new(variable.Id, 0, 0, "Duplicate", null)
         };
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateBitInterpretationsAsync(variable.Id, interpretations));
         Assert.Contains("Duplicate", ex.Message);
     }
@@ -730,8 +730,8 @@ public class VariableServiceTests : IntegrationTestBase
             BitIndex = 0,
             Meaning = "Motor"
         });
-        var originalBits = await _service.GetBitInterpretationsAsync(variable.Id);
-        var originalId = originalBits[0].Id;
+        IReadOnlyList<BitInterpretation> originalBits = await _service.GetBitInterpretationsAsync(variable.Id);
+        int originalId = originalBits[0].Id;
 
         // Act - aggiorna meaning, stessa chiave
         var updated = new List<BitInterpretation>
@@ -740,7 +740,7 @@ public class VariableServiceTests : IntegrationTestBase
         };
         await _service.UpdateBitInterpretationsAsync(variable.Id, updated);
 
-        var result = await _service.GetBitInterpretationsAsync(variable.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsAsync(variable.Id);
 
         // Assert - ID preservato
         Assert.Single(result);
@@ -753,11 +753,11 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task SetOverrideAsync_CreatesNewOverride()
     {
-        var variable = await CreateTestVariable();
+        Variable variable = await CreateTestVariable();
 
         await _service.SetOverrideAsync(dictionaryId: 1, variable.Id, isEnabled: false);
 
-        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        StandardVariableOverride? overrideState = await _service.GetOverrideAsync(1, variable.Id);
         Assert.NotNull(overrideState);
         Assert.False(overrideState.IsEnabled);
     }
@@ -765,12 +765,12 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task SetOverrideAsync_UpdatesExistingOverride()
     {
-        var variable = await CreateTestVariable();
+        Variable variable = await CreateTestVariable();
         await _service.SetOverrideAsync(1, variable.Id, false);
 
         await _service.SetOverrideAsync(1, variable.Id, true);
 
-        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        StandardVariableOverride? overrideState = await _service.GetOverrideAsync(1, variable.Id);
         Assert.NotNull(overrideState);
         Assert.True(overrideState.IsEnabled);
     }
@@ -786,10 +786,10 @@ public class VariableServiceTests : IntegrationTestBase
     public async Task SetOverrideAsync_BR011_EnableOnDeprecated_ThrowsInvalidOperationException()
     {
         // Crea variabile disabilitata (deprecata)
-        var variable = await CreateTestVariable(isEnabled: false);
+        Variable variable = await CreateTestVariable(isEnabled: false);
 
         // BR-011: tentativo di abilitare override → errore
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.SetOverrideAsync(1, variable.Id, true));
 
         Assert.Contains("deprecated globally", ex.Message);
@@ -798,12 +798,12 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task SetOverrideAsync_BR011_DisableOnDeprecated_Allowed()
     {
-        var variable = await CreateTestVariable(isEnabled: false);
+        Variable variable = await CreateTestVariable(isEnabled: false);
 
         // Disabilitare override su variabile deprecata è consentito
         await _service.SetOverrideAsync(1, variable.Id, false);
 
-        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        StandardVariableOverride? overrideState = await _service.GetOverrideAsync(1, variable.Id);
         Assert.NotNull(overrideState);
         Assert.False(overrideState.IsEnabled);
     }
@@ -811,9 +811,9 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverrideAsync_NotExists_ReturnsNull()
     {
-        var variable = await CreateTestVariable();
+        Variable variable = await CreateTestVariable();
 
-        var overrideState = await _service.GetOverrideAsync(1, variable.Id);
+        StandardVariableOverride? overrideState = await _service.GetOverrideAsync(1, variable.Id);
 
         Assert.Null(overrideState);
     }
@@ -821,14 +821,14 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverridesByVariableAsync_ReturnsAllOverrides()
     {
-        var variable = await CreateTestVariable();
+        Variable variable = await CreateTestVariable();
         var dict2 = new DictionaryEntity { Name = "override-dict-2" };
         await _dictionaryRepo.AddAsync(dict2);
 
         await _service.SetOverrideAsync(_testDictionary.Id, variable.Id, false);
         await _service.SetOverrideAsync(dict2.Id, variable.Id, false);
 
-        var overrides = await _service.GetOverridesByVariableAsync(variable.Id);
+        IReadOnlyList<StandardVariableOverride> overrides = await _service.GetOverridesByVariableAsync(variable.Id);
 
         Assert.Equal(2, overrides.Count);
     }
@@ -836,9 +836,9 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverridesByVariableAsync_NoOverrides_ReturnsEmpty()
     {
-        var variable = await CreateTestVariable();
+        Variable variable = await CreateTestVariable();
 
-        var overrides = await _service.GetOverridesByVariableAsync(variable.Id);
+        IReadOnlyList<StandardVariableOverride> overrides = await _service.GetOverridesByVariableAsync(variable.Id);
 
         Assert.Empty(overrides);
     }
@@ -848,12 +848,12 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverridesByDictionaryAsync_ReturnsOverridesForDictionary()
     {
-        var var1 = await CreateTestVariable(addressLow: 0x60);
-        var var2 = await CreateTestVariable(addressLow: 0x61);
+        Variable var1 = await CreateTestVariable(addressLow: 0x60);
+        Variable var2 = await CreateTestVariable(addressLow: 0x61);
         await _service.SetOverrideAsync(_testDictionary.Id, var1.Id, false);
         await _service.SetOverrideAsync(_testDictionary.Id, var2.Id, true);
 
-        var result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
+        IReadOnlyList<StandardVariableOverride> result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
 
         Assert.Equal(2, result.Count);
         Assert.All(result, o => Assert.Equal(_testDictionary.Id, o.DictionaryId));
@@ -862,14 +862,14 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverridesByDictionaryAsync_ExcludesOtherDictionaries()
     {
-        var variable = await CreateTestVariable(addressLow: 0x62);
+        Variable variable = await CreateTestVariable(addressLow: 0x62);
         var dict2 = new DictionaryEntity { Name = "override-dict-other" };
         await _dictionaryRepo.AddAsync(dict2);
 
         await _service.SetOverrideAsync(_testDictionary.Id, variable.Id, false);
         await _service.SetOverrideAsync(dict2.Id, variable.Id, true);
 
-        var result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
+        IReadOnlyList<StandardVariableOverride> result = await _service.GetOverridesByDictionaryAsync(_testDictionary.Id);
 
         Assert.Single(result);
         Assert.Equal(variable.Id, result[0].StandardVariableId);
@@ -881,7 +881,7 @@ public class VariableServiceTests : IntegrationTestBase
     {
         await CreateTestVariable(addressLow: 0x63);
 
-        var result = await _service.GetOverridesByDictionaryAsync(99);
+        IReadOnlyList<StandardVariableOverride> result = await _service.GetOverridesByDictionaryAsync(99);
 
         Assert.Empty(result);
     }
@@ -889,15 +889,15 @@ public class VariableServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetOverridesByDictionaryAsync_MapsToDomainCorrectly()
     {
-        var variable = await CreateTestVariable(addressLow: 0x64);
+        Variable variable = await CreateTestVariable(addressLow: 0x64);
         var dictForOverride = new DictionaryEntity { Name = "override-dict-map" };
         await _dictionaryRepo.AddAsync(dictForOverride);
 
         await _service.SetOverrideAsync(dictForOverride.Id, variable.Id, false);
 
-        var result = await _service.GetOverridesByDictionaryAsync(dictForOverride.Id);
+        IReadOnlyList<StandardVariableOverride> result = await _service.GetOverridesByDictionaryAsync(dictForOverride.Id);
 
-        var overrideState = Assert.Single(result);
+        StandardVariableOverride overrideState = Assert.Single(result);
         Assert.Equal(variable.Id, overrideState.StandardVariableId);
         Assert.Equal(dictForOverride.Id, overrideState.DictionaryId);
         Assert.False(overrideState.IsEnabled);
@@ -928,7 +928,7 @@ public class VariableServiceTests : IntegrationTestBase
             "MixedBits", 0x00, 0x73,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
             dataTypeParam: 1, isEnabled: true);
-        var created = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable created = await _service.AddAsync(_testDictionary.Id, variable);
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
@@ -956,7 +956,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act — normal mode (no dictionary)
-        var result = await _service.GetBitInterpretationsAsync(created.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsAsync(created.Id);
 
         // Assert — solo le comuni, nessuna dictionary-specific
         Assert.Equal(2, result.Count);
@@ -979,7 +979,7 @@ public class VariableServiceTests : IntegrationTestBase
             "StatusBits", 0x00, 0x70,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
             dataTypeParam: 1, isEnabled: true);
-        var created = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable created = await _service.AddAsync(_testDictionary.Id, variable);
 
         // Bit comuni (DictionaryId = null)
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
@@ -1009,7 +1009,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
 
         // Assert — 2 bit: bit 0 = dictionary override, bit 1 = common fallback
         Assert.Equal(2, result.Count);
@@ -1025,7 +1025,7 @@ public class VariableServiceTests : IntegrationTestBase
             "StatusBits2", 0x00, 0x71,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
             dataTypeParam: 1, isEnabled: true);
-        var created = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable created = await _service.AddAsync(_testDictionary.Id, variable);
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
@@ -1037,7 +1037,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, 99);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, 99);
 
         // Assert — fallback alle comuni
         Assert.Single(result);
@@ -1057,7 +1057,7 @@ public class VariableServiceTests : IntegrationTestBase
             "StatusBits3", 0x00, 0x72,
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "bitmapped[1]",
             dataTypeParam: 1, isEnabled: true);
-        var created = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable created = await _service.AddAsync(_testDictionary.Id, variable);
 
         await _bitInterpretationRepo.AddAsync(new BitInterpretationEntity
         {
@@ -1077,7 +1077,7 @@ public class VariableServiceTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
+        IReadOnlyList<BitInterpretation> result = await _service.GetBitInterpretationsForDictionaryAsync(created.Id, nonStdDict.Id);
 
         // Assert — solo 1 bit (dictionary override, non duplicato)
         Assert.Single(result);
@@ -1103,10 +1103,10 @@ public class VariableServiceTests : IntegrationTestBase
             wordSize: 8);
 
         // Act
-        var created = await _service.AddAsync(_testDictionary.Id, variable);
+        Variable created = await _service.AddAsync(_testDictionary.Id, variable);
 
         // Assert — round-trip: reload from DB
-        var loaded = await _service.GetByIdAsync(created.Id);
+        Variable? loaded = await _service.GetByIdAsync(created.Id);
         Assert.NotNull(loaded);
         Assert.Equal(8, loaded.WordSize);
         Assert.Equal(DataTypeKind.Bitmapped, loaded.DataTypeKind);
@@ -1154,7 +1154,7 @@ public class VariableServiceTests : IntegrationTestBase
         await _service.UpdateAsync(updated);
 
         // Assert
-        var loaded = await _service.GetByIdAsync(entity.Id);
+        Variable? loaded = await _service.GetByIdAsync(entity.Id);
         Assert.NotNull(loaded);
         Assert.Equal(32, loaded.WordSize);
     }

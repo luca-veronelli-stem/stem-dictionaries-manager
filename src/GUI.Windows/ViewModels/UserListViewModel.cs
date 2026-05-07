@@ -82,7 +82,7 @@ public partial class UserListViewModel : ObservableObject
             IsBusy = true;
             ErrorMessage = null;
 
-            var users = await _userService.GetAllAsync();
+            IReadOnlyList<User> users = await _userService.GetAllAsync();
 
             _allUsers = [.. users
                 .Select(u => new UserListItem
@@ -139,13 +139,19 @@ public partial class UserListViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteAsync(UserListItem? item)
     {
-        if (item is null) return;
+        if (item is null)
+        {
+            return;
+        }
 
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Conferma eliminazione",
             $"Eliminare l'utente '{item.Username}'?");
 
-        if (result != DialogResult.Yes) return;
+        if (result != DialogResult.Yes)
+        {
+            return;
+        }
 
         try
         {
@@ -178,7 +184,7 @@ public partial class UserListViewModel : ObservableObject
             return;
         }
 
-        var term = SearchText.Trim();
+        string term = SearchText.Trim();
         Users = [.. _allUsers.Where(u =>
             u.Username.Contains(term, StringComparison.OrdinalIgnoreCase) ||
             u.DisplayName.Contains(term, StringComparison.OrdinalIgnoreCase))];

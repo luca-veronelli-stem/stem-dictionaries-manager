@@ -1,9 +1,9 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using Services.Interfaces;
-using System.Collections.ObjectModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -47,8 +47,8 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [NotifyPropertyChangedFor(nameof(IsCodeLowInvalid))]
     private string _codeLowHex = string.Empty;
 
-    private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
-    private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : (byte)0;
+    private byte CodeHigh => byte.TryParse(CodeHighHex, System.Globalization.NumberStyles.HexNumber, null, out byte v) ? v : (byte)0;
+    private byte CodeLow => byte.TryParse(CodeLowHex, System.Globalization.NumberStyles.HexNumber, null, out byte v) ? v : (byte)0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CodeHighHex))]
@@ -93,7 +93,10 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     /// </summary>
     public async Task InitializeAsync(int? commandId)
     {
-        if (_isInitialized) return;
+        if (_isInitialized)
+        {
+            return;
+        }
 
         try
         {
@@ -102,7 +105,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
             if (commandId.HasValue)
             {
-                var command = await _commandService.GetByIdAsync(commandId.Value);
+                Command? command = await _commandService.GetByIdAsync(commandId.Value);
                 if (command is null)
                 {
                     await _dialogService.ShowErrorAsync("Errore", "Comando non trovato.");
@@ -139,7 +142,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
         // Carica parametri strutturati
         ParameterItems.Clear();
-        foreach (var (p, i) in c.Parameters.Select((p, i) => (p, i)))
+        foreach ((string? p, int i) in c.Parameters.Select((p, i) => (p, i)))
         {
             var item = CommandParameterItem.Deserialize(i, p);
             item.PropertyChanged += (_, _) => HasChanges = true;
@@ -159,8 +162,15 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
 
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
-        if (string.IsNullOrWhiteSpace(CodeLowHex)) missing.Add("Codice");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            missing.Add("Nome");
+        }
+
+        if (string.IsNullOrWhiteSpace(CodeLowHex))
+        {
+            missing.Add("Codice");
+        }
 
         if (missing.Count > 0)
         {
@@ -174,7 +184,10 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
+        if (!Validate())
+        {
+            return;
+        }
 
         try
         {
@@ -226,13 +239,19 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task DeleteAsync()
     {
-        if (IsNew) return;
+        if (IsNew)
+        {
+            return;
+        }
 
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Conferma eliminazione",
             $"Eliminare il comando '{Name}'?\nQuesta operazione non può essere annullata.");
 
-        if (result != DialogResult.Yes) return;
+        if (result != DialogResult.Yes)
+        {
+            return;
+        }
 
         try
         {
@@ -256,10 +275,13 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     {
         if (HasChanges)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Annulla modifiche",
                 "Sei sicuro di voler annullare le modifiche?");
-            if (result != DialogResult.Yes) return;
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
         }
 
         _navigationService.GoBack();
@@ -284,7 +306,11 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private void RemoveLastParameter()
     {
-        if (ParameterItems.Count == 0) return;
+        if (ParameterItems.Count == 0)
+        {
+            return;
+        }
+
         ParameterItems.RemoveAt(ParameterItems.Count - 1);
         OnPropertyChanged(nameof(HasParameters));
         HasChanges = true;

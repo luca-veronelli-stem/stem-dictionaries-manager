@@ -27,7 +27,7 @@ public static class DictionaryMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var variables = entity.Variables != null
+        IEnumerable<Variable> variables = entity.Variables != null
             ? entity.Variables.Select(VariableMapper.ToDomain)
             : [];
 

@@ -1,3 +1,4 @@
+using API.Dtos;
 using API.Mapping;
 using Core.Enums;
 using Core.Models;
@@ -66,7 +67,7 @@ public class ApiMapperTests
             unit: null, usage: null, description: "Template desc",
             wordSize: null);
 
-        var dto = ApiMapper.ToResolvedDto(variable, isStandard: true);
+        ResolvedVariableDto dto = ApiMapper.ToResolvedDto(variable, isStandard: true);
 
         Assert.True(dto.IsStandard);
         Assert.Equal("Template desc", dto.Description);
@@ -83,7 +84,7 @@ public class ApiMapperTests
             unit: null, usage: null, description: "Template desc",
             wordSize: null);
 
-        var dto = ApiMapper.ToResolvedDto(variable, isStandard: true,
+        ResolvedVariableDto dto = ApiMapper.ToResolvedDto(variable, isStandard: true,
             overrideDescription: "Override desc");
 
         Assert.Equal("Override desc", dto.Description);
@@ -100,7 +101,7 @@ public class ApiMapperTests
             unit: null, usage: null, description: "Piano acceso",
             wordSize: null);
 
-        var dto = ApiMapper.ToResolvedDto(variable, isStandard: false);
+        ResolvedVariableDto dto = ApiMapper.ToResolvedDto(variable, isStandard: false);
 
         Assert.False(dto.IsStandard);
     }

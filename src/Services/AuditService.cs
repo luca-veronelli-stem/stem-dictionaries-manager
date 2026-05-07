@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -23,28 +24,28 @@ public class AuditService : IAuditService
 
     public async Task<AuditEntry?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        AuditEntryEntity? entity = await _repository.GetByIdAsync(id, ct);
         return entity is null ? null : AuditEntryMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<AuditEntry>> GetByEntityAsync(
         AuditEntityType entityType, int entityId, CancellationToken ct = default)
     {
-        var entities = await _repository.GetByEntityAsync(entityType, entityId, ct);
+        IReadOnlyList<AuditEntryEntity> entities = await _repository.GetByEntityAsync(entityType, entityId, ct);
         return AuditEntryMapper.ToDomainList(entities);
     }
 
     public async Task<IReadOnlyList<AuditEntry>> GetByUserAsync(
         int userId, CancellationToken ct = default)
     {
-        var entities = await _repository.GetByUserAsync(userId, ct);
+        IReadOnlyList<AuditEntryEntity> entities = await _repository.GetByUserAsync(userId, ct);
         return AuditEntryMapper.ToDomainList(entities);
     }
 
     public async Task<IReadOnlyList<AuditEntry>> GetRecentAsync(
         int count = 100, CancellationToken ct = default)
     {
-        var entities = await _repository.GetRecentAsync(count, ct);
+        IReadOnlyList<AuditEntryEntity> entities = await _repository.GetRecentAsync(count, ct);
         return AuditEntryMapper.ToDomainList(entities);
     }
 
@@ -52,10 +53,12 @@ public class AuditService : IAuditService
         DateTime from, DateTime to, CancellationToken ct = default)
     {
         if (from > to)
+        {
             throw new ArgumentException(
                 $"'from' ({from:O}) must be before 'to' ({to:O}).");
+        }
 
-        var entities = await _repository.GetByDateRangeAsync(from, to, ct);
+        IReadOnlyList<AuditEntryEntity> entities = await _repository.GetByDateRangeAsync(from, to, ct);
         return AuditEntryMapper.ToDomainList(entities);
     }
 
@@ -69,7 +72,7 @@ public class AuditService : IAuditService
 
         var entry = AuditEntry.ForCreate(
             entityType, entityId, changedById, newValueJson, notes);
-        var entity = AuditEntryMapper.ToEntity(entry);
+        AuditEntryEntity entity = AuditEntryMapper.ToEntity(entry);
         await _repository.AddAsync(entity, ct);
     }
 
@@ -83,7 +86,7 @@ public class AuditService : IAuditService
         var entry = AuditEntry.ForUpdate(
             entityType, entityId, changedById,
             previousValueJson, newValueJson, notes);
-        var entity = AuditEntryMapper.ToEntity(entry);
+        AuditEntryEntity entity = AuditEntryMapper.ToEntity(entry);
         await _repository.AddAsync(entity, ct);
     }
 
@@ -95,7 +98,7 @@ public class AuditService : IAuditService
 
         var entry = AuditEntry.ForDelete(
             entityType, entityId, changedById, previousValueJson, notes);
-        var entity = AuditEntryMapper.ToEntity(entry);
+        AuditEntryEntity entity = AuditEntryMapper.ToEntity(entry);
         await _repository.AddAsync(entity, ct);
     }
 }

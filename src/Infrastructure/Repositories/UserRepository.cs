@@ -13,7 +13,7 @@ public class UserRepository : RepositoryBase<UserEntity>, IUserRepository
     public async Task<UserEntity?> GetByUsernameAsync(string username,
         CancellationToken cancellationToken = default)
     {
-        var normalizedUsername = username.ToLowerInvariant();
+        string normalizedUsername = username.ToLowerInvariant();
         return await DbSet
             .FirstOrDefaultAsync(u => u.Username == normalizedUsername, cancellationToken);
     }

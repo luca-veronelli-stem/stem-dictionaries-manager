@@ -52,7 +52,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Motor Running"
         };
 
-        var result = await _repository.AddAsync(interpretation);
+        BitInterpretationEntity result = await _repository.AddAsync(interpretation);
 
         Assert.True(result.Id > 0);
         Assert.Equal("Motor Running", result.Meaning);
@@ -70,7 +70,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         };
         await _repository.AddAsync(interpretation);
 
-        var result = await _repository.GetByIdAsync(interpretation.Id);
+        BitInterpretationEntity? result = await _repository.GetByIdAsync(interpretation.Id);
 
         Assert.NotNull(result);
         Assert.Equal("Error Flag", result.Meaning);
@@ -79,7 +79,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        BitInterpretationEntity? result = await _repository.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -104,7 +104,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -113,7 +113,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByVariableIdAsync_NoResults_ReturnsEmptyList()
     {
-        var result = await _repository.GetByVariableIdAsync(999);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableIdAsync(999);
 
         Assert.Empty(result);
     }
@@ -145,7 +145,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         // Assert - deve essere ordinato per BitIndex
         Assert.Equal(3, result.Count);
@@ -169,7 +169,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         interpretation.Meaning = "Updated Meaning";
         await _repository.UpdateAsync(interpretation);
 
-        var result = await _repository.GetByIdAsync(interpretation.Id);
+        BitInterpretationEntity? result = await _repository.GetByIdAsync(interpretation.Id);
         Assert.Equal("Updated Meaning", result!.Meaning);
     }
 
@@ -187,7 +187,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         await _repository.DeleteAsync(interpretation.Id);
 
-        var result = await _repository.GetByIdAsync(interpretation.Id);
+        BitInterpretationEntity? result = await _repository.GetByIdAsync(interpretation.Id);
         Assert.Null(result);
     }
 
@@ -234,7 +234,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Old Meaning"
         };
         await _repository.AddAsync(existing);
-        var existingId = existing.Id;
+        int existingId = existing.Id;
 
         var incoming = new List<BitInterpretationEntity>
         {
@@ -257,7 +257,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Unchanged"
         };
         await _repository.AddAsync(existing);
-        var existingId = existing.Id;
+        int existingId = existing.Id;
 
         var incoming = new List<BitInterpretationEntity>
         {
@@ -282,7 +282,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
         // Act
         await _repository.SyncByVariableIdAsync(_testVariable.Id, null, []);
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         // Assert
         Assert.Empty(result);
@@ -306,7 +306,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Dictionary-specific bit"
         };
 
-        var result = await _repository.AddAsync(interpretation);
+        BitInterpretationEntity result = await _repository.AddAsync(interpretation);
 
         Assert.Equal(dictionary.Id, result.DictionaryId);
     }
@@ -323,7 +323,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Common bit"
         };
 
-        var result = await _repository.AddAsync(interpretation);
+        BitInterpretationEntity result = await _repository.AddAsync(interpretation);
 
         Assert.Null(result.DictionaryId);
     }
@@ -369,7 +369,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Other dictionary bit"
         });
 
-        var result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
 
         Assert.Equal(2, result.Count);
         Assert.Contains(result, r => r.Meaning == "Common bit 0" && r.DictionaryId == null);
@@ -392,7 +392,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Common only"
         });
 
-        var result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableAndDictionaryAsync(_testVariable.Id, dictionary.Id);
 
         Assert.Single(result);
         Assert.Null(result[0].DictionaryId);
@@ -422,7 +422,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Dictionary override"
         });
 
-        var result = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> result = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         Assert.Equal(2, result.Count);
     }
@@ -462,7 +462,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.SyncByVariableIdAsync(_testVariable.Id, dictionary.Id, incoming);
 
         // Common should be untouched
-        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> all = await _repository.GetByVariableIdAsync(_testVariable.Id);
         var common = all.Where(r => r.DictionaryId == null).ToList();
         var dictSpecific = all.Where(r => r.DictionaryId == dictionary.Id).ToList();
 
@@ -507,7 +507,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
         await _repository.SyncByVariableIdAsync(_testVariable.Id, null, incoming);
 
         // Dictionary-specific should be untouched
-        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> all = await _repository.GetByVariableIdAsync(_testVariable.Id);
         var common = all.Where(r => r.DictionaryId == null).ToList();
         var dictSpecific = all.Where(r => r.DictionaryId == dictionary.Id).ToList();
 
@@ -551,7 +551,7 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
             Meaning = "Dict2 override"
         });
 
-        var all = await _repository.GetByVariableIdAsync(_testVariable.Id);
+        IReadOnlyList<BitInterpretationEntity> all = await _repository.GetByVariableIdAsync(_testVariable.Id);
 
         Assert.Equal(3, all.Count);
         Assert.Contains(all, r => r.Meaning == "Common" && r.DictionaryId == null);

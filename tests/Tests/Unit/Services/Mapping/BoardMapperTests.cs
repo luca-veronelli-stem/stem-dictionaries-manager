@@ -12,9 +12,9 @@ public class BoardMapperTests
     [Fact]
     public void ToDomain_MapsAllProperties()
     {
-        var entity = CreateEntity(isPrimary: false, dictionaryId: 5);
+        BoardEntity entity = CreateEntity(isPrimary: false, dictionaryId: 5);
 
-        var result = BoardMapper.ToDomain(entity);
+        Board result = BoardMapper.ToDomain(entity);
 
         Assert.Equal(10, result.Id);
         Assert.Equal(10, result.DeviceId);
@@ -29,9 +29,9 @@ public class BoardMapperTests
     [Fact]
     public void ToDomain_IsPrimaryTrue_MapsCorrectly()
     {
-        var entity = CreateEntity(isPrimary: true);
+        BoardEntity entity = CreateEntity(isPrimary: true);
 
-        var result = BoardMapper.ToDomain(entity);
+        Board result = BoardMapper.ToDomain(entity);
 
         Assert.True(result.IsPrimary);
     }
@@ -39,9 +39,9 @@ public class BoardMapperTests
     [Fact]
     public void ToDomain_NullDictionaryId_MapsNull()
     {
-        var entity = CreateEntity(isPrimary: false, dictionaryId: null);
+        BoardEntity entity = CreateEntity(isPrimary: false, dictionaryId: null);
 
-        var result = BoardMapper.ToDomain(entity);
+        Board result = BoardMapper.ToDomain(entity);
 
         Assert.Null(result.DictionaryId);
     }
@@ -52,7 +52,7 @@ public class BoardMapperTests
         var board = new Board(10, "Madre", 17, 1,
             10, "DIS001", isPrimary: true, dictionaryId: 3);
 
-        var result = BoardMapper.ToEntity(board);
+        BoardEntity result = BoardMapper.ToEntity(board);
 
         Assert.Equal(10, result.DeviceId);
         Assert.Equal("Madre", result.Name);
@@ -68,7 +68,7 @@ public class BoardMapperTests
     {
         var board = new Board(10, "Periferica", 4, 2, 10);
 
-        var result = BoardMapper.ToEntity(board);
+        BoardEntity result = BoardMapper.ToEntity(board);
 
         Assert.False(result.IsPrimary);
         Assert.Null(result.DictionaryId);
@@ -77,7 +77,7 @@ public class BoardMapperTests
     [Fact]
     public void UpdateEntity_UpdatesAllFields()
     {
-        var entity = CreateEntity(isPrimary: false);
+        BoardEntity entity = CreateEntity(isPrimary: false);
         var updated = Board.Restore(10, 3, "Renamed", 18, 2, "NEW", true, 7, machineCode: 3);
 
         BoardMapper.UpdateEntity(entity, updated);
@@ -94,10 +94,10 @@ public class BoardMapperTests
     [Fact]
     public void ToDomain_WithDictionaryNavigation_MapsDictionaryName()
     {
-        var entity = CreateEntity(isPrimary: false, dictionaryId: 5);
+        BoardEntity entity = CreateEntity(isPrimary: false, dictionaryId: 5);
         entity.Dictionary = new DictionaryEntity { Id = 5, Name = "Standard" };
 
-        var result = BoardMapper.ToDomain(entity);
+        Board result = BoardMapper.ToDomain(entity);
 
         Assert.Equal("Standard", result.DictionaryName);
     }
@@ -105,10 +105,10 @@ public class BoardMapperTests
     [Fact]
     public void ToDomain_WithoutDictionaryNavigation_DictionaryNameIsNull()
     {
-        var entity = CreateEntity(isPrimary: false, dictionaryId: 5);
+        BoardEntity entity = CreateEntity(isPrimary: false, dictionaryId: 5);
         // Dictionary navigation is null (not loaded)
 
-        var result = BoardMapper.ToDomain(entity);
+        Board result = BoardMapper.ToDomain(entity);
 
         Assert.Null(result.DictionaryName);
     }

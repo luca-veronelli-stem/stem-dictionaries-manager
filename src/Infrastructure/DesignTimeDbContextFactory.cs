@@ -20,7 +20,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 
     public AppDbContext CreateDbContext(string[] args)
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(DesignTimeConnectionString)
             .Options;
 

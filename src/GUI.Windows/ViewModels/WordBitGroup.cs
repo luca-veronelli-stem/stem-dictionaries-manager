@@ -1,5 +1,5 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace GUI.Windows.ViewModels;
 
@@ -54,13 +54,19 @@ public partial class WordBitGroup : ObservableObject
     /// </summary>
     public bool TryAddBit()
     {
-        if (!CanAddBit) return false;
+        if (!CanAddBit)
+        {
+            return false;
+        }
 
-        var nextBitIndex = Items.Count > 0
+        int nextBitIndex = Items.Count > 0
             ? Items.Max(i => i.BitIndex) + 1
             : 0;
 
-        if (nextBitIndex > MaxBitsPerWord - 1) return false;
+        if (nextBitIndex > MaxBitsPerWord - 1)
+        {
+            return false;
+        }
 
         var item = new BitInterpretationItem
         {
@@ -77,8 +83,12 @@ public partial class WordBitGroup : ObservableObject
     /// </summary>
     public bool TryRemoveBit(BitInterpretationItem item)
     {
-        var removed = Items.Remove(item);
-        if (removed) ItemCount = Items.Count;
+        bool removed = Items.Remove(item);
+        if (removed)
+        {
+            ItemCount = Items.Count;
+        }
+
         return removed;
     }
 
@@ -87,8 +97,12 @@ public partial class WordBitGroup : ObservableObject
     /// </summary>
     public bool TryRemoveLastBit()
     {
-        if (!CanRemoveBit) return false;
-        var last = Items[^1];
+        if (!CanRemoveBit)
+        {
+            return false;
+        }
+
+        BitInterpretationItem last = Items[^1];
         Items.Remove(last);
         ItemCount = Items.Count;
         return true;

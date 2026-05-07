@@ -25,7 +25,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
             Description = "Supporto barella"
         };
 
-        var result = await _repository.AddAsync(entity);
+        DeviceEntity result = await _repository.AddAsync(entity);
 
         Assert.True(result.Id > 0);
         Assert.Equal("Eden-XP", result.Name);
@@ -38,7 +38,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
         var entity = new DeviceEntity { Name = "Spark", MachineCode = 7 };
         await _repository.AddAsync(entity);
 
-        var result = await _repository.GetByIdAsync(entity.Id);
+        DeviceEntity? result = await _repository.GetByIdAsync(entity.Id);
 
         Assert.NotNull(result);
         Assert.Equal("Spark", result.Name);
@@ -47,7 +47,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByIdAsync(999);
+        DeviceEntity? result = await _repository.GetByIdAsync(999);
 
         Assert.Null(result);
     }
@@ -58,7 +58,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
         await _repository.AddAsync(new DeviceEntity { Name = "A", MachineCode = 1 });
         await _repository.AddAsync(new DeviceEntity { Name = "B", MachineCode = 2 });
 
-        var result = await _repository.GetAllAsync();
+        IReadOnlyList<DeviceEntity> result = await _repository.GetAllAsync();
 
         Assert.Equal(2, result.Count);
     }
@@ -72,7 +72,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
             MachineCode = 10
         });
 
-        var result = await _repository.GetByNameAsync("Optimus-XP");
+        DeviceEntity? result = await _repository.GetByNameAsync("Optimus-XP");
 
         Assert.NotNull(result);
         Assert.Equal(10, result.MachineCode);
@@ -81,7 +81,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByNameAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByNameAsync("NonExistent");
+        DeviceEntity? result = await _repository.GetByNameAsync("NonExistent");
 
         Assert.Null(result);
     }
@@ -95,7 +95,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
             MachineCode = 11
         });
 
-        var result = await _repository.GetByMachineCodeAsync(11);
+        DeviceEntity? result = await _repository.GetByMachineCodeAsync(11);
 
         Assert.NotNull(result);
         Assert.Equal("R3L-XP", result.Name);
@@ -104,7 +104,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByMachineCodeAsync_NotFound_ReturnsNull()
     {
-        var result = await _repository.GetByMachineCodeAsync(999);
+        DeviceEntity? result = await _repository.GetByMachineCodeAsync(999);
 
         Assert.Null(result);
     }
@@ -112,7 +112,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task DeleteAsync_RemovesDevice()
     {
-        var entity = await _repository.AddAsync(
+        DeviceEntity entity = await _repository.AddAsync(
             new DeviceEntity { Name = "ToDelete", MachineCode = 99 });
 
         await _repository.DeleteAsync(entity.Id);
@@ -130,14 +130,14 @@ public class DeviceRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_UpdatesDevice()
     {
-        var entity = await _repository.AddAsync(
+        DeviceEntity entity = await _repository.AddAsync(
             new DeviceEntity { Name = "Before", MachineCode = 50 });
 
         entity.Name = "After";
         entity.MachineCode = 51;
         await _repository.UpdateAsync(entity);
 
-        var result = await _repository.GetByIdAsync(entity.Id);
+        DeviceEntity? result = await _repository.GetByIdAsync(entity.Id);
         Assert.Equal("After", result!.Name);
         Assert.Equal(51, result.MachineCode);
     }

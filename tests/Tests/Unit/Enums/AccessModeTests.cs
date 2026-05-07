@@ -10,7 +10,7 @@ public class AccessModeTests
     [Fact]
     public void AccessMode_HasExpectedCount()
     {
-        var values = Enum.GetValues<AccessMode>();
+        AccessMode[] values = Enum.GetValues<AccessMode>();
         Assert.Equal(3, values.Length);
     }
 

@@ -75,12 +75,16 @@ public class Variable
         ArgumentException.ThrowIfNullOrWhiteSpace(dataTypeRaw);
 
         if (addressHigh != 0x00 && addressHigh != 0x80)
+        {
             throw new ArgumentOutOfRangeException(nameof(addressHigh),
                 $"AddressHigh must be 0x00 (Standard) or 0x80 (DeviceSpecific), got 0x{addressHigh:X2}.");
+        }
 
         if (wordSize.HasValue && !AllowedWordSizes.Contains(wordSize.Value))
+        {
             throw new ArgumentOutOfRangeException(nameof(wordSize),
                 $"WordSize must be 8, 16 or 32, got {wordSize.Value}.");
+        }
 
         Name = name;
         AddressHigh = addressHigh;

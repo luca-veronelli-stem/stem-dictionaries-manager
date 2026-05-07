@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 
 namespace Infrastructure.Repositories;
 
@@ -31,7 +31,7 @@ public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEnti
 
     public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var result = await DbSet.ToListAsync(cancellationToken);
+        List<TEntity> result = await DbSet.ToListAsync(cancellationToken);
 
         // Warning in Debug se il dataset è grande — considera paginazione
         Debug.WriteLineIf(result.Count > LargeResultSetWarningThreshold,
@@ -56,7 +56,7 @@ public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEnti
 
     public virtual async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken)
+        TEntity entity = await GetByIdAsync(id, cancellationToken)
             ?? throw new KeyNotFoundException(
                 $"{typeof(TEntity).Name} with Id {id} not found.");
 

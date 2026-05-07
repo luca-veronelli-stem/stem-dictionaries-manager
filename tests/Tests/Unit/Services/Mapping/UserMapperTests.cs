@@ -21,7 +21,7 @@ public class UserMapperTests
         };
 
         // Act
-        var result = UserMapper.ToDomain(entity);
+        User result = UserMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(1, result.Id);
@@ -42,7 +42,7 @@ public class UserMapperTests
         var user = User.Restore(5, "admin", "Administrator");
 
         // Act
-        var result = UserMapper.ToEntity(user);
+        UserEntity result = UserMapper.ToEntity(user);
 
         // Assert
         Assert.Equal(5, result.Id);
@@ -103,7 +103,7 @@ public class UserMapperTests
         };
 
         // Act
-        var result = UserMapper.ToDomainList(entities);
+        IReadOnlyList<User> result = UserMapper.ToDomainList(entities);
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -115,7 +115,7 @@ public class UserMapperTests
     [Fact]
     public void ToDomainList_EmptyList_ReturnsEmptyList()
     {
-        var result = UserMapper.ToDomainList([]);
+        IReadOnlyList<User> result = UserMapper.ToDomainList([]);
         Assert.Empty(result);
     }
 
@@ -131,8 +131,8 @@ public class UserMapperTests
         };
 
         // Act
-        var domain = UserMapper.ToDomain(originalEntity);
-        var resultEntity = UserMapper.ToEntity(domain);
+        User domain = UserMapper.ToDomain(originalEntity);
+        UserEntity resultEntity = UserMapper.ToEntity(domain);
 
         // Assert
         Assert.Equal(originalEntity.Id, resultEntity.Id);
