@@ -7,9 +7,12 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- WPF only on the Windows TFM. -->
+  <!-- WPF only on the Windows TFM. EnableWindowsTargeting lets Linux CI restore
+       the net10.0-windows leg without crashing (the Linux test job filters by
+       framework net10.0 anyway, so WPF code is never actually built there). -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>
