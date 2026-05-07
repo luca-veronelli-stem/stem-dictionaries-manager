@@ -7,7 +7,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la lista dei dizionari.
+/// ViewModel for the dictionary list.
 /// </summary>
 public partial class DictionaryListViewModel : ObservableObject
 {
@@ -34,7 +34,7 @@ public partial class DictionaryListViewModel : ObservableObject
     private string _searchText = string.Empty;
 
     /// <summary>
-    /// Filtra la lista quando SearchText cambia.
+    /// Filters the list whenever SearchText changes.
     /// </summary>
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
@@ -51,7 +51,7 @@ public partial class DictionaryListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Carica i dati iniziali. Da chiamare dopo la navigazione.
+    /// Loads the initial data. Call after navigating to the view.
     /// </summary>
     [RelayCommand]
     public async Task LoadAsync()
@@ -80,12 +80,12 @@ public partial class DictionaryListViewModel : ObservableObject
                 })];
 
             ApplyFilter();
-            _messageService.Show($"Caricati {_allDictionaries.Count} dizionari", MessageSeverity.Success);
+            _messageService.Show($"Loaded {_allDictionaries.Count} dictionaries", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            _messageService.Show($"Errore: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error: {ex.Message}", MessageSeverity.Error);
         }
         finally
         {
@@ -127,7 +127,7 @@ public partial class DictionaryListViewModel : ObservableObject
 }
 
 /// <summary>
-/// Item di visualizzazione per la lista dizionari.
+/// Display item for the dictionary list.
 /// </summary>
 public class DictionaryListItem
 {
@@ -138,7 +138,7 @@ public class DictionaryListItem
     public int VariableCount { get; init; }
 
     /// <summary>
-    /// Tipo semantico per la colonna.
+    /// Semantic kind for the column.
     /// </summary>
-    public string SemanticDisplay => IsStandard ? "Standard" : "Specifico";
+    public string SemanticDisplay => IsStandard ? "Standard" : "Specific";
 }

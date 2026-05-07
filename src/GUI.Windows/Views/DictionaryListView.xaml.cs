@@ -5,8 +5,8 @@ using GUI.Windows.ViewModels;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// View per la lista dei dizionari.
-/// Code-behind minimale - solo per trigger inizializzazione.
+/// View for the dictionary list.
+/// Minimal code-behind - only triggers initialization.
 /// </summary>
 public partial class DictionaryListView : UserControl
 {
@@ -17,7 +17,7 @@ public partial class DictionaryListView : UserControl
 
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        // Carica i dati quando la view viene mostrata
+        // Load data when the view is displayed
         if (DataContext is DictionaryListViewModel viewModel)
         {
             await viewModel.LoadAsync();

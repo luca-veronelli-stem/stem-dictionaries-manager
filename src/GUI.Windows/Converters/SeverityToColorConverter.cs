@@ -6,7 +6,7 @@ using GUI.Windows.Abstractions;
 namespace GUI.Windows.Converters;
 
 /// <summary>
-/// Converte MessageSeverity in un colore di sfondo per la status bar.
+/// Converts a MessageSeverity into a background color for the status bar.
 /// </summary>
 public class SeverityToColorConverter : IValueConverter
 {

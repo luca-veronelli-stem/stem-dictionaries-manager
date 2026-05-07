@@ -7,8 +7,8 @@ using Tests.Unit.GUI.Mocks;
 namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
-/// Test per BoardEditViewModel (Domain v2).
-/// FirmwareType diretto, DictionaryId opzionale, nessun BoardType.
+/// Tests for BoardEditViewModel (Domain v2).
+/// Direct FirmwareType, optional DictionaryId, no BoardType.
 /// </summary>
 public class BoardEditViewModelTests
 {
@@ -41,13 +41,13 @@ public class BoardEditViewModelTests
         await _viewModel.InitializeAsync(null);
 
         Assert.True(_viewModel.IsNew);
-        Assert.Equal("Nuova Scheda", _viewModel.FormTitle);
+        Assert.Equal("New Board", _viewModel.FormTitle);
     }
 
     [Fact]
     public async Task InitializeAsync_New_PreFillsFirmwareType()
     {
-        // Nessuna board seedata → max=0, next=1
+        // No seeded board → max=0, next=1
         await _viewModel.InitializeAsync(null);
 
         Assert.Equal(1, _viewModel.FirmwareType);
@@ -105,7 +105,7 @@ public class BoardEditViewModelTests
         await _viewModel.InitializeAsync(1);
 
         Assert.False(_viewModel.IsNew);
-        Assert.Equal("Modifica Scheda", _viewModel.FormTitle);
+        Assert.Equal("Edit Board", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class BoardEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         Assert.Contains(_messageService.Messages, m =>
-            m.Severity == MessageSeverity.Warning && m.Message.Contains("Nome"));
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Name"));
         Assert.False(_navigationService.GoBackCalled);
     }
 
@@ -184,7 +184,7 @@ public class BoardEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         Assert.Contains(_messageService.Messages, m =>
-            m.Severity == MessageSeverity.Warning && m.Message.Contains("Numero Scheda"));
+            m.Severity == MessageSeverity.Warning && m.Message.Contains("Board Number"));
         Assert.False(_navigationService.GoBackCalled);
     }
 
@@ -321,7 +321,7 @@ public class BoardEditViewModelTests
         Assert.Contains(_boardService.MethodCalls, c => c == "AddAsync:Principale");
     }
 
-    // === Test CancelCommand con HasChanges ===
+    // === CancelCommand tests with HasChanges ===
 
     [Fact]
     public async Task CancelCommand_WithChanges_ShowsConfirmDialog()
@@ -333,7 +333,7 @@ public class BoardEditViewModelTests
         await _viewModel.CancelCommand.ExecuteAsync(null);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("annullare"));
+            c.Type == "Confirm" && c.Message.Contains("discard"));
         Assert.True(_navigationService.GoBackCalled);
     }
 
@@ -350,7 +350,7 @@ public class BoardEditViewModelTests
         Assert.False(_navigationService.GoBackCalled);
     }
 
-    // === Test DeleteBoardCommand ===
+    // === DeleteBoardCommand tests ===
 
     [Fact]
     public async Task DeleteBoardCommand_ConfirmedYes_DeletesAndGoesBack()

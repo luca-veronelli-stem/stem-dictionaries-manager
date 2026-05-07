@@ -8,7 +8,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la gestione stato comandi per un device specifico.
+/// ViewModel for managing per-device command-state for a specific device.
 /// SESSION_035: DeviceType enum → int DeviceId.
 /// </summary>
 public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewModel
@@ -74,7 +74,7 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
                         CommandId = c.Id,
                         Name = c.Name,
                         FullCode = $"0x{c.CodeHigh:X2}{c.CodeLow:X2}",
-                        TypeDisplay = c.IsResponse ? "Risposta" : "Comando",
+                        TypeDisplay = c.IsResponse ? "Response" : "Command",
                         OriginalIsEnabled = isEnabled,
                         IsEnabled = isEnabled
                     };
@@ -84,7 +84,7 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Errore: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -99,7 +99,7 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
 
         if (changedItems.Count == 0)
         {
-            _messageService.Show("Nessuna modifica da salvare.",
+            _messageService.Show("No changes to save.",
                 MessageSeverity.Info, autoHideSeconds: 3);
             return;
         }
@@ -118,13 +118,13 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
             }
 
             _messageService.Show(
-                $"Salvati {changedItems.Count} stati comando.",
+                $"Saved {changedItems.Count} command states.",
                 MessageSeverity.Success, autoHideSeconds: 3);
         }
         catch (Exception ex)
         {
             _messageService.Show(
-                $"Errore salvataggio: {ex.Message}",
+                $"Save error: {ex.Message}",
                 MessageSeverity.Error, autoHideSeconds: 0);
         }
     }

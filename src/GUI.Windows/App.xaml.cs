@@ -12,16 +12,16 @@ using Services;
 namespace GUI.Windows;
 
 /// <summary>
-/// Entry point dell'applicazione WPF.
-/// Configura il DI container e avvia la MainWindow.
+/// Entry point of the WPF application.
+/// Configures the DI container and starts MainWindow.
 /// </summary>
 public partial class App : Application
 {
     private readonly IHost _host;
 
     /// <summary>
-    /// Service provider per accesso ai servizi registrati.
-    /// Usato dalle Views per creare dialog con DI.
+    /// Service provider for accessing registered services.
+    /// Used by Views to create dialogs through DI.
     /// </summary>
     public static IServiceProvider Services { get; private set; } = null!;
 
@@ -30,8 +30,8 @@ public partial class App : Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                // Legge provider e connection string da appsettings.json / User Secrets
-                // Default: SqlServer (produzione). Per sviluppo, appsettings.json sovrascrive con "Sqlite".
+                // Reads provider and connection string from appsettings.json / User Secrets
+                // Default: SqlServer (production). For development, appsettings.json overrides with "Sqlite".
                 string provider = context.Configuration["DatabaseProvider"] ?? "SqlServer";
                 bool useSqlServer = provider.Equals("SqlServer",
                     StringComparison.OrdinalIgnoreCase);
@@ -49,7 +49,7 @@ public partial class App : Application
                 // GUI layer (ViewModels + UI Services)
                 services.AddGUI();
 
-                // MainWindow + LoginView (ViewModels già registrati in AddGUI)
+                // MainWindow + LoginView (ViewModels are already registered by AddGUI)
                 services.AddTransient<MainWindow>();
                 services.AddTransient<LoginView>();
             })
@@ -61,8 +61,8 @@ public partial class App : Application
         await _host.StartAsync();
         Services = _host.Services;
 
-        // Crea/aggiorna il DB e popola con dati iniziali se vuoto.
-        // Retry loop: se il DB non è raggiungibile, mostra dialog Riprova/Esci.
+        // Create/update the DB and seed initial data if empty.
+        // Retry loop: when the DB is unreachable, show a Retry/Exit dialog.
         while (true)
         {
             try
@@ -71,8 +71,8 @@ public partial class App : Application
                 AppDbContext dbContext = scope.ServiceProvider
                     .GetRequiredService<AppDbContext>();
 
-                // SQL Server: applica migrations versionati
-                // SQLite: ricrea schema dal modello (migrations sono SQL Server-only)
+                // SQL Server: apply versioned migrations
+                // SQLite: recreate the schema from the model (migrations are SQL Server-only)
                 if (dbContext.Database.IsSqlServer())
                 {
                     await dbContext.Database.MigrateAsync();
@@ -88,10 +88,10 @@ public partial class App : Application
             catch (Exception ex)
             {
                 bool retry = DarkDialog.ShowConfirm(
-                    "Errore connessione database",
-                    "Impossibile connettersi al database.\n\n"
+                    "Database connection error",
+                    "Unable to connect to the database.\n\n"
                     + ex.Message
-                    + "\n\nRiprovare?");
+                    + "\n\nRetry?");
 
                 if (!retry)
                 {
@@ -101,16 +101,16 @@ public partial class App : Application
             }
         }
 
-        // Configura MainWindow
+        // Configure MainWindow
         MainWindow mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        MainWindow = mainWindow; // Esplicito: evita che un DarkDialog di startup resti come MainWindow
+        MainWindow = mainWindow; // Explicit: prevents a startup DarkDialog from remaining as MainWindow
         MainViewModel mainViewModel = _host.Services.GetRequiredService<MainViewModel>();
         mainWindow.DataContext = mainViewModel;
 
-        // Sottoscrivi all'evento di logout per mostrare di nuovo la LoginView
+        // Subscribe to the logout event to display the LoginView again
         mainViewModel.LoggedOut += () => ShowLoginView(mainViewModel);
 
-        // Mostra LoginView all'avvio
+        // Show the LoginView at startup
         ShowLoginView(mainViewModel);
 
         mainWindow.Show();
@@ -119,7 +119,7 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Mostra la view di login e gestisce il callback.
+    /// Shows the login view and handles the callback.
     /// </summary>
     private async void ShowLoginView(MainViewModel mainViewModel)
     {
@@ -127,10 +127,10 @@ public partial class App : Application
         LoginView loginView = _host.Services.GetRequiredService<LoginView>();
         loginView.DataContext = loginViewModel;
 
-        // Pulisce sottoscrizioni precedenti per evitare chiamate duplicate
+        // Clear previous subscriptions to avoid duplicate invocations
         loginViewModel.ClearSubscriptions();
 
-        // Quando l'utente conferma il login, imposta l'utente e naviga
+        // When the user confirms the login, set the user and navigate
         loginViewModel.LoginConfirmed += user =>
         {
             mainViewModel.SetUserAndNavigate(user);
@@ -139,7 +139,7 @@ public partial class App : Application
         mainViewModel.CurrentViewModel = loginView;
         mainViewModel.PageTitle = "Login";
 
-        // Carica gli utenti dal database
+        // Load users from the database
         await loginViewModel.LoadUsersAsync();
     }
 

@@ -79,8 +79,8 @@ public class CommandWorkflowTests : IntegrationTestBase
         var response = new CommandEntity
         {
             Name = "ReadVariableResponse",
-            CodeHigh = 0x80, // Risposta
-            CodeLow = 0x01, // Stesso CodeLow!
+            CodeHigh = 0x80, // Response
+            CodeLow = 0x01, // Same CodeLow!
             IsResponse = true,
             ParametersJson = "[\"2|Address\",\"4|Value\"]"
         };

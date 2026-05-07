@@ -5,8 +5,8 @@ using Timer = System.Timers.Timer;
 namespace GUI.Windows.Services;
 
 /// <summary>
-/// Implementazione di IMessageService per status bar.
-/// Thread-safe con auto-hide timer.
+/// IMessageService implementation for the status bar.
+/// Thread-safe with an auto-hide timer.
 /// </summary>
 public sealed class MessageService : IMessageService, IDisposable
 {

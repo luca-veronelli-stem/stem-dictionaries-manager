@@ -148,7 +148,7 @@ public class DeviceCommandsFlowTests
     {
         // Arrange
         await _viewModel.LoadAsync(deviceId: 1);
-        // Nessuna modifica
+        // No changes
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);

@@ -130,7 +130,7 @@ public class DeviceDetailViewModelTests
     [Fact]
     public void OpenDictionaryCommand_WithSelection_NavigatesToDictionaryEdit()
     {
-        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Specifico", 10);
+        _viewModel.SelectedDictionary = new DictionaryItem(42, "Test Dict", "Specific", 10);
 
         _viewModel.OpenDictionaryCommand.Execute(null);
 
@@ -203,7 +203,7 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(10);
 
-        // Assert (+ entry Comandi)
+        // Assert (+ Commands entry)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
         Assert.Single(realDicts);
         Assert.Equal("Pulsantiere 4x4", realDicts[0].Name);
@@ -285,7 +285,7 @@ public class DeviceDetailViewModelTests
         Assert.Equal("Alfa", realDicts[0].Name);
         Assert.Equal("Beta", realDicts[1].Name);
         Assert.Equal("Zeta", realDicts[2].Name);
-        Assert.Equal("Comandi", _viewModel.Dictionaries.Last().Name);
+        Assert.Equal("Commands", _viewModel.Dictionaries.Last().Name);
     }
 
     [Fact]
@@ -302,12 +302,12 @@ public class DeviceDetailViewModelTests
         // Act
         await _viewModel.LoadAsync(10);
 
-        // Assert (+ entry Comandi)
+        // Assert (+ Commands entry)
         var realDicts = _viewModel.Dictionaries.Where(d => !d.IsCommandsEntry).ToList();
         var item = Assert.Single(realDicts);
         Assert.True(item.Id > 0);
         Assert.Equal("Optimus XP", item.Name);
-        Assert.Equal("Specifico", item.Semantic);
+        Assert.Equal("Specific", item.Semantic);
         Assert.Equal(0, item.ItemCount);
     }
 

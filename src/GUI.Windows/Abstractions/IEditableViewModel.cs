@@ -1,13 +1,13 @@
 namespace GUI.Windows.Abstractions;
 
 /// <summary>
-/// Interfaccia per ViewModel con stato modificato (form di edit).
-/// Usata da MainViewModel per warning su navigazione indietro con modifiche non salvate.
+/// Interface for ViewModels with a modified state (edit forms).
+/// Used by MainViewModel to warn on backward navigation when there are unsaved changes.
 /// </summary>
 public interface IEditableViewModel
 {
     /// <summary>
-    /// True se il form ha modifiche non salvate.
+    /// True if the form has unsaved changes.
     /// </summary>
     bool HasChanges { get; }
 }

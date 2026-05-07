@@ -7,7 +7,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista utenti.
+/// Item for the user list.
 /// </summary>
 public record UserListItem
 {
@@ -17,7 +17,7 @@ public record UserListItem
 }
 
 /// <summary>
-/// ViewModel per la lista degli utenti.
+/// ViewModel for the user list.
 /// </summary>
 public partial class UserListViewModel : ObservableObject
 {
@@ -45,7 +45,7 @@ public partial class UserListViewModel : ObservableObject
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
-    // === Campi per nuovo utente inline ===
+    // === Inline new-user fields ===
 
     [ObservableProperty]
     private string _newUsername = string.Empty;
@@ -66,7 +66,7 @@ public partial class UserListViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Carica i dati iniziali. Da chiamare dopo la navigazione.
+    /// Loads the initial data. Call after navigating to the view.
     /// </summary>
     [RelayCommand]
     public async Task LoadAsync()
@@ -94,12 +94,12 @@ public partial class UserListViewModel : ObservableObject
                 .OrderBy(u => u.Username)];
 
             ApplyFilter();
-            _messageService.Show($"Caricati {_allUsers.Count} utenti", MessageSeverity.Success);
+            _messageService.Show($"Loaded {_allUsers.Count} users", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            _messageService.Show($"Errore: {ex.Message}", MessageSeverity.Error);
+            _messageService.Show($"Error: {ex.Message}", MessageSeverity.Error);
         }
         finally
         {
@@ -119,7 +119,7 @@ public partial class UserListViewModel : ObservableObject
             var user = new User(NewUsername, NewDisplayName);
             await _userService.AddAsync(user);
 
-            _messageService.Show($"Utente '{NewUsername}' creato", MessageSeverity.Success);
+            _messageService.Show($"User '{NewUsername}' created", MessageSeverity.Success);
 
             NewUsername = string.Empty;
             NewDisplayName = string.Empty;
@@ -128,7 +128,7 @@ public partial class UserListViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile creare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to create: {ex.Message}");
         }
         finally
         {
@@ -145,8 +145,8 @@ public partial class UserListViewModel : ObservableObject
         }
 
         DialogResult result = await _dialogService.ShowConfirmAsync(
-            "Conferma eliminazione",
-            $"Eliminare l'utente '{item.Username}'?");
+            "Confirm deletion",
+            $"Delete user '{item.Username}'?");
 
         if (result != DialogResult.Yes)
         {
@@ -157,12 +157,12 @@ public partial class UserListViewModel : ObservableObject
         {
             IsBusy = true;
             await _userService.DeleteAsync(item.Id);
-            _messageService.Show($"Utente '{item.Username}' eliminato", MessageSeverity.Success);
+            _messageService.Show($"User '{item.Username}' deleted", MessageSeverity.Success);
             await RefreshAsync();
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile eliminare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to delete: {ex.Message}");
         }
         finally
         {

@@ -8,7 +8,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista dizionari di un device.
+/// Item for a device's dictionary list.
 /// </summary>
 public partial class DictionaryItem : ObservableObject
 {
@@ -29,7 +29,7 @@ public partial class DictionaryItem : ObservableObject
 }
 
 /// <summary>
-/// Item per la lista schede di un device.
+/// Item for a device's board list.
 /// </summary>
 public record BoardListItem
 {
@@ -45,8 +45,8 @@ public record BoardListItem
 }
 
 /// <summary>
-/// ViewModel per il dettaglio di un dispositivo.
-/// SESSION_035: DeviceType enum → int DeviceId. Nome dal DB.
+/// ViewModel for the device detail view.
+/// SESSION_035: DeviceType enum → int DeviceId. Name comes from the DB.
 /// </summary>
 public partial class DeviceDetailViewModel : ObservableObject
 {
@@ -101,7 +101,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Carica dizionari e schede per il device specificato.
+    /// Loads dictionaries and boards for the specified device.
     /// </summary>
     public async Task LoadAsync(int deviceId)
     {
@@ -114,7 +114,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Ricarica solo le schede (usato dopo GoBack da BoardEdit).
+    /// Reloads only the boards (used after GoBack from BoardEdit).
     /// </summary>
     public async Task ReloadBoardsAsync()
     {
@@ -130,7 +130,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore caricamento schede: {ex.Message}",
+            _messageService.Show($"Error loading boards: {ex.Message}",
                 MessageSeverity.Error);
         }
     }
@@ -149,11 +149,11 @@ public partial class DeviceDetailViewModel : ObservableObject
         {
             int id = DeviceId.Value;
 
-            // Carica board di questo device
+            // Load the boards for this device
             IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(id);
             PopulateBoards(boards);
 
-            // Popola sezione dizionari (derivati da board)
+            // Populate the dictionaries section (derived from boards)
             var linkedDictIds = new HashSet<int>(
                 boards.Where(b => b.DictionaryId.HasValue)
                       .Select(b => b.DictionaryId!.Value));
@@ -165,21 +165,21 @@ public partial class DeviceDetailViewModel : ObservableObject
 
             IEnumerable<DictionaryItem> items = relevantDicts.Select(d =>
             {
-                return new DictionaryItem(d.Id, d.Name, "Specifico", d.Variables.Count);
+                return new DictionaryItem(d.Id, d.Name, "Specific", d.Variables.Count);
             });
 
             var sortedItems = items.OrderBy(d => d.Name).ToList();
 
-            // Aggiungi entry "Comandi" con conteggio reale
+            // Add the "Commands" entry with the real count
             IReadOnlyList<Command> allCommands = await _commandService.GetAllAsync();
-            sortedItems.Add(new DictionaryItem(0, "Comandi", "Comandi", allCommands.Count)
+            sortedItems.Add(new DictionaryItem(0, "Commands", "Commands", allCommands.Count)
             { IsCommandsEntry = true });
 
             Dictionaries = new ObservableCollection<DictionaryItem>(sortedItems);
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Errore: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {

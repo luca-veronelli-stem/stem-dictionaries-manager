@@ -114,14 +114,14 @@ public class DeviceCommandsViewModelTests
     }
 
     [Fact]
-    public async Task LoadAsync_ResponseCommand_ShowsRisposta()
+    public async Task LoadAsync_ResponseCommand_ShowsResponse()
     {
         _commandService.SeedData(
             new Command("Read Variable Response", 0x80, 0x01, true));
 
         await _viewModel.LoadAsync(7);
 
-        Assert.Equal("Risposta", _viewModel.Commands[0].TypeDisplay);
+        Assert.Equal("Response", _viewModel.Commands[0].TypeDisplay);
         Assert.Equal("0x8001", _viewModel.Commands[0].FullCode);
     }
 
@@ -193,7 +193,7 @@ public class DeviceCommandsViewModelTests
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        Assert.Contains("Nessuna modifica", _messageService.CurrentMessage ?? "");
+        Assert.Contains("No changes", _messageService.CurrentMessage ?? "");
     }
 
     [Fact]
@@ -272,16 +272,16 @@ public class DeviceCommandsViewModelTests
 
         await vm.LoadAsync(7);
 
-        // L'ultimo item deve essere "Comandi"
-        var comandiEntry = vm.Dictionaries.Last();
-        Assert.True(comandiEntry.IsCommandsEntry);
-        Assert.Equal("Comandi", comandiEntry.Name);
+        // The last item must be "Commands"
+        var commandsEntry = vm.Dictionaries.Last();
+        Assert.True(commandsEntry.IsCommandsEntry);
+        Assert.Equal("Commands", commandsEntry.Name);
 
-        // Seleziona e apri
-        vm.SelectedDictionary = comandiEntry;
+        // Select and open
+        vm.SelectedDictionary = commandsEntry;
         vm.OpenDictionaryCommand.Execute(null);
 
-        // Deve navigare a DeviceCommands con deviceId
+        // Should navigate to DeviceCommands with deviceId
         Assert.Equal(ViewType.DeviceCommands, navigationService.LastNavigatedView);
         Assert.Equal(7, navigationService.LastParameter?.DeviceId);
     }

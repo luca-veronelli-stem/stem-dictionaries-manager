@@ -45,7 +45,7 @@ public class LoginViewModelTests
         // Assert
         Assert.Empty(_viewModel.AvailableUsers);
         Assert.NotNull(_viewModel.ErrorMessage);
-        Assert.Contains("Nessun utente", _viewModel.ErrorMessage);
+        Assert.Contains("No users", _viewModel.ErrorMessage);
     }
 
     [Fact]

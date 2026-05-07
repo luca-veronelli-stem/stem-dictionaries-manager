@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista comandi con stato attivo/disattivo per device.
+/// Item for the command list with per-device enabled/disabled state.
 /// </summary>
 public partial class CommandDeviceItem : ObservableObject
 {
@@ -13,7 +13,7 @@ public partial class CommandDeviceItem : ObservableObject
     public string TypeDisplay { get; init; } = string.Empty;
 
     /// <summary>
-    /// Stato originale caricato dal DB (per tracciare modifiche).
+    /// Original state loaded from the DB (used to track modifications).
     /// </summary>
     public bool OriginalIsEnabled { get; init; }
 
@@ -21,7 +21,7 @@ public partial class CommandDeviceItem : ObservableObject
     private bool _isEnabled;
 
     /// <summary>
-    /// True se lo stato è stato modificato rispetto all'originale.
+    /// True if the state has been modified relative to the original.
     /// </summary>
     public bool HasChanged => IsEnabled != OriginalIsEnabled;
 }

@@ -3,19 +3,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la DataGrid dei parametri comando.
-/// Ogni riga rappresenta un parametro con indice, dimensione e descrizione.
-/// Serializzato in Command.Parameters come "size|description".
+/// Item for the command-parameters DataGrid.
+/// Each row represents a parameter with index, size and description.
+/// Serialized into Command.Parameters as "size|description".
 /// </summary>
 public partial class CommandParameterItem : ObservableObject
 {
     /// <summary>
-    /// Indice del parametro (0-based, auto-incrementato).
+    /// Parameter index (0-based, auto-incremented).
     /// </summary>
     public int Index { get; init; }
 
     /// <summary>
-    /// Display per la UI: "1", "2", etc.
+    /// UI display: "1", "2", etc.
     /// </summary>
     public string IndexDisplay => $"{Index + 1}";
 
@@ -26,12 +26,12 @@ public partial class CommandParameterItem : ObservableObject
     private string _description = string.Empty;
 
     /// <summary>
-    /// Serializza nel formato "size|description" per Command.Parameters.
+    /// Serializes into the "size|description" format for Command.Parameters.
     /// </summary>
     public string Serialize() => $"{SizeBytes}|{Description}";
 
     /// <summary>
-    /// Deserializza da stringa "size|description" con fallback legacy.
+    /// Deserializes from a "size|description" string with legacy fallback.
     /// </summary>
     public static CommandParameterItem Deserialize(int index, string raw)
     {

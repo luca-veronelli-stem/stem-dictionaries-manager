@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// View per la schermata di login (selezione utente).
+/// View for the login screen (user selection).
 /// </summary>
 public partial class LoginView : UserControl
 {

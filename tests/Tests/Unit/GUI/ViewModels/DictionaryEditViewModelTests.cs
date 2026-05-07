@@ -8,8 +8,8 @@ using Tests.Unit.GUI.Mocks;
 namespace Tests.Unit.GUI.ViewModels;
 
 /// <summary>
-/// Test per DictionaryEditViewModel (Domain v2).
-/// IsStandard flag, nessun deviceId/BoardType.
+/// Tests for DictionaryEditViewModel (Domain v2).
+/// IsStandard flag, no deviceId/BoardType.
 /// </summary>
 public class DictionaryEditViewModelTests
 {
@@ -45,7 +45,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.InitializeAsync(null);
 
         Assert.True(_viewModel.IsNew);
-        Assert.Equal("Nuovo Dizionario", _viewModel.FormTitle);
+        Assert.Equal("New Dictionary", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.InitializeAsync(1);
 
         Assert.False(_viewModel.IsNew);
-        Assert.Equal("Modifica Dizionario", _viewModel.FormTitle);
+        Assert.Equal("Edit Dictionary", _viewModel.FormTitle);
     }
 
     [Fact]

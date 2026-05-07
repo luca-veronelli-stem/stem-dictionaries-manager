@@ -5,7 +5,7 @@ using GUI.Windows.ViewModels;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per la lista degli utenti con form di creazione inline.
+/// View for the user list with an inline creation form.
 /// </summary>
 public partial class UserListView : UserControl
 {

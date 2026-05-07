@@ -1,7 +1,7 @@
 namespace GUI.Windows.Abstractions;
 
 /// <summary>
-/// Severità del messaggio per la status bar.
+/// Severity of a status-bar message.
 /// </summary>
 public enum MessageSeverity
 {
@@ -12,35 +12,35 @@ public enum MessageSeverity
 }
 
 /// <summary>
-/// Servizio per mostrare messaggi nella status bar.
+/// Service for showing messages in the status bar.
 /// </summary>
 public interface IMessageService
 {
     /// <summary>
-    /// Messaggio corrente visualizzato.
+    /// Currently displayed message.
     /// </summary>
     string? CurrentMessage { get; }
 
     /// <summary>
-    /// Severità del messaggio corrente.
+    /// Severity of the current message.
     /// </summary>
     MessageSeverity CurrentSeverity { get; }
 
     /// <summary>
-    /// Mostra un messaggio nella status bar.
+    /// Shows a message in the status bar.
     /// </summary>
-    /// <param name="message">Testo del messaggio.</param>
-    /// <param name="severity">Severità (default: Info).</param>
-    /// <param name="autoHideSeconds">Secondi dopo i quali nascondere (0 = permanente).</param>
+    /// <param name="message">Message text.</param>
+    /// <param name="severity">Severity (default: Info).</param>
+    /// <param name="autoHideSeconds">Seconds after which the message is hidden (0 = permanent).</param>
     void Show(string message, MessageSeverity severity = MessageSeverity.Info, int autoHideSeconds = 5);
 
     /// <summary>
-    /// Nasconde il messaggio corrente.
+    /// Hides the current message.
     /// </summary>
     void Clear();
 
     /// <summary>
-    /// Evento sollevato quando cambia il messaggio.
+    /// Event raised when the message changes.
     /// </summary>
     event EventHandler? MessageChanged;
 }

@@ -3,7 +3,7 @@ using System.Windows;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Dialog modale dark theme. Sostituisce MessageBox standard.
+/// Modal dark-theme dialog. Replaces the standard MessageBox.
 /// </summary>
 public partial class DarkDialog : Window
 {
@@ -27,7 +27,7 @@ public partial class DarkDialog : Window
     }
 
     /// <summary>
-    /// Mostra un dialog informativo (solo OK).
+    /// Shows an informational dialog (OK only).
     /// </summary>
     public static void ShowInfo(string title, string message)
     {
@@ -36,7 +36,7 @@ public partial class DarkDialog : Window
     }
 
     /// <summary>
-    /// Mostra un dialog di errore (solo OK).
+    /// Shows an error dialog (OK only).
     /// </summary>
     public static void ShowError(string title, string message)
     {
@@ -47,7 +47,7 @@ public partial class DarkDialog : Window
     }
 
     /// <summary>
-    /// Mostra un dialog di warning (solo OK).
+    /// Shows a warning dialog (OK only).
     /// </summary>
     public static void ShowWarning(string title, string message)
     {
@@ -58,21 +58,21 @@ public partial class DarkDialog : Window
     }
 
     /// <summary>
-    /// Mostra un dialog di conferma (Sì/No). Restituisce true se Sì.
+    /// Shows a confirmation dialog (Yes/No). Returns true on Yes.
     /// </summary>
     public static bool ShowConfirm(string title, string message)
     {
-        DarkDialog dialog = CreateDialog(title, message, "Sì", "No");
+        DarkDialog dialog = CreateDialog(title, message, "Yes", "No");
         dialog.ShowDialog();
         return dialog.Result;
     }
 
     /// <summary>
-    /// Mostra un dialog OK/Annulla. Restituisce true se OK.
+    /// Shows an OK/Cancel dialog. Returns true on OK.
     /// </summary>
     public static bool ShowOkCancel(string title, string message)
     {
-        DarkDialog dialog = CreateDialog(title, message, "OK", "Annulla");
+        DarkDialog dialog = CreateDialog(title, message, "OK", "Cancel");
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -82,7 +82,7 @@ public partial class DarkDialog : Window
     {
         var dialog = new DarkDialog();
 
-        // Owner = MainWindow se disponibile (non durante startup)
+        // Owner = MainWindow when available (not during startup)
         Window? mainWindow = Application.Current.MainWindow;
         if (mainWindow is not null && mainWindow != dialog)
         {

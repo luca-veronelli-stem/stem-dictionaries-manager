@@ -5,7 +5,7 @@ using System.Windows.Input;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// Vista per la creazione/modifica di una variabile.
+/// View for creating/editing a variable.
 /// </summary>
 public partial class VariableEditView : UserControl
 {
@@ -16,11 +16,11 @@ public partial class VariableEditView : UserControl
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        // L'inizializzazione viene gestita dal MainViewModel
+        // Initialization is handled by MainViewModel
     }
 
     /// <summary>
-    /// Filtra l'input per accettare solo caratteri hex (0-9, A-F).
+    /// Filters input to accept only hex characters (0-9, A-F).
     /// </summary>
     private void HexTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
@@ -28,7 +28,7 @@ public partial class VariableEditView : UserControl
     }
 
     /// <summary>
-    /// Filtra l'input per accettare solo interi positivi (0-9).
+    /// Filters input to accept only positive integers (0-9).
     /// </summary>
     private void IntTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
@@ -36,7 +36,7 @@ public partial class VariableEditView : UserControl
     }
 
     /// <summary>
-    /// Filtra l'input per accettare solo numeri decimali (0-9, '.', ',', '-').
+    /// Filters input to accept only decimal numbers (0-9, '.', ',', '-').
     /// </summary>
     private void DoubleTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {

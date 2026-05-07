@@ -6,8 +6,8 @@ using GUI.Windows.ViewModels;
 namespace GUI.Windows.Views;
 
 /// <summary>
-/// View per la creazione/modifica di un dizionario.
-/// Code-behind minimale - solo per trigger inizializzazione.
+/// View for creating/editing a dictionary.
+/// Minimal code-behind - only triggers initialization.
 /// </summary>
 public partial class DictionaryEditView : UserControl
 {
@@ -18,10 +18,10 @@ public partial class DictionaryEditView : UserControl
 
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        // Inizializza il ViewModel con i parametri di navigazione
+        // Initialize the ViewModel with the navigation parameters
         if (DataContext is DictionaryEditViewModel viewModel)
         {
-            // Recupera il parametro di navigazione
+            // Retrieve the navigation parameter
             var navigationService = App.Services.GetService(typeof(INavigationService)) as Services.NavigationService;
             int? entityId = navigationService?.CurrentParameter?.EntityId;
 

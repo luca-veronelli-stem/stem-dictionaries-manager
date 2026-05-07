@@ -39,7 +39,7 @@ public class CommandEditViewModelTests
 
         // Assert
         Assert.True(_viewModel.IsNew);
-        Assert.Equal("Nuovo Comando", _viewModel.FormTitle);
+        Assert.Equal("New Command", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class CommandEditViewModelTests
 
         // Assert
         Assert.False(_viewModel.IsNew);
-        Assert.Equal("Modifica Comando", _viewModel.FormTitle);
+        Assert.Equal("Edit Command", _viewModel.FormTitle);
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public class CommandEditViewModelTests
         await _viewModel.CancelCommand.ExecuteAsync(null);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("annullare"));
+            c.Type == "Confirm" && c.Message.Contains("discard"));
         Assert.True(_navigationService.GoBackCalled);
     }
 
@@ -655,8 +655,8 @@ public class CommandEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         var (Message, Severity) = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
-        Assert.Contains("Nome", Message);
-        Assert.Contains("Codice", Message);
+        Assert.Contains("Name", Message);
+        Assert.Contains("Code", Message);
     }
 
     [Fact]

@@ -192,8 +192,8 @@ public class MainViewModelTests
     {
         _viewModel.NavigateToDevicesCommand.Execute(null);
 
-        Assert.Equal("Dispositivi", _viewModel.PageTitle);
-        Assert.Contains("Dispositivi", _viewModel.Title);
+        Assert.Equal("Devices", _viewModel.PageTitle);
+        Assert.Contains("Devices", _viewModel.Title);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class MainViewModelTests
             DeviceId = 9
         });
 
-        Assert.Equal("Dettaglio Dispositivo", _viewModel.PageTitle);
+        Assert.Equal("Device Detail", _viewModel.PageTitle);
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class MainViewModelTests
             EntityId = null
         });
 
-        Assert.Equal("Modifica Dispositivo", _viewModel.PageTitle);
+        Assert.Equal("Edit Device", _viewModel.PageTitle);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class MainViewModelTests
         var navService = new MockNavigationService();
         var services = new ServiceCollection();
         services.AddTransient<DictionaryListViewModel>(_ =>
-            throw new InvalidOperationException("Errore risoluzione DI"));
+            throw new InvalidOperationException("DI resolution error"));
         var throwingProvider = services.BuildServiceProvider();
 
         var vm = new MainViewModel(
@@ -234,7 +234,7 @@ public class MainViewModelTests
         navService.NavigateTo(ViewType.DictionaryList);
 
         Assert.Null(vm.CurrentViewModel);
-        Assert.Equal("Dizionari", vm.PageTitle);
+        Assert.Equal("Dictionaries", vm.PageTitle);
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class MainViewModelTests
         var msgService = new MockMessageService();
         var services = new ServiceCollection();
         services.AddTransient<DictionaryListViewModel>(_ =>
-            throw new InvalidOperationException("Errore risoluzione DI"));
+            throw new InvalidOperationException("DI resolution error"));
         var throwingProvider = services.BuildServiceProvider();
 
         var vm = new MainViewModel(
@@ -255,7 +255,7 @@ public class MainViewModelTests
 
         Assert.Contains(msgService.Messages, m =>
             m.Severity == MessageSeverity.Error &&
-            m.Message.Contains("Errore risoluzione DI"));
+            m.Message.Contains("DI resolution error"));
     }
 
     // === Test StatusMessage / StatusSeverity ===

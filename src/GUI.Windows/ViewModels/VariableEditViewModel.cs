@@ -9,7 +9,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// ViewModel per la creazione/modifica di una variabile.
+/// ViewModel for creating/editing a variable.
 /// </summary>
 public partial class VariableEditViewModel : ObservableObject, IEditableViewModel
 {
@@ -27,8 +27,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _showValidation;
 
     /// <summary>
-    /// Se valorizzato, la view è in modalità DictionaryContext: campi variabile read-only,
-    /// WordGroups editabili con DictionaryId. Null = modalità Normal.
+    /// When set, the view runs in DictionaryContext mode: variable fields read-only,
+    /// WordGroups editable for the given DictionaryId. Null = Normal mode.
     /// </summary>
     private int? _dictionaryContextId;
 
@@ -41,7 +41,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     [ObservableProperty]
     private bool _hasChanges;
 
-    // === Campi editabili ===
+    // === Editable fields ===
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FullAddressDisplay))]
@@ -49,8 +49,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private string _name = string.Empty;
 
     /// <summary>
-    /// AddressHigh calcolato automaticamente dal tipo di dizionario.
-    /// 0x00 = Dizionario Standard, 0x80 = altri dizionari.
+    /// AddressHigh derived automatically from the dictionary kind.
+    /// 0x00 = Standard dictionary, 0x80 = other dictionaries.
     /// </summary>
     public string AddressHighHex => _isStandardDictionary ? "00" : "80";
 
@@ -86,7 +86,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private int? _selectedWordSize;
 
     /// <summary>
-    /// Notifica validazione quando cambia il DataTypeParam (Size per Array/String).
+    /// Re-evaluates validation when DataTypeParam (Size for Array/String) changes.
     /// </summary>
     partial void OnDataTypeParamChanged(int? value)
     {
@@ -94,7 +94,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Quando cambia il tipo dato: se Bitmapped, attende WordSize prima di creare WordGroups.
+    /// On data-type change: when Bitmapped, defer WordGroups creation until WordSize is set.
     /// </summary>
     partial void OnSelectedDataTypeKindChanged(DataTypeKind value)
     {
@@ -115,7 +115,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Quando cambia WordSize: gestisce riduzione con troncamento bit e conferma.
+    /// On WordSize change: handles size reduction with bit truncation and confirmation.
     /// </summary>
     partial void OnSelectedWordSizeChanged(int? oldValue, int? newValue)
     {
@@ -130,7 +130,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 return;
             }
 
-            // Controlla se la riduzione tronca dei bit esistenti
+            // Check whether the reduction truncates existing bits
             var hasOverflowBits = WordGroups.Any(g =>
                 g.Items.Any(i => i.BitIndex >= newValue.Value));
 
@@ -147,7 +147,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Gestisce la riduzione del WordSize con conferma e troncamento.
+    /// Handles WordSize reduction with confirmation and bit truncation.
     /// </summary>
     private async Task HandleWordSizeReductionAsync(int? previousWordSize, int newWordSize)
     {
@@ -158,9 +158,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         if (hasNonEmptyOverflow)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Riduzione Word Size",
-                $"Alcune word contengono bit con indice ? {newWordSize} " +
-                "che hanno definizioni. Questi bit verranno eliminati. Continuare?");
+                "Word Size reduction",
+                $"Some words contain bits with index ≥ {newWordSize} " +
+                "that have definitions. These bits will be removed. Continue?");
 
             if (result != DialogResult.Yes)
             {
@@ -177,7 +177,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Rimuove i bit con indice ? wordSize da tutte le word.
+    /// Removes bits with index ≥ wordSize from every word.
     /// </summary>
     private void TruncateBitsToWordSize(int wordSize)
     {
@@ -219,8 +219,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private bool _isEnabled = true;
 
     /// <summary>
-    /// Gruppi di bit per word (solo per DataType == Bitmapped).
-    /// Ogni WordBitGroup contiene max WordSize BitInterpretationItem.
+    /// Bit groups per word (only for DataType == Bitmapped).
+    /// Each WordBitGroup contains up to WordSize BitInterpretationItem entries.
     /// </summary>
     public ObservableCollection<WordBitGroup> WordGroups { get; } = [];
 
@@ -229,63 +229,63 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsNew => _editingId is null;
 
     /// <summary>
-    /// True se in modalità DictionaryContext (campi variabile read-only, solo bit editabili).
+    /// True when the view runs in DictionaryContext mode (variable fields read-only, only bits editable).
     /// </summary>
     public bool IsDictionaryContext => _dictionaryContextId.HasValue;
 
     /// <summary>
-    /// True se i campi variabile sono editabili (modalità Normal).
+    /// True when variable fields are editable (Normal mode).
     /// </summary>
     public bool IsNotDictionaryContext => !IsDictionaryContext;
 
     public string FormTitle => IsDictionaryContext
-        ? "Override Variabile Standard"
-        : IsNew ? "Nuova Variabile" : "Modifica Variabile";
+        ? "Override Standard Variable"
+        : IsNew ? "New Variable" : "Edit Variable";
 
     public string SaveButtonLabel => IsDictionaryContext
-        ? "?? Salva Override" : "?? Salva";
+        ? "?? Save Override" : "?? Save";
 
     /// <summary>
-    /// True se il DataTypeKind selezionato è Other (mostra TextBox custom).
+    /// True if the selected DataTypeKind is Other (shows the custom TextBox).
     /// </summary>
     public bool IsDataTypeOther => SelectedDataTypeKind == DataTypeKind.Other;
 
     /// <summary>
-    /// True se il tipo richiede un parametro numerico (solo Array, String).
-    /// Bitmapped usa WordGroups.Count al posto del TextBox.
+    /// True if the type requires a numeric parameter (only Array, String).
+    /// Bitmapped uses WordGroups.Count instead of a TextBox.
     /// </summary>
     public bool RequiresDataTypeParam => SelectedDataTypeKind is DataTypeKind.Array or DataTypeKind.String;
 
     /// <summary>
-    /// True se è Bitmapped (mostra Word Size selector).
+    /// True for Bitmapped (shows the Word Size selector).
     /// </summary>
     public bool IsBitmapped => SelectedDataTypeKind == DataTypeKind.Bitmapped;
 
     /// <summary>
-    /// True se è Bitmapped e WordSize è stato selezionato (mostra WordGroups).
+    /// True for Bitmapped when WordSize has been selected (shows WordGroups).
     /// </summary>
     public bool HasWordSize => IsBitmapped && SelectedWordSize.HasValue;
 
     /// <summary>
-    /// Validazione: WordSize obbligatorio per Bitmapped.
+    /// Validation: WordSize is required for Bitmapped.
     /// </summary>
     public bool IsWordSizeInvalid => _showValidation && IsBitmapped && !SelectedWordSize.HasValue;
 
-    /// <summary>Opzioni per il ComboBox WordSize.</summary>
+    /// <summary>Options for the WordSize ComboBox.</summary>
     public IReadOnlyList<int> WordSizeOptions { get; } = Variable.AllowedWordSizes;
 
     /// <summary>
-    /// Label per il parametro tipo (con asterisco).
+    /// Label for the type parameter (with asterisk).
     /// </summary>
     public string DataTypeParamLabel => SelectedDataTypeKind switch
     {
         DataTypeKind.Array or DataTypeKind.String => "Size (bytes) *",
-        _ => "Parametro"
+        _ => "Parameter"
     };
 
     /// <summary>
-    /// Tipo dato per il salvataggio (dal dropdown o custom).
-    /// Bitmapped usa WordGroups.Count come parametro.
+    /// Data type to persist on save (from the dropdown or custom field).
+    /// Bitmapped uses WordGroups.Count as the parameter.
     /// </summary>
     public string DataTypeForSave
     {
@@ -300,13 +300,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             string baseName = SelectedDataTypeKind.ToString();
 
-            // Bitmapped: parametro derivato da WordGroups.Count
+            // Bitmapped: parameter derived from WordGroups.Count
             if (IsBitmapped && WordGroups.Count > 0)
             {
                 return $"{baseName}[{WordGroups.Count}]";
             }
 
-            // Array/String: parametro dal TextBox
+            // Array/String: parameter from the TextBox
             if (RequiresDataTypeParam && DataTypeParam.HasValue)
             {
                 return $"{baseName}[{DataTypeParam.Value}]";
@@ -317,16 +317,16 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Validazione: AddressLow deve essere hex valido.
+    /// Validation: AddressLow must be a valid hex string.
     /// </summary>
     public bool IsAddressLowValid => IsValidHex(AddressLowHex);
 
     /// <summary>
-    /// Validazione: Min deve essere minore o uguale a Max (se entrambi specificati).
+    /// Validation: Min must be ≤ Max (when both are set).
     /// </summary>
     public bool IsMinMaxValid => !MinValue.HasValue || !MaxValue.HasValue || MinValue.Value <= MaxValue.Value;
 
-    // === Proprietà di validazione per-campo (visibili solo dopo primo tentativo di salvataggio) ===
+    // === Per-field validation properties (visible only after the first save attempt) ===
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsAddressLowInvalid => _showValidation && string.IsNullOrWhiteSpace(AddressLowHex);
@@ -334,13 +334,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     public bool IsDataTypeParamInvalid => _showValidation && RequiresDataTypeParam && !DataTypeParam.HasValue;
 
     /// <summary>
-    /// True se ci sono almeno 2 word (la rimozione è possibile).
+    /// True if there are at least 2 words (removal allowed).
     /// </summary>
     public bool CanRemoveWord => IsBitmapped && WordGroups.Count > 1;
     public bool IsCustomDataTypeInvalid => _showValidation && IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType);
 
     /// <summary>
-    /// Indirizzo completo in formato 0xHHLL.
+    /// Full address in 0xHHLL format.
     /// </summary>
     public string FullAddressDisplay
     {
@@ -352,13 +352,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         }
     }
 
-    // === Helper per validazione e parsing hex ===
+    // === Hex validation/parsing helpers ===
 
     private static bool IsValidHex(string hex)
     {
         if (string.IsNullOrWhiteSpace(hex))
         {
-            return true; // vuoto è ok
+            return true; // empty is ok
         }
 
         return hex.All(c => char.IsAsciiHexDigit(c));
@@ -380,7 +380,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Filtra l'input per accettare solo caratteri hex.
+    /// Filters input to keep only hex characters.
     /// </summary>
     public static string FilterHexInput(string input)
     {
@@ -392,7 +392,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         return new string([.. input.Where(char.IsAsciiHexDigit)]).ToUpperInvariant();
     }
 
-    // === Enum values per ComboBox ===
+    // === Enum values for the ComboBoxes ===
 
     public IReadOnlyList<DataTypeKind> DataTypeKinds { get; } = Enum.GetValues<DataTypeKind>();
     public IReadOnlyList<AccessMode> AccessModes { get; } = Enum.GetValues<AccessMode>();
@@ -412,8 +412,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Inizializza il ViewModel.
-    /// dictionaryContextId != null ? DictionaryContext mode (read-only + bit editabili per dizionario).
+    /// Initializes the ViewModel.
+    /// dictionaryContextId != null ⇒ DictionaryContext mode (read-only + per-dictionary editable bits).
     /// </summary>
     public async Task InitializeAsync(int? variableId, int dictionaryId, int? dictionaryContextId = null)
     {
@@ -430,7 +430,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _dictionaryId = dictionaryId;
             _dictionaryContextId = dictionaryContextId;
 
-            // Carica il dizionario per determinare AddressHigh
+            // Load the dictionary to determine AddressHigh
             Dictionary? dictionary = await _dictionaryService.GetByIdAsync(dictionaryId);
             _isStandardDictionary = dictionary?.IsStandard ?? false;
             OnPropertyChanged(nameof(AddressHighHex));
@@ -443,14 +443,14 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 Variable? variable = await _variableService.GetByIdAsync(variableId.Value);
                 if (variable is null)
                 {
-                    await _dialogService.ShowErrorAsync("Errore", "Variabile non trovata.");
+                    await _dialogService.ShowErrorAsync("Error", "Variable not found.");
                     _navigationService.GoBack();
                     return;
                 }
 
                 LoadFromVariable(variable);
 
-                // DictionaryContext: sovrascrive IsEnabled e Description con l'override per dizionario
+                // DictionaryContext: overrides IsEnabled and Description with the per-dictionary override
                 if (_dictionaryContextId.HasValue)
                 {
                     StandardVariableOverride? overrideState = await _variableService.GetOverrideAsync(
@@ -467,8 +467,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
                 if (variable.DataTypeKind == DataTypeKind.Bitmapped)
                 {
-                    // DictionaryContext: carica interpretazioni per dizionario (con fallback a template)
-                    // Normal: carica tutte le interpretazioni template
+                    // DictionaryContext: load per-dictionary interpretations (with template fallback)
+                    // Normal: load all template interpretations
                     IReadOnlyList<BitInterpretation> bits = _dictionaryContextId.HasValue
                         ? await _variableService.GetBitInterpretationsForDictionaryAsync(
                             variableId.Value, _dictionaryContextId.Value)
@@ -489,7 +489,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
             _isInitialized = true;
             HasChanges = false;
 
-            // Se nuovo e tipo è Bitmapped con WordSize già impostato, crea Word 0
+            // If new and the type is Bitmapped with WordSize already set, create Word 0
             if (HasWordSize && WordGroups.Count == 0)
             {
                 CreateInitialWordGroup();
@@ -503,7 +503,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         {
             _isLoading = false;
             ErrorMessage = ex.Message;
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile caricare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to load: {ex.Message}");
         }
         finally
         {
@@ -514,7 +514,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private void LoadFromVariable(Variable v)
     {
         Name = v.Name;
-        // AddressHighHex è computed automaticamente da _isStandardDictionary
+        // AddressHighHex is computed automatically from _isStandardDictionary
         AddressLowHex = v.AddressLow.ToString("X2");
         SelectedDataTypeKind = v.DataTypeKind;
         DataTypeParam = v.DataTypeParam;
@@ -527,7 +527,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         IsEnabled = v.IsEnabled;
         SelectedWordSize = v.WordSize;
 
-        // Imposta custom type se è Other
+        // Set the custom type when the kind is Other
         if (v.DataTypeKind == DataTypeKind.Other)
         {
             CustomDataType = v.DataTypeRaw;
@@ -538,7 +538,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     {
         _showValidation = true;
 
-        // Notifica tutte le proprietà di validazione
+        // Notify every validation property
         OnPropertyChanged(nameof(IsNameInvalid));
         OnPropertyChanged(nameof(IsAddressLowInvalid));
         OnPropertyChanged(nameof(IsDescriptionInvalid));
@@ -550,17 +550,17 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            missing.Add("Nome");
+            missing.Add("Name");
         }
 
         if (string.IsNullOrWhiteSpace(AddressLowHex))
         {
-            missing.Add("Indirizzo");
+            missing.Add("Address");
         }
 
         if (string.IsNullOrWhiteSpace(Description))
         {
-            missing.Add("Descrizione");
+            missing.Add("Description");
         }
 
         if (RequiresDataTypeParam && !DataTypeParam.HasValue)
@@ -570,7 +570,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         if (IsDataTypeOther && string.IsNullOrWhiteSpace(CustomDataType))
         {
-            missing.Add("Tipo dato custom");
+            missing.Add("Custom data type");
         }
 
         if (IsBitmapped && !SelectedWordSize.HasValue)
@@ -580,17 +580,17 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         if (!IsAddressLowValid)
         {
-            missing.Add("Indirizzo (formato hex non valido)");
+            missing.Add("Address (invalid hex format)");
         }
 
         if (!IsMinMaxValid)
         {
-            missing.Add("Min/Max (Min deve essere ? Max)");
+            missing.Add("Min/Max (Min must be ≤ Max)");
         }
 
         if (missing.Count > 0)
         {
-            _messageService.Show($"Campi obbligatori mancanti: {string.Join(", ", missing)}", MessageSeverity.Warning);
+            _messageService.Show($"Required fields missing: {string.Join(", ", missing)}", MessageSeverity.Warning);
             return false;
         }
 
@@ -606,13 +606,13 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             if (IsDictionaryContext)
             {
-                // DictionaryContext: salva override variabile + bit interpretations per dizionario
+                // DictionaryContext: save the variable override + per-dictionary bit interpretations
                 await SaveOverrideAsync();
                 await SaveBitInterpretationsForDictionaryAsync();
             }
             else
             {
-                // Normal: salva variabile + bit comuni
+                // Normal: save variable + common bits
                 if (!Validate())
                 {
                     return;
@@ -627,7 +627,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         }
         catch (Exception ex)
         {
-            await _dialogService.ShowErrorAsync("Errore", $"Impossibile salvare: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally
         {
@@ -663,7 +663,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             Variable created = await _variableService.AddAsync(_dictionaryId, variable);
             _editingId = created.Id;
-            _messageService.Show($"Variabile '{Name}' creata", MessageSeverity.Success);
+            _messageService.Show($"Variable '{Name}' created", MessageSeverity.Success);
         }
         else
         {
@@ -686,7 +686,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
                 wordSize: wordSize);
 
             await _variableService.UpdateAsync(existing);
-            _messageService.Show($"Variabile '{Name}' aggiornata", MessageSeverity.Success);
+            _messageService.Show($"Variable '{Name}' updated", MessageSeverity.Success);
         }
     }
 
@@ -738,7 +738,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
         await _variableService.SetOverrideAsync(
             _dictionaryContextId.Value, _editingId.Value, IsEnabled, Description);
-        _messageService.Show("Override variabile per dizionario salvato", MessageSeverity.Success);
+        _messageService.Show("Per-dictionary variable override saved", MessageSeverity.Success);
     }
 
     [RelayCommand]
@@ -747,8 +747,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         if (HasChanges)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Annulla modifiche",
-                "Sei sicuro di voler annullare le modifiche?");
+                "Discard changes",
+                "Are you sure you want to discard the changes?");
             if (result != DialogResult.Yes)
             {
                 return;
@@ -804,7 +804,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Aggiunge una nuova Word (WordBitGroup) con 1 bit iniziale.
+    /// Adds a new Word (WordBitGroup) with a single initial bit.
     /// </summary>
     [RelayCommand]
     private void AddWord()
@@ -819,7 +819,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Rimuove una Word con conferma se contiene meanings non vuoti.
+    /// Removes a Word, asking for confirmation if it has non-empty meanings.
     /// </summary>
     [RelayCommand]
     private async Task RemoveWordAsync(WordBitGroup? group)
@@ -832,8 +832,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         if (group.HasNonEmptyMeanings)
         {
             DialogResult result = await _dialogService.ShowConfirmAsync(
-                "Rimuovi Word",
-                $"La {group.Label} contiene definizioni. Sei sicuro di volerla rimuovere?");
+                "Remove Word",
+                $"{group.Label} contains definitions. Are you sure you want to remove it?");
             if (result != DialogResult.Yes)
             {
                 return;
@@ -848,7 +848,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Crea la Word 0 iniziale con 1 bit.
+    /// Creates the initial Word 0 with a single bit.
     /// </summary>
     private void CreateInitialWordGroup()
     {
@@ -861,7 +861,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Re-indicizza i WordGroups e i loro items dopo una rimozione.
+    /// Re-indexes WordGroups and their items after a removal.
     /// </summary>
     private void ReindexWordGroups()
     {
@@ -876,8 +876,8 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     }
 
     /// <summary>
-    /// Rigenera i WordGroups per il wordCount specificato.
-    /// Preserva gli items esistenti per le word che già esistono.
+    /// Regenerates WordGroups for the requested word count.
+    /// Preserves existing items for words that already exist.
     /// </summary>
     private void RegenerateWordGroups(int wordCount, List<BitInterpretationItem>? existingItems = null)
     {

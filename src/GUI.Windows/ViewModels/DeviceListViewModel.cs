@@ -8,7 +8,7 @@ using Services.Interfaces;
 namespace GUI.Windows.ViewModels;
 
 /// <summary>
-/// Item per la lista dispositivi.
+/// Item for the device list.
 /// </summary>
 public partial class DeviceItem : ObservableObject
 {
@@ -32,8 +32,8 @@ public partial class DeviceItem : ObservableObject
 }
 
 /// <summary>
-/// ViewModel per la lista dei dispositivi.
-/// SESSION_035: carica da DB tramite IDeviceService.
+/// ViewModel for the device list.
+/// SESSION_035: loaded from the DB via IDeviceService.
 /// </summary>
 public partial class DeviceListViewModel : ObservableObject
 {
@@ -78,7 +78,7 @@ public partial class DeviceListViewModel : ObservableObject
             IsLoading = true;
             IReadOnlyList<Device> devices = await _deviceService.GetAllAsync();
 
-            // Carica tutte le board per derivare conteggi per device
+            // Load every board to derive per-device counts
             var boardsByDevice = new Dictionary<int, List<Core.Models.Board>>();
             foreach (Device device in devices)
             {
@@ -105,7 +105,7 @@ public partial class DeviceListViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _messageService.Show($"Errore caricamento dispositivi: {ex.Message}",
+            _messageService.Show($"Error loading devices: {ex.Message}",
                 MessageSeverity.Error);
         }
         finally
@@ -171,7 +171,7 @@ public partial class DeviceListViewModel : ObservableObject
     private async Task DeleteDeviceAsync()
     {
         await _dialogService.ShowErrorAsync(
-            "Operazione non consentita",
-            "Solo l'amministratore può eliminare un dispositivo.");
+            "Operation not allowed",
+            "Only an administrator can delete a device.");
     }
 }
