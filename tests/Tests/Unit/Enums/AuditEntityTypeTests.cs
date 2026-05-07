@@ -11,7 +11,7 @@ public class AuditEntityTypeTests
     public void AuditEntityType_HasExpectedCount()
     {
         AuditEntityType[] values = Enum.GetValues<AuditEntityType>();
-        Assert.Equal(8, values.Length);
+        Assert.Equal(10, values.Length);
     }
 
     [Fact]
@@ -24,5 +24,9 @@ public class AuditEntityTypeTests
         Assert.True(Enum.IsDefined(AuditEntityType.BitInterpretation));
         Assert.True(Enum.IsDefined(AuditEntityType.User));
         Assert.True(Enum.IsDefined(AuditEntityType.Device));
+        Assert.True(Enum.IsDefined(AuditEntityType.StandardVariableOverride));
+        // Spec 001 — admin mint/revoke audit surfaces.
+        Assert.True(Enum.IsDefined(AuditEntityType.BootstrapToken));
+        Assert.True(Enum.IsDefined(AuditEntityType.Installation));
     }
 }
