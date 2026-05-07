@@ -4,13 +4,13 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per Dictionary Entity ↔ Domain.
-/// Domain v2: nessun DeviceType/BoardType. IsStandard flag.
+/// Bidirectional mapper for Dictionary Entity ↔ Domain.
+/// Domain v2: no DeviceType/BoardType. IsStandard flag.
 /// </summary>
 public static class DictionaryMapper
 {
     /// <summary>
-    /// Converte DictionaryEntity in Dictionary (Domain) senza variabili.
+    /// Converts DictionaryEntity to Dictionary (Domain) without variables.
     /// </summary>
     public static Dictionary ToDomain(DictionaryEntity entity)
     {
@@ -20,8 +20,8 @@ public static class DictionaryMapper
     }
 
     /// <summary>
-    /// Converte DictionaryEntity in Dictionary (Domain) con variabili.
-    /// Richiede Variables caricate via Include.
+    /// Converts DictionaryEntity to Dictionary (Domain) with variables.
+    /// Requires Variables loaded via Include.
     /// </summary>
     public static Dictionary ToDomainWithVariables(DictionaryEntity entity)
     {
@@ -36,7 +36,7 @@ public static class DictionaryMapper
     }
 
     /// <summary>
-    /// Converte Dictionary (Domain) in DictionaryEntity per creazione.
+    /// Converts Dictionary (Domain) to DictionaryEntity for creation.
     /// </summary>
     public static DictionaryEntity ToEntity(Dictionary domain)
     {
@@ -52,7 +52,7 @@ public static class DictionaryMapper
     }
 
     /// <summary>
-    /// Aggiorna DictionaryEntity esistente con dati da Dictionary (Domain).
+    /// Updates an existing DictionaryEntity with data from Dictionary (Domain).
     /// </summary>
     public static void UpdateEntity(DictionaryEntity entity, Dictionary domain)
     {
@@ -65,7 +65,7 @@ public static class DictionaryMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models (senza variabili).
+    /// Converts a list of entities to a list of domain models (without variables).
     /// </summary>
     public static IReadOnlyList<Dictionary> ToDomainList(IEnumerable<DictionaryEntity> entities)
     {

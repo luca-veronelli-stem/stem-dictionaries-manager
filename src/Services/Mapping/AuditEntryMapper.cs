@@ -4,13 +4,13 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per AuditEntry Entity ↔ Domain.
-/// Nota: non serve UpdateEntity (AuditEntry è immutabile).
+/// Bidirectional mapper for AuditEntry Entity ↔ Domain.
+/// Note: no UpdateEntity needed (AuditEntry is immutable).
 /// </summary>
 public static class AuditEntryMapper
 {
     /// <summary>
-    /// Converte AuditEntryEntity in AuditEntry (Domain).
+    /// Converts AuditEntryEntity to AuditEntry (Domain).
     /// </summary>
     public static AuditEntry ToDomain(AuditEntryEntity entity)
     {
@@ -29,7 +29,7 @@ public static class AuditEntryMapper
     }
 
     /// <summary>
-    /// Converte AuditEntry (Domain) in AuditEntryEntity per creazione.
+    /// Converts AuditEntry (Domain) to AuditEntryEntity for creation.
     /// </summary>
     public static AuditEntryEntity ToEntity(AuditEntry domain)
     {
@@ -49,7 +49,7 @@ public static class AuditEntryMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<AuditEntry> ToDomainList(
         IReadOnlyList<AuditEntryEntity> entities)

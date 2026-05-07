@@ -9,9 +9,9 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Implementazione service per gestione dispositivi.
-/// BR-014: MachineCode unico e > 0.
-/// BR-015: MachineCode 6 riservato per BLE Module.
+/// Device service implementation.
+/// BR-014: MachineCode is unique and > 0.
+/// BR-015: MachineCode 6 is reserved for the BLE Module.
 /// </summary>
 public class DeviceService : IDeviceService
 {
@@ -56,20 +56,20 @@ public class DeviceService : IDeviceService
     {
         ArgumentNullException.ThrowIfNull(device);
 
-        // Unicità nome
+        // Name uniqueness
         DeviceEntity? existing = await _repository.GetByNameAsync(device.Name, ct);
         if (existing is not null)
         {
             throw new InvalidOperationException(
-                $"Un dispositivo con nome '{device.Name}' esiste già.");
+                $"A device with name '{device.Name}' already exists.");
         }
 
-        // Unicità MachineCode
+        // MachineCode uniqueness
         DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
         if (byCode is not null)
         {
             throw new InvalidOperationException(
-                $"Un dispositivo con MachineCode {device.MachineCode} esiste già.");
+                $"A device with MachineCode {device.MachineCode} already exists.");
         }
 
         DeviceEntity entity = DeviceMapper.ToEntity(device);
@@ -91,20 +91,20 @@ public class DeviceService : IDeviceService
             ?? throw new KeyNotFoundException(
                 $"Device '{device.Name}' (Id={device.Id}) not found.");
 
-        // Unicità nome (esclude se stesso)
+        // Name uniqueness (excludes itself)
         DeviceEntity? byName = await _repository.GetByNameAsync(device.Name, ct);
         if (byName is not null && byName.Id != device.Id)
         {
             throw new InvalidOperationException(
-                $"Un dispositivo con nome '{device.Name}' esiste già.");
+                $"A device with name '{device.Name}' already exists.");
         }
 
-        // Unicità MachineCode (esclude se stesso)
+        // MachineCode uniqueness (excludes itself)
         DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
         if (byCode is not null && byCode.Id != device.Id)
         {
             throw new InvalidOperationException(
-                $"Un dispositivo con MachineCode {device.MachineCode} esiste già.");
+                $"A device with MachineCode {device.MachineCode} already exists.");
         }
 
         Device previous = DeviceMapper.ToDomain(entity);
@@ -125,7 +125,7 @@ public class DeviceService : IDeviceService
             ? JsonSerializer.Serialize(DeviceMapper.ToDomain(deviceEntity))
             : null;
 
-        // Cascade delete: elimina dizionari dedicati delle board del device
+        // Cascade delete: remove dedicated dictionaries of the device's boards
         IReadOnlyList<BoardEntity> boards = await _boardRepository.GetByDeviceIdAsync(id, ct);
         IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
 
@@ -136,7 +136,7 @@ public class DeviceService : IDeviceService
                 continue;
             }
 
-            // Se il dizionario è referenziato solo da board di questo device, eliminalo
+            // If the dictionary is only referenced by boards of this device, delete it
             int refCount = allBoards.Count(b => b.DictionaryId == dictId);
             int refsInThisDevice = boards.Count(b => b.DictionaryId == dictId);
             if (refCount == refsInThisDevice)
@@ -145,7 +145,7 @@ public class DeviceService : IDeviceService
             }
         }
 
-        // EF cascade elimina le board rimanenti
+        // EF cascade removes the remaining boards
         await _repository.DeleteAsync(id, ct);
 
         if (previousJson is not null)
@@ -167,7 +167,7 @@ public class DeviceService : IDeviceService
         int maxCode = all.Count > 0 ? all.Max(d => d.MachineCode) : 0;
         int next = maxCode + 1;
 
-        // Salta MachineCode 6 riservato per BLE Module (BR-015)
+        // Skip MachineCode 6 reserved for the BLE Module (BR-015)
         if (next == Device.ReservedBleModuleMachineCode)
         {
             next++;

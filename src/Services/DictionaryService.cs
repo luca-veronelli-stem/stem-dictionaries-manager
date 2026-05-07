@@ -9,8 +9,8 @@ using Services.Mapping;
 namespace Services;
 
 /// <summary>
-/// Service per gestione dizionari (aggregate root).
-/// Domain v2: IsStandard flag, nessun BoardType/DeviceType.
+/// Dictionary service (aggregate root).
+/// Domain v2: IsStandard flag, no BoardType/DeviceType.
 /// </summary>
 public class DictionaryService : IDictionaryService
 {
@@ -51,7 +51,7 @@ public class DictionaryService : IDictionaryService
     {
         ArgumentNullException.ThrowIfNull(dictionary);
 
-        // Verifica unicità nome
+        // Name uniqueness check
         DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
         if (existingByName is not null)
         {
@@ -59,7 +59,7 @@ public class DictionaryService : IDictionaryService
                 $"Dictionary with name '{dictionary.Name}' already exists.");
         }
 
-        // BR-004: max 1 dizionario Standard
+        // BR-004: max 1 Standard dictionary
         if (dictionary.IsStandard)
         {
             DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
@@ -89,7 +89,7 @@ public class DictionaryService : IDictionaryService
             ?? throw new KeyNotFoundException(
                 $"Dictionary '{dictionary.Name}' (Id={dictionary.Id}) not found.");
 
-        // Verifica unicità nome (se cambiato)
+        // Name uniqueness check (if changed)
         if (!entity.Name.Equals(dictionary.Name, StringComparison.OrdinalIgnoreCase))
         {
             DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
@@ -100,7 +100,7 @@ public class DictionaryService : IDictionaryService
             }
         }
 
-        // BR-004: se diventa Standard, verifica che non ne esista già uno
+        // BR-004: if becoming Standard, check none already exists
         if (dictionary.IsStandard && !entity.IsStandard)
         {
             DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
@@ -167,7 +167,7 @@ public class DictionaryService : IDictionaryService
             ?? throw new KeyNotFoundException(
                 $"Dictionary (Id={dictionaryId}) not found.");
 
-        // Verifica unicità indirizzo
+        // Address uniqueness check
         VariableEntity? existingByAddress = await _variableRepository.GetByAddressAsync(
             dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
         if (existingByAddress is not null)

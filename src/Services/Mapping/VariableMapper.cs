@@ -4,13 +4,13 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per Variable Entity ↔ Domain.
-/// Gestisce la complessità di DataTypeKind + DataTypeParam + DataTypeRaw.
+/// Bidirectional mapper for Variable Entity ↔ Domain.
+/// Handles the DataTypeKind + DataTypeParam + DataTypeRaw composition.
 /// </summary>
 public static class VariableMapper
 {
     /// <summary>
-    /// Converte VariableEntity in Variable (Domain).
+    /// Converts VariableEntity to Variable (Domain).
     /// </summary>
     public static Variable ToDomain(VariableEntity entity)
     {
@@ -36,7 +36,7 @@ public static class VariableMapper
     }
 
     /// <summary>
-    /// Converte Variable (Domain) in VariableEntity per creazione.
+    /// Converts Variable (Domain) to VariableEntity for creation.
     /// </summary>
     public static VariableEntity ToEntity(Variable domain, int dictionaryId)
     {
@@ -65,8 +65,8 @@ public static class VariableMapper
     }
 
     /// <summary>
-    /// Aggiorna VariableEntity esistente con dati da Variable (Domain).
-    /// Preserva Id, DictionaryId e audit fields.
+    /// Updates an existing VariableEntity with data from Variable (Domain).
+    /// Preserves Id, DictionaryId and audit fields.
     /// </summary>
     public static void UpdateEntity(VariableEntity entity, Variable domain)
     {
@@ -91,7 +91,7 @@ public static class VariableMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<Variable> ToDomainList(IEnumerable<VariableEntity> entities)
     {

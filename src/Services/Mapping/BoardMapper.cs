@@ -4,7 +4,7 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per Board Entity ↔ Domain.
+/// Bidirectional mapper for Board Entity ↔ Domain.
 /// SESSION_035: DeviceType → DeviceId + DeviceName + MachineCode.
 /// </summary>
 public static class BoardMapper

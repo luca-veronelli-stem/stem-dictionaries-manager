@@ -3,8 +3,8 @@ using Core.Models;
 namespace Services.Interfaces;
 
 /// <summary>
-/// Service per gestione dizionari (aggregate root).
-/// Domain v2: IsStandard flag, nessun BoardType/DeviceType.
+/// Dictionary service (aggregate root).
+/// Domain v2: IsStandard flag, no BoardType/DeviceType.
 /// </summary>
 public interface IDictionaryService
 {
@@ -17,7 +17,7 @@ public interface IDictionaryService
     Task<Dictionary?> GetByNameAsync(string name, CancellationToken ct = default);
 
     /// <summary>
-    /// Ottiene il dizionario Standard (IsStandard=true, max 1).
+    /// Gets the Standard dictionary (IsStandard=true, max 1).
     /// </summary>
     Task<Dictionary?> GetStandardDictionaryAsync(CancellationToken ct = default);
 

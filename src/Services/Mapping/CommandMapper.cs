@@ -5,13 +5,13 @@ using Infrastructure.Entities;
 namespace Services.Mapping;
 
 /// <summary>
-/// Mapper bidirezionale per Command Entity ↔ Domain.
-/// Gestisce la conversione JSON dei parametri.
+/// Bidirectional mapper for Command Entity ↔ Domain.
+/// Handles JSON conversion of parameters.
 /// </summary>
 public static class CommandMapper
 {
     /// <summary>
-    /// Converte CommandEntity in Command (Domain).
+    /// Converts CommandEntity to Command (Domain).
     /// </summary>
     public static Command ToDomain(CommandEntity entity)
     {
@@ -29,7 +29,7 @@ public static class CommandMapper
     }
 
     /// <summary>
-    /// Converte Command (Domain) in CommandEntity per creazione.
+    /// Converts Command (Domain) to CommandEntity for creation.
     /// </summary>
     public static CommandEntity ToEntity(Command domain)
     {
@@ -47,7 +47,7 @@ public static class CommandMapper
     }
 
     /// <summary>
-    /// Aggiorna CommandEntity esistente con dati da Command (Domain).
+    /// Updates an existing CommandEntity with data from Command (Domain).
     /// </summary>
     public static void UpdateEntity(CommandEntity entity, Command domain)
     {
@@ -62,14 +62,14 @@ public static class CommandMapper
     }
 
     /// <summary>
-    /// Converte lista di entities in lista di domain models.
+    /// Converts a list of entities to a list of domain models.
     /// </summary>
     public static IReadOnlyList<Command> ToDomainList(IEnumerable<CommandEntity> entities)
     {
         return [.. entities.Select(ToDomain)];
     }
 
-    // === Private Helpers ===
+    // === Private helpers ===
 
     private static IReadOnlyList<string> DeserializeParameters(string json)
     {
