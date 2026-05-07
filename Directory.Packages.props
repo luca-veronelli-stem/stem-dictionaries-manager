@@ -41,7 +41,7 @@
     <!-- ASP.NET Core / Web (API project) -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.7" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
 
     <!-- WPF MVVM (GUI.Windows — pending Avalonia migration) -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
