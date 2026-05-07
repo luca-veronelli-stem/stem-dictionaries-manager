@@ -13,12 +13,12 @@ public class BoardEntity : IAuditable
     public uint ProtocolAddress { get; set; }
 
     /// <summary>
-    /// True se è la scheda principale del dispositivo. Max 1 per Device.
+    /// True if this is the device's primary board. Max 1 per Device.
     /// </summary>
     public bool IsPrimary { get; set; }
 
     /// <summary>
-    /// Dizionario associato. Null = board senza dizionario proprio.
+    /// Associated dictionary. Null = board without its own dictionary.
     /// </summary>
     public int? DictionaryId { get; set; }
 

@@ -3,7 +3,7 @@ using Core.Enums;
 namespace Infrastructure.Entities;
 
 /// <summary>
-/// AuditEntry NON implementa IAuditable (ha già ChangedAt, non si modifica mai).
+/// AuditEntry does NOT implement IAuditable (it already has ChangedAt and is never modified).
 /// </summary>
 public class AuditEntryEntity
 {

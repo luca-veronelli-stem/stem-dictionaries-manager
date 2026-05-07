@@ -10,12 +10,12 @@ public interface IVariableRepository : IRepository<VariableEntity>
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Verifica se una variabile con l'Id specificato esiste.
+    /// Checks whether a variable with the given Id exists.
     /// </summary>
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene la variabile con le BitInterpretations incluse.
+    /// Gets the variable with BitInterpretations included.
     /// </summary>
     Task<VariableEntity?> GetWithBitInterpretationsAsync(int id, CancellationToken cancellationToken = default);
 }

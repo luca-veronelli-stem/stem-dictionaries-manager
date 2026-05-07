@@ -9,12 +9,12 @@ public interface IDictionaryRepository : IRepository<DictionaryEntity>
     Task<DictionaryEntity?> GetStandardDictionaryAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti i dizionari con le variabili incluse.
+    /// Gets all dictionaries with variables included.
     /// </summary>
     Task<IReadOnlyList<DictionaryEntity>> GetAllWithVariablesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Verifica se un dizionario con l'Id specificato esiste.
+    /// Checks whether a dictionary with the given Id exists.
     /// </summary>
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
 }

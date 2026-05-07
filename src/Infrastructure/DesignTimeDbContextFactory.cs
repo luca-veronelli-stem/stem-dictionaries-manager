@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace Infrastructure;
 
 /// <summary>
-/// Factory per creare AppDbContext durante le migrations (dotnet ef migrations add).
-/// Usa SQL Server come provider target per produzione (Azure SQL).
-/// Per sviluppo locale con SQLite, usare EnsureCreated o cambiare provider.
+/// Factory that creates AppDbContext during migrations (dotnet ef migrations add).
+/// Uses SQL Server as the target provider for production (Azure SQL).
+/// For local development with SQLite, use EnsureCreated or switch the provider.
 /// </summary>
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     /// <summary>
-    /// Connection string fittizia per generare migrations SQL Server.
-    /// Non viene mai usata per connettersi: serve solo per indicare
-    /// a EF Core quale provider SQL usare durante 'dotnet ef migrations add'.
+    /// Dummy connection string used to generate SQL Server migrations.
+    /// It is never used to connect: it only tells EF Core which SQL provider
+    /// to target during 'dotnet ef migrations add'.
     /// </summary>
     private const string DesignTimeConnectionString =
         "Server=placeholder;Database=placeholder;TrustServerCertificate=True;";
