@@ -1,10 +1,10 @@
 namespace Core.Models;
 
 /// <summary>
-/// Interpretazione di un bit per variabili bitmapped.
-/// v7: DictionaryId? sostituisce DeviceId? (scope per-dizionario).
-/// DictionaryId = null ? definita nel template Standard (default/fallback).
-/// DictionaryId valorizzato ? override per dizionario specifico (BR-018: priorità su template).
+/// Bit interpretation for bitmapped variables.
+/// v7: DictionaryId? replaces DeviceId? (per-dictionary scope).
+/// DictionaryId = null ? defined in the Standard template (default/fallback).
+/// DictionaryId set ? override for a specific dictionary (BR-018: takes priority over the template).
 /// </summary>
 public class BitInterpretation
 {
@@ -37,7 +37,7 @@ public class BitInterpretation
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static BitInterpretation Restore(int id, int variableId,
         int wordIndex, int bitIndex, string? meaning, int? dictionaryId)

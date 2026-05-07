@@ -1,16 +1,16 @@
 namespace Core.Enums;
 
 /// <summary>
-/// Permessi di accesso per una variabile.
+/// Access permissions for a variable.
 /// </summary>
 public enum AccessMode
 {
-    /// <summary>Sola lettura (R)</summary>
+    /// <summary>Read only (R)</summary>
     ReadOnly,
 
-    /// <summary>Lettura e scrittura (RW)</summary>
+    /// <summary>Read and write (RW)</summary>
     ReadWrite,
 
-    /// <summary>Sola scrittura (W)</summary>
+    /// <summary>Write only (W)</summary>
     WriteOnly
 }

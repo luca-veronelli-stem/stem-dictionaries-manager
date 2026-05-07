@@ -1,14 +1,14 @@
 namespace Core.Models;
 
 /// <summary>
-/// Dispositivo STEM (macchina).
-/// SESSION_035: da DeviceType enum a Device entity nel DB.
-/// MachineCode è il valore usato nel calcolo dell'indirizzo protocol.
+/// STEM device (machine).
+/// SESSION_035: moved from DeviceType enum to Device entity in the DB.
+/// MachineCode is the value used in the protocol address computation.
 /// </summary>
 public class Device
 {
     /// <summary>
-    /// MachineCode riservato per BLE Module (componente interna, non un device).
+    /// MachineCode reserved for the BLE Module (internal component, not a device).
     /// </summary>
     public const int ReservedBleModuleMachineCode = 6;
 
@@ -29,7 +29,7 @@ public class Device
         if (machineCode == ReservedBleModuleMachineCode)
         {
             throw new InvalidOperationException(
-                $"MachineCode {ReservedBleModuleMachineCode} è riservato per BLE Module (BR-015).");
+                $"MachineCode {ReservedBleModuleMachineCode} is reserved for the BLE Module (BR-015).");
         }
 
         Name = name;
@@ -38,7 +38,7 @@ public class Device
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static Device Restore(int id, string name, int machineCode, string? description)
     {

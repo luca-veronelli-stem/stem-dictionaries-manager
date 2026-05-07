@@ -1,7 +1,7 @@
 namespace Core.Models;
 
 /// <summary>
-/// Comando del protocollo STEM (universale per tutti i device).
+/// STEM protocol command (universal across all devices).
 /// </summary>
 public class Command
 {
@@ -36,7 +36,7 @@ public class Command
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static Command Restore(int id, string name, byte codeHigh, byte codeLow,
         bool isResponse, IEnumerable<string> parameters)

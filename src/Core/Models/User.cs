@@ -1,7 +1,7 @@
 namespace Core.Models;
 
 /// <summary>
-/// Utente del sistema.
+/// System user.
 /// </summary>
 public class User
 {
@@ -19,7 +19,7 @@ public class User
     }
 
     /// <summary>
-    /// Factory method per ricostruire da DB.
+    /// Factory method to reconstruct from the DB.
     /// </summary>
     public static User Restore(int id, string username, string displayName)
     {
