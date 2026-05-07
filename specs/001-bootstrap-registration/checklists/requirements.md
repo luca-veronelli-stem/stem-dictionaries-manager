@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,13 +31,12 @@
 
 ## Notes
 
-- One intentional `[NEEDS CLARIFICATION: ...]` marker remains in spec.md under
-  *Requirements → Open clarifications* (bootstrap-token TTL bounds). It names
-  the question, the reasonable alternatives, and the implications. Two
-  earlier markers were resolved in the `/speckit-clarify` session of
-  2026-05-07 (client identity model; revocation latency tolerance) — see
-  `## Clarifications` in spec.md. Remaining resolution continues in further
-  `/speckit-clarify` rounds before `/speckit-plan`.
+- All three originally intentional `[NEEDS CLARIFICATION: ...]` markers were
+  resolved in the `/speckit-clarify` session of 2026-05-07 (client identity
+  model; revocation latency tolerance; bootstrap-token TTL bounds) — see
+  `## Clarifications` in spec.md for the recorded answers. The
+  `Requirements → Open clarifications` subsection is removed (no longer
+  applicable). Spec is ready for `/speckit-plan`.
 - One narrow protocol mention (`POST /register`) appears in **FR-001**. This is
   not a HOW leak — it is a hard constraint inherited from issue #1 itself
   ("POST /register endpoint exists; accepts bootstrap_token and
