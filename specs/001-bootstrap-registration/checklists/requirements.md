@@ -31,11 +31,11 @@
 
 ## Notes
 
-- Two intentional `[NEEDS CLARIFICATION: ...]` markers remain in spec.md under
-  *Requirements → Open clarifications* (revocation latency tolerance,
-  bootstrap-token TTL bounds). Each names the question, the reasonable
-  alternatives, and the implications. The third marker (client identity model)
-  was resolved in the `/speckit-clarify` session of 2026-05-07 — see
+- One intentional `[NEEDS CLARIFICATION: ...]` marker remains in spec.md under
+  *Requirements → Open clarifications* (bootstrap-token TTL bounds). It names
+  the question, the reasonable alternatives, and the implications. Two
+  earlier markers were resolved in the `/speckit-clarify` session of
+  2026-05-07 (client identity model; revocation latency tolerance) — see
   `## Clarifications` in spec.md. Remaining resolution continues in further
   `/speckit-clarify` rounds before `/speckit-plan`.
 - One narrow protocol mention (`POST /register`) appears in **FR-001**. This is
