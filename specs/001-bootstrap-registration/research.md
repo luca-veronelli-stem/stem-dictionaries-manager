@@ -302,5 +302,13 @@ nonce that the client must HMAC with a hardware-bound key.
 - **Constraints**: must not regress legacy `ApiKeys` auth (FR-005,
   union mode); must not store any plaintext secret server-side
   (FR-004/FR-014/SC-007).
-- **Scale/scope**: STEM-internal — order of tens of installations per
-  client app family across all of STEM. Single-tenant.
+- **Scale/scope**: STEM-managed API server, single-tenant. Installations
+  run on consumer-owned hosts — a mix of STEM-internal services and
+  **external-supplier sites** (e.g. `stem-button-panel-tester` runs on
+  supplier machines that test STEM's button panels). Order of tens of
+  installations per client app family across STEM. The cross-org
+  deployment is the threat-model rationale that anchors R3 (at-rest
+  hashing — DB leak exposes a third party's data, not just STEM's) and
+  the server-opaque `OsUserId`/`MachineId` decision in `data-model.md`
+  (consumer chooses raw or hashed; for `button-panel-tester` the
+  recommendation is hashed, per its supplier-deployment context).
