@@ -29,6 +29,11 @@ public static class DependencyInjection
         services.AddScoped<IDeviceService, DeviceService>();
         services.AddScoped<IAuditService, AuditService>();
 
+        // Spec 001 — bootstrap registration auth services. Mint comes in US2;
+        // for US1 only LookupAsync/MarkUsedAsync are implemented.
+        services.AddScoped<Services.Interfaces.Auth.IBootstrapTokenService,
+            Services.Auth.BootstrapTokenService>();
+
         return services;
     }
 }
