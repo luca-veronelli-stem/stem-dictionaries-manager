@@ -31,7 +31,7 @@ public partial class DarkDialog : Window
     /// </summary>
     public static void ShowInfo(string title, string message)
     {
-        var dialog = CreateDialog(title, message, "OK", null);
+        DarkDialog dialog = CreateDialog(title, message, "OK", null);
         dialog.ShowDialog();
     }
 
@@ -40,7 +40,7 @@ public partial class DarkDialog : Window
     /// </summary>
     public static void ShowError(string title, string message)
     {
-        var dialog = CreateDialog(title, message, "OK", null);
+        DarkDialog dialog = CreateDialog(title, message, "OK", null);
         dialog.TitleText.Foreground = new System.Windows.Media.SolidColorBrush(
             System.Windows.Media.Color.FromRgb(0xE4, 0x00, 0x32)); // #E40032
         dialog.ShowDialog();
@@ -51,7 +51,7 @@ public partial class DarkDialog : Window
     /// </summary>
     public static void ShowWarning(string title, string message)
     {
-        var dialog = CreateDialog(title, message, "OK", null);
+        DarkDialog dialog = CreateDialog(title, message, "OK", null);
         dialog.TitleText.Foreground = new System.Windows.Media.SolidColorBrush(
             System.Windows.Media.Color.FromRgb(0xFF, 0xC0, 0x4A)); // #FFC04A
         dialog.ShowDialog();
@@ -62,7 +62,7 @@ public partial class DarkDialog : Window
     /// </summary>
     public static bool ShowConfirm(string title, string message)
     {
-        var dialog = CreateDialog(title, message, "Sì", "No");
+        DarkDialog dialog = CreateDialog(title, message, "Sì", "No");
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -72,7 +72,7 @@ public partial class DarkDialog : Window
     /// </summary>
     public static bool ShowOkCancel(string title, string message)
     {
-        var dialog = CreateDialog(title, message, "OK", "Annulla");
+        DarkDialog dialog = CreateDialog(title, message, "OK", "Annulla");
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -83,11 +83,15 @@ public partial class DarkDialog : Window
         var dialog = new DarkDialog();
 
         // Owner = MainWindow se disponibile (non durante startup)
-        var mainWindow = Application.Current.MainWindow;
+        Window? mainWindow = Application.Current.MainWindow;
         if (mainWindow is not null && mainWindow != dialog)
+        {
             dialog.Owner = mainWindow;
+        }
         else
+        {
             dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
 
         dialog.TitleText.Text = title;
         dialog.MessageText.Text = message;

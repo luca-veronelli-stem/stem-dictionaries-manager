@@ -35,7 +35,7 @@ public class AuditFieldsTests : IntegrationTestBase
         };
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
-        var createdAt = user.CreatedAt;
+        DateTime createdAt = user.CreatedAt;
 
         // Act - modifica utente
         await Task.Delay(10); // Assicura timestamp diverso

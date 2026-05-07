@@ -21,7 +21,7 @@ public class BitInterpretationMapperTests
             Meaning = "Motor Running"
         };
 
-        var result = BitInterpretationMapper.ToDomain(entity);
+        BitInterpretation result = BitInterpretationMapper.ToDomain(entity);
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.VariableId);
@@ -42,7 +42,7 @@ public class BitInterpretationMapperTests
     {
         var domain = BitInterpretation.Restore(1, 10, 1, 3, "Error Flag", null);
 
-        var result = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretationEntity result = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Equal(1, result.Id);
         Assert.Equal(10, result.VariableId);
@@ -107,7 +107,7 @@ public class BitInterpretationMapperTests
             new() { Id = 3, VariableId = 10, WordIndex = 0, BitIndex = 2, Meaning = "Bit2" }
         };
 
-        var result = BitInterpretationMapper.ToDomainList(entities);
+        IReadOnlyList<BitInterpretation> result = BitInterpretationMapper.ToDomainList(entities);
 
         Assert.Equal(3, result.Count);
         Assert.Equal("Bit0", result[0].Meaning);
@@ -118,7 +118,7 @@ public class BitInterpretationMapperTests
     [Fact]
     public void ToDomainList_EmptyList_ReturnsEmptyList()
     {
-        var result = BitInterpretationMapper.ToDomainList([]);
+        IReadOnlyList<BitInterpretation> result = BitInterpretationMapper.ToDomainList([]);
 
         Assert.Empty(result);
     }
@@ -135,8 +135,8 @@ public class BitInterpretationMapperTests
             Meaning = "Maximum Bit"
         };
 
-        var domain = BitInterpretationMapper.ToDomain(original);
-        var roundTrip = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretation domain = BitInterpretationMapper.ToDomain(original);
+        BitInterpretationEntity roundTrip = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Equal(original.Id, roundTrip.Id);
         Assert.Equal(original.VariableId, roundTrip.VariableId);
@@ -160,7 +160,7 @@ public class BitInterpretationMapperTests
             Meaning = "Test"
         };
 
-        var result = BitInterpretationMapper.ToDomain(entity);
+        BitInterpretation result = BitInterpretationMapper.ToDomain(entity);
 
         Assert.Equal(5, result.DictionaryId);
     }
@@ -178,7 +178,7 @@ public class BitInterpretationMapperTests
             Meaning = "Test"
         };
 
-        var result = BitInterpretationMapper.ToDomain(entity);
+        BitInterpretation result = BitInterpretationMapper.ToDomain(entity);
 
         Assert.Null(result.DictionaryId);
     }
@@ -188,7 +188,7 @@ public class BitInterpretationMapperTests
     {
         var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test", dictionaryId: 7);
 
-        var result = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretationEntity result = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Equal(7, result.DictionaryId);
     }
@@ -198,7 +198,7 @@ public class BitInterpretationMapperTests
     {
         var domain = BitInterpretation.Restore(1, 10, 0, 0, "Test", dictionaryId: null);
 
-        var result = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretationEntity result = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Null(result.DictionaryId);
     }
@@ -235,8 +235,8 @@ public class BitInterpretationMapperTests
             Meaning = "Dictionary Override"
         };
 
-        var domain = BitInterpretationMapper.ToDomain(original);
-        var roundTrip = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretation domain = BitInterpretationMapper.ToDomain(original);
+        BitInterpretationEntity roundTrip = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Equal(7, roundTrip.DictionaryId);
     }
@@ -254,8 +254,8 @@ public class BitInterpretationMapperTests
             Meaning = "Common"
         };
 
-        var domain = BitInterpretationMapper.ToDomain(original);
-        var roundTrip = BitInterpretationMapper.ToEntity(domain);
+        BitInterpretation domain = BitInterpretationMapper.ToDomain(original);
+        BitInterpretationEntity roundTrip = BitInterpretationMapper.ToEntity(domain);
 
         Assert.Null(roundTrip.DictionaryId);
     }

@@ -109,7 +109,10 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
     public async Task InitializeAsync(int? boardId, int? presetDeviceId = null)
     {
-        if (_isInitialized) return;
+        if (_isInitialized)
+        {
+            return;
+        }
 
         try
         {
@@ -123,14 +126,14 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                 IsDeviceIdLocked = true;
 
                 // Carica MachineCode dal Device per ProtocolAddress
-                var device = await _deviceService.GetByIdAsync(presetDeviceId.Value);
+                Device? device = await _deviceService.GetByIdAsync(presetDeviceId.Value);
                 _machineCode = device?.MachineCode ?? 0;
                 DeviceDisplayName = device?.Name ?? $"Device #{presetDeviceId}";
             }
 
             if (boardId.HasValue)
             {
-                var board = await _boardService.GetByIdAsync(boardId.Value);
+                Board? board = await _boardService.GetByIdAsync(boardId.Value);
                 if (board is null)
                 {
                     await _dialogService.ShowErrorAsync("Errore", "Scheda non trovata.");
@@ -143,7 +146,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
             else
             {
                 // Pre-compila con il primo FirmwareType disponibile
-                var nextFw = await _boardService.GetNextAvailableFirmwareTypeAsync();
+                int nextFw = await _boardService.GetNextAvailableFirmwareTypeAsync();
                 FirmwareType = nextFw;
                 FirmwareTypeHint = $"Primo valore disponibile suggerito ({nextFw})";
             }
@@ -189,9 +192,20 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
 
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Name)) missing.Add("Nome");
-        if (FirmwareType <= 0) missing.Add("Firmware Type");
-        if (BoardNumber < 1 || BoardNumber > 63) missing.Add("Numero Scheda (1-63)");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            missing.Add("Nome");
+        }
+
+        if (FirmwareType <= 0)
+        {
+            missing.Add("Firmware Type");
+        }
+
+        if (BoardNumber < 1 || BoardNumber > 63)
+        {
+            missing.Add("Numero Scheda (1-63)");
+        }
 
         if (missing.Count > 0)
         {
@@ -207,7 +221,10 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
+        if (!Validate())
+        {
+            return;
+        }
 
         try
         {
@@ -260,17 +277,23 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task DeleteBoardAsync()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
 
-        var message = _existingDictionaryName is not null
+        string message = _existingDictionaryName is not null
             ? $"Eliminare la scheda '{Name}'?\n" +
               $"Il dizionario '{_existingDictionaryName}' associato potrebbe essere eliminato."
             : $"Eliminare la scheda '{Name}'?";
 
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Conferma eliminazione", message);
 
-        if (result != DialogResult.Yes) return;
+        if (result != DialogResult.Yes)
+        {
+            return;
+        }
 
         try
         {
@@ -296,10 +319,13 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     {
         if (HasChanges)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Annulla modifiche",
                 "Sei sicuro di voler annullare le modifiche?");
-            if (result != DialogResult.Yes) return;
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
         }
 
         _navigationService.GoBack();

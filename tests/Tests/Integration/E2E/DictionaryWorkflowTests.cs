@@ -60,7 +60,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await varRepo.AddAsync(var2);
 
         // 3. Verifica dizionario con variabili
-        var loaded = await Context.Dictionaries
+        DictionaryEntity? loaded = await Context.Dictionaries
             .Include(d => d.Variables)
             .FirstOrDefaultAsync(d => d.Id == dictEntity.Id);
 
@@ -88,7 +88,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await dictRepo.AddAsync(standard1);
 
         // 2. Verifica che esista
-        var stdDict = await dictRepo.GetStandardDictionaryAsync();
+        DictionaryEntity? stdDict = await dictRepo.GetStandardDictionaryAsync();
         Assert.NotNull(stdDict);
         Assert.Equal("Standard", stdDict.Name);
 
@@ -132,7 +132,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await boardRepo.AddAsync(board);
 
         // Verify: dizionario usato solo da un device = Dedicated
-        var linkedBoards = await Context.Boards
+        List<BoardEntity> linkedBoards = await Context.Boards
             .Where(b => b.DictionaryId == dict.Id)
             .ToListAsync();
         var deviceIds = linkedBoards.Select(b => b.DeviceId).Distinct().ToList();
@@ -179,7 +179,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await boardRepo.AddAsync(board2);
 
         // Verify: dizionario usato da 2 device = Shared
-        var linkedBoards = await Context.Boards
+        List<BoardEntity> linkedBoards = await Context.Boards
             .Where(b => b.DictionaryId == sharedDict.Id)
             .ToListAsync();
         var deviceIds = linkedBoards.Select(b => b.DeviceId).Distinct().ToList();
@@ -198,7 +198,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await dictRepo.AddAsync(orphanDict);
 
         // Verify: nessun board referenzia il dizionario = Orphan
-        var linkedBoards = await Context.Boards
+        List<BoardEntity> linkedBoards = await Context.Boards
             .Where(b => b.DictionaryId == orphanDict.Id)
             .ToListAsync();
 

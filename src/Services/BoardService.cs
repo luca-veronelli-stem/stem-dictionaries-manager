@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Core.Enums;
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -36,13 +37,13 @@ public class BoardService : IBoardService
 
     public async Task<Board?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _boardRepository.GetByIdAsync(id, ct);
+        BoardEntity? entity = await _boardRepository.GetByIdAsync(id, ct);
         return entity is null ? null : BoardMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Board>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _boardRepository.GetAllAsync(ct);
+        IReadOnlyList<BoardEntity> entities = await _boardRepository.GetAllAsync(ct);
         return BoardMapper.ToDomainList(entities);
     }
 
@@ -53,36 +54,40 @@ public class BoardService : IBoardService
         // Verifica che il dizionario esista (se specificato)
         if (board.DictionaryId.HasValue)
         {
-            var dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
+            DictionaryEntity dict = await _dictionaryRepository.GetByIdAsync(board.DictionaryId.Value, ct) ?? throw new InvalidOperationException(
                     $"Dictionary (Id={board.DictionaryId.Value}) not found.");
         }
         else
         {
             // Auto-assign: se altre board con lo stesso FirmwareType hanno un dizionario,
             // lo eredita automaticamente (es. Pulsantiere condiviso per FW=4).
-            var allBoards = await _boardRepository.GetAllAsync(ct);
-            var sharedDictId = allBoards
+            IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
+            int sharedDictId = allBoards
                 .Where(b => b.FirmwareType == board.FirmwareType && b.DictionaryId.HasValue)
                 .Select(b => b.DictionaryId!.Value)
                 .Distinct()
                 .FirstOrDefault();
 
             if (sharedDictId > 0)
+            {
                 board = new Board(
                     board.DeviceId, board.Name, board.FirmwareType, board.BoardNumber,
                     board.MachineCode, board.PartNumber, board.IsPrimary,
                     dictionaryId: sharedDictId);
+            }
         }
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
+        {
             await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: null, ct);
+        }
 
-        var entity = BoardMapper.ToEntity(board);
-        var created = await _boardRepository.AddAsync(entity, ct);
+        BoardEntity entity = BoardMapper.ToEntity(board);
+        BoardEntity created = await _boardRepository.AddAsync(entity, ct);
 
-        var result = await _boardRepository.GetByIdAsync(created.Id, ct);
-        var domain = BoardMapper.ToDomain(result!);
+        BoardEntity? result = await _boardRepository.GetByIdAsync(created.Id, ct);
+        Board domain = BoardMapper.ToDomain(result!);
 
         await _audit.LogCreateAsync(AuditEntityType.Board, domain.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -95,7 +100,7 @@ public class BoardService : IBoardService
     {
         ArgumentNullException.ThrowIfNull(board);
 
-        var entity = await _boardRepository.GetByIdAsync(board.Id, ct)
+        BoardEntity entity = await _boardRepository.GetByIdAsync(board.Id, ct)
             ?? throw new KeyNotFoundException(
                 $"Board '{board.Name}' (Id={board.Id}) not found.");
 
@@ -108,10 +113,12 @@ public class BoardService : IBoardService
 
         // Validazione: max 1 IsPrimary per Device (BR-005)
         if (board.IsPrimary)
+        {
             await EnsureNoPrimaryExistsAsync(board.DeviceId, excludeBoardId: board.Id, ct);
+        }
 
-        var previous = BoardMapper.ToDomain(entity);
-        var prevJson = JsonSerializer.Serialize(previous);
+        Board previous = BoardMapper.ToDomain(entity);
+        string prevJson = JsonSerializer.Serialize(previous);
 
         BoardMapper.UpdateEntity(entity, board);
         await _boardRepository.UpdateAsync(entity, ct);
@@ -123,16 +130,16 @@ public class BoardService : IBoardService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var board = await _boardRepository.GetByIdAsync(id, ct);
-        var previousJson = board is not null
+        BoardEntity? board = await _boardRepository.GetByIdAsync(id, ct);
+        string? previousJson = board is not null
             ? JsonSerializer.Serialize(BoardMapper.ToDomain(board))
             : null;
 
         if (board?.DictionaryId is int dictId)
         {
             // Se il dizionario è referenziato solo da questa board, eliminalo
-            var allBoards = await _boardRepository.GetAllAsync(ct);
-            var refCount = allBoards.Count(b => b.DictionaryId == dictId);
+            IReadOnlyList<BoardEntity> allBoards = await _boardRepository.GetAllAsync(ct);
+            int refCount = allBoards.Count(b => b.DictionaryId == dictId);
             if (refCount <= 1)
             {
                 // Elimina prima la board (FK), poi il dizionario
@@ -140,8 +147,11 @@ public class BoardService : IBoardService
                 await _dictionaryRepository.DeleteAsync(dictId, ct);
 
                 if (previousJson is not null)
+                {
                     await _audit.LogDeleteAsync(AuditEntityType.Board, id,
                         _userProvider.CurrentUserId ?? 0, previousJson, ct: ct);
+                }
+
                 return;
             }
         }
@@ -149,28 +159,30 @@ public class BoardService : IBoardService
         await _boardRepository.DeleteAsync(id, ct);
 
         if (previousJson is not null)
+        {
             await _audit.LogDeleteAsync(AuditEntityType.Board, id,
                 _userProvider.CurrentUserId ?? 0, previousJson, ct: ct);
+        }
     }
 
     public async Task<IReadOnlyList<Board>> GetByDeviceIdAsync(int deviceId,
         CancellationToken ct = default)
     {
-        var entities = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
+        IReadOnlyList<BoardEntity> entities = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
         return BoardMapper.ToDomainList(entities);
     }
 
     public async Task<Board?> GetByProtocolAddressAsync(uint protocolAddress,
         CancellationToken ct = default)
     {
-        var entity = await _boardRepository.GetByProtocolAddressAsync(protocolAddress, ct);
+        BoardEntity? entity = await _boardRepository.GetByProtocolAddressAsync(protocolAddress, ct);
         return entity is null ? null : BoardMapper.ToDomain(entity);
     }
 
     public async Task<int> GetNextAvailableFirmwareTypeAsync(CancellationToken ct = default)
     {
-        var all = await _boardRepository.GetAllAsync(ct);
-        var maxFw = all.Count > 0 ? all.Max(b => b.FirmwareType) : 0;
+        IReadOnlyList<BoardEntity> all = await _boardRepository.GetAllAsync(ct);
+        int maxFw = all.Count > 0 ? all.Max(b => b.FirmwareType) : 0;
         return maxFw + 1;
     }
 
@@ -179,12 +191,14 @@ public class BoardService : IBoardService
     private async Task EnsureNoPrimaryExistsAsync(
         int deviceId, int? excludeBoardId, CancellationToken ct)
     {
-        var boards = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
-        var existing = boards.FirstOrDefault(b =>
+        IReadOnlyList<BoardEntity> boards = await _boardRepository.GetByDeviceIdAsync(deviceId, ct);
+        BoardEntity? existing = boards.FirstOrDefault(b =>
             b.IsPrimary && b.Id != (excludeBoardId ?? -1));
 
         if (existing is not null)
+        {
             throw new InvalidOperationException(
                 $"This device already has a primary board ('{existing.Name}').");
+        }
     }
 }

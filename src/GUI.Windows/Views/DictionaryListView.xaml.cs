@@ -1,6 +1,6 @@
-using GUI.Windows.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
+using GUI.Windows.ViewModels;
 
 namespace GUI.Windows.Views;
 

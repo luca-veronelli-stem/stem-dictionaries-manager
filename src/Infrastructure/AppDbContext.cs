@@ -1,6 +1,7 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Infrastructure;
 
@@ -48,9 +49,9 @@ public class AppDbContext : DbContext
 
     private void SetAuditFields()
     {
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
-        foreach (var entry in ChangeTracker.Entries<IAuditable>())
+        foreach (EntityEntry<IAuditable> entry in ChangeTracker.Entries<IAuditable>())
         {
             switch (entry.State)
             {

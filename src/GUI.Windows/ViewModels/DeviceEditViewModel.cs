@@ -53,7 +53,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
 
     public bool IsNameInvalid => _showValidation && string.IsNullOrWhiteSpace(Name);
     public bool IsMachineCodeInvalid => _showValidation
-        && (!int.TryParse(MachineCode, out var code) || code <= 0);
+        && (!int.TryParse(MachineCode, out int code) || code <= 0);
     public bool IsNew => _editingId is null;
 
     public DeviceEditViewModel(
@@ -74,7 +74,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     {
         if (deviceId is not null)
         {
-            var device = await _deviceService.GetByIdAsync(deviceId.Value);
+            Device? device = await _deviceService.GetByIdAsync(deviceId.Value);
             if (device is null)
             {
                 ErrorMessage = $"Dispositivo #{deviceId} non trovato.";
@@ -89,7 +89,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         else
         {
             // Pre-compila con il primo MachineCode disponibile
-            var nextCode = await _deviceService.GetNextAvailableMachineCodeAsync();
+            int nextCode = await _deviceService.GetNextAvailableMachineCodeAsync();
             MachineCode = nextCode.ToString();
             MachineCodeHint = $"Primo valore disponibile suggerito ({nextCode})";
         }
@@ -120,14 +120,17 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (!Validate()) return;
+        if (!Validate())
+        {
+            return;
+        }
 
         try
         {
             IsBusy = true;
 
-            var desc = string.IsNullOrWhiteSpace(Description) ? null : Description;
-            var code = int.Parse(MachineCode);
+            string? desc = string.IsNullOrWhiteSpace(Description) ? null : Description;
+            int code = int.Parse(MachineCode);
 
             if (_editingId is null)
             {
@@ -162,27 +165,36 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     [RelayCommand]
     private async Task DeleteDeviceAsync()
     {
-        if (_editingId is null) return;
+        if (_editingId is null)
+        {
+            return;
+        }
 
         // Calcola conteggi per il warning
-        var boards = await _boardService.GetByDeviceIdAsync(_editingId.Value);
-        var boardCount = boards.Count;
-        var dictCount = boards
+        IReadOnlyList<Board> boards = await _boardService.GetByDeviceIdAsync(_editingId.Value);
+        int boardCount = boards.Count;
+        int dictCount = boards
             .Where(b => b.DictionaryId.HasValue)
             .Select(b => b.DictionaryId!.Value)
             .Distinct()
             .Count();
 
-        var message = $"Eliminare il dispositivo '{Name}'?\n" +
+        string message = $"Eliminare il dispositivo '{Name}'?\n" +
             $"Verranno eliminate {boardCount} schede";
         if (dictCount > 0)
+        {
             message += $" e i dizionari dedicati associati";
+        }
+
         message += ".";
 
-        var result = await _dialogService.ShowConfirmAsync(
+        DialogResult result = await _dialogService.ShowConfirmAsync(
             "Elimina dispositivo", message);
 
-        if (result != Abstractions.DialogResult.Yes) return;
+        if (result != Abstractions.DialogResult.Yes)
+        {
+            return;
+        }
 
         try
         {
@@ -204,10 +216,13 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     {
         if (HasChanges)
         {
-            var result = await _dialogService.ShowConfirmAsync(
+            DialogResult result = await _dialogService.ShowConfirmAsync(
                 "Annulla modifiche",
                 "Ci sono modifiche non salvate. Uscire senza salvare?");
-            if (result != DialogResult.Yes) return;
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
         }
 
         _navigationService.GoBack();

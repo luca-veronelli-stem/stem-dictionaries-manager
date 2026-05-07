@@ -38,7 +38,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
             NewValue = "{\"name\":\"test\"}"
         };
 
-        var result = await _repository.AddAsync(entry);
+        AuditEntryEntity result = await _repository.AddAsync(entry);
 
         Assert.True(result.Id > 0);
     }
@@ -107,7 +107,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByEntityAsync(AuditEntityType.Variable, 42);
+        IReadOnlyList<AuditEntryEntity> result = await _repository.GetByEntityAsync(AuditEntityType.Variable, 42);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -144,7 +144,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetRecentAsync(2);
+        IReadOnlyList<AuditEntryEntity> result = await _repository.GetRecentAsync(2);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -185,7 +185,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByDateRangeAsync(
+        IReadOnlyList<AuditEntryEntity> result = await _repository.GetByDateRangeAsync(
             new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc));
 
@@ -210,7 +210,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         });
 
         // Act — from e to coincidono con ChangedAt
-        var result = await _repository.GetByDateRangeAsync(exactDate, exactDate);
+        IReadOnlyList<AuditEntryEntity> result = await _repository.GetByDateRangeAsync(exactDate, exactDate);
 
         // Assert
         Assert.Single(result);
@@ -231,7 +231,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
         });
 
         // Act
-        var result = await _repository.GetByDateRangeAsync(
+        IReadOnlyList<AuditEntryEntity> result = await _repository.GetByDateRangeAsync(
             new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(2020, 12, 31, 0, 0, 0, DateTimeKind.Utc));
 

@@ -54,9 +54,11 @@ public sealed class NavigationService : INavigationService
     public bool GoBack()
     {
         if (!CanGoBack)
+        {
             return false;
+        }
 
-        var (previousView, previousParameter, cachedVm) = _history.Pop();
+        (ViewType previousView, NavigationParameter? previousParameter, object? cachedVm) = _history.Pop();
         _currentView = previousView;
         _currentParameter = previousParameter;
         CachedViewModel = cachedVm;

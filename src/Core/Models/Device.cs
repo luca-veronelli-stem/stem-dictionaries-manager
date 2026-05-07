@@ -21,11 +21,16 @@ public class Device
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (machineCode <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(machineCode),
                 "MachineCode must be greater than 0 (BR-014).");
+        }
+
         if (machineCode == ReservedBleModuleMachineCode)
+        {
             throw new InvalidOperationException(
                 $"MachineCode {ReservedBleModuleMachineCode} è riservato per BLE Module (BR-015).");
+        }
 
         Name = name;
         MachineCode = machineCode;

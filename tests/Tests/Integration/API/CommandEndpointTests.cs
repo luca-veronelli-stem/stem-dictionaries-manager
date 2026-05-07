@@ -1,4 +1,6 @@
+using API.Dtos;
 using API.Mapping;
+using Core.Models;
 
 namespace Tests.Integration.API;
 
@@ -13,7 +15,7 @@ public class CommandEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetCommands_Empty_ReturnsEmptyList()
     {
-        var commands = await CommandService.GetAllAsync();
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
 
         Assert.Empty(commands);
     }
@@ -26,7 +28,7 @@ public class CommandEndpointTests : ApiIntegrationTestBase
         await CommandService.AddAsync(
             new Core.Models.Command("Read Var Resp", 0x80, 0x01, true, ["4|data"]));
 
-        var commands = await CommandService.GetAllAsync();
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
         var dtos = commands.Select(ApiMapper.ToCommandDto).ToList();
 
         Assert.Equal(2, dtos.Count);
@@ -40,8 +42,8 @@ public class CommandEndpointTests : ApiIntegrationTestBase
         await CommandService.AddAsync(
             new Core.Models.Command("Write Var", 0x00, 0x02, false, ["4|size", "2|addr"]));
 
-        var commands = await CommandService.GetAllAsync();
-        var dto = commands.Select(ApiMapper.ToCommandDto).First();
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
+        CommandDto dto = commands.Select(ApiMapper.ToCommandDto).First();
 
         Assert.Equal(2, dto.Parameters.Count);
     }
@@ -51,19 +53,19 @@ public class CommandEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDeviceCommands_DefaultEnabled_ReturnsAll()
     {
-        var device = await DeviceService.AddAsync(
+        Device device = await DeviceService.AddAsync(
             new Core.Models.Device("Optimus-XP", 10));
 
-        var cmd = await CommandService.AddAsync(
+        Command cmd = await CommandService.AddAsync(
             new Core.Models.Command("Read Var", 0x00, 0x01));
 
         // Nessun override → default enabled=true
-        var commands = await CommandService.GetAllAsync();
-        var states = await CommandService.GetDeviceStatesForDeviceAsync(device.Id);
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
+        IReadOnlyList<CommandDeviceState> states = await CommandService.GetDeviceStatesForDeviceAsync(device.Id);
 
         var enabled = commands.Where(c =>
         {
-            var state = states.FirstOrDefault(s => s.CommandId == c.Id);
+            CommandDeviceState? state = states.FirstOrDefault(s => s.CommandId == c.Id);
             return state?.IsEnabled ?? true;
         }).Select(ApiMapper.ToCommandDeviceDto).ToList();
 
@@ -74,23 +76,23 @@ public class CommandEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDeviceCommands_DisabledCommand_Excluded()
     {
-        var device = await DeviceService.AddAsync(
+        Device device = await DeviceService.AddAsync(
             new Core.Models.Device("Optimus-XP", 10));
 
-        var cmd1 = await CommandService.AddAsync(
+        Command cmd1 = await CommandService.AddAsync(
             new Core.Models.Command("Read Var", 0x00, 0x01));
-        var cmd2 = await CommandService.AddAsync(
+        Command cmd2 = await CommandService.AddAsync(
             new Core.Models.Command("Write Var", 0x00, 0x02));
 
         // Disabilita cmd1 per questo device
         await CommandService.SetDeviceStateAsync(cmd1.Id, device.Id, isEnabled: false);
 
-        var commands = await CommandService.GetAllAsync();
-        var states = await CommandService.GetDeviceStatesForDeviceAsync(device.Id);
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
+        IReadOnlyList<CommandDeviceState> states = await CommandService.GetDeviceStatesForDeviceAsync(device.Id);
 
         var enabled = commands.Where(c =>
         {
-            var state = states.FirstOrDefault(s => s.CommandId == c.Id);
+            CommandDeviceState? state = states.FirstOrDefault(s => s.CommandId == c.Id);
             return state?.IsEnabled ?? true;
         }).Select(ApiMapper.ToCommandDeviceDto).ToList();
 
@@ -101,21 +103,21 @@ public class CommandEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDeviceCommands_OverrideForOtherDevice_Ignored()
     {
-        var device1 = await DeviceService.AddAsync(new Core.Models.Device("Dev1", 10));
-        var device2 = await DeviceService.AddAsync(new Core.Models.Device("Dev2", 11));
+        Device device1 = await DeviceService.AddAsync(new Core.Models.Device("Dev1", 10));
+        Device device2 = await DeviceService.AddAsync(new Core.Models.Device("Dev2", 11));
 
-        var cmd = await CommandService.AddAsync(
+        Command cmd = await CommandService.AddAsync(
             new Core.Models.Command("Read Var", 0x00, 0x01));
 
         // Disabilita solo per device2
         await CommandService.SetDeviceStateAsync(cmd.Id, device2.Id, isEnabled: false);
 
         // Per device1 deve essere ancora abilitato
-        var states = await CommandService.GetDeviceStatesForDeviceAsync(device1.Id);
-        var commands = await CommandService.GetAllAsync();
+        IReadOnlyList<CommandDeviceState> states = await CommandService.GetDeviceStatesForDeviceAsync(device1.Id);
+        IReadOnlyList<Command> commands = await CommandService.GetAllAsync();
         var enabled = commands.Where(c =>
         {
-            var state = states.FirstOrDefault(s => s.CommandId == c.Id);
+            CommandDeviceState? state = states.FirstOrDefault(s => s.CommandId == c.Id);
             return state?.IsEnabled ?? true;
         }).ToList();
 

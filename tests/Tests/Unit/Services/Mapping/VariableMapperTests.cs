@@ -36,7 +36,7 @@ public class VariableMapperTests
         };
 
         // Act
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(1, result.Id);
@@ -73,7 +73,7 @@ public class VariableMapperTests
         };
 
         // Act
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(DataTypeKind.String, result.DataTypeKind);
@@ -99,7 +99,7 @@ public class VariableMapperTests
         };
 
         // Act
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(VariableCategory.DeviceSpecific, result.Category);
@@ -124,7 +124,7 @@ public class VariableMapperTests
         };
 
         // Act
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(VariableCategory.Standard, result.Category);
@@ -159,7 +159,7 @@ public class VariableMapperTests
             description: "Current temperature");
 
         // Act
-        var result = VariableMapper.ToEntity(variable, dictionaryId: 99);
+        VariableEntity result = VariableMapper.ToEntity(variable, dictionaryId: 99);
 
         // Assert
         Assert.Equal(5, result.Id);
@@ -250,7 +250,7 @@ public class VariableMapperTests
         };
 
         // Act
-        var result = VariableMapper.ToDomainList(entities);
+        IReadOnlyList<Variable> result = VariableMapper.ToDomainList(entities);
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -286,8 +286,8 @@ public class VariableMapperTests
         };
 
         // Act
-        var domain = VariableMapper.ToDomain(originalEntity);
-        var resultEntity = VariableMapper.ToEntity(domain, originalEntity.DictionaryId);
+        Variable domain = VariableMapper.ToDomain(originalEntity);
+        VariableEntity resultEntity = VariableMapper.ToEntity(domain, originalEntity.DictionaryId);
 
         // Assert
         Assert.Equal(originalEntity.Id, resultEntity.Id);
@@ -323,7 +323,7 @@ public class VariableMapperTests
             WordSize = 16
         };
 
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         Assert.Equal(16, result.WordSize);
     }
@@ -345,7 +345,7 @@ public class VariableMapperTests
             WordSize = null
         };
 
-        var result = VariableMapper.ToDomain(entity);
+        Variable result = VariableMapper.ToDomain(entity);
 
         Assert.Null(result.WordSize);
     }
@@ -357,7 +357,7 @@ public class VariableMapperTests
             DataTypeKind.Bitmapped, AccessMode.ReadOnly, "Bitmapped[2]",
             dataTypeParam: 2, wordSize: 32);
 
-        var entity = VariableMapper.ToEntity(domain, 1);
+        VariableEntity entity = VariableMapper.ToEntity(domain, 1);
 
         Assert.Equal(32, entity.WordSize);
     }

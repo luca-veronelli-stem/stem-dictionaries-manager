@@ -1,4 +1,5 @@
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -20,13 +21,13 @@ public class UserService : IUserService
 
     public async Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
+        UserEntity? entity = await _repository.GetByIdAsync(id, ct);
         return entity is null ? null : UserMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _repository.GetAllAsync(ct);
+        IReadOnlyList<UserEntity> entities = await _repository.GetAllAsync(ct);
         return UserMapper.ToDomainList(entities);
     }
 
@@ -36,10 +37,12 @@ public class UserService : IUserService
 
         // Verifica unicità username
         if (await UsernameExistsAsync(user.Username, ct))
+        {
             throw new InvalidOperationException($"Username '{user.Username}' already exists.");
+        }
 
-        var entity = UserMapper.ToEntity(user);
-        var created = await _repository.AddAsync(entity, ct);
+        UserEntity entity = UserMapper.ToEntity(user);
+        UserEntity created = await _repository.AddAsync(entity, ct);
         return UserMapper.ToDomain(created);
     }
 
@@ -47,7 +50,7 @@ public class UserService : IUserService
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        var entity = await _repository.GetByIdAsync(user.Id, ct)
+        UserEntity entity = await _repository.GetByIdAsync(user.Id, ct)
             ?? throw new KeyNotFoundException(
                 $"User '{user.Username}' (Id={user.Id}) not found.");
 
@@ -55,7 +58,9 @@ public class UserService : IUserService
         if (!entity.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
         {
             if (await UsernameExistsAsync(user.Username, ct))
+            {
                 throw new InvalidOperationException($"Username '{user.Username}' already exists.");
+            }
         }
 
         UserMapper.UpdateEntity(entity, user);
@@ -71,7 +76,7 @@ public class UserService : IUserService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
 
-        var entity = await _repository.GetByUsernameAsync(username, ct);
+        UserEntity? entity = await _repository.GetByUsernameAsync(username, ct);
         return entity is null ? null : UserMapper.ToDomain(entity);
     }
 
@@ -79,7 +84,7 @@ public class UserService : IUserService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(username);
 
-        var existing = await _repository.GetByUsernameAsync(username, ct);
+        UserEntity? existing = await _repository.GetByUsernameAsync(username, ct);
         return existing is not null;
     }
 }

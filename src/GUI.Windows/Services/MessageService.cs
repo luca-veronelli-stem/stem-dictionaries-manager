@@ -1,5 +1,5 @@
-using GUI.Windows.Abstractions;
 using System.Timers;
+using GUI.Windows.Abstractions;
 using Timer = System.Timers.Timer;
 
 namespace GUI.Windows.Services;
@@ -26,14 +26,38 @@ public sealed class MessageService : IMessageService, IDisposable
 
     public string? CurrentMessage
     {
-        get { lock (_lock) return _currentMessage; }
-        private set { lock (_lock) _currentMessage = value; }
+        get
+        {
+            lock (_lock)
+            {
+                return _currentMessage;
+            }
+        }
+        private set
+        {
+            lock (_lock)
+            {
+                _currentMessage = value;
+            }
+        }
     }
 
     public MessageSeverity CurrentSeverity
     {
-        get { lock (_lock) return _currentSeverity; }
-        private set { lock (_lock) _currentSeverity = value; }
+        get
+        {
+            lock (_lock)
+            {
+                return _currentSeverity;
+            }
+        }
+        private set
+        {
+            lock (_lock)
+            {
+                _currentSeverity = value;
+            }
+        }
     }
 
     public event EventHandler? MessageChanged;

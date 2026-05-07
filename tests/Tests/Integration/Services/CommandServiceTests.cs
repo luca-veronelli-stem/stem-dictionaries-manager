@@ -31,7 +31,7 @@ public class CommandServiceTests : IntegrationTestBase
         var command = new Command("READ_VAR", 0x01, 0x00, false, ["address", "length"]);
 
         // Act
-        var result = await _service.AddAsync(command);
+        Command result = await _service.AddAsync(command);
 
         // Assert
         Assert.True(result.Id > 0);
@@ -48,7 +48,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("First", 0x01, 0x00, false));
 
         // Act & Assert - stesso codice, stesso isResponse
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddAsync(new Command("Second", 0x01, 0x00, false)));
         Assert.Contains("already exists", exception.Message);
     }
@@ -60,7 +60,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("SAME_NAME", 0x01, 0x00, false));
 
         // Act & Assert - stesso nome, codice diverso
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddAsync(new Command("SAME_NAME", 0x02, 0x00, false)));
         Assert.Contains("SAME_NAME", exception.Message);
         Assert.Contains("already exists", exception.Message);
@@ -73,7 +73,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("CMD_REQUEST", 0x05, 0x00, false));
 
         // Act - Response (stesso codice ma isResponse diverso)
-        var response = await _service.AddAsync(new Command("CMD_RESPONSE", 0x05, 0x00, true));
+        Command response = await _service.AddAsync(new Command("CMD_RESPONSE", 0x05, 0x00, true));
 
         // Assert
         Assert.True(response.Id > 0);
@@ -84,10 +84,10 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetByIdAsync_ExistingCommand_ReturnsCommand()
     {
         // Arrange
-        var created = await _service.AddAsync(new Command("FINDME", 0x10, 0x00, false));
+        Command created = await _service.AddAsync(new Command("FINDME", 0x10, 0x00, false));
 
         // Act
-        var result = await _service.GetByIdAsync(created.Id);
+        Command? result = await _service.GetByIdAsync(created.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -97,7 +97,7 @@ public class CommandServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_NonExisting_ReturnsNull()
     {
-        var result = await _service.GetByIdAsync(999);
+        Command? result = await _service.GetByIdAsync(999);
         Assert.Null(result);
     }
 
@@ -108,7 +108,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("BYCODE", 0xAB, 0xCD, false));
 
         // Act
-        var result = await _service.GetByCodeAsync(0xAB, 0xCD, false);
+        Command? result = await _service.GetByCodeAsync(0xAB, 0xCD, false);
 
         // Assert
         Assert.NotNull(result);
@@ -123,8 +123,8 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("RSP", 0x20, 0x00, true));
 
         // Act
-        var request = await _service.GetByCodeAsync(0x20, 0x00, false);
-        var response = await _service.GetByCodeAsync(0x20, 0x00, true);
+        Command? request = await _service.GetByCodeAsync(0x20, 0x00, false);
+        Command? response = await _service.GetByCodeAsync(0x20, 0x00, true);
 
         // Assert
         Assert.Equal("REQ", request!.Name);
@@ -140,7 +140,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("CMD3", 0x03, 0x00, false));
 
         // Act
-        var result = await _service.GetAllAsync();
+        IReadOnlyList<Command> result = await _service.GetAllAsync();
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -150,14 +150,14 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task UpdateAsync_ExistingCommand_UpdatesCommand()
     {
         // Arrange
-        var created = await _service.AddAsync(new Command("BEFORE", 0x30, 0x00, false, ["old"]));
+        Command created = await _service.AddAsync(new Command("BEFORE", 0x30, 0x00, false, ["old"]));
         var updated = Command.Restore(created.Id, "AFTER", 0x30, 0x00, false, ["new1", "new2"]);
 
         // Act
         await _service.UpdateAsync(updated);
 
         // Assert
-        var result = await _service.GetByIdAsync(created.Id);
+        Command? result = await _service.GetByIdAsync(created.Id);
         Assert.Equal("AFTER", result!.Name);
         Assert.Equal(2, result.Parameters.Count);
     }
@@ -176,13 +176,13 @@ public class CommandServiceTests : IntegrationTestBase
     {
         // Arrange
         await _service.AddAsync(new Command("EXISTING", 0x01, 0x00, false));
-        var toUpdate = await _service.AddAsync(new Command("TOUPDATE", 0x02, 0x00, false));
+        Command toUpdate = await _service.AddAsync(new Command("TOUPDATE", 0x02, 0x00, false));
 
         // Act - provo a rinominare con nome già esistente
         var renamed = Command.Restore(toUpdate.Id, "EXISTING", 0x02, 0x00, false, []);
 
         // Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.UpdateAsync(renamed));
         Assert.Contains("EXISTING", exception.Message);
         Assert.Contains("already exists", exception.Message);
@@ -192,14 +192,14 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task UpdateAsync_SameName_Succeeds()
     {
         // Arrange - creo comando
-        var created = await _service.AddAsync(new Command("KEEPNAME", 0x70, 0x00, false));
+        Command created = await _service.AddAsync(new Command("KEEPNAME", 0x70, 0x00, false));
 
         // Act - aggiorno altro campo, stesso nome
         var updated = Command.Restore(created.Id, "KEEPNAME", 0x70, 0x00, false, ["newparam"]);
         await _service.UpdateAsync(updated);
 
         // Assert
-        var result = await _service.GetByIdAsync(created.Id);
+        Command? result = await _service.GetByIdAsync(created.Id);
         Assert.Single(result!.Parameters);
     }
 
@@ -207,13 +207,13 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task DeleteAsync_ExistingCommand_RemovesCommand()
     {
         // Arrange
-        var created = await _service.AddAsync(new Command("DELETE", 0x40, 0x00, false));
+        Command created = await _service.AddAsync(new Command("DELETE", 0x40, 0x00, false));
 
         // Act
         await _service.DeleteAsync(created.Id);
 
         // Assert
-        var result = await _service.GetByIdAsync(created.Id);
+        Command? result = await _service.GetByIdAsync(created.Id);
         Assert.Null(result);
     }
 
@@ -230,13 +230,13 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task SetDeviceStateAsync_NewState_CreatesState()
     {
         // Arrange
-        var command = await _service.AddAsync(new Command("STATE_TEST", 0x50, 0x00, false));
+        Command command = await _service.AddAsync(new Command("STATE_TEST", 0x50, 0x00, false));
 
         // Act
         await _service.SetDeviceStateAsync(command.Id, 10, true);
 
         // Assert
-        var state = await _service.GetDeviceStateAsync(command.Id, 10);
+        CommandDeviceState? state = await _service.GetDeviceStateAsync(command.Id, 10);
         Assert.NotNull(state);
         Assert.True(state.IsEnabled);
     }
@@ -245,14 +245,14 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task SetDeviceStateAsync_ExistingState_UpdatesState()
     {
         // Arrange
-        var command = await _service.AddAsync(new Command("UPDATE_STATE", 0x51, 0x00, false));
+        Command command = await _service.AddAsync(new Command("UPDATE_STATE", 0x51, 0x00, false));
         await _service.SetDeviceStateAsync(command.Id, 3, true);
 
         // Act
         await _service.SetDeviceStateAsync(command.Id, 3, false);
 
         // Assert
-        var state = await _service.GetDeviceStateAsync(command.Id, 3);
+        CommandDeviceState? state = await _service.GetDeviceStateAsync(command.Id, 3);
         Assert.NotNull(state);
         Assert.False(state.IsEnabled);
     }
@@ -268,10 +268,10 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetDeviceStateAsync_NonExistingState_ReturnsNull()
     {
         // Arrange
-        var command = await _service.AddAsync(new Command("NO_STATE", 0x52, 0x00, false));
+        Command command = await _service.AddAsync(new Command("NO_STATE", 0x52, 0x00, false));
 
         // Act
-        var result = await _service.GetDeviceStateAsync(command.Id, 11);
+        CommandDeviceState? result = await _service.GetDeviceStateAsync(command.Id, 11);
 
         // Assert
         Assert.Null(result);
@@ -281,19 +281,19 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetWithDeviceStatesAsync_LoadsAllStates()
     {
         // Arrange
-        var command = await _service.AddAsync(new Command("MULTI_STATE", 0x53, 0x00, false));
+        Command command = await _service.AddAsync(new Command("MULTI_STATE", 0x53, 0x00, false));
         await _service.SetDeviceStateAsync(command.Id, 10, true);
         await _service.SetDeviceStateAsync(command.Id, 3, false);
         await _service.SetDeviceStateAsync(command.Id, 7, true);
 
         // Act
-        var result = await _service.GetWithDeviceStatesAsync(command.Id);
+        Command? result = await _service.GetWithDeviceStatesAsync(command.Id);
 
         // Assert
         Assert.NotNull(result);
         // Stati sono caricati ma accessibili tramite GetDeviceStateAsync
-        var state1 = await _service.GetDeviceStateAsync(command.Id, 10);
-        var state2 = await _service.GetDeviceStateAsync(command.Id, 3);
+        CommandDeviceState? state1 = await _service.GetDeviceStateAsync(command.Id, 10);
+        CommandDeviceState? state2 = await _service.GetDeviceStateAsync(command.Id, 3);
         Assert.True(state1!.IsEnabled);
         Assert.False(state2!.IsEnabled);
     }
@@ -302,10 +302,10 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task FullCode_AfterRetrieval_IsCorrect()
     {
         // Arrange
-        var command = await _service.AddAsync(new Command("FULLCODE", 0x12, 0x34, false));
+        Command command = await _service.AddAsync(new Command("FULLCODE", 0x12, 0x34, false));
 
         // Act
-        var result = await _service.GetByIdAsync(command.Id);
+        Command? result = await _service.GetByIdAsync(command.Id);
 
         // Assert
         Assert.Equal(0x1234, result!.FullCode);
@@ -317,13 +317,13 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetDeviceStatesForDeviceAsync_ReturnsStatesForDevice()
     {
         // Arrange — 2 comandi, entrambi con stato per Spark
-        var cmd1 = await _service.AddAsync(new Command("CMD_A", 0x60, 0x00, false));
-        var cmd2 = await _service.AddAsync(new Command("CMD_B", 0x61, 0x00, false));
+        Command cmd1 = await _service.AddAsync(new Command("CMD_A", 0x60, 0x00, false));
+        Command cmd2 = await _service.AddAsync(new Command("CMD_B", 0x61, 0x00, false));
         await _service.SetDeviceStateAsync(cmd1.Id, 7, false);
         await _service.SetDeviceStateAsync(cmd2.Id, 7, true);
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(7);
+        IReadOnlyList<CommandDeviceState> result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -334,12 +334,12 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetDeviceStatesForDeviceAsync_ExcludesOtherDevices()
     {
         // Arrange — stato per Spark e EdenXp
-        var cmd = await _service.AddAsync(new Command("CMD_MULTI", 0x62, 0x00, false));
+        Command cmd = await _service.AddAsync(new Command("CMD_MULTI", 0x62, 0x00, false));
         await _service.SetDeviceStateAsync(cmd.Id, 7, false);
         await _service.SetDeviceStateAsync(cmd.Id, 3, true);
 
         // Act — solo Spark
-        var result = await _service.GetDeviceStatesForDeviceAsync(7);
+        IReadOnlyList<CommandDeviceState> result = await _service.GetDeviceStatesForDeviceAsync(7);
 
         // Assert
         Assert.Single(result);
@@ -354,7 +354,7 @@ public class CommandServiceTests : IntegrationTestBase
         await _service.AddAsync(new Command("CMD_NOSTATES", 0x63, 0x00, false));
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(11);
+        IReadOnlyList<CommandDeviceState> result = await _service.GetDeviceStatesForDeviceAsync(11);
 
         // Assert
         Assert.Empty(result);
@@ -364,14 +364,14 @@ public class CommandServiceTests : IntegrationTestBase
     public async Task GetDeviceStatesForDeviceAsync_MapsToDomainCorrectly()
     {
         // Arrange
-        var cmd = await _service.AddAsync(new Command("CMD_MAP", 0x64, 0x00, false));
+        Command cmd = await _service.AddAsync(new Command("CMD_MAP", 0x64, 0x00, false));
         await _service.SetDeviceStateAsync(cmd.Id, 4, false);
 
         // Act
-        var result = await _service.GetDeviceStatesForDeviceAsync(4);
+        IReadOnlyList<CommandDeviceState> result = await _service.GetDeviceStatesForDeviceAsync(4);
 
         // Assert — verifica mapping domain
-        var state = Assert.Single(result);
+        CommandDeviceState state = Assert.Single(result);
         Assert.Equal(cmd.Id, state.CommandId);
         Assert.Equal(4, state.DeviceId);
         Assert.False(state.IsEnabled);

@@ -22,7 +22,7 @@ public class CommandTests
     [Fact]
     public void Constructor_WithParameters()
     {
-        var parameters = new[] { "IndirizzoH", "IndirizzoL" };
+        string[] parameters = new[] { "IndirizzoH", "IndirizzoL" };
         var command = new Command("Leggi variabile logica", 0x00, 0x01, false, parameters);
 
         Assert.Equal(2, command.Parameters.Count);
@@ -64,7 +64,7 @@ public class CommandTests
     [Fact]
     public void Restore_SetsIdAndProperties()
     {
-        var parameters = new[] { "Param1", "Param2" };
+        string[] parameters = new[] { "Param1", "Param2" };
         var command = Command.Restore(55, "Test", 0x00, 0x05, true, parameters);
 
         Assert.Equal(55, command.Id);

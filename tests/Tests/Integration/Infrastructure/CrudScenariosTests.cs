@@ -1,6 +1,6 @@
+using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
-using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Tests.Integration.Infrastructure;
@@ -20,7 +20,7 @@ public class CrudScenariosTests : IntegrationTestBase
         var user = new UserEntity { Username = "testuser", DisplayName = "Old Name" };
         await Context.Users.AddAsync(user);
         await Context.SaveChangesAsync();
-        var originalCreatedAt = user.CreatedAt;
+        DateTime originalCreatedAt = user.CreatedAt;
 
         // Act
         user.DisplayName = "New Name";
@@ -28,7 +28,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         // Assert
-        var updated = await Context.Users.FindAsync(user.Id);
+        UserEntity? updated = await Context.Users.FindAsync(user.Id);
         Assert.NotNull(updated);
         Assert.Equal("New Name", updated.DisplayName);
         Assert.Equal(originalCreatedAt, updated.CreatedAt);
@@ -60,7 +60,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         // Assert
-        var updated = await Context.Dictionaries
+        DictionaryEntity? updated = await Context.Dictionaries
             .Include(d => d.Variables)
             .FirstOrDefaultAsync(d => d.Id == dictionary.Id);
         Assert.NotNull(updated);
@@ -95,7 +95,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         // Assert
-        var updated = await Context.Variables.FindAsync(variable.Id);
+        VariableEntity? updated = await Context.Variables.FindAsync(variable.Id);
         Assert.NotNull(updated);
         Assert.Equal("UpdatedName", updated.Name);
         Assert.NotNull(updated.UpdatedAt);
@@ -122,7 +122,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.SaveChangesAsync();
 
         // Assert
-        var updated = await Context.Commands.FindAsync(command.Id);
+        CommandEntity? updated = await Context.Commands.FindAsync(command.Id);
         Assert.NotNull(updated);
         Assert.Equal("{\"new\": true}", updated.ParametersJson);
         Assert.NotNull(updated.UpdatedAt);
@@ -160,9 +160,9 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.Dictionaries.AddAsync(dictionary);
         await Context.Variables.AddRangeAsync(variable1, variable2);
         await Context.SaveChangesAsync();
-        var dictId = dictionary.Id;
-        var var1Id = variable1.Id;
-        var var2Id = variable2.Id;
+        int dictId = dictionary.Id;
+        int var1Id = variable1.Id;
+        int var2Id = variable2.Id;
 
         // Act
         Context.Dictionaries.Remove(dictionary);
@@ -208,7 +208,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.Variables.AddAsync(variable);
         await Context.BitInterpretations.AddRangeAsync(bit1, bit2);
         await Context.SaveChangesAsync();
-        var varId = variable.Id;
+        int varId = variable.Id;
 
         // Act
         Context.Variables.Remove(variable);
@@ -245,7 +245,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await Context.Commands.AddAsync(command);
         await Context.CommandDeviceStates.AddRangeAsync(state1, state2);
         await Context.SaveChangesAsync();
-        var cmdId = command.Id;
+        int cmdId = command.Id;
 
         // Act
         Context.Commands.Remove(command);
@@ -421,7 +421,7 @@ public class CrudScenariosTests : IntegrationTestBase
         var user = new UserEntity { Username = "audituser", DisplayName = "Initial" };
         await Context.Users.AddAsync(user);
         await Context.SaveChangesAsync();
-        var createdAt = user.CreatedAt;
+        DateTime createdAt = user.CreatedAt;
         Assert.NotEqual(default, createdAt);
         Assert.Null(user.UpdatedAt);
 
@@ -430,12 +430,12 @@ public class CrudScenariosTests : IntegrationTestBase
         user.DisplayName = "Updated";
         Context.Users.Update(user);
         await Context.SaveChangesAsync();
-        var updatedAt = user.UpdatedAt;
+        DateTime? updatedAt = user.UpdatedAt;
         Assert.NotNull(updatedAt);
         Assert.True(updatedAt > createdAt);
 
         // Act - Delete
-        var userId = user.Id;
+        int userId = user.Id;
         Context.Users.Remove(user);
         await Context.SaveChangesAsync();
 
@@ -450,21 +450,21 @@ public class CrudScenariosTests : IntegrationTestBase
         var dictionary = new DictionaryEntity { Name = "AuditDict", Description = "V1" };
         await Context.Dictionaries.AddAsync(dictionary);
         await Context.SaveChangesAsync();
-        var createdAt = dictionary.CreatedAt;
+        DateTime createdAt = dictionary.CreatedAt;
 
         // Act - First update
         await Task.Delay(10);
         dictionary.Description = "V2";
         Context.Dictionaries.Update(dictionary);
         await Context.SaveChangesAsync();
-        var firstUpdate = dictionary.UpdatedAt;
+        DateTime? firstUpdate = dictionary.UpdatedAt;
 
         // Act - Second update
         await Task.Delay(10);
         dictionary.Description = "V3";
         Context.Dictionaries.Update(dictionary);
         await Context.SaveChangesAsync();
-        var secondUpdate = dictionary.UpdatedAt;
+        DateTime? secondUpdate = dictionary.UpdatedAt;
 
         // Assert
         Assert.NotNull(firstUpdate);
@@ -490,7 +490,7 @@ public class CrudScenariosTests : IntegrationTestBase
         await repository.UpdateAsync(user);
 
         // Assert
-        var updated = await repository.GetByIdAsync(user.Id);
+        UserEntity? updated = await repository.GetByIdAsync(user.Id);
         Assert.NotNull(updated);
         Assert.Equal("Modified", updated.DisplayName);
         Assert.NotNull(updated.UpdatedAt);
@@ -517,8 +517,8 @@ public class CrudScenariosTests : IntegrationTestBase
             DictionaryId = dictionary.Id
         };
         await varRepository.AddAsync(variable);
-        var dictId = dictionary.Id;
-        var varId = variable.Id;
+        int dictId = dictionary.Id;
+        int varId = variable.Id;
 
         // Act
         await dictRepository.DeleteAsync(dictId);

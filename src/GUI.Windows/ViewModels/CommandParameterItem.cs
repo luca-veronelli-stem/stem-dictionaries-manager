@@ -35,7 +35,7 @@ public partial class CommandParameterItem : ObservableObject
     /// </summary>
     public static CommandParameterItem Deserialize(int index, string raw)
     {
-        var parts = raw.Split('|', 2);
+        string[] parts = raw.Split('|', 2);
         return parts.Length == 2
             ? new CommandParameterItem { Index = index, SizeBytes = parts[0], Description = parts[1] }
             : new CommandParameterItem { Index = index, SizeBytes = "", Description = raw };

@@ -10,7 +10,7 @@ public class DataTypeKindTests
     [Fact]
     public void DataTypeKind_HasExpectedCount()
     {
-        var values = Enum.GetValues<DataTypeKind>();
+        DataTypeKind[] values = Enum.GetValues<DataTypeKind>();
         Assert.Equal(12, values.Length);
     }
 

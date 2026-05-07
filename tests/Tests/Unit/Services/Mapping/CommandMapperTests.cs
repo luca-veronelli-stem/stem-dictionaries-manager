@@ -25,7 +25,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(1, result.Id);
@@ -53,7 +53,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.True(result.IsResponse);
@@ -75,7 +75,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.Empty(result.Parameters);
@@ -96,7 +96,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.Empty(result.Parameters);
@@ -117,7 +117,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.Empty(result.Parameters);
@@ -142,7 +142,7 @@ public class CommandMapperTests
             parameters: ["address", "value"]);
 
         // Act
-        var result = CommandMapper.ToEntity(command);
+        CommandEntity result = CommandMapper.ToEntity(command);
 
         // Assert
         Assert.Equal(10, result.Id);
@@ -166,7 +166,7 @@ public class CommandMapperTests
             parameters: []);
 
         // Act
-        var result = CommandMapper.ToEntity(command);
+        CommandEntity result = CommandMapper.ToEntity(command);
 
         // Assert
         Assert.Equal("[]", result.ParametersJson);
@@ -229,7 +229,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomainList(entities);
+        IReadOnlyList<Command> result = CommandMapper.ToDomainList(entities);
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -256,8 +256,8 @@ public class CommandMapperTests
         };
 
         // Act
-        var domain = CommandMapper.ToDomain(originalEntity);
-        var resultEntity = CommandMapper.ToEntity(domain);
+        Command domain = CommandMapper.ToDomain(originalEntity);
+        CommandEntity resultEntity = CommandMapper.ToEntity(domain);
 
         // Assert
         Assert.Equal(originalEntity.Id, resultEntity.Id);
@@ -286,7 +286,7 @@ public class CommandMapperTests
         };
 
         // Act
-        var result = CommandMapper.ToDomain(entity);
+        Command result = CommandMapper.ToDomain(entity);
 
         // Assert
         Assert.Equal(0x1234, result.FullCode);

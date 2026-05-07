@@ -81,7 +81,7 @@ public class DictionaryTests
 
         dictionary.AddVariable(var1);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => dictionary.AddVariable(var2));
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => dictionary.AddVariable(var2));
         Assert.Contains("0x0001", ex.Message);
     }
 
@@ -154,7 +154,7 @@ public class DictionaryTests
             new("Var2", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t") // stesso indirizzo
         };
 
-        var ex = Assert.Throws<InvalidOperationException>(
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
             () => Dictionary.Restore(10, "test", "Description", false, variables));
 
         Assert.Contains("0x0001", ex.Message);
@@ -173,7 +173,7 @@ public class DictionaryTests
             new("Var5", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t")  // dup 0x8010
         };
 
-        var ex = Assert.Throws<InvalidOperationException>(
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
             () => Dictionary.Restore(10, "test", null, false, variables));
 
         Assert.Contains("0x0001", ex.Message);

@@ -48,13 +48,13 @@ public class VariableWorkflowTests : IntegrationTestBase
             new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 0, Meaning = "Motor Running" },
             new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 1, Meaning = "Brake Active" },
         };
-        foreach (var bi in interpretations)
+        foreach (BitInterpretationEntity bi in interpretations)
         {
             await bitRepo.AddAsync(bi);
         }
 
         // Verify
-        var loaded = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        IReadOnlyList<BitInterpretationEntity> loaded = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
         Assert.Equal(5, loaded.Count);
 
         var word0Bits = loaded.Where(b => b.WordIndex == 0).ToList();
@@ -95,7 +95,7 @@ public class VariableWorkflowTests : IntegrationTestBase
         await varRepo.AddAsync(variable);
 
         // Stato effettivo senza override
-        var noOverride = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, variable.Id);
+        StandardVariableOverrideEntity? noOverride = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, variable.Id);
         Assert.Null(noOverride); // Default = segue global (true)
 
         // Aggiungi override
@@ -107,7 +107,7 @@ public class VariableWorkflowTests : IntegrationTestBase
         });
 
         // Stato effettivo con override
-        var withOverride = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, variable.Id);
+        StandardVariableOverrideEntity? withOverride = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, variable.Id);
         Assert.NotNull(withOverride);
         Assert.False(withOverride.IsEnabled);
     }
@@ -151,7 +151,7 @@ public class VariableWorkflowTests : IntegrationTestBase
         await overrideRepo.AddAsync(overrideEntity);
 
         // Il DB accetta, il vincolo è a livello service
-        var loaded = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, deprecatedVar.Id);
+        StandardVariableOverrideEntity? loaded = await overrideRepo.GetByDictionaryAndVariableAsync(nonStdDict.Id, deprecatedVar.Id);
         Assert.NotNull(loaded);
         // Nota: VariableService.SetOverrideAsync bloccherebbe questo caso
     }
@@ -217,14 +217,14 @@ public class VariableWorkflowTests : IntegrationTestBase
         });
 
         // GetByVariableAndDictionary returns common + dictionary-specific
-        var forDict = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, nonStdDict.Id);
+        IReadOnlyList<BitInterpretationEntity> forDict = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, nonStdDict.Id);
         Assert.Equal(3, forDict.Count);
         Assert.Contains(forDict, r => r.Meaning == "Fusibile aperto" && r.DictionaryId == null);
         Assert.Contains(forDict, r => r.Meaning == "Sovracorrente" && r.DictionaryId == null);
         Assert.Contains(forDict, r => r.Meaning == "Sovracorrente relè" && r.DictionaryId == nonStdDict.Id);
 
         // GetByVariableId returns everything
-        var all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        IReadOnlyList<BitInterpretationEntity> all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
         Assert.Equal(3, all.Count);
     }
 
@@ -275,7 +275,7 @@ public class VariableWorkflowTests : IntegrationTestBase
         await bitRepo.SyncByVariableIdAsync(bitmappedVar.Id, nonStdDict.Id, dictIncoming);
 
         // Verify: common is untouched
-        var all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        IReadOnlyList<BitInterpretationEntity> all = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
         var common = all.Where(r => r.DictionaryId == null).ToList();
         var dictSpecific = all.Where(r => r.DictionaryId == nonStdDict.Id).ToList();
 
@@ -341,13 +341,13 @@ public class VariableWorkflowTests : IntegrationTestBase
         });
 
         // Eden sees common + eden override
-        var forEden = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, edenDict.Id);
+        IReadOnlyList<BitInterpretationEntity> forEden = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, edenDict.Id);
         Assert.Equal(2, forEden.Count);
         Assert.Contains(forEden, r => r.DictionaryId == null);
         Assert.Contains(forEden, r => r.DictionaryId == edenDict.Id);
 
         // Spark sees common + spark override
-        var forSpark = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, sparkDict.Id);
+        IReadOnlyList<BitInterpretationEntity> forSpark = await bitRepo.GetByVariableAndDictionaryAsync(bitmappedVar.Id, sparkDict.Id);
         Assert.Equal(2, forSpark.Count);
         Assert.Contains(forSpark, r => r.DictionaryId == null);
         Assert.Contains(forSpark, r => r.DictionaryId == sparkDict.Id);
@@ -392,7 +392,7 @@ public class VariableWorkflowTests : IntegrationTestBase
         });
 
         // Verify - entrambe esistono
-        var all = await Context.Variables.ToListAsync();
+        List<VariableEntity> all = await Context.Variables.ToListAsync();
         Assert.Equal(2, all.Count);
 
         // Stesso indirizzo nello stesso dizionario = Errore DB
@@ -450,17 +450,19 @@ public class VariableWorkflowTests : IntegrationTestBase
             new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 0, Meaning = "Motor" },
             new() { VariableId = bitmappedVar.Id, WordIndex = 1, BitIndex = 5, Meaning = "Brake" },
         };
-        foreach (var bi in bits)
+        foreach (BitInterpretationEntity bi in bits)
+        {
             await bitRepo.AddAsync(bi);
+        }
 
         // Verify — reload variable
-        var loadedVar = await Context.Variables.FindAsync(bitmappedVar.Id);
+        VariableEntity? loadedVar = await Context.Variables.FindAsync(bitmappedVar.Id);
         Assert.NotNull(loadedVar);
         Assert.Equal(8, loadedVar.WordSize);
         Assert.Equal(2, loadedVar.DataTypeParam);
 
         // Verify — bit interpretations persisted
-        var loadedBits = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
+        IReadOnlyList<BitInterpretationEntity> loadedBits = await bitRepo.GetByVariableIdAsync(bitmappedVar.Id);
         Assert.Equal(4, loadedBits.Count);
         Assert.True(loadedBits.All(b => b.BitIndex < 8));
     }

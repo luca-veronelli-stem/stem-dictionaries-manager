@@ -33,12 +33,12 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task DictionaryAdd_CreatesAuditEntry()
     {
-        var service = CreateDictionaryService();
+        DictionaryService service = CreateDictionaryService();
 
-        var result = await service.AddAsync(
+        Dictionary result = await service.AddAsync(
             new Dictionary("AuditTest", "desc"));
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Dictionary
                      && a.EntityId == result.Id)
             .ToListAsync();
@@ -54,15 +54,15 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task DictionaryUpdate_CreatesAuditEntryWithPreviousAndNew()
     {
-        var service = CreateDictionaryService();
-        var created = await service.AddAsync(
+        DictionaryService service = CreateDictionaryService();
+        Dictionary created = await service.AddAsync(
             new Dictionary("BeforeUpdate", "old desc"));
 
         var updated = Dictionary.Restore(
             created.Id, "AfterUpdate", "new desc", created.IsStandard, []);
         await service.UpdateAsync(updated);
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Dictionary
                      && a.Operation == AuditOperation.Update)
             .ToListAsync();
@@ -75,13 +75,13 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task DictionaryDelete_CreatesAuditEntryWithPreviousValue()
     {
-        var service = CreateDictionaryService();
-        var created = await service.AddAsync(
+        DictionaryService service = CreateDictionaryService();
+        Dictionary created = await service.AddAsync(
             new Dictionary("ToDelete", "will be deleted"));
 
         await service.DeleteAsync(created.Id);
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Dictionary
                      && a.Operation == AuditOperation.Delete)
             .ToListAsync();
@@ -96,16 +96,16 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task VariableAdd_CreatesAuditEntry()
     {
-        var dictService = CreateDictionaryService();
-        var dict = await dictService.AddAsync(new Dictionary("VarDict"));
+        DictionaryService dictService = CreateDictionaryService();
+        Dictionary dict = await dictService.AddAsync(new Dictionary("VarDict"));
 
         var variable = new Variable(
             "TestVar", 0x80, 0x01, DataTypeKind.UInt16,
             AccessMode.ReadWrite, "UInt16");
 
-        var result = await dictService.AddVariableAsync(dict.Id, variable);
+        Variable result = await dictService.AddVariableAsync(dict.Id, variable);
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Variable
                      && a.EntityId == result.Id)
             .ToListAsync();
@@ -118,15 +118,15 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task VariableUpdate_CreatesAuditEntryWithPreviousAndNew()
     {
-        var varService = CreateVariableService();
+        VariableService varService = CreateVariableService();
         var dictRepo = new DictionaryRepository(Context);
-        var dict = await dictRepo.AddAsync(
+        DictionaryEntity dict = await dictRepo.AddAsync(
             new DictionaryEntity { Name = "VarUpdateDict" });
 
         var variable = new Variable(
             "OrigName", 0x80, 0x01, DataTypeKind.UInt16,
             AccessMode.ReadWrite, "UInt16");
-        var created = await varService.AddAsync(dict.Id, variable);
+        Variable created = await varService.AddAsync(dict.Id, variable);
 
         var updated = Variable.Restore(
             created.Id, "NewName", 0x80, 0x01,
@@ -134,7 +134,7 @@ public class AuditTrailTests : IntegrationTestBase
             AccessMode.ReadWrite, true, null, null, null, null, null, null);
         await varService.UpdateAsync(updated);
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Variable
                      && a.Operation == AuditOperation.Update)
             .ToListAsync();
@@ -149,12 +149,12 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task CommandAdd_CreatesAuditEntry()
     {
-        var service = CreateCommandService();
+        CommandService service = CreateCommandService();
 
-        var result = await service.AddAsync(
+        Command result = await service.AddAsync(
             new Command("READ_VAR", 0x00, 0x01));
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Command
                      && a.EntityId == result.Id)
             .ToListAsync();
@@ -167,13 +167,13 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task CommandDelete_CreatesAuditEntry()
     {
-        var service = CreateCommandService();
-        var created = await service.AddAsync(
+        CommandService service = CreateCommandService();
+        Command created = await service.AddAsync(
             new Command("TO_DEL", 0x00, 0x02));
 
         await service.DeleteAsync(created.Id);
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Command
                      && a.Operation == AuditOperation.Delete)
             .ToListAsync();
@@ -188,13 +188,13 @@ public class AuditTrailTests : IntegrationTestBase
     public async Task BoardAdd_CreatesAuditEntry()
     {
         await SeedTestDevicesAsync();
-        var service = CreateBoardService();
+        BoardService service = CreateBoardService();
 
         // DeviceId=9 → Optimus-XP, MachineCode=10
-        var result = await service.AddAsync(
+        Board result = await service.AddAsync(
             new Board(9, "TestBoard", 17, 1, machineCode: 10));
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Board
                      && a.EntityId == result.Id)
             .ToListAsync();
@@ -209,12 +209,12 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task DeviceAdd_CreatesAuditEntry()
     {
-        var service = CreateDeviceService();
+        DeviceService service = CreateDeviceService();
 
-        var result = await service.AddAsync(
+        Device result = await service.AddAsync(
             new Device("AuditDevice", 99, "test device"));
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Device
                      && a.EntityId == result.Id)
             .ToListAsync();
@@ -229,10 +229,10 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task FullWorkflow_CreateUpdateDelete_TracksAllChanges()
     {
-        var service = CreateDictionaryService();
+        DictionaryService service = CreateDictionaryService();
 
         // 1. Create
-        var dict = await service.AddAsync(
+        Dictionary dict = await service.AddAsync(
             new Dictionary("Workflow", "v1"));
 
         // 2. Update
@@ -243,7 +243,7 @@ public class AuditTrailTests : IntegrationTestBase
         await service.DeleteAsync(dict.Id);
 
         // Verifica: 3 entry (Create, Update, Delete)
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Dictionary
                      && a.EntityId == dict.Id)
             .OrderBy(a => a.ChangedAt)
@@ -261,18 +261,18 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task FullWorkflow_MultipleEntities_IndependentAuditTrails()
     {
-        var dictService = CreateDictionaryService();
-        var cmdService = CreateCommandService();
+        DictionaryService dictService = CreateDictionaryService();
+        CommandService cmdService = CreateCommandService();
 
-        var dict = await dictService.AddAsync(
+        Dictionary dict = await dictService.AddAsync(
             new Dictionary("Multi1"));
-        var cmd = await cmdService.AddAsync(
+        Command cmd = await cmdService.AddAsync(
             new Command("MULTI_CMD", 0x00, 0x10));
 
-        var dictEntries = await Context.AuditEntries
+        List<AuditEntryEntity> dictEntries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Dictionary)
             .ToListAsync();
-        var cmdEntries = await Context.AuditEntries
+        List<AuditEntryEntity> cmdEntries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.Command)
             .ToListAsync();
 
@@ -287,20 +287,20 @@ public class AuditTrailTests : IntegrationTestBase
     [Fact]
     public async Task SetOverride_CreatesAuditEntry()
     {
-        var varService = CreateVariableService();
+        VariableService varService = CreateVariableService();
         var dictRepo = new DictionaryRepository(Context);
 
         // Crea dizionario standard + variabile standard
-        var stdDict = await dictRepo.AddAsync(
+        DictionaryEntity stdDict = await dictRepo.AddAsync(
             new DictionaryEntity
             { Name = "Standard", IsStandard = true });
         var stdVar = new Variable(
             "StdVar", 0x00, 0x01, DataTypeKind.UInt16,
             AccessMode.ReadWrite, "UInt16");
-        var createdVar = await varService.AddAsync(stdDict.Id, stdVar);
+        Variable createdVar = await varService.AddAsync(stdDict.Id, stdVar);
 
         // Crea dizionario non-standard
-        var myDict = await dictRepo.AddAsync(
+        DictionaryEntity myDict = await dictRepo.AddAsync(
             new DictionaryEntity
             { Name = "MyDict", IsStandard = false });
 
@@ -308,7 +308,7 @@ public class AuditTrailTests : IntegrationTestBase
         await varService.SetOverrideAsync(
             myDict.Id, createdVar.Id, true, "override desc");
 
-        var entries = await Context.AuditEntries
+        List<AuditEntryEntity> entries = await Context.AuditEntries
             .Where(a => a.EntityType == AuditEntityType.StandardVariableOverride)
             .ToListAsync();
 

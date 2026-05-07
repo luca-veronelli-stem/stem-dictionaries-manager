@@ -1,6 +1,7 @@
 using API.Dtos;
 using API.Mapping;
 using Core.Enums;
+using Core.Models;
 
 namespace Tests.Integration.API;
 
@@ -17,7 +18,7 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     {
         await SeedFullScenarioAsync();
 
-        var dicts = await DictionaryService.GetAllAsync();
+        IReadOnlyList<Dictionary> dicts = await DictionaryService.GetAllAsync();
 
         Assert.Equal(2, dicts.Count);
     }
@@ -25,16 +26,16 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDictionaries_VariableCountIsEnabledOnly()
     {
-        var (_, _, stdDictId, specDictId) = await SeedFullScenarioAsync();
+        (int _, int _, int stdDictId, int specDictId) = await SeedFullScenarioAsync();
 
         // Standard: 3 variabili (2 abilitate, 1 disabilitata)
-        var stdVars = await VariableService.GetByDictionaryIdAsync(stdDictId);
-        var stdEnabled = stdVars.Count(v => v.IsEnabled);
+        IReadOnlyList<Variable> stdVars = await VariableService.GetByDictionaryIdAsync(stdDictId);
+        int stdEnabled = stdVars.Count(v => v.IsEnabled);
         Assert.Equal(2, stdEnabled);
 
         // Specifico: 2 variabili (1 abilitata, 1 disabilitata)
-        var specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
-        var specEnabled = specVars.Count(v => v.IsEnabled);
+        IReadOnlyList<Variable> specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
+        int specEnabled = specVars.Count(v => v.IsEnabled);
         Assert.Equal(1, specEnabled);
     }
 
@@ -45,10 +46,10 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     {
         await SeedFullScenarioAsync();
 
-        var standard = await DictionaryService.GetStandardDictionaryAsync();
+        Dictionary? standard = await DictionaryService.GetStandardDictionaryAsync();
         Assert.NotNull(standard);
 
-        var vars = await VariableService.GetByDictionaryIdAsync(standard!.Id);
+        IReadOnlyList<Variable> vars = await VariableService.GetByDictionaryIdAsync(standard!.Id);
         var enabledVars = vars.Where(v => v.IsEnabled)
             .OrderBy(v => v.FullAddress)
             .Select(ApiMapper.ToVariableDto)
@@ -62,7 +63,7 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetStandard_WhenNotExists_ReturnsNull()
     {
-        var standard = await DictionaryService.GetStandardDictionaryAsync();
+        Dictionary? standard = await DictionaryService.GetStandardDictionaryAsync();
 
         Assert.Null(standard);
     }
@@ -72,12 +73,12 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDictionary_ReturnsOnlyEnabledVariables()
     {
-        var (_, _, _, specDictId) = await SeedFullScenarioAsync();
+        (int _, int _, int _, int specDictId) = await SeedFullScenarioAsync();
 
-        var dict = await DictionaryService.GetByIdAsync(specDictId);
+        Dictionary? dict = await DictionaryService.GetByIdAsync(specDictId);
         Assert.NotNull(dict);
 
-        var vars = await VariableService.GetByDictionaryIdAsync(specDictId);
+        IReadOnlyList<Variable> vars = await VariableService.GetByDictionaryIdAsync(specDictId);
         var enabledVars = vars.Where(v => v.IsEnabled)
             .Select(ApiMapper.ToVariableDto).ToList();
 
@@ -88,7 +89,7 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetDictionary_NotFound_ReturnsNull()
     {
-        var dict = await DictionaryService.GetByIdAsync(999);
+        Dictionary? dict = await DictionaryService.GetByIdAsync(999);
 
         Assert.Null(dict);
     }
@@ -98,35 +99,43 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetResolved_IncludesStandardAndSpecific()
     {
-        var (_, _, stdDictId, specDictId) = await SeedFullScenarioAsync();
+        (int _, int _, int stdDictId, int specDictId) = await SeedFullScenarioAsync();
 
-        var stdDict = await DictionaryService.GetStandardDictionaryAsync();
+        Dictionary? stdDict = await DictionaryService.GetStandardDictionaryAsync();
         Assert.NotNull(stdDict);
 
         // Simula logica dell'endpoint resolved
         var resolved = new List<ResolvedVariableDto>();
 
         // Standard risolte
-        var stdVars = await VariableService.GetByDictionaryIdAsync(stdDict!.Id);
-        var overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
+        IReadOnlyList<Variable> stdVars = await VariableService.GetByDictionaryIdAsync(stdDict!.Id);
+        IReadOnlyList<StandardVariableOverride> overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
 
-        foreach (var sv in stdVars)
+        foreach (Variable sv in stdVars)
         {
-            var ov = overrides.FirstOrDefault(o => o.StandardVariableId == sv.Id);
+            StandardVariableOverride? ov = overrides.FirstOrDefault(o => o.StandardVariableId == sv.Id);
             // BR-009: deprecata globalmente → skip
-            if (!sv.IsEnabled) continue;
+            if (!sv.IsEnabled)
+            {
+                continue;
+            }
             // BR-009: override → usa override
-            var enabled = ov?.IsEnabled ?? sv.IsEnabled;
-            if (!enabled) continue;
+            bool enabled = ov?.IsEnabled ?? sv.IsEnabled;
+            if (!enabled)
+            {
+                continue;
+            }
 
             resolved.Add(ApiMapper.ToResolvedDto(sv, isStandard: true,
                 overrideDescription: ov?.Description));
         }
 
         // Specifiche abilitate
-        var specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
-        foreach (var v in specVars.Where(v => v.IsEnabled))
+        IReadOnlyList<Variable> specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
+        foreach (Variable? v in specVars.Where(v => v.IsEnabled))
+        {
             resolved.Add(ApiMapper.ToResolvedDto(v, isStandard: false));
+        }
 
         resolved = [.. resolved.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
@@ -144,11 +153,11 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetResolved_OverrideDescription_AppliedCorrectly()
     {
-        var (_, _, _, specDictId) = await SeedFullScenarioAsync();
+        (int _, int _, int _, int specDictId) = await SeedFullScenarioAsync();
 
         // Matricola ha override "Non usato su Optimus" + isEnabled=false
-        var overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
-        var matricolaOverride = overrides.FirstOrDefault(o => o.Description != null);
+        IReadOnlyList<StandardVariableOverride> overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
+        StandardVariableOverride? matricolaOverride = overrides.FirstOrDefault(o => o.Description != null);
 
         Assert.NotNull(matricolaOverride);
         Assert.Equal("Non usato su Optimus", matricolaOverride!.Description);
@@ -158,29 +167,35 @@ public class DictionaryEndpointTests : ApiIntegrationTestBase
     [Fact]
     public async Task GetResolved_OrderedByFullAddress()
     {
-        var (_, _, _, specDictId) = await SeedFullScenarioAsync();
+        (int _, int _, int _, int specDictId) = await SeedFullScenarioAsync();
 
-        var stdDict = await DictionaryService.GetStandardDictionaryAsync();
-        var stdVars = await VariableService.GetByDictionaryIdAsync(stdDict!.Id);
-        var overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
-        var specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
+        Dictionary? stdDict = await DictionaryService.GetStandardDictionaryAsync();
+        IReadOnlyList<Variable> stdVars = await VariableService.GetByDictionaryIdAsync(stdDict!.Id);
+        IReadOnlyList<StandardVariableOverride> overrides = await VariableService.GetOverridesByDictionaryAsync(specDictId);
+        IReadOnlyList<Variable> specVars = await VariableService.GetByDictionaryIdAsync(specDictId);
 
         var resolved = new List<ResolvedVariableDto>();
-        foreach (var sv in stdVars.Where(v => v.IsEnabled))
+        foreach (Variable? sv in stdVars.Where(v => v.IsEnabled))
         {
-            var ov = overrides.FirstOrDefault(o => o.StandardVariableId == sv.Id);
-            if (!(ov?.IsEnabled ?? sv.IsEnabled)) continue;
+            StandardVariableOverride? ov = overrides.FirstOrDefault(o => o.StandardVariableId == sv.Id);
+            if (!(ov?.IsEnabled ?? sv.IsEnabled))
+            {
+                continue;
+            }
+
             resolved.Add(ApiMapper.ToResolvedDto(sv, isStandard: true));
         }
-        foreach (var v in specVars.Where(v => v.IsEnabled))
+        foreach (Variable? v in specVars.Where(v => v.IsEnabled))
+        {
             resolved.Add(ApiMapper.ToResolvedDto(v, isStandard: false));
+        }
 
         resolved = [.. resolved.OrderBy(v => (v.AddressHigh << 8) | v.AddressLow)];
 
         // 0x0000 (Firmware) < 0x8003 (SystemOn)
         Assert.True(resolved.Count >= 2);
-        var first = (resolved[0].AddressHigh << 8) | resolved[0].AddressLow;
-        var second = (resolved[1].AddressHigh << 8) | resolved[1].AddressLow;
+        int first = (resolved[0].AddressHigh << 8) | resolved[0].AddressLow;
+        int second = (resolved[1].AddressHigh << 8) | resolved[1].AddressLow;
         Assert.True(first < second);
     }
 }

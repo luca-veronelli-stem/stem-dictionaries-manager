@@ -37,7 +37,7 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
         IReadOnlyList<BitInterpretationEntity> incoming,
         CancellationToken cancellationToken = default)
     {
-        var existing = await DbSet
+        List<BitInterpretationEntity> existing = await DbSet
             .Where(bi => bi.VariableId == variableId && bi.DictionaryId == dictionaryId)
             .ToListAsync(cancellationToken);
 
@@ -45,21 +45,25 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
         var incomingByKey = incoming.ToDictionary(i => (i.WordIndex, i.BitIndex));
 
         // Delete: nel DB ma non nella lista incoming
-        foreach (var e in existing)
+        foreach (BitInterpretationEntity? e in existing)
         {
             if (!incomingByKey.ContainsKey((e.WordIndex, e.BitIndex)))
+            {
                 DbSet.Remove(e);
+            }
         }
 
         // Add o Update
-        foreach (var i in incoming)
+        foreach (BitInterpretationEntity i in incoming)
         {
-            var key = (i.WordIndex, i.BitIndex);
-            if (existingByKey.TryGetValue(key, out var e))
+            (int WordIndex, int BitIndex) key = (i.WordIndex, i.BitIndex);
+            if (existingByKey.TryGetValue(key, out BitInterpretationEntity? e))
             {
                 // Update solo se il meaning è cambiato
                 if (e.Meaning != i.Meaning)
+                {
                     e.Meaning = i.Meaning;
+                }
             }
             else
             {

@@ -1,10 +1,10 @@
+using System.IO;
+using System.Text.Json;
 using API.Middleware;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using System.IO;
-using System.Text.Json;
 
 namespace Tests.Unit.API;
 
@@ -36,8 +36,8 @@ public class DatabaseExceptionMiddlewareTests
     [Fact]
     public async Task NoException_CallsNextAndReturns200()
     {
-        var called = false;
-        var middleware = CreateMiddleware(_ =>
+        bool called = false;
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(_ =>
         {
             called = true;
             return Task.CompletedTask;
@@ -53,7 +53,7 @@ public class DatabaseExceptionMiddlewareTests
     [Fact]
     public async Task TimeoutException_Returns503()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new TimeoutException("Connection timed out"));
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
@@ -66,7 +66,7 @@ public class DatabaseExceptionMiddlewareTests
     [Fact]
     public async Task TimeoutException_ReturnsJsonWithErrorField()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new TimeoutException("Connection timed out"));
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
@@ -74,15 +74,15 @@ public class DatabaseExceptionMiddlewareTests
         await middleware.InvokeAsync(context);
 
         context.Response.Body.Position = 0;
-        var json = await JsonDocument.ParseAsync(context.Response.Body);
-        Assert.True(json.RootElement.TryGetProperty("error", out var errorProp));
+        JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.True(json.RootElement.TryGetProperty("error", out JsonElement errorProp));
         Assert.Contains("Database non raggiungibile", errorProp.GetString());
     }
 
     [Fact]
     public async Task TimeoutException_Production_NoDetailField()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new TimeoutException("Connection timed out"),
             isDevelopment: false);
         var context = new DefaultHttpContext();
@@ -91,14 +91,14 @@ public class DatabaseExceptionMiddlewareTests
         await middleware.InvokeAsync(context);
 
         context.Response.Body.Position = 0;
-        var json = await JsonDocument.ParseAsync(context.Response.Body);
+        JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
         Assert.False(json.RootElement.TryGetProperty("detail", out _));
     }
 
     [Fact]
     public async Task TimeoutException_Development_IncludesDetailField()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new TimeoutException("Connection timed out"),
             isDevelopment: true);
         var context = new DefaultHttpContext();
@@ -107,15 +107,15 @@ public class DatabaseExceptionMiddlewareTests
         await middleware.InvokeAsync(context);
 
         context.Response.Body.Position = 0;
-        var json = await JsonDocument.ParseAsync(context.Response.Body);
-        Assert.True(json.RootElement.TryGetProperty("detail", out var detail));
+        JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.True(json.RootElement.TryGetProperty("detail", out JsonElement detail));
         Assert.Equal("Connection timed out", detail.GetString());
     }
 
     [Fact]
     public async Task InnerException_TimeoutException_Returns503()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new InvalidOperationException("EF Core wrapper",
                 new TimeoutException("Inner timeout")));
         var context = new DefaultHttpContext();
@@ -129,7 +129,7 @@ public class DatabaseExceptionMiddlewareTests
     [Fact]
     public async Task NonDbException_Rethrows()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new ArgumentException("Not a DB error"));
         var context = new DefaultHttpContext();
 
@@ -140,7 +140,7 @@ public class DatabaseExceptionMiddlewareTests
     [Fact]
     public async Task ContentType_IsApplicationJson()
     {
-        var middleware = CreateMiddleware(
+        DatabaseExceptionMiddleware middleware = CreateMiddleware(
             _ => throw new TimeoutException("timeout"));
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();

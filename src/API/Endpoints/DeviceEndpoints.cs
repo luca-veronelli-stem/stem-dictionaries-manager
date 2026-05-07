@@ -1,5 +1,6 @@
 using API.Dtos;
 using API.Mapping;
+using Core.Models;
 using Services.Interfaces;
 
 namespace API.Endpoints;
@@ -11,7 +12,7 @@ public static class DeviceEndpoints
 {
     public static void MapDeviceEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/devices")
+        RouteGroupBuilder group = app.MapGroup("/api/devices")
             .WithTags("Dispositivi");
 
         group.MapGet("/", GetAll).WithName("GetDevices");
@@ -22,7 +23,7 @@ public static class DeviceEndpoints
     private static async Task<IResult> GetAll(
         IDeviceService deviceService, CancellationToken ct)
     {
-        var devices = await deviceService.GetAllAsync(ct);
+        IReadOnlyList<Device> devices = await deviceService.GetAllAsync(ct);
         var dtos = devices.Select(ApiMapper.ToDeviceSummaryDto).ToList();
         return Results.Ok(dtos);
     }
@@ -31,11 +32,13 @@ public static class DeviceEndpoints
         int id, IDeviceService deviceService, IBoardService boardService,
         CancellationToken ct)
     {
-        var device = await deviceService.GetByIdAsync(id, ct);
+        Device? device = await deviceService.GetByIdAsync(id, ct);
         if (device is null)
+        {
             return Results.NotFound();
+        }
 
-        var boards = await boardService.GetByDeviceIdAsync(device.Id, ct);
+        IReadOnlyList<Board> boards = await boardService.GetByDeviceIdAsync(device.Id, ct);
         var dto = new DeviceDetailDto(
             Id: device.Id,
             Name: device.Name,
@@ -50,11 +53,13 @@ public static class DeviceEndpoints
         int id, IDeviceService deviceService, IBoardService boardService,
         CancellationToken ct)
     {
-        var device = await deviceService.GetByIdAsync(id, ct);
+        Device? device = await deviceService.GetByIdAsync(id, ct);
         if (device is null)
+        {
             return Results.NotFound();
+        }
 
-        var boards = await boardService.GetByDeviceIdAsync(device.Id, ct);
+        IReadOnlyList<Board> boards = await boardService.GetByDeviceIdAsync(device.Id, ct);
         var dtos = boards.Select(ApiMapper.ToBoardSummaryDto).ToList();
         return Results.Ok(dtos);
     }

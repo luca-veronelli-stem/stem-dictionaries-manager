@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Core.Enums;
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
@@ -36,13 +37,13 @@ public class DictionaryService : IDictionaryService
 
     public async Task<Dictionary?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _dictionaryRepository.GetByIdAsync(id, ct);
+        DictionaryEntity? entity = await _dictionaryRepository.GetByIdAsync(id, ct);
         return entity is null ? null : DictionaryMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Dictionary>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _dictionaryRepository.GetAllWithVariablesAsync(ct);
+        IReadOnlyList<DictionaryEntity> entities = await _dictionaryRepository.GetAllWithVariablesAsync(ct);
         return [.. entities.Select(DictionaryMapper.ToDomainWithVariables)];
     }
 
@@ -51,23 +52,27 @@ public class DictionaryService : IDictionaryService
         ArgumentNullException.ThrowIfNull(dictionary);
 
         // Verifica unicità nome
-        var existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
+        DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
         if (existingByName is not null)
+        {
             throw new InvalidOperationException(
                 $"Dictionary with name '{dictionary.Name}' already exists.");
+        }
 
         // BR-004: max 1 dizionario Standard
         if (dictionary.IsStandard)
         {
-            var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+            DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
             if (existingStandard is not null)
+            {
                 throw new InvalidOperationException(
                     "A Standard dictionary already exists. Only one is allowed (BR-004).");
+            }
         }
 
-        var entity = DictionaryMapper.ToEntity(dictionary);
-        var created = await _dictionaryRepository.AddAsync(entity, ct);
-        var result = DictionaryMapper.ToDomain(created);
+        DictionaryEntity entity = DictionaryMapper.ToEntity(dictionary);
+        DictionaryEntity created = await _dictionaryRepository.AddAsync(entity, ct);
+        Dictionary result = DictionaryMapper.ToDomain(created);
 
         await _audit.LogCreateAsync(AuditEntityType.Dictionary, result.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -80,30 +85,34 @@ public class DictionaryService : IDictionaryService
     {
         ArgumentNullException.ThrowIfNull(dictionary);
 
-        var entity = await _dictionaryRepository.GetByIdAsync(dictionary.Id, ct)
+        DictionaryEntity entity = await _dictionaryRepository.GetByIdAsync(dictionary.Id, ct)
             ?? throw new KeyNotFoundException(
                 $"Dictionary '{dictionary.Name}' (Id={dictionary.Id}) not found.");
 
         // Verifica unicità nome (se cambiato)
         if (!entity.Name.Equals(dictionary.Name, StringComparison.OrdinalIgnoreCase))
         {
-            var existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
+            DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
             if (existingByName is not null)
+            {
                 throw new InvalidOperationException(
                     $"Dictionary with name '{dictionary.Name}' already exists.");
+            }
         }
 
         // BR-004: se diventa Standard, verifica che non ne esista già uno
         if (dictionary.IsStandard && !entity.IsStandard)
         {
-            var existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+            DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
             if (existingStandard is not null)
+            {
                 throw new InvalidOperationException(
                     "A Standard dictionary already exists. Only one is allowed (BR-004).");
+            }
         }
 
-        var previous = DictionaryMapper.ToDomain(entity);
-        var prevJson = JsonSerializer.Serialize(previous);
+        Dictionary previous = DictionaryMapper.ToDomain(entity);
+        string prevJson = JsonSerializer.Serialize(previous);
 
         DictionaryMapper.UpdateEntity(entity, dictionary);
         await _dictionaryRepository.UpdateAsync(entity, ct);
@@ -115,10 +124,10 @@ public class DictionaryService : IDictionaryService
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _dictionaryRepository.GetByIdAsync(id, ct);
+        DictionaryEntity? entity = await _dictionaryRepository.GetByIdAsync(id, ct);
         if (entity is not null)
         {
-            var previous = DictionaryMapper.ToDomain(entity);
+            Dictionary previous = DictionaryMapper.ToDomain(entity);
             await _dictionaryRepository.DeleteAsync(id, ct);
             await _audit.LogDeleteAsync(AuditEntityType.Dictionary, id,
                 _userProvider.CurrentUserId ?? 0,
@@ -133,19 +142,19 @@ public class DictionaryService : IDictionaryService
     public async Task<Dictionary?> GetByNameAsync(string name, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        var entity = await _dictionaryRepository.GetByNameAsync(name, ct);
+        DictionaryEntity? entity = await _dictionaryRepository.GetByNameAsync(name, ct);
         return entity is null ? null : DictionaryMapper.ToDomain(entity);
     }
 
     public async Task<Dictionary?> GetStandardDictionaryAsync(CancellationToken ct = default)
     {
-        var entity = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
+        DictionaryEntity? entity = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
         return entity is null ? null : DictionaryMapper.ToDomainWithVariables(entity);
     }
 
     public async Task<Dictionary?> GetWithVariablesAsync(int id, CancellationToken ct = default)
     {
-        var entity = await _dictionaryRepository.GetWithVariablesAsync(id, ct);
+        DictionaryEntity? entity = await _dictionaryRepository.GetWithVariablesAsync(id, ct);
         return entity is null ? null : DictionaryMapper.ToDomainWithVariables(entity);
     }
 
@@ -154,21 +163,23 @@ public class DictionaryService : IDictionaryService
     {
         ArgumentNullException.ThrowIfNull(variable);
 
-        var dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
+        DictionaryEntity dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
             ?? throw new KeyNotFoundException(
                 $"Dictionary (Id={dictionaryId}) not found.");
 
         // Verifica unicità indirizzo
-        var existingByAddress = await _variableRepository.GetByAddressAsync(
+        VariableEntity? existingByAddress = await _variableRepository.GetByAddressAsync(
             dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
         if (existingByAddress is not null)
+        {
             throw new InvalidOperationException(
                 $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
                 $"already exists in dictionary '{dictionary.Name}'.");
+        }
 
-        var entity = VariableMapper.ToEntity(variable, dictionaryId);
-        var created = await _variableRepository.AddAsync(entity, ct);
-        var result = VariableMapper.ToDomain(created);
+        VariableEntity entity = VariableMapper.ToEntity(variable, dictionaryId);
+        VariableEntity created = await _variableRepository.AddAsync(entity, ct);
+        Variable result = VariableMapper.ToDomain(created);
 
         await _audit.LogCreateAsync(AuditEntityType.Variable, result.Id,
             _userProvider.CurrentUserId ?? 0,
@@ -181,18 +192,22 @@ public class DictionaryService : IDictionaryService
         CancellationToken ct = default)
     {
         if (!await _dictionaryRepository.ExistsAsync(dictionaryId, ct))
+        {
             throw new KeyNotFoundException(
                 $"Dictionary (Id={dictionaryId}) not found.");
+        }
 
-        var variable = await _variableRepository.GetByIdAsync(variableId, ct)
+        VariableEntity variable = await _variableRepository.GetByIdAsync(variableId, ct)
             ?? throw new KeyNotFoundException(
                 $"Variable (Id={variableId}) not found.");
 
         if (variable.DictionaryId != dictionaryId)
+        {
             throw new InvalidOperationException(
                 $"Variable '{variable.Name}' does not belong to this dictionary.");
+        }
 
-        var previous = VariableMapper.ToDomain(variable);
+        Variable previous = VariableMapper.ToDomain(variable);
         await _variableRepository.DeleteAsync(variableId, ct);
 
         await _audit.LogDeleteAsync(AuditEntityType.Variable, variableId,

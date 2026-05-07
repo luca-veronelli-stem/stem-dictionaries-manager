@@ -17,7 +17,9 @@ public class BoolToVisibilityConverter : IValueConverter
         {
             // Se parameter è "Inverse", inverte la logica
             if (parameter is string param && param == "Inverse")
+            {
                 return boolValue ? Visibility.Collapsed : Visibility.Visible;
+            }
 
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -27,7 +29,10 @@ public class BoolToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is Visibility visibility)
+        {
             return visibility == Visibility.Visible;
+        }
+
         return false;
     }
 }
@@ -40,14 +45,20 @@ public class InverseBoolConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool boolValue)
+        {
             return !boolValue;
+        }
+
         return false;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool boolValue)
+        {
             return !boolValue;
+        }
+
         return false;
     }
 }
@@ -60,11 +71,13 @@ public class NullToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var isVisible = value is not null;
+        bool isVisible = value is not null;
 
         // Se parameter è "Inverse", inverte la logica
         if (parameter is string param && param == "Inverse")
+        {
             isVisible = !isVisible;
+        }
 
         return isVisible ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -104,7 +117,10 @@ public class ExpandedRowHeightConverter : IMultiValueConverter
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         if (values.Length >= 2 && values[0] is bool isVisible && values[1] is bool isExpanded)
+        {
             return isVisible && isExpanded ? Star : GridLength.Auto;
+        }
+
         return GridLength.Auto;
     }
 
