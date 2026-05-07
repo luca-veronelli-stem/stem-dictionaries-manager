@@ -8,13 +8,13 @@ namespace Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Nome del file database SQLite.
+    /// SQLite database file name.
     /// </summary>
     private const string SqliteDatabaseFileName = "sqldb-dictionaries-manager-test.db";
 
     /// <summary>
-    /// Registra i servizi di Infrastructure (DbContext, Repositories).
-    /// Se useSqlServer=true usa SQL Server, altrimenti SQLite.
+    /// Registers Infrastructure services (DbContext, Repositories).
+    /// If useSqlServer=true uses SQL Server, otherwise SQLite.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         string connectionString, bool useSqlServer = false)
@@ -47,9 +47,9 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Risolve la connection string per il database.
-    /// Per SQLite: se la conn string è vuota, usa il path di default in AppData.
-    /// Per SQL Server: usa la conn string dalla config (appsettings o env var ConnectionStrings__SqlServer).
+    /// Resolves the database connection string.
+    /// For SQLite: if the conn string is empty, uses the default path under AppData.
+    /// For SQL Server: uses the conn string from config (appsettings or env var ConnectionStrings__SqlServer).
     /// </summary>
     public static string ResolveConnectionString(
         string? configuredConnString, bool isSqlServer)
@@ -58,7 +58,7 @@ public static class DependencyInjection
         {
             return configuredConnString
                 ?? throw new InvalidOperationException(
-                    "Connection string non trovata. Configura 'ConnectionStrings:SqlServer' in appsettings.json o env var 'ConnectionStrings__SqlServer'.");
+                    "Connection string not found. Configure 'ConnectionStrings:SqlServer' in appsettings.json or the env var 'ConnectionStrings__SqlServer'.");
         }
 
         return string.IsNullOrWhiteSpace(configuredConnString)
@@ -67,8 +67,8 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Restituisce il path del database SQLite in AppData.
-    /// Crea la cartella se non esiste.
+    /// Returns the SQLite database path under AppData.
+    /// Creates the folder if it does not exist.
     /// Path: %APPDATA%/STEM/DictionariesManager/sqldb-dictionaries-manager-test.db
     /// </summary>
     public static string GetDefaultSqlitePath()

@@ -9,7 +9,7 @@ public class DictionaryEntity : IAuditable
     public string? Description { get; set; }
 
     /// <summary>
-    /// True se è il dizionario delle variabili comuni (0x00xx). Max 1 nel sistema (BR-004).
+    /// True if this is the dictionary of common variables (0x00xx). Max 1 in the system (BR-004).
     /// </summary>
     public bool IsStandard { get; set; }
 

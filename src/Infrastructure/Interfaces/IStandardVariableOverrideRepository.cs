@@ -5,19 +5,19 @@ namespace Infrastructure.Interfaces;
 public interface IStandardVariableOverrideRepository : IRepository<StandardVariableOverrideEntity>
 {
     /// <summary>
-    /// Ottiene tutti gli override per un dizionario.
+    /// Gets all overrides for a dictionary.
     /// </summary>
     Task<IReadOnlyList<StandardVariableOverrideEntity>> GetByDictionaryIdAsync(int dictionaryId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene l'override per una variabile standard in un dizionario specifico.
+    /// Gets the override for a standard variable in a specific dictionary.
     /// </summary>
     Task<StandardVariableOverrideEntity?> GetByDictionaryAndVariableAsync(int dictionaryId,
         int standardVariableId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti gli override per una variabile standard (tutti i dizionari).
+    /// Gets all overrides for a standard variable (across all dictionaries).
     /// </summary>
     Task<IReadOnlyList<StandardVariableOverrideEntity>> GetByVariableIdAsync(int standardVariableId,
         CancellationToken cancellationToken = default);

@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories;
 
 /// <summary>
-/// Implementazione base repository con operazioni CRUD comuni.
+/// Base repository implementation with common CRUD operations.
 /// </summary>
 public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class
 {
     /// <summary>
-    /// Soglia oltre la quale viene emesso un warning in Debug.
-    /// Se una tabella supera questo limite, considerare paginazione.
+    /// Threshold above which a Debug warning is emitted.
+    /// If a table exceeds this limit, consider pagination.
     /// </summary>
     protected const int LargeResultSetWarningThreshold = 500;
 
@@ -33,7 +33,7 @@ public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEnti
     {
         List<TEntity> result = await DbSet.ToListAsync(cancellationToken);
 
-        // Warning in Debug se il dataset è grande — considera paginazione
+        // Debug warning if the dataset is large — consider pagination
         Debug.WriteLineIf(result.Count > LargeResultSetWarningThreshold,
             $"[PERFORMANCE WARNING] {typeof(TEntity).Name}: GetAllAsync returned {result.Count} records. " +
             $"Consider adding pagination if this table continues to grow.");

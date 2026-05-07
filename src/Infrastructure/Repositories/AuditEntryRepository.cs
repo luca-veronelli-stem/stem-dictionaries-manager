@@ -59,7 +59,7 @@ public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntr
             .ToListAsync(cancellationToken);
     }
 
-    // AuditEntry non dovrebbe essere modificato o cancellato
+    // AuditEntry must not be updated or deleted
     public override Task UpdateAsync(AuditEntryEntity entity, CancellationToken cancellationToken = default)
     {
         throw new InvalidOperationException("AuditEntry cannot be updated.");

@@ -44,7 +44,7 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
         var existingByKey = existing.ToDictionary(e => (e.WordIndex, e.BitIndex));
         var incomingByKey = incoming.ToDictionary(i => (i.WordIndex, i.BitIndex));
 
-        // Delete: nel DB ma non nella lista incoming
+        // Delete: present in DB but not in the incoming list
         foreach (BitInterpretationEntity? e in existing)
         {
             if (!incomingByKey.ContainsKey((e.WordIndex, e.BitIndex)))
@@ -53,13 +53,13 @@ public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntit
             }
         }
 
-        // Add o Update
+        // Add or Update
         foreach (BitInterpretationEntity i in incoming)
         {
             (int WordIndex, int BitIndex) key = (i.WordIndex, i.BitIndex);
             if (existingByKey.TryGetValue(key, out BitInterpretationEntity? e))
             {
-                // Update solo se il meaning è cambiato
+                // Update only if the meaning has changed
                 if (e.Meaning != i.Meaning)
                 {
                     e.Meaning = i.Meaning;

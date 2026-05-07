@@ -5,13 +5,13 @@ namespace Infrastructure.Interfaces;
 public interface IDeviceRepository : IRepository<DeviceEntity>
 {
     /// <summary>
-    /// Ottiene un device per nome (unique).
+    /// Gets a device by name (unique).
     /// </summary>
     Task<DeviceEntity?> GetByNameAsync(string name,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene un device per MachineCode (unique).
+    /// Gets a device by MachineCode (unique).
     /// </summary>
     Task<DeviceEntity?> GetByMachineCodeAsync(int machineCode,
         CancellationToken cancellationToken = default);

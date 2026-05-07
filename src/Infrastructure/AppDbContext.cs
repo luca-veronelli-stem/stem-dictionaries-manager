@@ -86,7 +86,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.MachineCode).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(500);
-            // BR-014: MachineCode deve essere > 0
+            // BR-014: MachineCode must be > 0
             entity.ToTable(t => t.HasCheckConstraint("CK_Devices_MachineCode", "[MachineCode] > 0"));
         });
 
@@ -95,7 +95,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ProtocolAddress).IsUnique();
-            // BR-005: max 1 scheda primaria per device
+            // BR-005: max 1 primary board per device
             entity.HasIndex(e => e.DeviceId)
                   .IsUnique()
                   .HasFilter("[IsPrimary] = 1");
@@ -116,7 +116,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name).IsUnique();
-            // BR-004: max 1 dizionario Standard nel sistema
+            // BR-004: max 1 Standard dictionary in the system
             entity.HasIndex(e => e.IsStandard)
                   .IsUnique()
                   .HasFilter("[IsStandard] = 1");
@@ -146,7 +146,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
-            // BR-017: 2 partial indexes per unicità con DictionaryId nullable
+            // BR-017: 2 partial indexes for uniqueness with nullable DictionaryId
             entity.HasIndex(e => new { e.VariableId, e.WordIndex, e.BitIndex })
                   .IsUnique()
                   .HasFilter("[DictionaryId] IS NULL");
@@ -155,7 +155,7 @@ public class AppDbContext : DbContext
                   .HasFilter("[DictionaryId] IS NOT NULL");
 
             entity.Property(e => e.Meaning).HasMaxLength(200);
-            // BitIndex e WordIndex devono essere >= 0
+            // BitIndex and WordIndex must be >= 0
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("CK_BitInterpretations_BitIndex", "[BitIndex] >= 0");
@@ -176,7 +176,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.CodeHigh, e.CodeLow, e.IsResponse }).IsUnique();
-            // BR-016: nome comando univoco
+            // BR-016: unique command name
             entity.HasIndex(e => e.Name).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
             entity.Property(e => e.ParametersJson).HasMaxLength(1000);
@@ -197,7 +197,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<StandardVariableOverrideEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            // BR-010: max 1 override per (DictionaryId, StandardVariableId)
+            // BR-010: max 1 override per (DictionaryId, StandardVariableId) pair
             entity.HasIndex(e => new { e.DictionaryId, e.StandardVariableId }).IsUnique();
             entity.Property(e => e.Description).HasMaxLength(2000);
             entity.HasOne(e => e.Dictionary)

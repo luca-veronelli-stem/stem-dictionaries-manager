@@ -5,19 +5,19 @@ namespace Infrastructure.Interfaces;
 public interface ICommandDeviceStateRepository : IRepository<CommandDeviceStateEntity>
 {
     /// <summary>
-    /// Ottiene lo stato di un comando per un device specifico.
+    /// Gets the state of a command for a specific device.
     /// </summary>
     Task<CommandDeviceStateEntity?> GetByCommandAndDeviceAsync(int commandId, int deviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti gli stati per un comando.
+    /// Gets all states for a command.
     /// </summary>
     Task<IReadOnlyList<CommandDeviceStateEntity>> GetByCommandIdAsync(int commandId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ottiene tutti gli stati per un device specifico.
+    /// Gets all states for a specific device.
     /// </summary>
     Task<IReadOnlyList<CommandDeviceStateEntity>> GetByDeviceIdAsync(int deviceId,
         CancellationToken cancellationToken = default);

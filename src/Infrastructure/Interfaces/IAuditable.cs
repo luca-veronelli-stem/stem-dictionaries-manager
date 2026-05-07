@@ -1,8 +1,8 @@
 namespace Infrastructure.Interfaces;
 
 /// <summary>
-/// Interface per entities con tracking temporale automatico.
-/// CreatedAt viene settato su INSERT, UpdatedAt su UPDATE.
+/// Interface for entities with automatic temporal tracking.
+/// CreatedAt is set on INSERT, UpdatedAt on UPDATE.
 /// </summary>
 public interface IAuditable
 {

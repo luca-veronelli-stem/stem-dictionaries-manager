@@ -1,7 +1,7 @@
 namespace Infrastructure.Interfaces;
 
 /// <summary>
-/// Interface generica per repository CRUD.
+/// Generic CRUD repository interface.
 /// </summary>
 public interface IRepository<TEntity> where TEntity : class
 {
