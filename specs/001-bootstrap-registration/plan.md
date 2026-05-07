@@ -50,7 +50,7 @@ Per Principle III: manual fakes only, no Moq/NSubstitute. Integration tests use 
 **Project Type**: Web service (existing `src/API` project).
 **Performance Goals**: SC-001 (registration end-to-end < 5 s under normal network), SC-004 (revoke effective within 5 s), SC-005 (100% of attempts in audit within 2 s). Cached credential validation in the sub-millisecond range steady-state.
 **Constraints**: must not regress legacy `ApiKeys` auth (FR-005, union mode); must not store any plaintext secret server-side (FR-004/FR-014/SC-007); response body byte-identical across all `POST /register` failure modes (FR-002/SC-002).
-**Scale/Scope**: STEM-internal — order of tens of installations per client app family across STEM. Single-tenant deployment (R4).
+**Scale/Scope**: STEM-managed API server, single-tenant (R4). Installations run on consumer-owned hosts: a mix of STEM-internal services and **external-supplier sites** (e.g. `stem-button-panel-tester` is installed on supplier machines to test STEM's button panels). Order of tens of installations per client app family across STEM. The cross-org deployment is the threat-model rationale for why `OsUserId`/`MachineId` are server-opaque (FR-001) and why the consumer-side privacy choice on those fields is left to the consumer (Clarifications Session 2 Q4).
 
 ## Constitution Check
 
