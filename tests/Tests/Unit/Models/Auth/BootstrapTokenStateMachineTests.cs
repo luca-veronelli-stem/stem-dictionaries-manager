@@ -46,25 +46,28 @@ public class BootstrapTokenStateMachineTests
     }
 
     [Fact]
-    public void MarkUsed_FromUsed_Throws()
+    public void MarkUsed_FromUsed_ThrowsTypedStateExceptionCarryingFoundStatus()
     {
         BootstrapToken token = NewIssuedToken();
         token.MarkUsed(DateTime.UtcNow, installationId: 1);
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+        BootstrapTokenStateException ex = Assert.Throws<BootstrapTokenStateException>(
             () => token.MarkUsed(DateTime.UtcNow, installationId: 2));
 
         Assert.Contains("Used", ex.Message);
+        Assert.Equal(BootstrapTokenStatus.Used, ex.FoundStatus);
     }
 
     [Fact]
-    public void MarkUsed_FromRevoked_Throws()
+    public void MarkUsed_FromRevoked_ThrowsTypedStateExceptionCarryingFoundStatus()
     {
         BootstrapToken token = NewIssuedToken();
         token.Revoke(DateTime.UtcNow);
 
-        Assert.Throws<InvalidOperationException>(
+        BootstrapTokenStateException ex = Assert.Throws<BootstrapTokenStateException>(
             () => token.MarkUsed(DateTime.UtcNow, installationId: 1));
+
+        Assert.Equal(BootstrapTokenStatus.Revoked, ex.FoundStatus);
     }
 
     [Fact]
@@ -93,23 +96,27 @@ public class BootstrapTokenStateMachineTests
     }
 
     [Fact]
-    public void Revoke_FromUsed_Throws()
+    public void Revoke_FromUsed_ThrowsTypedStateExceptionCarryingFoundStatus()
     {
         BootstrapToken token = NewIssuedToken();
         token.MarkUsed(DateTime.UtcNow, installationId: 1);
 
-        Assert.Throws<InvalidOperationException>(
+        BootstrapTokenStateException ex = Assert.Throws<BootstrapTokenStateException>(
             () => token.Revoke(DateTime.UtcNow));
+
+        Assert.Equal(BootstrapTokenStatus.Used, ex.FoundStatus);
     }
 
     [Fact]
-    public void Revoke_FromRevoked_Throws()
+    public void Revoke_FromRevoked_ThrowsTypedStateExceptionCarryingFoundStatus()
     {
         BootstrapToken token = NewIssuedToken();
         token.Revoke(DateTime.UtcNow);
 
-        Assert.Throws<InvalidOperationException>(
+        BootstrapTokenStateException ex = Assert.Throws<BootstrapTokenStateException>(
             () => token.Revoke(DateTime.UtcNow));
+
+        Assert.Equal(BootstrapTokenStatus.Revoked, ex.FoundStatus);
     }
 
     [Fact]

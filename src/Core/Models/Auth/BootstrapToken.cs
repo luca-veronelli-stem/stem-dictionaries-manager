@@ -74,7 +74,7 @@ public class BootstrapToken
     {
         if (Status != BootstrapTokenStatus.Issued)
         {
-            throw new InvalidOperationException(
+            throw new BootstrapTokenStateException(Status,
                 $"BootstrapToken in state {Status} cannot transition to Used.");
         }
         if (installationId <= 0)
@@ -99,7 +99,7 @@ public class BootstrapToken
     {
         if (Status != BootstrapTokenStatus.Issued)
         {
-            throw new InvalidOperationException(
+            throw new BootstrapTokenStateException(Status,
                 $"BootstrapToken in state {Status} cannot transition to Revoked.");
         }
 
