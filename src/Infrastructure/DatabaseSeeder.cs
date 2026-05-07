@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure;
 
 /// <summary>
-/// Popola il database con dati iniziali.
-/// Utenti + Dispositivi + Comandi + Schede: il resto viene inserito dalla GUI.
+/// Populates the database with initial data.
+/// Users + Devices + Commands + Boards; the rest is inserted from the GUI.
 /// </summary>
 public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Se esistono già dati, non fare nulla
+        // If data already exists, do nothing
         if (await context.Users.AnyAsync())
         {
             return;
@@ -33,7 +33,7 @@ public static class DatabaseSeeder
             return;
         }
 
-        // === Utenti del team firmware STEM ===
+        // === STEM firmware team users ===
         UserEntity[] users = new[]
         {
             new UserEntity { Username = "luca.veronelli", DisplayName = "Luca Veronelli" },
@@ -44,8 +44,8 @@ public static class DatabaseSeeder
         };
         context.Users.AddRange(users);
 
-        // === Dispositivi STEM ===
-        // MachineCode 6 è riservato per BLE Module (BR-015)
+        // === STEM devices ===
+        // MachineCode 6 is reserved for the BLE Module (BR-015)
         DeviceEntity[] devices = new[]
         {
             new DeviceEntity { Name = "Sherpa Slim", MachineCode = 1, Description = "Sistema di caricamento assistito a controllo elettronico" },
@@ -62,8 +62,8 @@ public static class DatabaseSeeder
         };
         context.Devices.AddRange(devices);
 
-        // === Comandi protocollo STEM (da comandi.csv) ===
-        // Regola: CodeHigh = 0x00 per comandi, 0x80 per risposte
+        // === STEM protocol commands (from comandi.csv) ===
+        // Rule: CodeHigh = 0x00 for commands, 0x80 for responses
         CommandEntity[] commands = new[]
         {
             // 0x00 - Versione protocollo
@@ -246,13 +246,13 @@ public static class DatabaseSeeder
         };
         context.Commands.AddRange(commands);
 
-        // Salva prima di inserire le schede, perché hanno FK verso i dispositivi
+        // Save before inserting boards, since they hold FKs to the devices
         await context.SaveChangesAsync();
 
-        // === Schede STEM (da indirizzi.csv) ===
+        // === STEM boards (from indirizzi.csv) ===
         // ProtocolAddress: (MACHINE << 16) | ((FW & 0x3FF) << 6) | (BOARD_NUMBER & 0x3F)
-        // DictionaryId: assegnato dopo il seed dei dizionari
-        // BLE Module (MC=6): skippato (BR-015)
+        // DictionaryId: assigned after seeding the dictionaries
+        // BLE Module (MC=6): skipped (BR-015)
         BoardEntity[] boards = new[]
         {
             // Sherpa Slim (MC=1)
@@ -316,126 +316,126 @@ public static class DatabaseSeeder
 
         await context.SaveChangesAsync();
 
-        // === Dizionario Standard (da dati_standard.CSV) ===
+        // === Standard dictionary (from dati_standard.CSV) ===
         VariableEntity[] standardVariables = await SeedStandardDictionaryAsync(context);
 
-        // === Dizionario Pulsantiere (da pulsantiere.CSV) ===
+        // === Keypads dictionary (from pulsantiere.CSV) ===
         DictionaryEntity pulsantiereDictionary = await SeedPulsantiereDictionaryAsync(context, boards);
 
-        // === Override variabili standard per-dizionario ===
+        // === Per-dictionary standard-variable overrides ===
         await SeedPulsantiereStandardOverridesAsync(
             context, pulsantiereDictionary, standardVariables);
 
-        // === Dizionario Display Spyke (da hmi_spyke.CSV) ===
+        // === Display Spyke dictionary (from hmi_spyke.CSV) ===
         DictionaryEntity displaySpykeDictionary = await SeedDisplaySpykeDictionaryAsync(
             context, boards, devices[4]);
 
-        // === Override variabili standard per Display Spyke ===
+        // === Standard-variable overrides for Display Spyke ===
         await SeedDisplaySpykeOverridesAsync(
             context, displaySpykeDictionary, standardVariables);
 
-        // === Dizionario Gateway Spyke (da gateway_spyke.CSV) ===
+        // === Gateway Spyke dictionary (from gateway_spyke.CSV) ===
         DictionaryEntity gatewaySpykeDictionary = await SeedGatewaySpykeDictionaryAsync(
             context, boards, devices[4]);
 
-        // === Override variabili standard per Gateway Spyke ===
+        // === Standard-variable overrides for Gateway Spyke ===
         await SeedGatewaySpykeOverridesAsync(
             context, gatewaySpykeDictionary, standardVariables);
 
-        // === Dizionario Gradino (da gradino.CSV) ===
+        // === Gradino dictionary (from gradino.CSV) ===
         DictionaryEntity gradinoDictionary = await SeedGradinoDictionaryAsync(
             context, boards, devices[3]);
 
-        // === Override variabili standard per Gradino ===
+        // === Standard-variable overrides for Gradino ===
         await SeedGradinoOverridesAsync(
             context, gradinoDictionary, standardVariables);
 
-        // === Dizionario Eden-XP (da eden-xp.CSV) ===
+        // === Eden-XP dictionary (from eden-xp.CSV) ===
         DictionaryEntity edenXPDictionary = await SeedEdenXPDictionaryAsync(
             context, boards, devices[2]);
 
-        // === Override variabili standard per Eden-XP ===
+        // === Standard-variable overrides for Eden-XP ===
         await SeedEdenXPOverridesAsync(
             context, edenXPDictionary, standardVariables);
 
-        // === Dizionario Sherpa Slim (da sherpa-slim.CSV) ===
+        // === Sherpa Slim dictionary (from sherpa-slim.CSV) ===
         DictionaryEntity sherpaSlimDictionary = await SeedSherpaSlimDictionaryAsync(
             context, boards, devices[0]);
 
-        // === Override variabili standard per Sherpa Slim ===
+        // === Standard-variable overrides for Sherpa Slim ===
         await SeedSherpaSlimOverridesAsync(
             context, sherpaSlimDictionary, standardVariables);
 
-        // === Dizionario Optimus-XP (da optimus-xp.CSV) ===
+        // === Optimus-XP dictionary (from optimus-xp.CSV) ===
         DictionaryEntity optimusXPDictionary = await SeedOptimusXPDictionaryAsync(
             context, boards, devices[8]);
 
-        // === Override variabili standard per Optimus-XP ===
+        // === Standard-variable overrides for Optimus-XP ===
         await SeedOptimusXPOverridesAsync(
             context, optimusXPDictionary, standardVariables);
 
-        // === Dizionario TopLift-M (da toplift-m.CSV) ===
+        // === TopLift-M dictionary (from toplift-m.CSV) ===
         DictionaryEntity topLiftMDictionary = await SeedTopLiftMDictionaryAsync(
             context, boards, devices[1]);
 
-        // === Override variabili standard per TopLift-M ===
+        // === Standard-variable overrides for TopLift-M ===
         await SeedTopLiftMOverridesAsync(
             context, topLiftMDictionary, standardVariables);
 
-        // === Dizionario TopLift-A2 (da toplift-a2.CSV) ===
+        // === TopLift-A2 dictionary (from toplift-a2.CSV) ===
         DictionaryEntity topLiftA2Dictionary = await SeedTopLiftA2DictionaryAsync(
             context, boards, devices[6]);
 
-        // === Override variabili standard per TopLift-A2 ===
+        // === Standard-variable overrides for TopLift-A2 ===
         await SeedTopLiftA2OverridesAsync(
             context, topLiftA2Dictionary, standardVariables);
 
-        // === Dizionario O3Z-Tech (da o3z-tech.CSV) ===
+        // === O3Z-Tech dictionary (from o3z-tech.CSV) ===
         DictionaryEntity o3zTechDictionary = await SeedO3ZTechDictionaryAsync(
             context, boards, devices[7]);
 
-        // === Override variabili standard per O3Z-Tech ===
+        // === Standard-variable overrides for O3Z-Tech ===
         await SeedO3ZTechOverridesAsync(
             context, o3zTechDictionary, standardVariables);
 
-        // === Dizionario HMI Spark (da hmi_spark.CSV) ===
+        // === HMI Spark dictionary (from hmi_spark.CSV) ===
         DictionaryEntity hmiSparkDictionary = await SeedHmiSparkDictionaryAsync(
             context, boards, devices[5]);
 
-        // === Override variabili standard per HMI Spark ===
+        // === Standard-variable overrides for HMI Spark ===
         await SeedHmiSparkOverridesAsync(
             context, hmiSparkDictionary, standardVariables);
 
-        // === Dizionario Eden-BS8 (da eden-bs8.CSV) ===
+        // === Eden-BS8 dictionary (from eden-bs8.CSV) ===
         DictionaryEntity edenBS8Dictionary = await SeedEdenBS8DictionaryAsync(
             context, boards, devices[10]);
 
-        // === Override variabili standard per Eden-BS8 ===
+        // === Standard-variable overrides for Eden-BS8 ===
         await SeedEdenBS8OverridesAsync(
             context, edenBS8Dictionary, standardVariables);
 
-        // === Dizionario R3L-XP Master (da r3l-xp_master.CSV) ===
+        // === R3L-XP Master dictionary (from r3l-xp_master.CSV) ===
         DictionaryEntity r3lXPMasterDictionary = await SeedR3LXPMasterDictionaryAsync(
                 context, boards, devices[9]);
 
-        // === Override variabili standard per R3L-XP Master ===
+        // === Standard-variable overrides for R3L-XP Master ===
         await SeedR3LXPMasterOverridesAsync(
             context, r3lXPMasterDictionary, standardVariables);
 
-        // === Dizionario R3L-XP Slave (da r3l-xp_slave.CSV) ===
+        // === R3L-XP Slave dictionary (from r3l-xp_slave.CSV) ===
         DictionaryEntity r3lXPSlaveDictionary = await SeedR3LXPSlaveDictionaryAsync(
                 context, boards, devices[9]);
 
-        // === Override variabili standard per R3L-XP Slave ===
+        // === Standard-variable overrides for R3L-XP Slave ===
         await SeedR3LXPSlaveOverridesAsync(
             context, r3lXPSlaveDictionary, standardVariables);
     }
 
     /// <summary>
-    /// Crea il dizionario standard con le variabili comuni a tutti i dispositivi STEM.
-    /// Fonte: Docs/Dictionaries/dati_standard.CSV
-    /// AddressHigh = 0x00 per tutte le variabili standard.
-    /// BitInterpretations: vuote nello standard, i device le overridano.
+    /// Creates the standard dictionary with variables common to all STEM devices.
+    /// Source: Docs/Dictionaries/dati_standard.CSV
+    /// AddressHigh = 0x00 for every standard variable.
+    /// BitInterpretations: empty in the standard; devices override them.
     /// </summary>
     private static async Task<VariableEntity[]> SeedStandardDictionaryAsync(AppDbContext context)
     {
@@ -474,7 +474,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 4294967295,
                 description: "Numero di serie del dispositivo"),
 
-            // 0x0004 — Tipo scheda (R/W="N" nel CSV, ma attiva)
+            // 0x0004 — Tipo scheda (R/W="N" in CSV, but active)
             Var(dictionary.Id, "Tipo scheda", 0x04,
                 DataTypeKind.Other, "Enum dipendente dalle macchine",
                 AccessMode.ReadOnly, isEnabled: true,
@@ -492,7 +492,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, dataTypeParam: 2, wordSize: 16,
                 description: "Word 0: allarmi, Word 1: warnings. Interpretazioni bit definite per-device"),
 
-            // 0x0007 — Comandi (R/W="N" nel CSV, disabilitata globalmente)
+            // 0x0007 — Comandi (R/W="N" in CSV, globally disabled)
             Var(dictionary.Id, "Comandi", 0x07,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -546,31 +546,31 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly,
                 description: "Livello di carica della batteria del veicolo"),
 
-            // 0x0010 — Salute batteria (disabilitata globalmente)
+            // 0x0010 — Salute batteria (globally disabled)
             Var(dictionary.Id, "Salute batteria", 0x10,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false,
                 description: "Stato di salute (SOH) della batteria"),
 
-            // 0x0011 — Cicli batteria (disabilitata globalmente)
+            // 0x0011 — Cicli batteria (globally disabled)
             Var(dictionary.Id, "Cicli batteria", 0x11,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false,
                 description: "Numero di cicli di carica/scarica della batteria"),
 
-            // 0x0012 — Temperatura batteria (disabilitata globalmente)
+            // 0x0012 — Temperatura batteria (globally disabled)
             Var(dictionary.Id, "Temperatura batteria", 0x12,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false,
                 description: "Temperatura della batteria in decimi di grado (÷10 per °C)"),
 
-            // 0x0013 — BatteryFirmware (disabilitata globalmente)
+            // 0x0013 — BatteryFirmware (globally disabled)
             Var(dictionary.Id, "BatteryFirmware", 0x13,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false,
                 description: "Versione firmware della batteria"),
 
-            // 0x0014 — BatterySerial (disabilitata globalmente)
+            // 0x0014 — BatterySerial (globally disabled)
             Var(dictionary.Id, "BatterySerial", 0x14,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -602,10 +602,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario pulsantiere con le variabili specifiche delle tastiere STEM.
-    /// Fonte: Docs/Dictionaries/pulsantiere.CSV
-    /// AddressHigh = 0x80 per tutte le variabili pulsantiere.
-    /// Aggiorna le BoardEntity pulsantiera per puntare a questo dizionario.
+    /// Creates the keypads dictionary with variables specific to STEM keypads.
+    /// Source: Docs/Dictionaries/pulsantiere.CSV
+    /// AddressHigh = 0x80 for every keypad variable.
+    /// Points the keypad BoardEntity rows at this dictionary.
     /// </summary>
     private static async Task<DictionaryEntity> SeedPulsantiereDictionaryAsync(
         AppDbContext context, BoardEntity[] boards)
@@ -627,7 +627,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly,
                 description: "Variabile logica gestita dalla tastiera esterna"),
 
-            // 0x8001 — Stato sistema (non più usato, disabilitata)
+            // 0x8001 — Stato sistema (no longer used, disabled)
             Var(dictionary.Id, "Stato sistema", 0x80, 0x01,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1, isEnabled: false,
@@ -663,9 +663,9 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
         await context.SaveChangesAsync();
 
-        // === BitInterpretations per Comando Led Verde / Rosso / Buzzer ===
-        // Big-endian: Word 3 = BYTE 0 (attivazione, bit interpretati)
-        // Word 0/1/2: valori interi con interpretazione a bit 0
+        // === BitInterpretations for Comando Led Verde / Rosso / Buzzer ===
+        // Big-endian: Word 3 = BYTE 0 (activation, interpreted bits)
+        // Word 0/1/2: integer values with bit-0 interpretation
         VariableEntity ledVerde = variables[2];
         VariableEntity ledRosso = variables[3];
         VariableEntity buzzer = variables[4];
@@ -677,18 +677,18 @@ public static class DatabaseSeeder
             bitInterpretations.AddRange(TimingWordBits(varId));
         }
 
-        // Led Verde — Word 3 (attivazione)
+        // Led Verde — Word 3 (activation)
         bitInterpretations.AddRange(LedBits(ledVerde.Id, 3));
-        // Led Rosso — Word 3 (attivazione)
+        // Led Rosso — Word 3 (activation)
         bitInterpretations.AddRange(LedBits(ledRosso.Id, 3));
-        // Buzzer — Word 3 (attivazione, senza bit 2 "single shot")
+        // Buzzer — Word 3 (activation, without bit 2 "single shot")
         bitInterpretations.AddRange(BuzzerBits(buzzer.Id, 3));
 
         context.Set<BitInterpretationEntity>().AddRange(bitInterpretations);
 
-        // Aggiorna le board pulsantiera per puntare a questo dizionario.
-        // Tutte le board con FirmwareType=4 sono pulsantiere (FW=4 nel protocollo STEM)
-        // più le pulsantiere TopLift-A2 con FirmwareType=15.
+        // Point keypad boards at this dictionary.
+        // All boards with FirmwareType=4 are keypads (FW=4 in the STEM protocol)
+        // plus the TopLift-A2 keypads with FirmwareType=15.
         foreach (BoardEntity board in boards)
         {
             if (board.FirmwareType is 4 or 15
@@ -704,9 +704,9 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Pulsantiere.
-    /// Le pulsantiere usano solo Firmware macchina (0x0000) e Firmware scheda (0x0001).
-    /// Tutte le altre variabili standard vengono disattivate.
+    /// Standard-variable overrides for the Keypads dictionary.
+    /// Keypads only use Firmware macchina (0x0000) and Firmware scheda (0x0001).
+    /// All other standard variables are disabled.
     /// </summary>
     private static async Task SeedPulsantiereStandardOverridesAsync(
         AppDbContext context,
@@ -728,10 +728,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Display Spyke con le variabili specifiche della scheda Display.
-    /// Fonte: Docs/Dictionaries/hmi_spyke.CSV
+    /// Creates the Display Spyke dictionary with variables specific to the Display board.
+    /// Source: Docs/Dictionaries/hmi_spyke.CSV
     /// Board: Spyke "Display" (FW=8, MC=5, BoardNumber=1).
-    /// 34 variabili device-specific (0x80xx).
+    /// 34 device-specific variables (0x80xx).
     /// </summary>
     private static async Task<DictionaryEntity> SeedDisplaySpykeDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity spykeDevice)
@@ -913,7 +913,7 @@ public static class DatabaseSeeder
         };
         context.Variables.AddRange(variables);
 
-        // Link board Display (FW=8) di Spyke
+        // Link the Spyke Display board (FW=8)
         foreach (BoardEntity board in boards)
         {
             if (board.DeviceId == spykeDevice.Id && board.FirmwareType == 8)
@@ -928,10 +928,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Display Spyke.
-    /// - Disabilita: Temperatura scheda (0x08), Secondi motore parziale (0x09), totale (0x0A).
-    /// - Descrizione: Cicli 0x0B-0x0E con testo specifico dal CSV.
-    /// - BitInterpretation per-dizionario: Allarmi (0x06) Word 0 + Word 1.
+    /// Standard-variable overrides for the Display Spyke dictionary.
+    /// - Disables: Temperatura scheda (0x08), Secondi motore parziale (0x09), totale (0x0A).
+    /// - Description: Cicli 0x0B-0x0E with CSV-specific text.
+    /// - Per-dictionary BitInterpretation: Allarmi (0x06) Word 0 + Word 1.
     /// </summary>
     private static async Task SeedDisplaySpykeOverridesAsync(
         AppDbContext context,
@@ -941,7 +941,7 @@ public static class DatabaseSeeder
         int dictId = displaySpykeDictionary.Id;
 
         // === Override IsEnabled ===
-        // Disabilita Temperatura scheda (0x08), Secondi motore parziale/totale (0x09, 0x0A)
+        // Disable Temperatura scheda (0x08), Secondi motore parziale/totale (0x09, 0x0A)
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow is 0x08 or 0x09 or 0x0A)
             .Select(v => new StandardVariableOverrideEntity
@@ -951,7 +951,7 @@ public static class DatabaseSeeder
                 IsEnabled = false,
             });
 
-        // === Override Descrizione Cicli ===
+        // === Override Description for Cicli ===
         var cicliDescriptions = new Dictionary<byte, string>
         {
             [0x0B] = "Numero agganci al 10G resettabile "
@@ -977,7 +977,7 @@ public static class DatabaseSeeder
             disabledOverrides.Concat(cicliOverrides));
         await context.SaveChangesAsync();
 
-        // === BitInterpretation per-dizionario per Allarmi (0x06) ===
+        // === Per-dictionary BitInterpretation for Allarmi (0x06) ===
         VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var bits = new BitInterpretationEntity[]
         {
@@ -1030,10 +1030,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Gateway Spyke con le variabili specifiche della scheda Gateway.
-    /// Fonte: Docs/Dictionaries/gateway_spyke.CSV
+    /// Creates the Gateway Spyke dictionary with variables specific to the Gateway board.
+    /// Source: Docs/Dictionaries/gateway_spyke.CSV
     /// Board: Spyke "Gateway" (FW=7, MC=5, BoardNumber=1).
-    /// 9 variabili device-specific (0x80xx).
+    /// 9 device-specific variables (0x80xx).
     /// </summary>
     private static async Task<DictionaryEntity> SeedGatewaySpykeDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity spykeDevice)
@@ -1105,10 +1105,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Gateway Spyke.
-    /// - Disabilita: 0x08-0x0F (Temperatura, Secondi motore, Cicli, Livello batteria)
-    ///               e 0x17 (Firmware Bootloader).
-    /// - BitInterpretation per-dizionario: Allarmi (0x06) Word 0 (5 bit).
+    /// Standard-variable overrides for the Gateway Spyke dictionary.
+    /// - Disables: 0x08-0x0F (Temperatura, Secondi motore, Cicli, Livello batteria)
+    ///               and 0x17 (Firmware Bootloader).
+    /// - Per-dictionary BitInterpretation: Allarmi (0x06) Word 0 (5 bits).
     /// </summary>
     private static async Task SeedGatewaySpykeOverridesAsync(
         AppDbContext context,
@@ -1118,7 +1118,7 @@ public static class DatabaseSeeder
         int dictId = gatewaySpykeDictionary.Id;
 
         // === Override IsEnabled ===
-        // Disabilita 0x08-0x0F + 0x17
+        // Disable 0x08-0x0F + 0x17
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => (v.AddressLow >= 0x08 && v.AddressLow <= 0x0F)
                 || v.AddressLow == 0x17)
@@ -1132,7 +1132,7 @@ public static class DatabaseSeeder
         context.StandardVariableOverrides.AddRange(disabledOverrides);
         await context.SaveChangesAsync();
 
-        // === BitInterpretation per-dizionario per Allarmi (0x06) ===
+        // === Per-dictionary BitInterpretation for Allarmi (0x06) ===
         VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var bits = new BitInterpretationEntity[]
         {
@@ -1155,10 +1155,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Gradino con le variabili specifiche della scheda Azionamento.
-    /// Fonte: Docs/Dictionaries/gradino.CSV
+    /// Creates the Gradino dictionary with variables specific to the Azionamento board.
+    /// Source: Docs/Dictionaries/gradino.CSV
     /// Board: Gradino "Azionamento" (FW=6, MC=4, BoardNumber=1).
-    /// 35 variabili device-specific (0x80xx).
+    /// 35 device-specific variables (0x80xx).
     /// </summary>
     private static async Task<DictionaryEntity> SeedGradinoDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity gradinoDevice)
@@ -1175,7 +1175,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // 0x8000 — Stato keyboard 1 (R/W="N" nel CSV, disabilitata)
+            // 0x8000 — Stato keyboard 1 (R/W="N" in CSV, disabled)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -1338,25 +1338,25 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadWrite, unit: "Ampere/100"),
 
-            // 0x801F — Motor Type (Enum, disabilitata, senza indirizzo nel CSV)
+            // 0x801F — Motor Type (Enum, disabled, no address in CSV)
             Var(id, "Motor Type", 0x80, 0x1F,
                 DataTypeKind.Other, "Enum",
                 AccessMode.ReadWrite, min: 0, max: 4, isEnabled: false,
                 description: "0 = Not initialized\n1 = DC BRUSHLESS\n"
                     + "2 = DC\n3 = AC INDUCTION\n4 = AC BRUSHLESS"),
 
-            // 0x8020 — Stato Scheda (disabilitata, senza indirizzo nel CSV)
+            // 0x8020 — Stato Scheda (disabled, no address in CSV)
             Var(id, "Stato Scheda", 0x80, 0x20,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8021 — An_Pot1 (disabilitata, debug, senza indirizzo nel CSV)
+            // 0x8021 — An_Pot1 (disabled, debug, no address in CSV)
             Var(id, "An_Pot1", 0x80, 0x21,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, min: 0, max: 4095, unit: "Bit",
                 isEnabled: false),
 
-            // 0x8022 — An_Pot2 (disabilitata, debug, senza indirizzo nel CSV)
+            // 0x8022 — An_Pot2 (disabled, debug, no address in CSV)
             Var(id, "An_Pot2", 0x80, 0x22,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, min: 0, max: 4095, unit: "Bit",
@@ -1365,7 +1365,7 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
         await context.SaveChangesAsync();
 
-        // === BitInterpretations per Salva i valori (0x8019) ===
+        // === BitInterpretations for Salva i valori (0x8019) ===
         VariableEntity salvaValori = variables.First(v => v.AddressLow == 0x19);
         var salvaBits = new BitInterpretationEntity[]
         {
@@ -1393,10 +1393,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Gradino.
-    /// - Disabilita: 0x05, 0x07-0x0F, 0x17 (11 variabili).
-    /// - Descrizione: 0x05 (Stato) con enum macchina a stati.
-    /// - BitInterpretation per-dizionario: 0x15 (Ingressi) 4 bit, 0x16 (Uscite) 1 bit.
+    /// Standard-variable overrides for the Gradino dictionary.
+    /// - Disables: 0x05, 0x07-0x0F, 0x17 (11 variables).
+    /// - Description: 0x05 (Stato) with state-machine enum.
+    /// - Per-dictionary BitInterpretation: 0x15 (Ingressi) 4 bits, 0x16 (Uscite) 1 bit.
     /// </summary>
     private static async Task SeedGradinoOverridesAsync(
         AppDbContext context,
@@ -1405,10 +1405,10 @@ public static class DatabaseSeeder
     {
         int dictId = gradinoDictionary.Id;
 
-        // === Override IsEnabled + Descrizione ===
+        // === Override IsEnabled + Description ===
         var overrides = new List<StandardVariableOverrideEntity>();
 
-        // Disabilita 0x05 (Stato) con descrizione enum
+        // Disable 0x05 (Stato) with enum description
         VariableEntity stato = standardVariables.First(v => v.AddressLow == 0x05);
         overrides.Add(new StandardVariableOverrideEntity
         {
@@ -1423,7 +1423,7 @@ public static class DatabaseSeeder
                 + "10 = SLOWDOWN_CLOSING\n11 = SLOWDOWN_OPENING",
         });
 
-        // Disabilita 0x07-0x0F + 0x17
+        // Disable 0x07-0x0F + 0x17
         IEnumerable<VariableEntity> disabledAddresses = standardVariables
             .Where(v => (v.AddressLow >= 0x07 && v.AddressLow <= 0x0F)
                 || v.AddressLow == 0x17);
@@ -1440,7 +1440,7 @@ public static class DatabaseSeeder
         context.StandardVariableOverrides.AddRange(overrides);
         await context.SaveChangesAsync();
 
-        // === BitInterpretation per-dizionario ===
+        // === Per-dictionary BitInterpretation ===
         VariableEntity ingressi = standardVariables.First(v => v.AddressLow == 0x15);
         VariableEntity uscite = standardVariables.First(v => v.AddressLow == 0x16);
 
@@ -1465,10 +1465,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Eden-XP con le variabili specifiche della scheda Madre.
-    /// Fonte: Docs/Dictionaries/eden-xp.CSV
+    /// Creates the Eden-XP dictionary with variables specific to the Madre board.
+    /// Source: Docs/Dictionaries/eden-xp.CSV
     /// Board: Eden-XP "Madre" (FW=5, MC=3, BoardNumber=1).
-    /// 130 variabili device-specific (0x80xx).
+    /// 130 device-specific variables (0x80xx).
     /// </summary>
     private static async Task<DictionaryEntity> SeedEdenXPDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity edenXPDevice)
@@ -1485,7 +1485,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // 0x8000 — Stato keyboard 1 (R/W="N" nel CSV, disabilitata)
+            // 0x8000 — Stato keyboard 1 (R/W="N" in CSV, disabled)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -1572,7 +1572,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Bitmapped, "Bitmapped[1]",
                 AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 8),
 
-            // 0x8010 — libero (disabilitata)
+            // 0x8010 — libero (disabled)
             Var(id, "libero", 0x80, 0x10,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -1593,22 +1593,22 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 2,
                 description: "0 = fermo, 1 = in accensione, 2 = acceso"),
 
-            // 0x8014 — Pompa Riferimento (disabilitata)
+            // 0x8014 — Pompa Riferimento (disabled)
             Var(id, "Pompa Riferimento", 0x80, 0x14,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8015 — Pompa I misurata (disabilitata)
+            // 0x8015 — Pompa I misurata (disabled)
             Var(id, "Pompa I misurata", 0x80, 0x15,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8016 — Pompa PWM Out (disabilitata)
+            // 0x8016 — Pompa PWM Out (disabled)
             Var(id, "Pompa PWM Out", 0x80, 0x16,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8017 — I max Pompa (disabilitata)
+            // 0x8017 — I max Pompa (disabled)
             Var(id, "I max Pompa", 0x80, 0x17,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -1733,7 +1733,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // === EV9 (0x8038-0x803B, tutte disabilitate) ===
+            // === EV9 (0x8038-0x803B, all disabled) ===
             Var(id, "Stato EV9", 0x80, 0x38,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2, isEnabled: false,
@@ -1748,7 +1748,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // === EV10 (0x803C-0x803F, tutte disabilitate) ===
+            // === EV10 (0x803C-0x803F, all disabled) ===
             Var(id, "Stato EV10", 0x80, 0x3C,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2, isEnabled: false,
@@ -1763,7 +1763,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8040 — Vbus measured (disabilitata)
+            // 0x8040 — Vbus measured (disabled)
             Var(id, "Vbus measured", 0x80, 0x40,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -1773,7 +1773,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Bitmapped, "Bitmapped[1]",
                 AccessMode.ReadOnly, dataTypeParam: 1, wordSize: 8),
 
-            // === Ore lavoro (0x8042-0x804C, tutte disabilitate, Log) ===
+            // === Ore lavoro (0x8042-0x804C, all disabled, Log) ===
             Var(id, "Ore lavoro pompa", 0x80, 0x42,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -1814,7 +1814,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 1,
                 description: "se va a 0 prendo lo zero del piano"),
 
-            // === Log diagnostici (0x804E-0x8051, disabilitate) ===
+            // === Diagnostic logs (0x804E-0x8051, disabled) ===
             Var(id, "Numero singoli allarmi", 0x80, 0x4E,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -1855,7 +1855,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0.0, max: 14.0, unit: "volts",
                 description: "Valore massimo di batteria (a cui ho il 100%)"),
 
-            // 0x8057 — Altezza testa (disabilitata)
+            // 0x8057 — Altezza testa (disabled)
             Var(id, "Altezza testa", 0x80, 0x57,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, unit: "mm", isEnabled: false,
@@ -1883,7 +1883,7 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadWrite, min: 20, max: 600, unit: "min"),
 
-            // 0x805C — Vai in molleggio alla richiusura (disabilitata)
+            // 0x805C — Vai in molleggio alla richiusura (disabled)
             Var(id, "Vai in molleggio alla richiusura", 0x80, 0x5C,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadWrite, min: 0, max: 1, isEnabled: false,
@@ -1895,7 +1895,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 1,
                 description: "0 = disattivo, 1 = attivo"),
 
-            // 0x805E — Vai sempre in molleggio (disabilitata)
+            // 0x805E — Vai sempre in molleggio (disabled)
             Var(id, "Vai sempre in molleggio", 0x80, 0x5E,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadWrite, min: 0, max: 1, isEnabled: false,
@@ -2022,13 +2022,13 @@ public static class DatabaseSeeder
                 description: "Altezza cui si posiziona l'Eden in molleggio "
                     + "(se è inclinato è l'equivalente orizzontale)"),
 
-            // 0x8073 — Stato keyboard 2 (R/W="N" nel CSV, disabilitata)
+            // 0x8073 — Stato keyboard 2 (R/W="N" in CSV, disabled)
             Var(id, "Stato keyboard 2", 0x80, 0x73,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
                 description: "Variabile logica gestita dalla tastiera esterna (non usare con l'app)"),
 
-            // 0x8074 — Stato keyboard 3 (R/W="N" nel CSV, disabilitata)
+            // 0x8074 — Stato keyboard 3 (R/W="N" in CSV, disabled)
             Var(id, "Stato keyboard 3", 0x80, 0x74,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -2115,7 +2115,7 @@ public static class DatabaseSeeder
         context.Variables.AddRange(variables);
         await context.SaveChangesAsync();
 
-        // === BitInterpretations per Stato finecorsa (0x800F) ===
+        // === BitInterpretations for Stato finecorsa (0x800F) ===
         VariableEntity statoFinecorsa = variables.First(v => v.AddressLow == 0x0F);
         var finecorsaBits = new BitInterpretationEntity[]
         {
@@ -2126,7 +2126,7 @@ public static class DatabaseSeeder
         };
         context.Set<BitInterpretationEntity>().AddRange(finecorsaBits);
 
-        // === BitInterpretations per Stato Luci (0x8041) ===
+        // === BitInterpretations for Stato Luci (0x8041) ===
         VariableEntity statoLuci = variables.First(v => v.AddressLow == 0x41);
         var luciBits = new BitInterpretationEntity[]
         {
@@ -2136,7 +2136,7 @@ public static class DatabaseSeeder
         };
         context.Set<BitInterpretationEntity>().AddRange(luciBits);
 
-        // === BitInterpretations per Virtual keyboard (0x8080) ===
+        // === BitInterpretations for Virtual keyboard (0x8080) ===
         VariableEntity virtualKb = variables.First(v => v.AddressLow == 0x80);
         var kbBits = new BitInterpretationEntity[]
         {
@@ -2166,10 +2166,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Eden-XP.
-    /// - Disabilita: 0x05 (Stato).
-    /// - BitInterpretation per-dizionario: 0x06 (Allarmi) Word 0 (16 bit) + Word 1 (6 bit),
-    ///   0x15 (Ingressi) 12 bit, 0x16 (Uscite) 12 bit.
+    /// Standard-variable overrides for the Eden-XP dictionary.
+    /// - Disables: 0x05 (Stato).
+    /// - Per-dictionary BitInterpretation: 0x06 (Allarmi) Word 0 (16 bits) + Word 1 (6 bits),
+    ///   0x15 (Ingressi) 12 bits, 0x16 (Uscite) 12 bits.
     /// </summary>
     private static async Task SeedEdenXPOverridesAsync(
         AppDbContext context,
@@ -2178,7 +2178,7 @@ public static class DatabaseSeeder
     {
         int dictId = edenXPDictionary.Id;
 
-        // === Override IsEnabled: Disabilita 0x05 (Stato) ===
+        // === Override IsEnabled: Disable 0x05 (Stato) ===
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow == 0x05)
             .Select(v => new StandardVariableOverrideEntity
@@ -2190,7 +2190,7 @@ public static class DatabaseSeeder
         context.StandardVariableOverrides.AddRange(disabledOverrides);
         await context.SaveChangesAsync();
 
-        // === BitInterpretation per-dizionario per Allarmi (0x06) ===
+        // === Per-dictionary BitInterpretation for Allarmi (0x06) ===
         VariableEntity allarmi = standardVariables.First(v => v.AddressLow == 0x06);
         var allarmiBits = new BitInterpretationEntity[]
         {
@@ -2244,7 +2244,7 @@ public static class DatabaseSeeder
         };
         context.Set<BitInterpretationEntity>().AddRange(allarmiBits);
 
-        // === BitInterpretation per-dizionario per Stato ingressi fisici (0x15) ===
+        // === Per-dictionary BitInterpretation for Stato ingressi fisici (0x15) ===
         VariableEntity ingressi = standardVariables.First(v => v.AddressLow == 0x15);
         var ingressiBits = new BitInterpretationEntity[]
         {
@@ -2275,7 +2275,7 @@ public static class DatabaseSeeder
         };
         context.Set<BitInterpretationEntity>().AddRange(ingressiBits);
 
-        // === BitInterpretation per-dizionario per Stato uscite fisiche (0x16) ===
+        // === Per-dictionary BitInterpretation for Stato uscite fisiche (0x16) ===
         VariableEntity uscite = standardVariables.First(v => v.AddressLow == 0x16);
         var usciteBits = new BitInterpretationEntity[]
         {
@@ -2309,10 +2309,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Sherpa Slim con le variabili specifiche della scheda Azionamento.
-    /// Fonte: Docs/Dictionaries/sherpa-slim.CSV
+    /// Creates the Sherpa Slim dictionary with variables specific to the Azionamento board.
+    /// Source: Docs/Dictionaries/sherpa-slim.CSV
     /// Board: Sherpa Slim "Azionamento" (FW=1, MC=1, BoardNumber=1).
-    /// 64 variabili device-specific (0x8000-0x8017, 0x802E-0x8055).
+    /// 64 device-specific variables (0x8000-0x8017, 0x802E-0x8055).
     /// </summary>
     private static async Task<DictionaryEntity> SeedSherpaSlimDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity sherpaSlimDevice)
@@ -2333,7 +2333,7 @@ public static class DatabaseSeeder
             // DATI AZIONAMENTO (0x8000-0x8017)
             // ============================================================
 
-            // 0x8000 — Stato keyboard (R/W="N" nel CSV, disabilitata)
+            // 0x8000 — Stato keyboard (R/W="N" in CSV, disabled)
             Var(id, "Stato keyboard", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -2568,7 +2568,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 1,
                 description: "0 = destra (default)\n1 = sinistra"),
 
-            // === Dati Apprendimento punto 1-13 (0x8046-0x8052, Struct[32]) ===
+            // === Dati Apprendimento points 1-13 (0x8046-0x8052, Struct[32]) ===
             // automata_point_t: isValid, isZero, isStop, chrgHndDone, disHndDone,
             //   dschrgHndlr, chrgHndlr, apprHndlr, pos, height, dir
             Var(id, "Dati Apprendimento punto 1", 0x80, 0x46,
@@ -2653,8 +2653,8 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per il dizionario Sherpa Slim.
-    /// - Disabilita: 0x05 (Stato).
+    /// Standard-variable overrides for the Sherpa Slim dictionary.
+    /// - Disables: 0x05 (Stato).
     /// </summary>
     private static async Task SeedSherpaSlimOverridesAsync(
         AppDbContext context,
@@ -2663,7 +2663,7 @@ public static class DatabaseSeeder
     {
         int dictId = sherpaSlimDictionary.Id;
 
-        // === Override IsEnabled: Disabilita 0x05 (Stato) ===
+        // === Override IsEnabled: Disable 0x05 (Stato) ===
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => v.AddressLow == 0x05)
             .Select(v => new StandardVariableOverrideEntity
@@ -2677,10 +2677,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Madre Optimus-XP con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/optimus-xp.CSV
-    /// Indirizzo board: 0x000A0441 (MC=10, FW=17, BN=1)
-    /// 132 variabili (0x8000-0x8083), 27 abilitate, 105 disabilitate.
+    /// Creates the Madre Optimus-XP dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/optimus-xp.CSV
+    /// Board address: 0x000A0441 (MC=10, FW=17, BN=1)
+    /// 132 variables (0x8000-0x8083), 27 enabled, 105 disabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedOptimusXPDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity optimusXPDevice)
@@ -2697,7 +2697,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // === Stato keyboard 1-3 (0x8000-0x8002, disabilitate) ===
+            // === Stato keyboard 1-3 (0x8000-0x8002, disabled) ===
             Var(id, "Stato keyboard 1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -2720,7 +2720,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 1,
                 description: "0 = piano spento, 1 = piano acceso"),
 
-            // 0x8004-0x8006 — Non usato (disabilitate)
+            // 0x8004-0x8006 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x04,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2759,7 +2759,7 @@ public static class DatabaseSeeder
                 description: "Valore massimo in bits letto dal "
                     + "valore RAW del potenzio in apprendimento"),
 
-            // 0x800B-0x8010 — Non usato (disabilitate)
+            // 0x800B-0x8010 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x0B,
                 DataTypeKind.Float, "Float",
                 AccessMode.ReadOnly, min: -180, max: 180,
@@ -2790,7 +2790,7 @@ public static class DatabaseSeeder
                 description: "bit 0: finecorsa piano esteso, "
                     + "bit 1: finecorsa piano chiuso"),
 
-            // 0x8012 — Non usato (disabilitata)
+            // 0x8012 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x12,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2800,7 +2800,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1),
 
-            // 0x8014 — Non usato (disabilitata)
+            // 0x8014 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x14,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1,
@@ -2813,7 +2813,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x8016-0x8019 — Pompa diagnostica (disabilitate)
+            // 0x8016-0x8019 — Pompa diagnostics (disabled)
             Var(id, "Pompa Riferimento", 0x80, 0x16,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2834,7 +2834,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x801B-0x801D — EV1 diagnostica (disabilitate)
+            // 0x801B-0x801D — EV1 diagnostics (disabled)
             Var(id, "EV1 I Reference", 0x80, 0x1B,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2852,7 +2852,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x801F-0x8021 — EV2 diagnostica (disabilitate)
+            // 0x801F-0x8021 — EV2 diagnostics (disabled)
             Var(id, "EV2 I Reference", 0x80, 0x1F,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2863,7 +2863,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8022-0x8025 — EV3 (tutte disabilitate)
+            // 0x8022-0x8025 — EV3 (all disabled)
             Var(id, "Non usato", 0x80, 0x22,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2,
@@ -2880,7 +2880,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8026-0x8029 — EV4 (tutte disabilitate)
+            // 0x8026-0x8029 — EV4 (all disabled)
             Var(id, "Non usato", 0x80, 0x26,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2,
@@ -2905,7 +2905,7 @@ public static class DatabaseSeeder
                 description: "Valore di limite di velocita' "
                     + "di discesa del piano"),
 
-            // 0x802B-0x8041 — Non Usato (tutte disabilitate)
+            // 0x802B-0x8041 — Unused (all disabled)
             Var(id, "Non Usato", 0x80, 0x2B, DataTypeKind.UInt8,
                 "UInt8", AccessMode.ReadOnly, isEnabled: false),
             Var(id, "Non Usato", 0x80, 0x2C, DataTypeKind.UInt8,
@@ -2953,7 +2953,7 @@ public static class DatabaseSeeder
             Var(id, "Non Usato", 0x80, 0x41, DataTypeKind.UInt8,
                 "UInt8", AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8042 — Vbus measured (disabilitata)
+            // 0x8042 — Vbus measured (disabled)
             Var(id, "Vbus measured", 0x80, 0x42,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -2965,7 +2965,7 @@ public static class DatabaseSeeder
                 min: 0, max: 7, wordSize: 8,
                 description: "bit 2=R, bit 1=G, bit 0=B"),
 
-            // 0x8044-0x804E — Ore lavoro (disabilitate)
+            // 0x8044-0x804E — Ore lavoro (disabled)
             Var(id, "Ore lavoro pompa", 0x80, 0x44,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3000,14 +3000,14 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x804F — Non Usato (disabilitata)
+            // 0x804F — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x4F,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadWrite, min: 0, max: 1,
                 isEnabled: false,
                 description: "se va a 0 prendo lo zero del piano"),
 
-            // 0x8050-0x8054 — Log + Non Usato (disabilitate)
+            // 0x8050-0x8054 — Log + Non Usato (disabled)
             Var(id, "Numero singoli allarmi", 0x80, 0x50,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3030,7 +3030,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 32767,
                 unit: "bits"),
 
-            // 0x8056 — Non Usato (disabilitata)
+            // 0x8056 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x56,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, min: 0, max: 32767,
@@ -3052,7 +3052,7 @@ public static class DatabaseSeeder
                 description: "Valore massimo di batteria "
                     + "(a cui ho il 100%)"),
 
-            // 0x8059 — Non Usato (disabilitata)
+            // 0x8059 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x59,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3080,7 +3080,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1),
 
-            // 0x805E-0x8060 — Non Usato (disabilitate)
+            // 0x805E-0x8060 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x5E,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1,
@@ -3106,7 +3106,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 16777215,
                 description: "Colore RGB a 24 bit: 0x0RGB"),
 
-            // 0x8063-0x8070 — Non Usato (tutte disabilitate)
+            // 0x8063-0x8070 — Unused (all disabled)
             Var(id, "Non Usato", 0x80, 0x63, DataTypeKind.Bool,
                 "Bool", AccessMode.ReadOnly, isEnabled: false),
             Var(id, "Non Usato", 0x80, 0x64, DataTypeKind.Bool,
@@ -3142,7 +3142,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite,
                 description: "Altezza di molleggio"),
 
-            // 0x8072-0x807E — Non Usato (tutte disabilitate)
+            // 0x8072-0x807E — Unused (all disabled)
             Var(id, "Non Usato", 0x80, 0x72, DataTypeKind.Bool,
                 "Bool", AccessMode.ReadOnly, isEnabled: false),
             Var(id, "Non Usato", 0x80, 0x73, DataTypeKind.Bool,
@@ -3263,9 +3263,9 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Madre Optimus-XP.
-    /// Disabilita: 0x05 (Stato), 0x08 (Temperatura scheda).
-    /// BitInterpretation per-dizionario: Allarmi (0x06),
+    /// Standard-variable overrides for the Madre Optimus-XP dictionary.
+    /// Disables: 0x05 (Stato), 0x08 (Temperatura scheda).
+    /// Per-dictionary BitInterpretation: Allarmi (0x06),
     /// Stato ingressi fisici (0x15), Stato uscite fisiche (0x16).
     /// </summary>
     private static async Task SeedOptimusXPOverridesAsync(
@@ -3275,7 +3275,7 @@ public static class DatabaseSeeder
     {
         int dictId = optimusXPDictionary.Id;
 
-        // === Override: Disabilita 0x05, 0x08 ===
+        // === Override: Disable 0x05, 0x08 ===
         byte[] disabledAddresses = new byte[] { 0x05, 0x08 };
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v => disabledAddresses.Contains(v.AddressLow))
@@ -3476,10 +3476,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Madre TopLift-M con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/toplift-m.CSV
-    /// Indirizzo board: 0x000200C1 (MC=2, FW=3, BN=1)
-    /// 34 variabili (0x8000-0x8017 + 0x802E-0x8037), 10 abilitate.
+    /// Creates the Madre TopLift-M dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/toplift-m.CSV
+    /// Board address: 0x000200C1 (MC=2, FW=3, BN=1)
+    /// 34 variables (0x8000-0x8017 + 0x802E-0x8037), 10 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedTopLiftMDictionaryAsync(
         AppDbContext context, BoardEntity[] boards, DeviceEntity topLiftMDevice)
@@ -3500,7 +3500,7 @@ public static class DatabaseSeeder
             // DATI AZIONAMENTO (0x8000-0x8017)
             // ============================================================
 
-            // 0x8000 — Stato keyboard (disabilitata)
+            // 0x8000 — Stato keyboard (disabled)
             Var(id, "Stato keyboard", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3521,7 +3521,7 @@ public static class DatabaseSeeder
                     + "3 = AC INDUCTION\n"
                     + "4 = AC BRUSHLESS"),
 
-            // 0x8003-0x8012 — Azionamento motore (tutte disabilitate)
+            // 0x8003-0x8012 — Motor drive (all disabled)
             Var(id, "Motor Position Reference", 0x80, 0x03,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3576,7 +3576,7 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly),
 
-            // 0x8014-0x8017 — Diagnostica motore (disabilitate)
+            // 0x8014-0x8017 — Motor diagnostics (disabled)
             Var(id, "Motor faults", 0x80, 0x14,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadWrite, isEnabled: false),
@@ -3596,17 +3596,17 @@ public static class DatabaseSeeder
             // DATI TOPLIFT-M (0x802E-0x8037) — gap 0x8018-0x802D
             // ============================================================
 
-            // 0x802E — Working mode (disabilitata)
+            // 0x802E — Working mode (disabled)
             Var(id, "Working mode", 0x80, 0x2E,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadWrite, isEnabled: false),
 
-            // 0x802F — Stato posizione/in mezzo (disabilitata)
+            // 0x802F — Stato posizione/in mezzo (disabled)
             Var(id, "Stato posizione/in mezzo", 0x80, 0x2F,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8030 — Stato movimento motore (disabilitata)
+            // 0x8030 — Stato movimento motore (disabled)
             Var(id, "Stato movimento motore", 0x80, 0x30,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3818,8 +3818,8 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Madre TopLift-M.
-    /// Disabilita: 0x04 (Tipo scheda), 0x15 (Ingressi),
+    /// Standard-variable overrides for the Madre TopLift-M dictionary.
+    /// Disables: 0x04 (Tipo scheda), 0x15 (Ingressi),
     /// 0x16 (Uscite), 0x17 (Firmware Bootloader).
     /// </summary>
     private static async Task SeedTopLiftMOverridesAsync(
@@ -3844,10 +3844,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Madre TopLift-A2 con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/toplift-a2.CSV
-    /// Indirizzo board: 0x00080381 (MC=8, FW=14, BN=1)
-    /// 96 variabili (0x8000-0x805F), 37 abilitate.
+    /// Creates the Madre TopLift-A2 dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/toplift-a2.CSV
+    /// Board address: 0x00080381 (MC=8, FW=14, BN=1)
+    /// 96 variables (0x8000-0x805F), 37 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedTopLiftA2DictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -3866,7 +3866,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // === Stato keyboard 1-3 (0x8000-0x8002, disabilitate) ===
+            // === Stato keyboard 1-3 (0x8000-0x8002, disabled) ===
             Var(id, "Stato keyboard1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -3890,7 +3890,7 @@ public static class DatabaseSeeder
                 description: "0 = piano spento, "
                     + "1 = piano acceso"),
 
-            // 0x8004-0x8005 — Non usato (disabilitate)
+            // 0x8004-0x8005 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x04,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -3988,7 +3988,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x8016-0x8019 — Pompa diagnostica (disabilitate)
+            // 0x8016-0x8019 — Pompa diagnostics (disabled)
             Var(id, "Pompa Riferimento", 0x80, 0x16,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4009,7 +4009,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x801B-0x801D — EV1 diagnostica (disabilitate)
+            // 0x801B-0x801D — EV1 diagnostics (disabled)
             Var(id, "EV1 I Reference", 0x80, 0x1B,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4027,7 +4027,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x801F-0x8021 — EV2 diagnostica (disabilitate)
+            // 0x801F-0x8021 — EV2 diagnostics (disabled)
             Var(id, "EV2 I Reference", 0x80, 0x1F,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4045,7 +4045,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x8023-0x8025 — EV3 diagnostica (disabilitate)
+            // 0x8023-0x8025 — EV3 diagnostics (disabled)
             Var(id, "EV3 I Reference", 0x80, 0x23,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4063,7 +4063,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x8027-0x8029 — EV4 diagnostica (disabilitate)
+            // 0x8027-0x8029 — EV4 diagnostics (disabled)
             Var(id, "EV4 I Reference", 0x80, 0x27,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4102,7 +4102,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadWrite, min: 0, max: 65535,
                 unit: "bits"),
 
-            // 0x802F-0x8041 — Non Usato (tutte disabilitate)
+            // 0x802F-0x8041 — Unused (all disabled)
             Var(id, "Non Usato", 0x80, 0x2F, DataTypeKind.UInt8,
                 "UInt8", AccessMode.ReadOnly, isEnabled: false),
             Var(id, "Non Usato", 0x80, 0x30, DataTypeKind.UInt8,
@@ -4142,7 +4142,7 @@ public static class DatabaseSeeder
             Var(id, "Non Usato", 0x80, 0x41, DataTypeKind.UInt8,
                 "UInt8", AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8042 — Vbus measured (disabilitata)
+            // 0x8042 — Vbus measured (disabled)
             Var(id, "Vbus measured", 0x80, 0x42,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4154,7 +4154,7 @@ public static class DatabaseSeeder
                 min: 0, max: 7, wordSize: 8,
                 description: "bit 2=R, bit 1=G, bit 0=B"),
 
-            // 0x8044-0x804E — Ore lavoro (disabilitate)
+            // 0x8044-0x804E — Ore lavoro (disabled)
             Var(id, "Ore lavoro pompa", 0x80, 0x44,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4189,7 +4189,7 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x804F — Non Usato (disabilitata)
+            // 0x804F — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x4F,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadWrite, min: 0, max: 1,
@@ -4197,7 +4197,7 @@ public static class DatabaseSeeder
                 description: "se va a 0 prendo lo zero "
                     + "del piano"),
 
-            // 0x8050-0x8054 — Log + Non Usato (disabilitate)
+            // 0x8050-0x8054 — Log + Non Usato (disabled)
             Var(id, "Numero singoli allarmi", 0x80, 0x50,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4242,7 +4242,7 @@ public static class DatabaseSeeder
                 description: "Valore massimo di batteria "
                     + "(a cui ho il 100%)"),
 
-            // 0x8059 — Non Usato (disabilitata)
+            // 0x8059 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x59,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -4337,11 +4337,11 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Madre TopLift-A2.
-    /// Disabilita: 0x05 (Stato), 0x08 (Temperatura),
+    /// Standard-variable overrides for the Madre TopLift-A2 dictionary.
+    /// Disables: 0x05 (Stato), 0x08 (Temperatura),
     /// 0x15 (Ingressi), 0x16 (Uscite), 0x17 (FW Bootloader).
-    /// BitInterpretation: Allarmi (0x06) Word 0 (16 bit)
-    /// + Word 1 (6 bit).
+    /// BitInterpretation: Allarmi (0x06) Word 0 (16 bits)
+    /// + Word 1 (6 bits).
     /// </summary>
     private static async Task SeedTopLiftA2OverridesAsync(
         AppDbContext context,
@@ -4350,7 +4350,7 @@ public static class DatabaseSeeder
     {
         int dictId = topLiftA2Dictionary.Id;
 
-        // === Override: Disabilita 0x05, 0x08, 0x15, 0x16, 0x17 ===
+        // === Override: Disable 0x05, 0x08, 0x15, 0x16, 0x17 ===
         byte[] disabledAddresses = new byte[]
             { 0x05, 0x08, 0x15, 0x16, 0x17 };
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
@@ -4552,10 +4552,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Display O3Z-Tech con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/o3z-tech.CSV
-    /// Indirizzo board: 0x00090401 (MC=9, FW=16, BN=1)
-    /// 29 variabili (0x8000-0x801C), tutte abilitate.
+    /// Creates the Display O3Z-Tech dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/o3z-tech.CSV
+    /// Board address: 0x00090401 (MC=9, FW=16, BN=1)
+    /// 29 variables (0x8000-0x801C), all enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedO3ZTechDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -4727,8 +4727,8 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Display O3Z-Tech.
-    /// Disabilita: 0x08-0x0D, 0x0F, 0x16, 0x17.
+    /// Standard-variable overrides for the Display O3Z-Tech dictionary.
+    /// Disables: 0x08-0x0D, 0x0F, 0x16, 0x17.
     /// BitInterpretation: Allarmi (0x06) Word 0 (bits 1-15).
     /// </summary>
     private static async Task SeedO3ZTechOverridesAsync(
@@ -4738,7 +4738,7 @@ public static class DatabaseSeeder
     {
         int dictId = o3zTechDictionary.Id;
 
-        // === Override: Disabilita 0x08-0x0D, 0x0F, 0x16, 0x17 ===
+        // === Override: Disable 0x08-0x0D, 0x0F, 0x16, 0x17 ===
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
             .Where(v =>
                 (v.AddressLow >= 0x08 && v.AddressLow <= 0x0D)
@@ -4883,10 +4883,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario HMI Spark con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/hmi_spark.CSV
-    /// Indirizzo board: 0x000702C1 (MC=7, FW=11, BN=1)
-    /// 21 variabili (0x8000-0x8014), 20 abilitate.
+    /// Creates the HMI Spark dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/hmi_spark.CSV
+    /// Board address: 0x000702C1 (MC=7, FW=11, BN=1)
+    /// 21 variables (0x8000-0x8014), 20 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedHmiSparkDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -5013,7 +5013,7 @@ public static class DatabaseSeeder
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly),
 
-            // 0x8014 — Stato macchina (disabilitata)
+            // 0x8014 — Stato macchina (disabled)
             Var(id, "Stato macchina", 0x80, 0x14,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -5041,12 +5041,12 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario HMI Spark.
-    /// Disabilita: 0x08 (Temperatura), 0x09 (Secondi motore
+    /// Standard-variable overrides for the HMI Spark dictionary.
+    /// Disables: 0x08 (Temperatura), 0x09 (Secondi motore
     /// parziale), 0x0A (Secondi motore totale),
     /// 0x17 (FW Bootloader).
-    /// BitInterpretation: Allarmi (0x06) Word 0 (5 bit)
-    /// + Word 1 (9 bit).
+    /// BitInterpretation: Allarmi (0x06) Word 0 (5 bits)
+    /// + Word 1 (9 bits).
     /// </summary>
     private static async Task SeedHmiSparkOverridesAsync(
         AppDbContext context,
@@ -5055,7 +5055,7 @@ public static class DatabaseSeeder
     {
         int dictId = hmiSparkDictionary.Id;
 
-        // === Override: Disabilita 0x08, 0x09, 0x0A, 0x17 ===
+        // === Override: Disable 0x08, 0x09, 0x0A, 0x17 ===
         byte[] disabledAddresses = new byte[]
             { 0x08, 0x09, 0x0A, 0x17 };
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
@@ -5205,10 +5205,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Madre Eden-BS8 con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/eden-bs8.CSV
-    /// Indirizzo board: 0x000C04C1 (MC=12, FW=19, BN=1)
-    /// 136 variabili (0x8000-0x8087), 71 abilitate.
+    /// Creates the Madre Eden-BS8 dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/eden-bs8.CSV
+    /// Board address: 0x000C04C1 (MC=12, FW=19, BN=1)
+    /// 136 variables (0x8000-0x8087), 71 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedEdenBS8DictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -5227,7 +5227,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // 0x8000 — Stato keyboard 1 (R/W="N", disabilitata)
+            // 0x8000 — Stato keyboard 1 (R/W="N", disabled)
             Var(id, "Stato keyboard 1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -5258,7 +5258,7 @@ public static class DatabaseSeeder
                 description: "Angolo di inclinazione calcolato "
                     + "lato testa (si usa a piano chiuso)"),
 
-            // 0x8004 — Non Usato (disabilitata)
+            // 0x8004 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x04,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5330,7 +5330,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, dataTypeParam: 1,
                 wordSize: 8),
 
-            // 0x8010 — Non Usato (disabilitata)
+            // 0x8010 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x10,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5340,7 +5340,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1),
 
-            // 0x8012 — Non Usato (disabilitata)
+            // 0x8012 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x12,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1,
@@ -5353,7 +5353,7 @@ public static class DatabaseSeeder
                 description: "0 = fermo, 1 = in accensione, "
                     + "2 = acceso"),
 
-            // 0x8014-0x8017 — Pompa diagnostica (disabilitate)
+            // 0x8014-0x8017 — Pompa diagnostics (disabled)
             Var(id, "Pompa Riferimento", 0x80, 0x14,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5479,7 +5479,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // === EV8 (0x8034-0x8037, diagnostica disabilitata) ===
+            // === EV8 (0x8034-0x8037, diagnostics disabled) ===
             Var(id, "Stato EV8", 0x80, 0x34,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2,
@@ -5495,7 +5495,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // === EV9 (0x8038-0x803B, tutte disabilitate) ===
+            // === EV9 (0x8038-0x803B, all disabled) ===
             Var(id, "Stato EV9", 0x80, 0x38,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2,
@@ -5512,7 +5512,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // === EV10 (0x803C-0x803F, tutte disabilitate) ===
+            // === EV10 (0x803C-0x803F, all disabled) ===
             Var(id, "Stato EV10", 0x80, 0x3C,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 2,
@@ -5529,7 +5529,7 @@ public static class DatabaseSeeder
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8040 — Vbus measured (disabilitata)
+            // 0x8040 — Vbus measured (disabled)
             Var(id, "Vbus measured", 0x80, 0x40,
                 DataTypeKind.UInt16, "UInt16",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5540,7 +5540,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, dataTypeParam: 1,
                 wordSize: 8),
 
-            // === Ore lavoro (0x8042-0x804C, tutte disabilitate) ===
+            // === Ore lavoro (0x8042-0x804C, all disabled) ===
             Var(id, "Ore lavoro pompa", 0x80, 0x42,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5582,7 +5582,7 @@ public static class DatabaseSeeder
                 description: "se va a 0 prendo lo zero "
                     + "del piano"),
 
-            // === Log diagnostici (0x804E-0x8051, disabilitate) ===
+            // === Diagnostic logs (0x804E-0x8051, disabled) ===
             Var(id, "Numero singoli allarmi", 0x80, 0x4E,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5632,7 +5632,7 @@ public static class DatabaseSeeder
                 description: "Valore massimo di batteria "
                     + "(a cui ho il 100%)"),
 
-            // 0x8057 — Altezza testa (disabilitata)
+            // 0x8057 — Altezza testa (disabled)
             Var(id, "Altezza testa", 0x80, 0x57,
                 DataTypeKind.UInt32, "UInt32",
                 AccessMode.ReadOnly, unit: "mm",
@@ -5683,7 +5683,7 @@ public static class DatabaseSeeder
                 isEnabled: false,
                 description: "0 = disattivo, 1 = attivo"),
 
-            // 0x805E — Vai sempre in molleggio (dis.)
+            // 0x805E — Vai sempre in molleggio (disabled)
             Var(id, "Vai sempre in molleggio", 0x80, 0x5E,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadWrite, min: 0, max: 1,
@@ -5728,7 +5728,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 1,
                 description: "0 = non passato, 1 = passato"),
 
-            // 0x8065 — Non Usato (disabilitata)
+            // 0x8065 — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x65,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -5763,12 +5763,12 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 1,
                 description: "0 = non passato, 1 = passato"),
 
-            // 0x806A — Non Usato (disabilitata)
+            // 0x806A — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x6A,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x806B — Non Usato (disabilitata)
+            // 0x806B — Unused (disabled)
             Var(id, "Non Usato", 0x80, 0x6B,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -6031,11 +6031,11 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Madre Eden-BS8.
-    /// Nessun override IsEnabled. Solo BitInterpretation per-dizionario:
-    /// Allarmi (0x06) Word 0 (16 bit) + Word 1 (6 bit),
-    /// Stato ingressi fisici (0x15) 12 bit,
-    /// Stato uscite fisiche (0x16) 12 bit.
+    /// Standard-variable overrides for the Madre Eden-BS8 dictionary.
+    /// No IsEnabled overrides. Only per-dictionary BitInterpretation:
+    /// Allarmi (0x06) Word 0 (16 bits) + Word 1 (6 bits),
+    /// Stato ingressi fisici (0x15) 12 bits,
+    /// Stato uscite fisiche (0x16) 12 bits.
     /// </summary>
     private static async Task SeedEdenBS8OverridesAsync(
         AppDbContext context,
@@ -6261,10 +6261,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Master R3L-XP con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/r3l-xp_master.CSV
-    /// Indirizzo board: 0x000B0481 (MC=11, FW=18, BN=1)
-    /// 11 variabili (0x8000-0x800A), 8 abilitate.
+    /// Creates the Master R3L-XP dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/r3l-xp_master.CSV
+    /// Board address: 0x000B0481 (MC=11, FW=18, BN=1)
+    /// 11 variables (0x8000-0x800A), 8 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedR3LXPMasterDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -6283,7 +6283,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // 0x8000 \u2014 Stato keyboard1 (R/W=\"N\", disabilitata)
+            // 0x8000 — Stato keyboard1 (R/W="N", disabled)
             Var(id, "Stato keyboard1", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false,
@@ -6291,7 +6291,7 @@ public static class DatabaseSeeder
                     + "tastiera esterna "
                     + "(non usare con l'app)"),
 
-            // 0x8001 \u2014 SystemOn
+            // 0x8001 \— SystemOn
             Var(id, "SystemOn", 0x80, 0x01,
                 DataTypeKind.Bool, "Bool",
                 AccessMode.ReadOnly, min: 0, max: 1,
@@ -6299,7 +6299,7 @@ public static class DatabaseSeeder
                     + "1 = piano acceso "
                     + "(In scrittura è Stato keyboard2)"),
 
-            // 0x8002 \u2014 Angolo inclinazione del piano
+            // 0x8002 \— Angolo inclinazione del piano
             Var(id, "Angolo inclinazione del piano",
                 0x80, 0x02,
                 DataTypeKind.Float, "Float",
@@ -6308,24 +6308,24 @@ public static class DatabaseSeeder
                     + "11.0 è testa su massimo, "
                     + "0.0 è orizzontale"),
 
-            // 0x8003 \u2014 Position I Reference
+            // 0x8003 \— Position I Reference
             Var(id, "Position I Reference", 0x80, 0x03,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadWrite,
                 min: -32767, max: 32767),
 
-            // 0x8004 \u2014 Non usato (disabilitata)
+            // 0x8004 \— Non usato (disabled)
             Var(id, "Non usato", 0x80, 0x04,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x8005 \u2014 Status
+            // 0x8005 \— Status
             Var(id, "Status", 0x80, 0x05,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, min: 0, max: 255,
                 description: "Stato macchina attuale"),
 
-            // 0x8006 \u2014 Position I Measure
+            // 0x8006 \— Position I Measure
             Var(id, "Position I Measure", 0x80, 0x06,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly,
@@ -6333,24 +6333,24 @@ public static class DatabaseSeeder
                 description: "(In scrittura è "
                     + "Stato keyboard3)"),
 
-            // 0x8007 \u2014 Position Slave I Measure
+            // 0x8007 \— Position Slave I Measure
             Var(id, "Position Slave I Measure", 0x80, 0x07,
                 DataTypeKind.Int16, "Int16",
                 AccessMode.ReadOnly,
                 min: -32767, max: 32767),
 
-            // 0x8008 \u2014 FC Master (Bitmapped[1], WordSize=8)
+            // 0x8008 \— FC Master (Bitmapped[1], WordSize=8)
             Var(id, "FC Master", 0x80, 0x08,
                 DataTypeKind.Bitmapped, "Bitmapped[1]",
                 AccessMode.ReadOnly, dataTypeParam: 1,
                 wordSize: 8),
 
-            // 0x8009 \u2014 Non usato (disabilitata)
+            // 0x8009 \— Non usato (disabled)
             Var(id, "Non usato", 0x80, 0x09,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
 
-            // 0x800A \u2014 Virtual keyboard (Bitmapped[1], WordSize=8)
+            // 0x800A \— Virtual keyboard (Bitmapped[1], WordSize=8)
             Var(id, "Virtual keyboard", 0x80, 0x0A,
                 DataTypeKind.Bitmapped, "Bitmapped[1]",
                 AccessMode.ReadWrite, dataTypeParam: 1,
@@ -6471,9 +6471,9 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Master R3L-XP.
-    /// Disabilita: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
-    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bit).
+    /// Standard-variable overrides for the Master R3L-XP dictionary.
+    /// Disables: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
+    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bits).
     /// </summary>
     private static async Task SeedR3LXPMasterOverridesAsync(
         AppDbContext context,
@@ -6482,7 +6482,7 @@ public static class DatabaseSeeder
     {
         int dictId = r3lXPMasterDictionary.Id;
 
-        // === Override: Disabilita 6 variabili standard ===
+        // === Override: Disable 6 standard variables ===
         byte[] disabledAddresses = new byte[]
             { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
@@ -6570,10 +6570,10 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea il dizionario Slave R3L-XP con le variabili specifiche.
-    /// Fonte: Docs/Dictionaries/r3l-xp_slave.CSV
-    /// Indirizzo board: 0x000B0501 (MC=11, FW=20, BN=1)
-    /// 15 variabili (0x8000-0x800E), 12 abilitate.
+    /// Creates the Slave R3L-XP dictionary with device-specific variables.
+    /// Source: Docs/Dictionaries/r3l-xp_slave.CSV
+    /// Board address: 0x000B0501 (MC=11, FW=20, BN=1)
+    /// 15 variables (0x8000-0x800E), 12 enabled.
     /// </summary>
     private static async Task<DictionaryEntity> SeedR3LXPSlaveDictionaryAsync(
         AppDbContext context, BoardEntity[] boards,
@@ -6592,7 +6592,7 @@ public static class DatabaseSeeder
         int id = dictionary.Id;
         VariableEntity[] variables = new[]
         {
-            // 0x8000 — Non usato (disabilitata)
+            // 0x8000 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x00,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -6635,7 +6635,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly, min: 0, max: 255,
                 description: "Stato macchina attuale"),
 
-            // 0x8006 — Position Master I Measure (disabilitata)
+            // 0x8006 — Position Master I Measure (disabled)
             Var(id, "Position Master I Measure",
                 0x80, 0x06,
                 DataTypeKind.Int16, "Int16",
@@ -6649,7 +6649,7 @@ public static class DatabaseSeeder
                 AccessMode.ReadOnly,
                 min: -32767, max: 32767),
 
-            // 0x8008 — Non usato (disabilitata)
+            // 0x8008 — Unused (disabled)
             Var(id, "Non usato", 0x80, 0x08,
                 DataTypeKind.UInt8, "UInt8",
                 AccessMode.ReadOnly, isEnabled: false),
@@ -6759,9 +6759,9 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Override variabili standard per dizionario Slave R3L-XP.
-    /// Disabilita: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
-    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bit).
+    /// Standard-variable overrides for the Slave R3L-XP dictionary.
+    /// Disables: 0x03, 0x06, 0x08, 0x15, 0x16, 0x17.
+    /// BitInterpretation: Allarmi (0x06) Word 0 (8 bits).
     /// </summary>
     private static async Task SeedR3LXPSlaveOverridesAsync(
         AppDbContext context,
@@ -6770,7 +6770,7 @@ public static class DatabaseSeeder
     {
         int dictId = r3lXPSlaveDictionary.Id;
 
-        // === Override: Disabilita 6 variabili standard ===
+        // === Override: Disable 6 standard variables ===
         byte[] disabledAddresses = new byte[]
             { 0x03, 0x06, 0x08, 0x15, 0x16, 0x17 };
         IEnumerable<StandardVariableOverrideEntity> disabledOverrides = standardVariables
@@ -6858,8 +6858,8 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// BitInterpretation Word 3 (BYTE 0, big-endian) per LED (Verde/Rosso).
-    /// bit 0: fisso, bit 1: lampeggiante, bit 2: single shot/loop, bit 3-7: ripetizioni per ciclo
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) for LED (Verde/Rosso).
+    /// bit 0: solid, bit 1: blinking, bit 2: single shot/loop, bits 3-7: repetitions per cycle
     /// </summary>
     private static BitInterpretationEntity[] LedBits(int variableId, int wordIndex) =>
     [
@@ -6870,8 +6870,8 @@ public static class DatabaseSeeder
     ];
 
     /// <summary>
-    /// BitInterpretation Word 3 (BYTE 0, big-endian) per Buzzer.
-    /// bit 0: fisso, bit 1: lampeggiante, bit 2-7: ripetizioni per ciclo
+    /// BitInterpretation Word 3 (BYTE 0, big-endian) for Buzzer.
+    /// bit 0: solid, bit 1: blinking, bits 2-7: repetitions per cycle
     /// </summary>
     private static BitInterpretationEntity[] BuzzerBits(int variableId, int wordIndex) =>
     [
@@ -6881,8 +6881,8 @@ public static class DatabaseSeeder
     ];
 
     /// <summary>
-    /// BitInterpretation per le Word di timing (Word 0/1/2, big-endian).
-    /// Ogni word è un valore intero in unità di 4 ms.
+    /// BitInterpretation for the timing Words (Word 0/1/2, big-endian).
+    /// Each word is an integer value in units of 4 ms.
     /// </summary>
     private static BitInterpretationEntity[] TimingWordBits(int variableId) =>
     [
@@ -6892,7 +6892,7 @@ public static class DatabaseSeeder
     ];
 
     /// <summary>
-    /// Helper per creare una VariableEntity standard (AddressHigh = 0x00).
+    /// Helper that creates a standard VariableEntity (AddressHigh = 0x00).
     /// </summary>
     private static VariableEntity Var(int dictionaryId, string name, byte addressLow,
         DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
@@ -6906,7 +6906,7 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Helper per creare una VariableEntity con AddressHigh esplicito.
+    /// Helper that creates a VariableEntity with an explicit AddressHigh.
     /// </summary>
     private static VariableEntity Var(int dictionaryId, string name, byte addressHigh, byte addressLow,
         DataTypeKind dataTypeKind, string dataTypeRaw, AccessMode accessMode,
@@ -6935,13 +6935,13 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Helper per creare un CommandEntity con parametri.
-    /// Formato parametro: "size|description" (es. "1|Stato", "2|IndirizzoHL")
+    /// Helper that creates a CommandEntity with parameters.
+    /// Parameter format: "size|description" (e.g. "1|Stato", "2|IndirizzoHL")
     /// </summary>
     private static CommandEntity Cmd(string name, byte codeHigh, byte codeLow, bool isResponse,
         params string[] parameters)
     {
-        // Serializza i parametri come JSON array
+        // Serialize parameters as a JSON array
         string paramsJson = parameters.Length > 0
             ? "[" + string.Join(",", parameters.Select(p => $"\"{p}\"")) + "]"
             : "[]";
@@ -6957,7 +6957,7 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Helper per creare una BoardEntity con indirizzo calcolato.
+    /// Helper that creates a BoardEntity with a computed protocol address.
     /// Formula: (machineCode &lt;&lt; 16) | ((fwType &amp; 0x3FF) &lt;&lt; 6) | (boardNumber &amp; 0x3F)
     /// </summary>
     private static BoardEntity Brd(int machineCode, int deviceId, string name,
