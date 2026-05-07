@@ -316,6 +316,10 @@ internal sealed class RaceLosingBootstrapTokenService : IBootstrapTokenService
     public Task<BootstrapToken?> LookupAsync(string plaintext, CancellationToken ct = default)
         => _inner.LookupAsync(plaintext, ct);
 
+    public Task<(BootstrapToken Record, string Plaintext)> MintAsync(string clientApp,
+        TimeSpan? ttl, CancellationToken ct = default)
+        => _inner.MintAsync(clientApp, ttl, ct);
+
     public Task MarkUsedAsync(int tokenId, int installationId, DateTime usedAt,
         CancellationToken ct = default)
         => throw new BootstrapTokenStateException(_throwWith,
