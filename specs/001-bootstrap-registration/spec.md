@@ -31,6 +31,17 @@
   operationally indistinguishable from instant for incident response.
   The 5 s ceiling matches SC-004's existing target; stricter
   guarantees (instant on next request, no caching) are not required.
+- Q: What are the lower and upper bounds on bootstrap-token TTL,
+  around the 30-day default? → A: **Minimum 1 hour, maximum 90 days,
+  default 30 days.** 1 h is enough for an admin to mint a token,
+  transmit it out-of-band (email, internal portal, USB) and have the
+  user consume it on first launch in worst-case async workflows.
+  90 d is a strong upper bound aligned with common credential-
+  rotation cadences and caps the worst-case leak exposure of a token
+  embedded in distribution media. The 30-day default is unchanged
+  and matches issue #1's suggestion. The admin MAY override the
+  default per-token within `[1 h, 90 d]`; values outside that
+  interval MUST be rejected at mint time.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -276,8 +287,9 @@ unaffected.
   the same client or any other.
 - **FR-007**: Bootstrap tokens MUST be single-use and time-bounded.
   The system default validity window is 30 days from the moment of
-  minting. The default MAY be overridden per-token at mint time
-  within reasonable bounds.
+  minting. The admin MAY override the default per-token at mint time
+  within `[1 hour, 90 days]`; values outside that interval MUST be
+  rejected at mint time.
 - **FR-008**: Bootstrap tokens MUST be client-scoped — a token
   issued for client A MUST NOT successfully register an installation
   that claims client B.
@@ -357,18 +369,6 @@ unaffected.
   outcome (success or which failure category — recorded
   server-side; never disclosed to the client), and on success the
   resulting Installation identifier.
-
-#### Open clarifications
-
-The following clarification affects admin authority; it will be
-resolved in `/speckit-clarify` before `/speckit-plan`:
-
-- [NEEDS CLARIFICATION: bootstrap-token TTL bounds] — FR-007 sets a
-  default of 30 days and allows per-token override "within
-  reasonable bounds." What are the bounds? Examples: must be at
-  least 1 hour, at most 365 days; at most 90 days; etc. This
-  bounds the admin's authority and the security exposure of long-
-  lived tokens.
 
 ## Success Criteria *(mandatory)*
 
