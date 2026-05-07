@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using API.Auth;
 using API.Endpoints;
+using API.Endpoints.Auth;
 using API.Middleware;
 using Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -78,6 +79,7 @@ app.MapDeviceEndpoints();
 app.MapDictionaryEndpoints();
 app.MapCommandEndpoints();
 app.MapBoardEndpoints();
+app.MapRegistrationEndpoints();
 
 // Health check — GET /health (no auth)
 app.MapHealthChecks("/health");
@@ -92,3 +94,10 @@ app.MapGet("/api/version", () => Results.Ok(new
 }));
 
 app.Run();
+
+/// <summary>
+/// Test entry point — exposes the implicit Program class so
+/// <c>WebApplicationFactory&lt;Program&gt;</c> can host the API in
+/// integration tests.
+/// </summary>
+public partial class Program { }
