@@ -133,8 +133,14 @@ public class BootstrapTokenServiceTests
         });
         BootstrapTokenService sut = new(repo, hasher);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.MarkUsedAsync(seeded.Id, installationId: 142, usedAt: _mintedAt.AddHours(1)));
+        // Race-loser branch: domain MarkUsed throws BootstrapTokenStateException
+        // (a subtype of InvalidOperationException) carrying the FoundStatus, so
+        // RegistrationService can classify the audit outcome.
+        BootstrapTokenStateException ex =
+            await Assert.ThrowsAsync<BootstrapTokenStateException>(
+                () => sut.MarkUsedAsync(seeded.Id, installationId: 142,
+                    usedAt: _mintedAt.AddHours(1)));
+        Assert.Equal(BootstrapTokenStatus.Used, ex.FoundStatus);
     }
 
     [Fact]
