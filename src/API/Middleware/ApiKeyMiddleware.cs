@@ -1,10 +1,14 @@
 using Microsoft.Extensions.Primitives;
+using Services.Interfaces.Auth;
 
 namespace API.Middleware;
 
 /// <summary>
 /// API Key authentication middleware (BR-API-001).
-/// Header: X-Api-Key. Keys are configured in appsettings.json.
+/// Header: <c>X-Api-Key</c>. A request authenticates if its key matches
+/// EITHER an entry in the <c>ApiKeys</c> configuration section (legacy)
+/// OR an active per-installation credential issued by <c>POST /register</c>
+/// (FR-005 union mode, spec 001).
 /// </summary>
 public class ApiKeyMiddleware
 {
@@ -22,28 +26,50 @@ public class ApiKeyMiddleware
             .Where(v => !string.IsNullOrWhiteSpace(v))];
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IInstallationCredentialValidator validator)
     {
-        // Swagger/OpenAPI, health check and version are unauthenticated
+        // Swagger/OpenAPI, health check, version and /register are unauthenticated.
+        // /register is the entry point that establishes authentication for a new
+        // installation (spec 001 contracts/register.md § Authentication / middleware).
         string path = context.Request.Path.Value ?? "";
         if (path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/api/version", StringComparison.OrdinalIgnoreCase))
+            path.StartsWith("/api/version", StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/register", StringComparison.OrdinalIgnoreCase))
         {
             await _next(context);
             return;
         }
 
-        if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out StringValues providedKey) ||
-            !_validKeys.Contains(providedKey.ToString()))
+        if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out StringValues providedKey))
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { error = "API key missing or invalid." });
+            await Write401(context);
             return;
         }
 
-        await _next(context);
+        string key = providedKey.ToString();
+        if (_validKeys.Contains(key))
+        {
+            await _next(context);
+            return;
+        }
+
+        // Union mode (FR-005): fall through to DB-issued installation credentials.
+        int? installationId = await validator.ValidateAsync(key, context.RequestAborted);
+        if (installationId is not null)
+        {
+            await _next(context);
+            return;
+        }
+
+        await Write401(context);
+    }
+
+    private static async Task Write401(HttpContext context)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = "API key missing or invalid." });
     }
 }

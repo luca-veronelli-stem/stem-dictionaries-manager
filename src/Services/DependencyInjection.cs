@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Services.Interfaces;
 
 namespace Services;
@@ -14,8 +15,10 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        // Singleton: current user shared across all scopes
-        services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
+        // Default current-user provider (singleton, used by the GUI host).
+        // The API host registers its HttpContext-aware variant first, in which
+        // case the TryAdd here is a no-op (spec 001 § data-model.md Audit split).
+        services.TryAddSingleton<ICurrentUserProvider, CurrentUserProvider>();
 
         // Services
         services.AddScoped<IDictionaryService, DictionaryService>();
