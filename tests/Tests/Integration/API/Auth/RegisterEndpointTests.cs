@@ -4,11 +4,15 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Core.Enums.Auth;
+using Core.Models.Auth;
 using Infrastructure;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
+using Infrastructure.Repositories.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Services.Auth;
+using Services.Interfaces.Auth;
 
 namespace Tests.Integration.API.Auth;
 
@@ -230,6 +234,32 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_ConcurrentRaceLoser_Returns401WithUnifiedBodyAndNoInstallation()
+    {
+        // SC-003: when MarkUsedAsync throws BootstrapTokenStateException — the
+        // canonical race-loser signal — the endpoint must respond with the
+        // FR-002 unified 401 (not 500) and leave no Installation row behind.
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_race-http");
+        _factory.BootstrapTokenSvcFactory = sp => new RaceLosingBootstrapTokenServiceForHttp(
+            sp.GetRequiredService<AppDbContext>(), _hasher);
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_race-http", descriptor = ValidDescriptor() }));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(UnifiedFailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        Assert.Equal(0, await db.Installations.CountAsync());
+        Assert.Equal(0, await db.InstallationApiCredentials.CountAsync());
+        // The audit row exists and is forensically TokenAlreadyUsed.
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, evt.Outcome);
+    }
+
+    [Fact]
     public async Task Register_AuditWriteFailure_Returns500AndPersistsNoInstallation()
     {
         // FR-013: when the audit row write throws, return 500 with the audit
@@ -289,4 +319,28 @@ internal sealed class ThrowingEventRepository : IRegistrationEventRepository
     public Task<IReadOnlyList<RegistrationEventEntity>> ListBySourceAsync(string sourceIp,
         DateTime since, CancellationToken ct = default)
         => Task.FromResult<IReadOnlyList<RegistrationEventEntity>>([]);
+}
+
+/// <summary>
+/// HTTP-test fake: <see cref="LookupAsync"/> finds the seeded Issued token
+/// (so the request reaches CommitSuccessAsync), then <see cref="MarkUsedAsync"/>
+/// throws <see cref="BootstrapTokenStateException"/> as the canonical
+/// race-loser signal.
+/// </summary>
+internal sealed class RaceLosingBootstrapTokenServiceForHttp : IBootstrapTokenService
+{
+    private readonly BootstrapTokenService _real;
+
+    public RaceLosingBootstrapTokenServiceForHttp(AppDbContext db, PasswordHasher hasher)
+    {
+        _real = new BootstrapTokenService(new BootstrapTokenRepository(db), hasher);
+    }
+
+    public Task<BootstrapToken?> LookupAsync(string plaintext, CancellationToken ct = default)
+        => _real.LookupAsync(plaintext, ct);
+
+    public Task MarkUsedAsync(int tokenId, int installationId, DateTime usedAt,
+        CancellationToken ct = default)
+        => throw new BootstrapTokenStateException(BootstrapTokenStatus.Used,
+            "Race-loser HTTP test fake.");
 }

@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Services.Interfaces.Auth;
 
 namespace Tests.Integration.API.Auth;
 
@@ -19,6 +20,15 @@ internal sealed class RegisterApiFactory : WebApplicationFactory<Program>
     private readonly SqliteConnection _connection;
 
     public IRegistrationEventRepository? EventRepoOverride { get; set; }
+
+    /// <summary>
+    /// Factory for the bootstrap-token service used by the request scope.
+    /// Receives the request scope's <see cref="IServiceProvider"/> so
+    /// decorators can resolve the real implementation; returning <c>null</c>
+    /// keeps the default DI registration. Used by the race-loser test
+    /// (<c>Register_ConcurrentRaceLoser_Returns401WithUnifiedBody</c>).
+    /// </summary>
+    public Func<IServiceProvider, IBootstrapTokenService>? BootstrapTokenSvcFactory { get; set; }
 
     public RegisterApiFactory()
     {
@@ -64,6 +74,17 @@ internal sealed class RegisterApiFactory : WebApplicationFactory<Program>
                     services.Remove(eventDescriptor);
                 }
                 services.AddScoped(_ => EventRepoOverride);
+            }
+
+            if (BootstrapTokenSvcFactory is not null)
+            {
+                ServiceDescriptor? svcDescriptor = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(IBootstrapTokenService));
+                if (svcDescriptor is not null)
+                {
+                    services.Remove(svcDescriptor);
+                }
+                services.AddScoped(BootstrapTokenSvcFactory);
             }
         });
 
