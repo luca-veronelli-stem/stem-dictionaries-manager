@@ -17,7 +17,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare una scheda." 
+        <TextBlock Grid.Row="0" Text="Fill in the fields to create or edit a board."
                    Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -35,19 +35,19 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome scheda" MaxLength="100" Margin="0,0,0,12"
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Board name" MaxLength="100" Margin="0,0,0,12"
                          BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Dispositivo" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceDisplayName, Mode=OneWay}" 
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Device" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DeviceDisplayName, Mode=OneWay}"
                          IsEnabled="False" Padding="8,6" Margin="0,0,0,12"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Firmware Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,4"/>
                 <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,12">
-                    <TextBox Text="{Binding FirmwareType}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: 17, 20..."
+                    <TextBox Text="{Binding FirmwareType}"
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="e.g. 17, 20..."
                              Width="80" HorizontalAlignment="Left"
                              BorderBrush="{Binding IsFirmwareTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                     <TextBlock Text="{Binding FirmwareTypeHint}" Foreground="#888888" FontSize="11"
@@ -55,35 +55,35 @@
                                Visibility="{Binding FirmwareTypeHint, Converter={StaticResource NullToVisibilityConverter}}"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Numero Scheda *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BoardNumber}" 
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Board Number *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding BoardNumber}"
                          Style="{StaticResource WatermarkTextBoxStyle}" Tag="1..63"
                          Width="80" HorizontalAlignment="Left" Margin="0,0,0,12"
                          BorderBrush="{Binding IsBoardNumberInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Part Number" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}" 
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: DIS0020477"
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PartNumber}"
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="e.g. DIS0020477"
                          MaxLength="50" Margin="0,0,0,12"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Principale" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsPrimary}" 
-                          Content="Scheda principale del dispositivo" Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Primary" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsPrimary}"
+                          Content="Primary board of the device" Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
-        <!-- Errore -->
+        <!-- Error -->
         <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Bottoni -->
+        <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="🗑️ Elimina scheda" Command="{Binding DeleteBoardCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
+            <Button Content="🗑️ Delete board" Command="{Binding DeleteBoardCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="140"
                     Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
-            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Save" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
                     Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 

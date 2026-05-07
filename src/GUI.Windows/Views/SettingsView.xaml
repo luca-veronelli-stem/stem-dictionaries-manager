@@ -12,15 +12,15 @@
     <Grid>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="🚧" FontSize="64" HorizontalAlignment="Center"/>
-            <TextBlock Text="Coming Soon" FontSize="24" FontWeight="SemiBold" 
+            <TextBlock Text="Coming Soon" FontSize="24" FontWeight="SemiBold"
                        Foreground="White" HorizontalAlignment="Center" Margin="0,16,0,8"/>
-            <TextBlock Text="Le impostazioni saranno disponibili in una prossima versione." 
+            <TextBlock Text="Settings will be available in a future version."
                        Foreground="#888888" HorizontalAlignment="Center"/>
 
-            <Border Background="#252526" BorderBrush="#3E3E42" BorderThickness="1" 
+            <Border Background="#252526" BorderBrush="#3E3E42" BorderThickness="1"
                     CornerRadius="6" Padding="24" Margin="0,32,0,0" HorizontalAlignment="Center">
                 <StackPanel>
-                    <TextBlock Text="Informazioni" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
+                    <TextBlock Text="Information" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="150"/>
@@ -31,11 +31,11 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Versione:" Foreground="#888888"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" Foreground="#888888"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AppVersion}" Foreground="White" FontWeight="SemiBold"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Database:" Foreground="#888888" Margin="0,8,0,0"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatabasePath}" 
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatabasePath}"
                                    Foreground="#AAAAAA" FontSize="11" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="400"/>
                     </Grid>
                 </StackPanel>

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="GUI.Windows.Views.DeviceListView"
+<UserControl x:Class="GUI.Windows.Views.DeviceListView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
@@ -29,15 +29,15 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <Button Content="&#x2795; Nuovo" Command="{Binding AddDeviceCommand}"
+            <Button Content="&#x2795; New" Command="{Binding AddDeviceCommand}"
                     Style="{StaticResource ToolbarButtonStyle}"/>
-            <Button Content="&#x1F504; Aggiorna" Command="{Binding RefreshCommand}"
+            <Button Content="&#x1F504; Refresh" Command="{Binding RefreshCommand}"
                     Style="{StaticResource ToolbarButtonStyle}"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Lista dispositivi come grid di card -->
+        <!-- Device list as a card grid -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="12">
             <ItemsControl ItemsSource="{Binding Devices}">
                 <ItemsControl.ItemsPanel>
@@ -51,7 +51,7 @@
                                 HorizontalAlignment="Stretch"
                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
                             <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" 
+                                <MouseBinding MouseAction="LeftClick"
                                               Command="{Binding Tag.OpenDeviceCommand, RelativeSource={RelativeSource AncestorType=Border}}"
                                               CommandParameter="{Binding}"/>
                             </Border.InputBindings>
@@ -67,19 +67,19 @@
 
                                 <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
                                            Foreground="#FFFFFF"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Description}" 
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Description}"
                                            FontSize="12" Foreground="#999999" Margin="0,4,0,0"
                                            TextWrapping="Wrap"/>
 
-                                <!-- Conteggi a destra -->
+                                <!-- Counts on the right -->
                                 <StackPanel Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center" Margin="20,0,0,0">
                                     <TextBlock Foreground="#AAAAAA" FontSize="12" HorizontalAlignment="Right">
                                         <Run Text="{Binding BoardCount, Mode=OneWay}"/>
-                                        <Run Text=" schede"/>
+                                        <Run Text=" boards"/>
                                     </TextBlock>
                                     <TextBlock Foreground="#AAAAAA" FontSize="12" HorizontalAlignment="Right" Margin="0,2,0,0">
                                         <Run Text="{Binding DictionaryCount, Mode=OneWay}"/>
-                                        <Run Text=" dizionari"/>
+                                        <Run Text=" dictionaries"/>
                                     </TextBlock>
                                 </StackPanel>
                             </Grid>

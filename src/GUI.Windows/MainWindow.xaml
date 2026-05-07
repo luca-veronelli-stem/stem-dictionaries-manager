@@ -45,12 +45,12 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <!-- Sidebar (visibile solo se loggato) -->
+            <!-- Sidebar (visible only when logged in) -->
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ========== SIDEBAR (visibile solo se loggato) ========== -->
+        <!-- ========== SIDEBAR (visible only when logged in) ========== -->
         <Border Grid.Column="0" Background="#2D2D30" Width="200"
                 Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
@@ -68,24 +68,24 @@
                                Foreground="#888888" FontSize="12"
                                HorizontalAlignment="Center" Margin="0,2,0,10"/>
 
-                    <!-- Utente corrente -->
+                    <!-- Current user -->
                     <TextBlock Text="{Binding CurrentUserDisplayName}"
                                Foreground="White" FontSize="13" FontWeight="SemiBold"
                                HorizontalAlignment="Center" Margin="0,0,0,25"/>
 
-                    <!-- Navigazione principale -->
-                    <Button Content="📱  Dispositivi"
+                    <!-- Main navigation -->
+                    <Button Content="📱  Devices"
                             Command="{Binding NavigateToDevicesCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
-                    <Button Content="📋  Variabili Standard"
+                    <Button Content="📋  Standard Variables"
                             Command="{Binding NavigateToStandardCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
-                    <Button Content="⚡  Comandi"
+                    <Button Content="⚡  Commands"
                             Command="{Binding NavigateToCommandsCommand}"
                             Style="{StaticResource SidebarButtonStyle}"/>
                 </StackPanel>
 
-                <!-- Sezione bassa: Logout -->
+                <!-- Bottom section: Logout -->
                 <StackPanel Grid.Row="1" Margin="0,0,0,20">
                     <Separator Margin="10,10,10,10" Background="#3E3E42"/>
 
@@ -96,7 +96,7 @@
             </Grid>
         </Border>
 
-        <!-- ========== AREA CONTENUTO ========== -->
+        <!-- ========== CONTENT AREA ========== -->
         <Grid Grid.Column="1" Background="#1E1E1E">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -104,29 +104,29 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header (visibile solo se loggato) -->
+            <!-- Header (visible only when logged in) -->
             <Border Grid.Row="0" Background="#3C3C3C" Height="50"
                     Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid Margin="20,0">
                     <TextBlock Text="{Binding PageTitle}"
                                Foreground="White" FontSize="20"
                                VerticalAlignment="Center"/>
-                    <!-- Indietro a destra -->
+                    <!-- Back on right -->
                     <Button Command="{Binding GoBackCommand}"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisibilityConverter}}"
                             Style="{StaticResource ToolbarButtonStyle}"
-                            Margin="0" Content="← Indietro"/>
+                            Margin="0" Content="← Back"/>
                 </Grid>
             </Border>
 
-            <!-- Contenuto -->
+            <!-- Content -->
             <ContentControl Grid.Row="1"
                             Content="{Binding CurrentViewModel}"
                             Margin="20"/>
 
-            <!-- Status bar (visibile solo quando c'è un messaggio) -->
+            <!-- Status bar (visible only when a message is set) -->
             <Border Grid.Row="2" Height="30" Padding="12,0"
                     Background="{Binding StatusSeverity, Converter={StaticResource SeverityToColorConverter}}"
                     Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibilityConverter}}">

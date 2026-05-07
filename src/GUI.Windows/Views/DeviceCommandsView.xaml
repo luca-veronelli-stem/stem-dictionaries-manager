@@ -11,16 +11,16 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Intestazione -->
+        <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <TextBlock Text="Comandi:" FontSize="14" Foreground="#999999" 
+            <TextBlock Text="Commands:" FontSize="14" Foreground="#999999"
                        VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <TextBlock Text="{Binding DeviceName}" FontSize="18" FontWeight="SemiBold" 
+            <TextBlock Text="{Binding DeviceName}" FontSize="18" FontWeight="SemiBold"
                        Foreground="White" VerticalAlignment="Center"/>
         </StackPanel>
 
         <!-- Loading indicator -->
-        <TextBlock Grid.Row="1" Text="Caricamento..." FontSize="14" Foreground="#999999" Margin="0,0,0,10"
+        <TextBlock Grid.Row="1" Text="Loading..." FontSize="14" Foreground="#999999" Margin="0,0,0,10"
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
         <!-- Error message -->
@@ -29,7 +29,7 @@
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- DataGrid comandi -->
+        <!-- Commands DataGrid -->
         <DataGrid Grid.Row="3" ItemsSource="{Binding Commands}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -40,9 +40,9 @@
                   CanUserDeleteRows="False"
                   IsReadOnly="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="*" MinWidth="200"
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="200"
                                     IsReadOnly="True"/>
-                <DataGridTextColumn Header="Codice" Binding="{Binding FullCode}" Width="100" MinWidth="80"
+                <DataGridTextColumn Header="Code" Binding="{Binding FullCode}" Width="100" MinWidth="80"
                                     IsReadOnly="True">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -51,9 +51,9 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding TypeDisplay}" Width="100" MinWidth="80"
+                <DataGridTextColumn Header="Type" Binding="{Binding TypeDisplay}" Width="100" MinWidth="80"
                                     IsReadOnly="True"/>
-                <DataGridCheckBoxColumn Header="Attivo" Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}" 
+                <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}"
                                          Width="80" MinWidth="60"
                                          ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}">
                     <DataGridCheckBoxColumn.EditingElementStyle>
@@ -66,9 +66,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Toolbar salvataggio -->
+        <!-- Save toolbar -->
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="💾 Salva" Command="{Binding SaveCommand}"
+            <Button Content="💾 Save" Command="{Binding SaveCommand}"
                     Style="{StaticResource AccentButtonStyle}"
                     Width="120" Margin="0,0,0,0"/>
         </StackPanel>

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="GUI.Windows.Views.DeviceEditView"
+<UserControl x:Class="GUI.Windows.Views.DeviceEditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -20,7 +20,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Compila i campi per creare o modificare un dispositivo." 
+        <TextBlock Grid.Row="0" Text="Fill in the fields to create or edit a device."
                    Foreground="#888888" FontSize="13" Margin="0,0,0,20"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -35,12 +35,12 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Nome * -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *"
+                <!-- Name * -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *"
                            Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="0" Grid.Column="1" 
+                <TextBox Grid.Row="0" Grid.Column="1"
                          Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome dispositivo"
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Device name"
                          BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrush}}"
                          MaxLength="100" Margin="0,0,0,12"/>
 
@@ -49,7 +49,7 @@
                            Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,0,4"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
                     <TextBox Text="{Binding MachineCode, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: 1, 2, 3..."
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="e.g. 1, 2, 3..."
                              BorderBrush="{Binding IsMachineCodeInvalid, Converter={StaticResource BoolToErrorBrush}}"
                              PreviewTextInput="IntTextBox_PreviewTextInput"
                              Width="120" HorizontalAlignment="Left"/>
@@ -58,26 +58,26 @@
                                Visibility="{Binding MachineCodeHint, Converter={StaticResource NullToVisibilityConverter}}"/>
                 </StackPanel>
 
-                <!-- Descrizione -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Descrizione"
+                <!-- Description -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Description"
                            Foreground="#CCCCCC" VerticalAlignment="Top" Margin="0,0,0,12"/>
-                <TextBox Grid.Row="2" Grid.Column="1" 
+                <TextBox Grid.Row="2" Grid.Column="1"
                          Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione del dispositivo"
+                         Style="{StaticResource WatermarkTextBoxStyle}" Tag="Device description"
                          AcceptsReturn="True" TextWrapping="Wrap" Height="80"
                          VerticalScrollBarVisibility="Auto"
                          Margin="0,0,0,12"/>
             </Grid>
         </ScrollViewer>
 
-        <!-- Bottoni -->
+        <!-- Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="&#x1F5D1;&#xFE0F; Elimina dispositivo" Command="{Binding DeleteDeviceCommand}"
+            <Button Content="&#x1F5D1;&#xFE0F; Delete device" Command="{Binding DeleteDeviceCommand}"
                     Style="{StaticResource ToolbarButtonStyle}" MinWidth="160"
                     Visibility="{Binding IsNew, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
-            <Button Content="Annulla" Command="{Binding CancelCommand}"
+            <Button Content="Cancel" Command="{Binding CancelCommand}"
                     Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="&#x1F4BE; Salva" Command="{Binding SaveCommand}"
+            <Button Content="&#x1F4BE; Save" Command="{Binding SaveCommand}"
                     Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
                     Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
