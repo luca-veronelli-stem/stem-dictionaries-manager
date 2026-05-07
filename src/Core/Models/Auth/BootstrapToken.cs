@@ -61,4 +61,58 @@ public class BootstrapToken
         };
         return token;
     }
+
+    /// <summary>
+    /// Transitions <see cref="Status"/> from <see cref="BootstrapTokenStatus.Issued"/>
+    /// to <see cref="BootstrapTokenStatus.Used"/>, recording the consuming
+    /// installation id (data-model invariant 1). Irreversible.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the token is not in <see cref="BootstrapTokenStatus.Issued"/> state.
+    /// </exception>
+    public void MarkUsed(DateTime usedAt, int installationId)
+    {
+        if (Status != BootstrapTokenStatus.Issued)
+        {
+            throw new InvalidOperationException(
+                $"BootstrapToken in state {Status} cannot transition to Used.");
+        }
+        if (installationId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(installationId),
+                "InstallationId must be a positive integer.");
+        }
+
+        Status = BootstrapTokenStatus.Used;
+        UsedAt = usedAt;
+        ConsumedByInstallationId = installationId;
+    }
+
+    /// <summary>
+    /// Transitions <see cref="Status"/> from <see cref="BootstrapTokenStatus.Issued"/>
+    /// to <see cref="BootstrapTokenStatus.Revoked"/>. Irreversible.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the token is not in <see cref="BootstrapTokenStatus.Issued"/> state.
+    /// </exception>
+    public void Revoke(DateTime revokedAt)
+    {
+        if (Status != BootstrapTokenStatus.Issued)
+        {
+            throw new InvalidOperationException(
+                $"BootstrapToken in state {Status} cannot transition to Revoked.");
+        }
+
+        Status = BootstrapTokenStatus.Revoked;
+        RevokedAt = revokedAt;
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> when the token is logically expired —
+    /// <c>Status = Issued &amp;&amp; now &gt; ExpiresAt</c>. Per
+    /// <c>data-model.md</c>, <see cref="BootstrapTokenStatus.Expired"/> is a
+    /// derived state evaluated at read time and is never persisted.
+    /// </summary>
+    public bool IsExpiredAt(DateTime now)
+        => Status == BootstrapTokenStatus.Issued && now > ExpiresAt;
 }
