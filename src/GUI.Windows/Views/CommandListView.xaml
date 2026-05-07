@@ -18,19 +18,19 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <Button Content="➕ Nuovo" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
-            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+            <Button Content="➕ New" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Errore -->
+        <!-- Error -->
         <Border Grid.Row="1" Background="#E40032" Padding="10" Margin="0,0,0,10" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Lista comandi -->
+        <!-- Command list -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedItem}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -40,11 +40,11 @@
                 <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="250" MinWidth="120"/>
-                <DataGridTextColumn Header="Codice" Binding="{Binding Code}" Width="100" MinWidth="80"/>
-                <DataGridCheckBoxColumn Header="Risposta" Binding="{Binding IsResponse}" Width="80" MinWidth="70" IsReadOnly="True"
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="250" MinWidth="120"/>
+                <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="100" MinWidth="80"/>
+                <DataGridCheckBoxColumn Header="Response" Binding="{Binding IsResponse}" Width="80" MinWidth="70" IsReadOnly="True"
                                                                             ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
-                <DataGridTextColumn Header="Parametri" Binding="{Binding ParameterCount}" Width="80" MinWidth="70">
+                <DataGridTextColumn Header="Parameters" Binding="{Binding ParameterCount}" Width="80" MinWidth="70">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>

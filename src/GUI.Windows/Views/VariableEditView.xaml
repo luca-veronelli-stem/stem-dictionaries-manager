@@ -18,17 +18,17 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Compila i campi per creare o modificare una variabile." 
+            <TextBlock Text="Fill in the fields to create or edit a variable."
                        Foreground="#888888" FontSize="13"
                        Visibility="{Binding IsNotDictionaryContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <TextBlock Text="Override per dizionario: puoi modificare stato, descrizione e interpretazioni bit. Gli altri campi sono in sola lettura." 
+            <TextBlock Text="Override for dictionary: you can edit state, description, and bit interpretations. Other fields are read-only."
                        Foreground="#FFC04A" FontSize="13"
                        Visibility="{Binding IsDictionaryContext, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,16,0">
-                <!-- Campi form a larghezza fissa -->
+                <!-- Fixed-width form fields -->
                 <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDictionaryContext}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
@@ -41,48 +41,48 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Nome -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Nome *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Nome variabile" MaxLength="100" Margin="0,0,0,12"
+                    <!-- Name -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Variable name" MaxLength="100" Margin="0,0,0,12"
                              BorderBrush="{Binding IsNameInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                    <!-- Indirizzo -->
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Indirizzo *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <!-- Address -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Address *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
                         <TextBlock Text="High: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding AddressHighHex}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,16,0"/>
                         <TextBlock Text="Low: 0x" Foreground="#AAAAAA" VerticalAlignment="Center"/>
-                        <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox Text="{Binding AddressLowHex, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource HexAddressTextBoxStyle}" Margin="4,0,16,0"
                                  PreviewTextInput="HexTextBox_PreviewTextInput"
                                  BorderBrush="{Binding IsAddressLowInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                         <TextBlock Text="{Binding FullAddressDisplay}" Foreground="White" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
 
-                    <!-- Tipo Dato -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tipo Dato *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <!-- Data Type -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Data Type *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-                        <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}" 
+                        <ComboBox ItemsSource="{Binding DataTypeKinds}" SelectedItem="{Binding SelectedDataTypeKind}"
                                   Width="130" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource WatermarkTextBoxStyle}" Tag="Tipo custom"
+                        <TextBox Text="{Binding CustomDataType, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource WatermarkTextBoxStyle}" Tag="Custom type"
                                  Width="150" Visibility="{Binding IsDataTypeOther, Converter={StaticResource BoolToVisibilityConverter}}"
                                  BorderBrush="{Binding IsCustomDataTypeInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                     </StackPanel>
 
-                    <!-- Parametro Tipo -->
+                    <!-- Type Parameter -->
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding DataTypeParamLabel}" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"
                                Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Dimensione"
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DataTypeParam, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableIntConverter}}"
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Size"
                              Width="100" HorizontalAlignment="Left" Margin="0,0,0,12"
                              Visibility="{Binding RequiresDataTypeParam, Converter={StaticResource BoolToVisibilityConverter}}"
                              PreviewTextInput="IntTextBox_PreviewTextInput"
                              BorderBrush="{Binding IsDataTypeParamInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
                 </Grid>
 
-                <!-- Word Size selector (solo per Bitmapped) -->
+                <!-- Word Size selector (only for Bitmapped) -->
                 <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDictionaryContext}"
                       Visibility="{Binding IsBitmapped, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
@@ -90,12 +90,12 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Word Size (bits) *" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                    <ComboBox Grid.Column="1" ItemsSource="{Binding WordSizeOptions}" 
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding WordSizeOptions}"
                               SelectedItem="{Binding SelectedWordSize}"
                               Width="100" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
                 </Grid>
 
-                <!-- Sezione BitInterpretations (solo per Bitmapped con WordSize selezionato) - larghezza piena -->
+                <!-- BitInterpretations section (only for Bitmapped with WordSize selected) - full width -->
                 <StackPanel Visibility="{Binding HasWordSize, Converter={StaticResource BoolToVisibilityConverter}}"
                             Margin="0,0,0,12">
                     <ItemsControl ItemsSource="{Binding WordGroups}">
@@ -104,7 +104,7 @@
                                 <Border x:Name="WordGroupBorder" Margin="0,0,0,16"
                                        Padding="4" Background="Transparent">
                                     <StackPanel>
-                                        <!-- Header: Toggle a sinistra, Remove a destra -->
+                                        <!-- Header: Toggle on left, Remove on right -->
                                         <DockPanel Margin="0,0,0,6">
                                             <ToggleButton IsChecked="{Binding IsExpanded}" DockPanel.Dock="Left" Cursor="Hand">
                                                 <ToggleButton.Template>
@@ -123,7 +123,7 @@
                                                     </ControlTemplate>
                                                 </ToggleButton.Template>
                                             </ToggleButton>
-                                            <Button Content="🗑️" ToolTip="Rimuovi Word"
+                                            <Button Content="🗑️" ToolTip="Remove Word"
                                                     Command="{Binding DataContext.RemoveWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     DockPanel.Dock="Right" HorizontalAlignment="Right">
@@ -150,7 +150,7 @@
                                                 </Button.Style>
                                             </Button>
                                         </DockPanel>
-                                        <!-- Contenuto collapsabile -->
+                                        <!-- Collapsible content -->
                                         <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False"
                                                       IsReadOnly="False"
@@ -162,21 +162,21 @@
                                                       MinHeight="38" MaxHeight="500"
                                                       HorizontalScrollBarVisibility="Disabled">
                                                 <DataGrid.Columns>
-                                                    <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}" 
+                                                    <DataGridTextColumn Header="Bit Index" Binding="{Binding BitIndex}"
                                                                         IsReadOnly="True" Width="80" MinWidth="60"/>
-                                                    <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}" 
+                                                    <DataGridTextColumn Header="Meaning" Binding="{Binding Meaning, UpdateSourceTrigger=PropertyChanged}"
                                                                         Width="*" MinWidth="200"
                                                                         EditingElementStyle="{StaticResource DarkDataGridTextBoxStyle}"/>
                                                 </DataGrid.Columns>
                                             </DataGrid>
                                             <DockPanel Margin="0,6,0,0">
-                                                <Button Content="+ Aggiungi Bit" 
+                                                <Button Content="+ Add Bit"
                                                         Command="{Binding DataContext.AddBitToWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                         CommandParameter="{Binding}"
                                                         Style="{StaticResource ToolbarButtonStyle}"
                                                         DockPanel.Dock="Left"
                                                         Visibility="{Binding CanAddBit, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                                <Button Content="🗑️ Elimina Bit"
+                                                <Button Content="🗑️ Delete Bit"
                                                         Command="{Binding DataContext.RemoveLastBitFromWordCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                         CommandParameter="{Binding}"
                                                         Style="{StaticResource ToolbarButtonStyle}"
@@ -189,11 +189,11 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <Button Content="➕ Aggiungi Word" Command="{Binding AddWordCommand}"
+                    <Button Content="➕ Add Word" Command="{Binding AddWordCommand}"
                             Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- Campi rimanenti a larghezza fissa (read-only in DictionaryContext) -->
+                <!-- Remaining fixed-width fields (read-only in DictionaryContext) -->
                 <Grid HorizontalAlignment="Left" Width="750" IsEnabled="{Binding IsNotDictionaryContext}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
@@ -205,34 +205,34 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                            <!-- Accesso -->
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Accesso" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" 
+                            <!-- Access -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Access" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}"
                                       Width="150" HorizontalAlignment="Left" Padding="8,6" Margin="0,0,0,12"/>
 
-                            <!-- Min/Max/Unita -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Min - Max / Unità" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <!-- Min/Max/Unit -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Min - Max / Unit" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
+                                    <TextBox Text="{Binding MinValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}"
                                              Style="{StaticResource WatermarkTextBoxStyle}" Tag="Min" Width="80" Margin="0,0,8,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
                                     <TextBlock Text="—" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}" 
+                                    <TextBox Text="{Binding MaxValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableDoubleConverter}}"
                                              Style="{StaticResource WatermarkTextBoxStyle}" Tag="Max" Width="80" Margin="0,0,16,0" PreviewTextInput="DoubleTextBox_PreviewTextInput"/>
-                                    <TextBox Text="{Binding Unit}" Style="{StaticResource WatermarkTextBoxStyle}" Tag="Unità" Width="80"/>
+                                    <TextBox Text="{Binding Unit}" Style="{StaticResource WatermarkTextBoxStyle}" Tag="Unit" Width="80"/>
                                 </StackPanel>
-                                <TextBlock Text="Errore: Min deve essere minore o uguale a Max" Foreground="#E40032" FontSize="11" Margin="0,4,0,0"
+                                <TextBlock Text="Error: Min must be less than or equal to Max" Foreground="#E40032" FontSize="11" Margin="0,4,0,0"
                                            Visibility="{Binding IsMinMaxValid, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}"/>
                             </StackPanel>
 
-                            <!-- Formato -->
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Formato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Format}" 
-                                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="Es: %.2f"
+                            <!-- Format -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Format" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Format}"
+                                     Style="{StaticResource WatermarkTextBoxStyle}" Tag="e.g. %.2f"
                                      Width="150" HorizontalAlignment="Left" Margin="0,0,0,12"/>
                         </Grid>
 
-                <!-- Descrizione e Stato — sempre editabili (anche in DictionaryContext/override mode) -->
+                <!-- Description and State — always editable (also in DictionaryContext/override mode) -->
                 <Grid HorizontalAlignment="Left" Width="750">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
@@ -243,29 +243,29 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Descrizione *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Descrizione della variabile"
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Description *" Foreground="White" VerticalAlignment="Top" Margin="0,8,0,12"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource WatermarkTextBoxStyle}" Tag="Variable description"
                              AcceptsReturn="True" TextWrapping="Wrap" Height="80" Margin="0,0,0,12"
                              BorderBrush="{Binding IsDescriptionInvalid, Converter={StaticResource BoolToErrorBrushConverter}}"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Stato" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
-                    <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variabile attiva" 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="State" Foreground="White" VerticalAlignment="Center" Margin="0,0,0,12"/>
+                    <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsEnabled}" Content="Variable enabled"
                               Foreground="White" Margin="0,0,0,12"/>
                 </Grid>
                     </StackPanel>
                 </ScrollViewer>
 
-        <!-- Errore -->
+        <!-- Error -->
         <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,16" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Bottoni -->
+        <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Annulla" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
-            <Button Content="💾 Salva" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"/>
+            <Button Content="💾 Save" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButtonStyle}" MinWidth="100"
                     Background="#004682" FontWeight="SemiBold"/>
         </StackPanel>
 

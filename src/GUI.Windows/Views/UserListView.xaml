@@ -17,25 +17,25 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Form nuovo utente -->
-        <Border Grid.Row="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1" 
+        <!-- New user form -->
+        <Border Grid.Row="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1"
                 CornerRadius="6" Padding="16" Margin="0,0,0,15">
             <StackPanel>
-                <TextBlock Text="Nuovo Utente" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
+                <TextBlock Text="New User" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,16,0">
                         <TextBlock Text="Username *" FontSize="11" Foreground="#888888"/>
-                        <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource WatermarkTextBoxStyle}" Width="150" Margin="0,4,0,0"
                                  Tag="username"/>
                     </StackPanel>
                     <StackPanel Margin="0,0,16,0">
-                        <TextBlock Text="Nome Visualizzato *" FontSize="11" Foreground="#888888"/>
-                        <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBlock Text="Display Name *" FontSize="11" Foreground="#888888"/>
+                        <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource WatermarkTextBoxStyle}" Width="200" Margin="0,4,0,0"
-                                 Tag="nome cognome"/>
+                                 Tag="first last"/>
                     </StackPanel>
-                    <Button Command="{Binding AddCommand}" Content="➕ Aggiungi" 
+                    <Button Command="{Binding AddCommand}" Content="➕ Add"
                             Style="{StaticResource ToolbarButtonStyle}" VerticalAlignment="Bottom"/>
                 </StackPanel>
             </StackPanel>
@@ -43,18 +43,18 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
-            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Errore -->
+        <!-- Error -->
         <Border Grid.Row="2" Background="#E40032" Padding="10" Margin="0,0,0,10" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Lista utenti -->
+        <!-- User list -->
         <DataGrid Grid.Row="3" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedItem}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -63,8 +63,8 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" MinWidth="40"/>
                 <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="200" MinWidth="100"/>
-                <DataGridTextColumn Header="Nome Visualizzato" Binding="{Binding DisplayName}" Width="*" MinWidth="120"/>
-                <DataGridTemplateColumn Header="Azioni" Width="80" MinWidth="80">
+                <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="*" MinWidth="120"/>
+                <DataGridTemplateColumn Header="Actions" Width="80" MinWidth="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="🗑️" Style="{StaticResource ToolbarButtonStyle}" Padding="8,4"

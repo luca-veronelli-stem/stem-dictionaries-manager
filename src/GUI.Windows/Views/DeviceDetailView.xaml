@@ -12,21 +12,21 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Intestazione dispositivo -->
+        <!-- Device header -->
         <DockPanel Grid.Row="0" Margin="0,0,0,15">
-            <Button Content="✏️ Modifica" Command="{Binding EditDeviceCommand}"
+            <Button Content="✏️ Edit" Command="{Binding EditDeviceCommand}"
                     Style="{StaticResource ToolbarButtonStyle}" DockPanel.Dock="Right"
                     VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Dispositivo:" FontSize="14" Foreground="#999999" 
+                <TextBlock Text="Device:" FontSize="14" Foreground="#999999"
                            VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="{Binding DeviceName}" FontSize="18" FontWeight="SemiBold" 
+                <TextBlock Text="{Binding DeviceName}" FontSize="18" FontWeight="SemiBold"
                            Foreground="White" VerticalAlignment="Center"/>
             </StackPanel>
         </DockPanel>
 
         <!-- Loading indicator -->
-        <TextBlock Grid.Row="1" Text="Caricamento..." FontSize="14" Foreground="#999999" Margin="0,0,0,10"
+        <TextBlock Grid.Row="1" Text="Loading..." FontSize="14" Foreground="#999999" Margin="0,0,0,10"
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
         <!-- Error message -->
@@ -35,15 +35,15 @@
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap"/>
         </Border>
 
-        <!-- ── DIZIONARI ── -->
+        <!-- ── DICTIONARIES ── -->
         <DockPanel Grid.Row="3">
             <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                <TextBlock Text="Dizionari" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="Dictionaries" FontSize="13" FontWeight="SemiBold"
                            Foreground="White" VerticalAlignment="Center"/>
-                <Button Content="➕ Nuovo dizionario" Command="{Binding AddDictionaryCommand}"
+                <Button Content="➕ New dictionary" Command="{Binding AddDictionaryCommand}"
                         Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Right"/>
             </DockPanel>
-            <DataGrid ItemsSource="{Binding Dictionaries}" 
+            <DataGrid ItemsSource="{Binding Dictionaries}"
                       SelectedItem="{Binding SelectedDictionary}"
                       Style="{StaticResource DarkDataGridStyle}"
                       ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -53,36 +53,36 @@
                     <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDictionaryCommand}"/>
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Dizionario" Binding="{Binding Name}" Width="*" MinWidth="150"/>
-                    <DataGridTextColumn Header="Tipo" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
-                    <DataGridTextColumn Header="Elementi" Binding="{Binding ItemCount}" Width="100" MinWidth="80"/>
+                    <DataGridTextColumn Header="Dictionary" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Semantic}" Width="120" MinWidth="80"/>
+                    <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="100" MinWidth="80"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
 
-        <!-- ── SCHEDE ── -->
+        <!-- ── BOARDS ── -->
         <DockPanel Grid.Row="4" Margin="0,15,0,0">
             <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                <TextBlock Text="Schede" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="Boards" FontSize="13" FontWeight="SemiBold"
                            Foreground="White" VerticalAlignment="Center"/>
-                <Button Content="➕ Nuova" Command="{Binding AddBoardCommand}" 
+                <Button Content="➕ New" Command="{Binding AddBoardCommand}"
                         Style="{StaticResource ToolbarButtonStyle}" HorizontalAlignment="Right"/>
             </DockPanel>
         </DockPanel>
 
-        <DataGrid Grid.Row="5" ItemsSource="{Binding Boards}" 
+        <DataGrid Grid.Row="5" ItemsSource="{Binding Boards}"
                   SelectedItem="{Binding SelectedBoard}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
                   RowStyle="{StaticResource DarkDataGridRowStyle}"
                   CellStyle="{StaticResource DarkDataGridCellStyle}">
             <DataGrid.InputBindings>
-                <MouseBinding MouseAction="LeftDoubleClick" 
-                              Command="{Binding EditBoardCommand}" 
+                <MouseBinding MouseAction="LeftDoubleClick"
+                              Command="{Binding EditBoardCommand}"
                               CommandParameter="{Binding SelectedBoard}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="180" MinWidth="100"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="180" MinWidth="100"/>
                 <DataGridTextColumn Header="Machine Type" Binding="{Binding MachineCode}" Width="90" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -99,7 +99,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="N°" Binding="{Binding BoardNumber}" Width="50" MinWidth="40">
+                <DataGridTextColumn Header="No." Binding="{Binding BoardNumber}" Width="50" MinWidth="40">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -107,11 +107,11 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridCheckBoxColumn Header="Primaria" Binding="{Binding IsPrimary}" Width="70" MinWidth="50" 
+                <DataGridCheckBoxColumn Header="Primary" Binding="{Binding IsPrimary}" Width="70" MinWidth="50"
                                         IsReadOnly="True" ElementStyle="{StaticResource DarkDataGridCheckBoxStyle}"/>
-                <DataGridTextColumn Header="Dizionario" Binding="{Binding DictionaryName}" Width="150" MinWidth="80"/>
+                <DataGridTextColumn Header="Dictionary" Binding="{Binding DictionaryName}" Width="150" MinWidth="80"/>
                 <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" Width="120" MinWidth="80"/>
-                <DataGridTextColumn Header="Indirizzo" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>
+                <DataGridTextColumn Header="Address" Binding="{Binding ProtocolAddress}" Width="110" MinWidth="80"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -18,19 +18,19 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <Button Content="➕ Nuovo" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
-            <Button Content="🔄 Aggiorna" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+            <Button Content="➕ New" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource ToolbarButtonStyle}"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchTextBoxStyle}" Margin="8,0,0,0"/>
         </StackPanel>
 
-        <!-- Errore -->
+        <!-- Error -->
         <Border Grid.Row="1" Background="#E40032" Padding="10" Margin="0,0,0,10" CornerRadius="4"
                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding ErrorMessage}" Foreground="White"/>
         </Border>
 
-        <!-- Lista dizionari -->
+        <!-- Dictionary list -->
         <DataGrid Grid.Row="2" ItemsSource="{Binding Dictionaries}" SelectedItem="{Binding SelectedItem}"
                   Style="{StaticResource DarkDataGridStyle}"
                   ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeaderStyle}"
@@ -40,10 +40,10 @@
                 <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="200" MinWidth="120"/>
-                <DataGridTextColumn Header="Descrizione" Binding="{Binding Description}" Width="*" MinWidth="100"/>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding SemanticDisplay}" Width="120" MinWidth="80"/>
-                <DataGridTextColumn Header="Variabili" Binding="{Binding VariableCount}" Width="80" MinWidth="60">
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" MinWidth="120"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="100"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding SemanticDisplay}" Width="120" MinWidth="80"/>
+                <DataGridTextColumn Header="Variables" Binding="{Binding VariableCount}" Width="80" MinWidth="60">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
