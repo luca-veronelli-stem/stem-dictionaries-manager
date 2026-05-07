@@ -39,6 +39,9 @@ Examples:
 - [ ] Phase 5: Avalonia + FuncUI migration of `GUI.Windows` → `GUI` (cross-platform, retiring WPF).
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+Active feature plan: [`specs/001-bootstrap-registration/plan.md`](./specs/001-bootstrap-registration/plan.md)
+(spec, clarifications, research, data model, contracts, quickstart all in
+the same directory). Read the plan first when working anywhere under
+`src/{Core,Services,Infrastructure,API}/Auth/` or
+`tests/Tests/{Unit,Integration}/**/Auth/`.
 <!-- SPECKIT END -->
