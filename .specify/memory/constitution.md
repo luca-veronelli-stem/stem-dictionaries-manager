@@ -1,8 +1,19 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (unratified template) -> 1.0.0
-Bump rationale: initial ratification — first concrete constitution for this repo.
+Version change: 1.0.0 -> 1.0.1
+Bump rationale: clarification — the Security & Auditability section's criterion
+for when bootstrap registration is required was reworded from
+"external supplier apps" to "client applications running on installation
+machines (whether internal STEM service or external supplier alike)". This
+matches the existing `ApiKeyMiddleware` semantics (the middleware is
+indifferent to who the caller's company is; it only cares about the per-key
+identity) and the spec under `specs/001-bootstrap-registration/`. No principle
+removed, no semantics flipped, so PATCH per the Governance > Amendments rules.
+
+Previous (1.0.0) Sync Impact Report
+-----------------------------------
+Initial ratification — first concrete constitution for this repo.
 
 Modified principles:
 - (none — initial set)
@@ -152,29 +163,31 @@ in sync after `gh pr merge` server-side merges — local pushurls cannot reach t
 
 ## Security & Auditability
 
-This is an API server that ships dictionary data to external supplier installations.
-Security and auditability are first-class:
+This is an API server that ships dictionary data to client applications running
+on machines the API server does not control. Security and auditability are
+first-class:
 
 - **Secrets never live in source or in client-shipped configs** that an attacker
-  can extract from a supplier's filesystem. The `appsettings.json` `ApiKeys` section
-  is acceptable for trusted internal services on infrastructure we control;
-  per-installation credentials for **external supplier apps** MUST be issued via the
-  bootstrap-token registration flow (issue #1).
-- **Bootstrap tokens** are single-use, time-bounded, and supplier-scoped. Long-lived
+  can extract from a client's filesystem. The `appsettings.json` `ApiKeys` section
+  is acceptable for trusted server-side infrastructure we operate; per-installation
+  credentials for **client applications running on installation machines** (whether
+  internal STEM service or external supplier alike — the API does not distinguish)
+  MUST be issued via the bootstrap-token registration flow (issue #1).
+- **Bootstrap tokens** are single-use, time-bounded, and client-scoped. Long-lived
   per-installation API keys are stored hashed (PBKDF2 / SHA-256 HMAC, never
   plaintext at rest); the plaintext returned at `/register` time is the only
   opportunity for the client to capture it.
-- **Per-installation API keys are independently revocable**. One supplier's
+- **Per-installation API keys are independently revocable**. One client's
   compromised key MUST NOT blast-radius to other installations.
 - **Audit on every state mutation**. Domain CRUD writes `AuditEntry` rows via
   `IAuditService.LogCreateAsync` / `LogUpdateAsync` / `LogDeleteAsync`. Registration
-  and credential events MUST be logged with timestamp, supplier, source IP, and
+  and credential events MUST be logged with timestamp, client, source IP, and
   `installation_descriptor` (storage shape — extend `AuditEntry` vs. dedicated
   `RegistrationLog` table — is decided per feature in its `/speckit-plan`).
 - **Failure paths leak nothing**. Authentication / registration errors return `401`
   (or the spec's chosen non-distinguishing code) with a body that does NOT reveal
   whether the token was missing, expired, already used, or scoped to a different
-  supplier.
+  client.
 - **Banned APIs** (`BannedSymbols.txt`, see PORTABILITY) is enforced at build time.
   Pure layers (`Core`, `Services`) MUST NOT reference `System.Drawing.*`,
   `Microsoft.Win32.Registry`, `System.Management`, raw `System.IO.Ports.SerialPort`,
@@ -223,4 +236,4 @@ A change is mergeable only when **all** of the following pass:
   5. Skills under `~/.claude/skills/` (workflow, dotnet, github-actions, lean4,
      pr, documentation, …).
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-07 | **Last Amended**: 2026-05-07
+**Version**: 1.0.1 | **Ratified**: 2026-05-07 | **Last Amended**: 2026-05-07
