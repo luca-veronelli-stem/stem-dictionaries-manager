@@ -3,8 +3,8 @@ using Microsoft.Extensions.Primitives;
 namespace API.Middleware;
 
 /// <summary>
-/// Middleware per autenticazione API Key (BR-API-001).
-/// Header: X-Api-Key. Chiavi configurate in appsettings.json.
+/// API Key authentication middleware (BR-API-001).
+/// Header: X-Api-Key. Keys are configured in appsettings.json.
 /// </summary>
 public class ApiKeyMiddleware
 {
@@ -24,7 +24,7 @@ public class ApiKeyMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Swagger/OpenAPI, health check e version senza autenticazione
+        // Swagger/OpenAPI, health check and version are unauthenticated
         string path = context.Request.Path.Value ?? "";
         if (path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase) ||
@@ -40,7 +40,7 @@ public class ApiKeyMiddleware
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { error = "API Key mancante o non valida." });
+            await context.Response.WriteAsJsonAsync(new { error = "API key missing or invalid." });
             return;
         }
 

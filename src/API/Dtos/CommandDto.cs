@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Comando protocollo — lista.
+/// Protocol command — list view.
 /// </summary>
 public record CommandDto(
     int Id,

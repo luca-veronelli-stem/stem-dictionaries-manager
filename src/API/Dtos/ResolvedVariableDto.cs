@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Variabile risolta con flag standard (BR-API-002).
+/// Resolved variable with standard flag (BR-API-002).
 /// </summary>
 public record ResolvedVariableDto(
     string Name,

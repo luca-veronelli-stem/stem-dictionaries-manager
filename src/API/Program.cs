@@ -9,7 +9,7 @@ using Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Database — logica di risoluzione centralizzata in Infrastructure
+// Database — connection-string resolution centralized in Infrastructure
 string provider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
 bool useSqlServer = !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
 string connString = Infrastructure.DependencyInjection.ResolveConnectionString(
@@ -19,7 +19,7 @@ string connString = Infrastructure.DependencyInjection.ResolveConnectionString(
 builder.Services.AddInfrastructure(connString, useSqlServer);
 builder.Services.AddServices();
 
-// JSON: camelCase + null omessi (BR-API-004)
+// JSON: camelCase + nulls omitted (BR-API-004)
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -29,26 +29,26 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // OpenAPI/Swagger
 builder.Services.AddOpenApi();
 
-// Health check con verifica connessione DB
+// Health check that verifies DB connectivity
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 
 WebApplication app = builder.Build();
 
-// Swagger UI solo in Development
+// Swagger UI in Development only
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Stem.Dictionaries.Manager API v1"));
 }
 
-// Gestione errori DB — 503 Service Unavailable con JSON strutturato (API-004)
+// DB error handling — 503 Service Unavailable with structured JSON (API-004)
 app.UseMiddleware<DatabaseExceptionMiddleware>();
 
-// Autenticazione API Key (BR-API-001)
+// API Key authentication (BR-API-001)
 app.UseMiddleware<ApiKeyMiddleware>();
 
-// Endpoint
+// Endpoints
 app.MapDeviceEndpoints();
 app.MapDictionaryEndpoints();
 app.MapCommandEndpoints();

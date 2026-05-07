@@ -4,7 +4,7 @@ using Core.Models;
 namespace API.Mapping;
 
 /// <summary>
-/// Mapping da domain models a DTO per API.
+/// Maps domain models to API DTOs.
 /// </summary>
 public static class ApiMapper
 {

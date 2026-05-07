@@ -1,7 +1,7 @@
 namespace API.Dtos;
 
 /// <summary>
-/// Comando con stato abilitazione per device (BR-API-003).
+/// Command with enable state per device (BR-API-003).
 /// </summary>
 public record CommandDeviceDto(
     string Name,
