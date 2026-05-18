@@ -253,8 +253,12 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ClientApp).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.OsUserId).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.MachineId).HasMaxLength(200).IsRequired();
+            // OsUserId / MachineId are policy-required per clientApp, not
+            // schema-required. Loose-policy consumers (mobile, web, headless)
+            // may legitimately register without them; the per-clientApp
+            // DescriptorPolicy enforces presence at the service layer.
+            entity.Property(e => e.OsUserId).HasMaxLength(200);
+            entity.Property(e => e.MachineId).HasMaxLength(200);
             entity.Property(e => e.AppVersion).HasMaxLength(50);
             entity.Property(e => e.DescriptorJson).IsRequired();
             entity.HasIndex(e => new { e.ClientApp, e.OsUserId, e.MachineId });

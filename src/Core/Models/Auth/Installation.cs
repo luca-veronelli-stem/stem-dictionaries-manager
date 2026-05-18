@@ -12,8 +12,8 @@ public class Installation
 {
     public int Id { get; private set; }
     public string ClientApp { get; private set; }
-    public string OsUserId { get; private set; }
-    public string MachineId { get; private set; }
+    public string? OsUserId { get; private set; }
+    public string? MachineId { get; private set; }
     public Guid InstallGuid { get; private set; }
     public string? AppVersion { get; private set; }
     public string DescriptorJson { get; private set; }
@@ -21,12 +21,10 @@ public class Installation
     public InstallationStatus Status { get; private set; }
     public DateTime? RevokedAt { get; private set; }
 
-    public Installation(string clientApp, string osUserId, string machineId,
+    public Installation(string clientApp, string? osUserId, string? machineId,
         Guid installGuid, string? appVersion, string descriptorJson, DateTime registeredAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clientApp);
-        ArgumentException.ThrowIfNullOrWhiteSpace(osUserId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(machineId);
         ArgumentException.ThrowIfNullOrWhiteSpace(descriptorJson);
 
         if (installGuid == Guid.Empty)
@@ -40,8 +38,8 @@ public class Installation
         }
 
         ClientApp = clientApp;
-        OsUserId = osUserId;
-        MachineId = machineId;
+        OsUserId = string.IsNullOrWhiteSpace(osUserId) ? null : osUserId;
+        MachineId = string.IsNullOrWhiteSpace(machineId) ? null : machineId;
         InstallGuid = installGuid;
         AppVersion = appVersion?.Trim();
         DescriptorJson = descriptorJson;
@@ -50,8 +48,8 @@ public class Installation
     }
 
     /// <summary>Factory method to reconstruct from the DB.</summary>
-    public static Installation Restore(int id, string clientApp, string osUserId,
-        string machineId, Guid installGuid, string? appVersion, string descriptorJson,
+    public static Installation Restore(int id, string clientApp, string? osUserId,
+        string? machineId, Guid installGuid, string? appVersion, string descriptorJson,
         DateTime registeredAt, InstallationStatus status, DateTime? revokedAt)
     {
         var installation = new Installation(clientApp, osUserId, machineId, installGuid,

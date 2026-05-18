@@ -35,6 +35,7 @@ public partial class RegistrationService : IRegistrationService
     private readonly IInstallationCredentialService _credentials;
     private readonly IInstallationRepository _installations;
     private readonly IRegistrationEventRepository _events;
+    private readonly IReadOnlyDictionary<string, DescriptorPolicy> _descriptorPolicies;
     private readonly TimeProvider _time;
 
     public RegistrationService(
@@ -43,6 +44,7 @@ public partial class RegistrationService : IRegistrationService
         IInstallationCredentialService credentials,
         IInstallationRepository installations,
         IRegistrationEventRepository events,
+        IReadOnlyDictionary<string, DescriptorPolicy> descriptorPolicies,
         TimeProvider? time = null)
     {
         _db = db;
@@ -50,6 +52,7 @@ public partial class RegistrationService : IRegistrationService
         _credentials = credentials;
         _installations = installations;
         _events = events;
+        _descriptorPolicies = descriptorPolicies;
         _time = time ?? TimeProvider.System;
     }
 
@@ -75,7 +78,7 @@ public partial class RegistrationService : IRegistrationService
         return await CommitFailureAsync(request, now, outcome, ct).ConfigureAwait(false);
     }
 
-    private static RegistrationOutcome ClassifyOutcome(RegisterRequest request,
+    private RegistrationOutcome ClassifyOutcome(RegisterRequest request,
         BootstrapToken? token, InstallationDescriptor? descriptor, DateTime now)
     {
         if (string.IsNullOrEmpty(request.BootstrapTokenPlaintext))
@@ -97,13 +100,36 @@ public partial class RegistrationService : IRegistrationService
         {
             return RegistrationOutcome.InstallGuidInvalid;
         }
+        // Policy lookup is also the clientApp-required check: a missing,
+        // empty, or unknown clientApp fails the lookup and falls into the
+        // conflated 401 path. The token's recorded scope and the request's
+        // claimed clientApp must also match — that mismatch shares the same
+        // 401 to hide which apps a token was scoped to.
+        if (string.IsNullOrWhiteSpace(request.ClientApp)
+            || !_descriptorPolicies.TryGetValue(request.ClientApp, out DescriptorPolicy? policy))
+        {
+            return RegistrationOutcome.ClientScopeMismatch;
+        }
+        if (!string.Equals(token.ClientApp, request.ClientApp, StringComparison.Ordinal))
+        {
+            return RegistrationOutcome.ClientScopeMismatch;
+        }
+        // Per-policy field-presence checks. The DescriptorPolicy decides
+        // whether the client must transmit OsUserId / MachineId; storage
+        // accepts nulls when the active policy permits.
+        if (policy.OsUserIdRequired && string.IsNullOrWhiteSpace(request.OsUserId))
+        {
+            return RegistrationOutcome.DescriptorMissingField;
+        }
+        if (policy.MachineIdRequired && string.IsNullOrWhiteSpace(request.MachineId))
+        {
+            return RegistrationOutcome.DescriptorMissingField;
+        }
+        // Anything else that broke descriptor construction (unparseable
+        // InstallGuid type, bad SemVer appVersion) lands here.
         if (descriptor is null)
         {
             return RegistrationOutcome.DescriptorMalformed;
-        }
-        if (!string.Equals(token.ClientApp, descriptor.ClientApp, StringComparison.Ordinal))
-        {
-            return RegistrationOutcome.ClientScopeMismatch;
         }
         return RegistrationOutcome.Success;
     }
@@ -111,14 +137,6 @@ public partial class RegistrationService : IRegistrationService
     private static InstallationDescriptor? TryBuildDescriptor(RegisterRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.ClientApp))
-        {
-            return null;
-        }
-        if (string.IsNullOrWhiteSpace(r.OsUserId))
-        {
-            return null;
-        }
-        if (string.IsNullOrWhiteSpace(r.MachineId))
         {
             return null;
         }
@@ -133,7 +151,13 @@ public partial class RegistrationService : IRegistrationService
             return null;
         }
 
-        return new InstallationDescriptor(r.ClientApp, r.OsUserId, r.MachineId, g, appVersion);
+        // OsUserId / MachineId presence is enforced upstream by the
+        // per-clientApp DescriptorPolicy. Normalize whitespace / empty
+        // strings to null so storage records the absence faithfully.
+        string? osUserId = string.IsNullOrWhiteSpace(r.OsUserId) ? null : r.OsUserId;
+        string? machineId = string.IsNullOrWhiteSpace(r.MachineId) ? null : r.MachineId;
+
+        return new InstallationDescriptor(r.ClientApp, osUserId, machineId, g, appVersion);
     }
 
     private async Task<RegistrationResult> CommitSuccessAsync(BootstrapToken token,
