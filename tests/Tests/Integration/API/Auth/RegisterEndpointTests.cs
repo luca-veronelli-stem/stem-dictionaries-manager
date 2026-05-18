@@ -193,6 +193,37 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_ZeroInstallGuid_Returns400AndAuditRowCarriesInstallGuidInvalid()
+    {
+        // Distinct outcome (vs DescriptorMalformed): a buggy client hardcoded
+        // to Guid.Empty gets a clean 400 surface, and the audit log records
+        // the specific outcome for ops forensics.
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_zero-guid");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new
+            {
+                bootstrapToken = "stbt_zero-guid",
+                descriptor = new
+                {
+                    clientApp = "ButtonPanelTester",
+                    osUserId = "u",
+                    machineId = "m",
+                    installGuid = "00000000-0000-0000-0000-000000000000",
+                    appVersion = "1.0.0"
+                }
+            }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.InstallGuidInvalid, evt.Outcome);
+    }
+
+    [Fact]
     public async Task Register_ExpiredToken_Returns410WithFailureBody()
     {
         // Seed a token that's already past its ExpiresAt — domain TTL constraint

@@ -80,6 +80,13 @@ public class RegistrationService : IRegistrationService
         {
             return RegistrationOutcome.TokenExpired;
         }
+        // Guid.Empty has its own distinct outcome (400) so a buggy client
+        // (hardcoded Guid.Empty, defaulted default(Guid)) surfaces on the
+        // first attempt instead of via the unique-index 500 on the second.
+        if (request.InstallGuid is Guid g && g == Guid.Empty)
+        {
+            return RegistrationOutcome.InstallGuidInvalid;
+        }
         if (descriptor is null)
         {
             return RegistrationOutcome.DescriptorMalformed;
@@ -105,7 +112,7 @@ public class RegistrationService : IRegistrationService
         {
             return null;
         }
-        if (r.InstallGuid is not Guid g || g == Guid.Empty)
+        if (r.InstallGuid is not Guid g)
         {
             return null;
         }

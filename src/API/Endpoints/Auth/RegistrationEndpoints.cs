@@ -90,6 +90,7 @@ public static class RegistrationEndpoints
     {
         RegistrationOutcome.TokenMissing => StatusCodes.Status400BadRequest,
         RegistrationOutcome.DescriptorMalformed => StatusCodes.Status400BadRequest,
+        RegistrationOutcome.InstallGuidInvalid => StatusCodes.Status400BadRequest,
         RegistrationOutcome.TokenInvalid => StatusCodes.Status401Unauthorized,
         RegistrationOutcome.ClientScopeMismatch => StatusCodes.Status401Unauthorized,
         RegistrationOutcome.TokenAlreadyUsed => StatusCodes.Status409Conflict,

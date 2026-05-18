@@ -170,8 +170,11 @@ public class RegistrationServiceTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task RegisterAsync_DescriptorWithZeroGuid_FailsWithDescriptorMalformed()
+    public async Task RegisterAsync_DescriptorWithZeroGuid_FailsWithInstallGuidInvalid()
     {
+        // Guid.Empty has its own outcome so a buggy client surfaces the
+        // problem on the first attempt (400) instead of via the unique-index
+        // collision on the second attempt (would otherwise be a confusing 500).
         const string plaintext = "stbt_token-3";
         await SeedTokenAsync("ButtonPanelTester", plaintext);
         RegistrationService sut = BuildSut();
@@ -179,9 +182,10 @@ public class RegistrationServiceTests : IntegrationTestBase
         RegisterRequest request = BuildRequest(plaintext) with { InstallGuid = Guid.Empty };
         RegistrationResult result = await sut.RegisterAsync(request);
 
-        Assert.IsType<RegistrationResult.Failure>(result);
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.InstallGuidInvalid, failure.Outcome);
         RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
-        Assert.Equal(RegistrationOutcome.DescriptorMalformed, evt.Outcome);
+        Assert.Equal(RegistrationOutcome.InstallGuidInvalid, evt.Outcome);
     }
 
     [Fact]
