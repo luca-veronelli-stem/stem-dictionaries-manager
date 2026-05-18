@@ -83,6 +83,63 @@ Triggered by review of the consumer-side draft contract at
   trade-off (smaller leak blast radius vs. ops debuggability) is the
   consumer's call to make.
 
+### Session 2026-05-18
+
+Triggered by `button-panel-tester`'s integration against the unreleased
+`/register` (issue #54). Decisions taken in the design review between
+the dictionaries-manager owner and the button-panel-tester owner.
+
+- Q: Should the unified-`401`-on-failure decision (FR-002 / SC-002,
+  affirmed in the 2026-05-07 session) be reversed in favor of distinct
+  RFC-meaningful status codes per failure mode? → A: **Yes, narrow
+  the conflation.** The 401 collapse now applies *only* to
+  unknown-token + scope-mismatch + unknown-`clientApp` — the three
+  failure modes that would otherwise leak which app a token was
+  scoped to. Token already-used → 409; expired → 410; revoked →
+  423; descriptor malformed / missing-by-policy / `installGuid` =
+  `Guid.Empty` → 400. Refined threat model: the bootstrap token's
+  43-char base64url payload (≈ 2^258 entropy) makes random-guess
+  token enumeration infeasible regardless of error-code
+  distinguishability; preserving distinct codes for non-scope-related
+  failures dramatically improves consumer-developer diagnostics
+  without giving a real attacker any additional foothold. The audit
+  log continues to record the exact `RegistrationOutcome` so
+  server-side ops still see the full picture.
+- Q: Should descriptor fields (`osUserId`, `machineId`, `installGuid`)
+  remain uniformly required at the DTO layer? → A: **No, split the
+  enforcement.** `osUserId` and `machineId` move to per-`clientApp`
+  `DescriptorPolicy` enforcement at the service layer (mobile apps
+  lack a stable per-machine identifier; web apps can't hash a SID;
+  headless services may have no per-user identity). `installGuid`
+  stays a universal contract-level invariant — every platform can
+  generate a random 128-bit GUID client-side, so per-policy nullability
+  has no realistic consumer. `Installation.OsUserId` and
+  `Installation.MachineId` become nullable on the entity (small EF
+  migration); `InstallGuid` stays non-null with its unique index
+  intact.
+- Q: Should `installGuid` = `Guid.Empty` continue to be conflated
+  into the generic `DescriptorMalformed` outcome? → A: **No, split
+  into `InstallGuidInvalid → 400`.** The schema-level `Guid?` parse
+  alone is not enough — `Guid.Parse("00000000-...")` succeeds. Because
+  `InstallGuid` has a unique index, a buggy client (hardcoded
+  `Guid.Empty`, defaulted `default(Guid)`) would land its first
+  registration silently and hit a confusing 500 on the second attempt.
+  A distinct `InstallGuidInvalid → 400` outcome surfaces the bug
+  immediately. One-line check at the service layer; same
+  `{ "error": "..." }` envelope.
+- Q: Should `appVersion` continue to be free-text or move to
+  SemVer-validated? → A: **Validate as SemVer 2.0.** Accepting
+  `"banana"` in production for an ops-correlation field is a
+  foot-gun. Malformed → `DescriptorMalformed → 400`. The field stays
+  on `RegisterRequestDto` and on `Installation` (no removal).
+- Q: Promote SHA-256 hashing of `osUserId` / `machineId` from "MAY"
+  to first-class guidance? → A: **Yes.** All consumers SHOULD hash;
+  supplier-deployed consumers (e.g. `button-panel-tester` shipped to
+  STEM-Ems suppliers) MUST hash, because the OS user and machine
+  identifiers cross an organizational data boundary. The wire format
+  is identical in both cases (an opaque string); the consumer chooses
+  the source before sending.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Client app obtains its API credential on first launch (Priority: P1)
@@ -308,11 +365,25 @@ unaffected.
   server-side). (Issue #1 prescribes the wire-level path as
   `POST /register`.)
 - **FR-002**: The system MUST reject any registration attempt whose
-  bootstrap token does not exist, has been used, has expired, or is
+  bootstrap token does not exist, has been used, has expired, is
   scoped to a different client than the requesting installation
-  claims. All such failures MUST return an identical "unauthorized"
-  response; the response body MUST NOT reveal which condition was
-  violated.
+  claims, or whose request-claimed `clientApp` has no registered
+  descriptor policy. Failure responses MUST use the same
+  `{ "error": "<message>" }` envelope shape across all status codes,
+  and the response MUST NOT reveal which specific cause was violated
+  **for the three scope-related failure modes** (token unknown, token
+  scope-mismatch, unknown `clientApp`) — all three MUST collapse to
+  `401 Unauthorized` so that an attacker cannot use the response to
+  enumerate which apps a token was scoped to. Other failure modes
+  (`token already used`, `token expired`, `token revoked`,
+  `descriptor malformed`, descriptor field required by the active
+  `DescriptorPolicy` is missing, `installGuid` parses to `Guid.Empty`)
+  MUST use their RFC-meaningful status (`409`, `410`, `423`, `400`,
+  `400`, `400` respectively), because they reveal no information
+  about token scope and the legitimate consumer benefits from
+  actionable diagnostics. See the 2026-05-18 clarification session
+  for the threat-model rationale (43-char base64url token entropy
+  ≈ 2^258 makes random-guess enumeration infeasible regardless).
 - **FR-003**: On a successful registration, the system MUST create a
   new per-installation identity record, mark the bootstrap token
   used, and issue a fresh long-lived API credential whose plaintext
@@ -425,10 +496,18 @@ unaffected.
   registration end-to-end (token in, API credential out, descriptor
   recorded, audit row written) in under 5 seconds under normal
   network conditions.
-- **SC-002**: Across the full set of failure modes (token missing,
-  invalid, used, expired, client-mismatched, descriptor malformed),
-  the response body shape and status are byte-identical — an
-  attacker cannot distinguish failure modes by response inspection.
+- **SC-002**: Across the three scope-related failure modes (token
+  unknown, token scope-mismatched, request's `clientApp` unknown to
+  the descriptor-policy registry), the response is byte-identical —
+  the same `401 Unauthorized` status with the same
+  `{ "error": "registration failed" }` body — so an attacker cannot
+  use response inspection to enumerate which apps a token was scoped
+  to. Other failure modes (already-used, expired, revoked, descriptor
+  malformed, missing-required-per-policy, `installGuid` =
+  `Guid.Empty`) are intentionally distinguishable by status code (409
+  / 410 / 423 / 400 / 400 / 400 respectively), because they reveal no
+  token-scope information and the legitimate consumer benefits from
+  actionable diagnostics.
 - **SC-003**: A bootstrap token successfully consumed once cannot be
   consumed again under any subsequent attempt, including
   concurrent attempts on the original mint — exactly one
