@@ -20,5 +20,6 @@ public enum RegistrationOutcome
     TokenRevoked,
     ClientScopeMismatch,
     DescriptorMalformed,
+    InstallGuidInvalid,
     AuditFailure
 }
