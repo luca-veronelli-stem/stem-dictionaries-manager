@@ -19,10 +19,14 @@ public sealed record RegisterRequest(
 
 /// <summary>
 /// Discriminated result of <see cref="IRegistrationService.RegisterAsync"/>.
-/// Per FR-002 the endpoint never reveals failure detail to the client —
-/// the unified 401 body is emitted regardless of which failure case
-/// fired. The success case carries the plaintext API credential which
-/// must be returned to the client exactly once.
+/// The success case carries the plaintext API credential which must be
+/// returned to the client exactly once. The failure case carries the
+/// classified <see cref="Core.Enums.Auth.RegistrationOutcome"/> so the
+/// endpoint can map it to the RFC-meaningful status code documented in
+/// <c>contracts/register.md</c> (per the narrowed FR-002: 401 conflates
+/// only the three scope-related failure modes — token unknown,
+/// scope-mismatch, unknown clientApp — and every other failure uses
+/// its own status: 400 / 409 / 410 / 423).
 /// </summary>
 public abstract record RegistrationResult
 {
@@ -31,7 +35,7 @@ public abstract record RegistrationResult
     public sealed record Success(int InstallationId, string ApiCredentialPlaintext,
         DateTime IssuedAt) : RegistrationResult;
 
-    public sealed record Failure() : RegistrationResult;
+    public sealed record Failure(Core.Enums.Auth.RegistrationOutcome Outcome) : RegistrationResult;
 }
 
 /// <summary>

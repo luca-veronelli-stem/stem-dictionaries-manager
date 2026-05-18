@@ -186,7 +186,7 @@ public class RegistrationService : IRegistrationService
         await _events.AddAsync(failureEvent, ct).ConfigureAwait(false);
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        return new RegistrationResult.Failure();
+        return new RegistrationResult.Failure(outcome);
     }
 
     private static RegistrationEventEntity BuildEvent(RegisterRequest request,

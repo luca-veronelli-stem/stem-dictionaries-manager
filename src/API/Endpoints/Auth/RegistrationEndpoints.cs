@@ -1,5 +1,6 @@
 using System.Text.Json;
 using API.Dtos.Auth;
+using Core.Enums.Auth;
 using Services.Interfaces.Auth;
 
 namespace API.Endpoints.Auth;
@@ -13,7 +14,13 @@ namespace API.Endpoints.Auth;
 /// </summary>
 public static class RegistrationEndpoints
 {
-    /// <summary>Unified failure body — FR-002, byte-identical for every 401 case.</summary>
+    /// <summary>
+    /// Shared failure body — same <c>{ "error": "..." }</c> envelope across
+    /// all failure statuses. The status code distinguishes the failure
+    /// class (per the narrowed FR-002); the body stays a single string so
+    /// clients cannot use body inspection as a token-validity oracle for
+    /// the three scope-related 401 modes.
+    /// </summary>
     private const string FailureBody = "{\"error\":\"registration failed\"}";
 
     /// <summary>500 body for FR-013 audit-or-no-issue: server failed, not the token.</summary>
@@ -59,6 +66,7 @@ public static class RegistrationEndpoints
                     InstallationId: success.InstallationId,
                     ApiCredential: success.ApiCredentialPlaintext,
                     IssuedAt: success.IssuedAt)),
+                RegistrationResult.Failure failure => RawJson(FailureBody, StatusFor(failure.Outcome)),
                 _ => RawJson(FailureBody, StatusCodes.Status401Unauthorized)
             };
         }
@@ -69,6 +77,26 @@ public static class RegistrationEndpoints
             return RawJson(AuditFailureBody, StatusCodes.Status500InternalServerError);
         }
     }
+
+    /// <summary>
+    /// Maps a <see cref="RegistrationOutcome"/> to the wire status code
+    /// per <c>contracts/register.md</c>. The three scope-related outcomes
+    /// (<see cref="RegistrationOutcome.TokenInvalid"/>,
+    /// <see cref="RegistrationOutcome.ClientScopeMismatch"/>) collapse to
+    /// 401 to hide token-scope information; every other outcome gets its
+    /// own RFC-meaningful status.
+    /// </summary>
+    private static int StatusFor(RegistrationOutcome outcome) => outcome switch
+    {
+        RegistrationOutcome.TokenMissing => StatusCodes.Status400BadRequest,
+        RegistrationOutcome.DescriptorMalformed => StatusCodes.Status400BadRequest,
+        RegistrationOutcome.TokenInvalid => StatusCodes.Status401Unauthorized,
+        RegistrationOutcome.ClientScopeMismatch => StatusCodes.Status401Unauthorized,
+        RegistrationOutcome.TokenAlreadyUsed => StatusCodes.Status409Conflict,
+        RegistrationOutcome.TokenExpired => StatusCodes.Status410Gone,
+        RegistrationOutcome.TokenRevoked => StatusCodes.Status423Locked,
+        _ => StatusCodes.Status401Unauthorized
+    };
 
     private static RegisterRequestDto? TryParse(string body)
     {
