@@ -19,13 +19,19 @@ namespace Tests.Integration.API.Auth;
 /// <summary>
 /// HTTP-level integration tests for <c>POST /register</c>. Spins the API
 /// up via <see cref="RegisterApiFactory"/> against a per-test SQLite
-/// in-memory DB so byte-identical body assertions (SC-002) and the
-/// FR-005 union-mode credential round-trip can be exercised end-to-end.
+/// in-memory DB so the per-outcome status mapping (narrowed FR-002 /
+/// SC-002) and the FR-005 union-mode credential round-trip can be
+/// exercised end-to-end.
 /// </summary>
 public class RegisterEndpointTests : IDisposable
 {
-    /// <summary>The FR-002 unified failure body — every 401 must match this byte-for-byte.</summary>
-    private const string UnifiedFailureBody = "{\"error\":\"registration failed\"}";
+    /// <summary>
+    /// The shared failure body envelope — same bytes across all failure
+    /// statuses (400 / 401 / 409 / 410 / 423). The status code distinguishes
+    /// the failure class; the body stays identical so clients cannot use it
+    /// as a token-validity oracle for the three scope-related 401 modes.
+    /// </summary>
+    private const string FailureBody = "{\"error\":\"registration failed\"}";
 
     private readonly RegisterApiFactory _factory = new();
     private readonly PasswordHasher _hasher = new();
@@ -115,11 +121,12 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Theory]
-    [MemberData(nameof(UnifiedFailurePayloads))]
-    public async Task Register_FailureModes_AllReturn401WithByteIdenticalBody(
-        string scenarioName, object? payload, bool seedToken)
+    [MemberData(nameof(FailurePayloads))]
+    public async Task Register_FailureModes_ReturnExpectedStatusAndFailureBody(
+        string scenarioName, object? payload, bool seedToken, HttpStatusCode expectedStatus)
     {
-        // SC-002: every failure mode returns the same body verbatim.
+        // Narrowed SC-002: failure bodies share the same envelope; the status
+        // code distinguishes the failure class.
         if (seedToken)
         {
             await SeedActiveTokenAsync("ButtonPanelTester", "stbt_seeded");
@@ -131,24 +138,30 @@ public class RegisterEndpointTests : IDisposable
                 new StringContent(raw, Encoding.UTF8, "application/json"))
             : await client.PostAsync("/register", JsonBody(payload!));
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(expectedStatus, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal(UnifiedFailureBody, await ReadBodyAsync(response));
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
         _ = scenarioName;
     }
 
-    public static IEnumerable<object?[]> UnifiedFailurePayloads()
+    public static IEnumerable<object?[]> FailurePayloads()
     {
-        // Token issues
+        // Token issues — TokenMissing is a client bug (400); UnknownToken
+        // and ClientScopeMismatch collapse to 401 to hide token scope.
         yield return new object?[] { "MissingToken",
-            new { descriptor = ValidDescriptor() }, false };
+            new { descriptor = ValidDescriptor() }, false, HttpStatusCode.BadRequest };
         yield return new object?[] { "EmptyToken",
-            new { bootstrapToken = "", descriptor = ValidDescriptor() }, false };
+            new { bootstrapToken = "", descriptor = ValidDescriptor() }, false, HttpStatusCode.BadRequest };
         yield return new object?[] { "UnknownToken",
-            new { bootstrapToken = "stbt_nonexistent", descriptor = ValidDescriptor() }, true };
+            new { bootstrapToken = "stbt_nonexistent", descriptor = ValidDescriptor() }, true,
+            HttpStatusCode.Unauthorized };
         yield return new object?[] { "ClientScopeMismatch",
-            new { bootstrapToken = "stbt_seeded", descriptor = ValidDescriptor("GlobalService") }, true };
-        // Descriptor issues
+            new { bootstrapToken = "stbt_seeded", descriptor = ValidDescriptor("GlobalService") }, true,
+            HttpStatusCode.Unauthorized };
+        // Descriptor issues — all currently surface as DescriptorMalformed (400).
+        // ZeroInstallGuid splits into InstallGuidInvalid in a follow-up commit;
+        // MissingMachineId splits into DescriptorMissingField when the per-clientApp
+        // policy lands. Status remains 400 in either case.
         yield return new object?[] { "ZeroInstallGuid",
             new
             {
@@ -162,7 +175,7 @@ public class RegisterEndpointTests : IDisposable
                     appVersion = "1.0.0"
                 }
             },
-            true };
+            true, HttpStatusCode.BadRequest };
         yield return new object?[] { "MissingMachineId",
             new
             {
@@ -174,12 +187,13 @@ public class RegisterEndpointTests : IDisposable
                     installGuid = "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"
                 }
             },
-            true };
-        yield return new object?[] { "MalformedJson", "{ not really json", false };
+            true, HttpStatusCode.BadRequest };
+        yield return new object?[] { "MalformedJson", "{ not really json", false,
+            HttpStatusCode.BadRequest };
     }
 
     [Fact]
-    public async Task Register_ExpiredToken_Returns401WithUnifiedBody()
+    public async Task Register_ExpiredToken_Returns410WithFailureBody()
     {
         // Seed a token that's already past its ExpiresAt — domain TTL constraint
         // requires ttl >= 1h, so MintedAt is set far enough in the past for both
@@ -202,16 +216,18 @@ public class RegisterEndpointTests : IDisposable
         HttpResponseMessage response = await client.PostAsync("/register",
             JsonBody(new { bootstrapToken = "stbt_expired", descriptor = ValidDescriptor() }));
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal(UnifiedFailureBody, await ReadBodyAsync(response));
+        Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
     }
 
     [Fact]
     public async Task Register_SameTokenReplayed_OnlyFirstCallSucceeds()
     {
         // Single-use enforcement (SC-003 spirit): once a token is consumed, any
-        // subsequent attempt returns the unified 401 — the lookup ignores Used
-        // rows so the second call sees TokenInvalid → registration failed.
+        // subsequent attempt returns 401 — the lookup ignores Used rows so the
+        // second call surfaces as TokenInvalid (conflated with unknown-token).
+        // The race-loser path which can observe the token in Used state directly
+        // surfaces TokenAlreadyUsed -> 409 (exercised separately below).
         await SeedActiveTokenAsync("ButtonPanelTester", "stbt_single-use");
         using HttpClient client = _factory.CreateClient();
 
@@ -222,7 +238,7 @@ public class RegisterEndpointTests : IDisposable
 
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, second.StatusCode);
-        Assert.Equal(UnifiedFailureBody, await ReadBodyAsync(second));
+        Assert.Equal(FailureBody, await ReadBodyAsync(second));
 
         // Exactly one Installation row exists with the FK back-pointing.
         await using AppDbContext db = _factory.NewContext();
@@ -234,11 +250,12 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
-    public async Task Register_ConcurrentRaceLoser_Returns401WithUnifiedBodyAndNoInstallation()
+    public async Task Register_ConcurrentRaceLoser_Returns409WithFailureBodyAndNoInstallation()
     {
         // SC-003: when MarkUsedAsync throws BootstrapTokenStateException — the
-        // canonical race-loser signal — the endpoint must respond with the
-        // FR-002 unified 401 (not 500) and leave no Installation row behind.
+        // canonical race-loser signal — the endpoint must respond with 409
+        // (TokenAlreadyUsed; not 500, not the conflated 401) and leave no
+        // Installation row behind.
         await SeedActiveTokenAsync("ButtonPanelTester", "stbt_race-http");
         _factory.BootstrapTokenSvcFactory = sp => new RaceLosingBootstrapTokenServiceForHttp(
             sp.GetRequiredService<AppDbContext>(), _hasher);
@@ -247,9 +264,9 @@ public class RegisterEndpointTests : IDisposable
         HttpResponseMessage response = await client.PostAsync("/register",
             JsonBody(new { bootstrapToken = "stbt_race-http", descriptor = ValidDescriptor() }));
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal(UnifiedFailureBody, await ReadBodyAsync(response));
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
 
         await using AppDbContext db = _factory.NewContext();
         Assert.Equal(0, await db.Installations.CountAsync());
