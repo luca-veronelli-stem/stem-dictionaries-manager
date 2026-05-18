@@ -21,5 +21,6 @@ public enum RegistrationOutcome
     ClientScopeMismatch,
     DescriptorMalformed,
     InstallGuidInvalid,
+    DescriptorMissingField,
     AuditFailure
 }

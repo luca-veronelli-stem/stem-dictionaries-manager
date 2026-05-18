@@ -224,6 +224,66 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_MissingMachineIdForStrictPolicy_Returns400AndAuditRowCarriesDescriptorMissingField()
+    {
+        // ButtonPanelTester is registered (in Services/DependencyInjection)
+        // as strict; omitting machineId surfaces as DescriptorMissingField.
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_missing-machine");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new
+            {
+                bootstrapToken = "stbt_missing-machine",
+                descriptor = new
+                {
+                    clientApp = "ButtonPanelTester",
+                    osUserId = "u",
+                    installGuid = "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c",
+                    appVersion = "1.0.0"
+                }
+            }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.DescriptorMissingField, evt.Outcome);
+    }
+
+    [Fact]
+    public async Task Register_UnknownClientApp_Returns401AndAuditRowCarriesClientScopeMismatch()
+    {
+        // The policy registry only contains ButtonPanelTester; a request whose
+        // clientApp is anything else fails the policy lookup and gets the
+        // conflated 401 (same wire response as token-unknown / scope-mismatch).
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_unknown-clientApp");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new
+            {
+                bootstrapToken = "stbt_unknown-clientApp",
+                descriptor = new
+                {
+                    clientApp = "UnregisteredApp",
+                    osUserId = "u",
+                    machineId = "m",
+                    installGuid = "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c",
+                    appVersion = "1.0.0"
+                }
+            }));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.ClientScopeMismatch, evt.Outcome);
+    }
+
+    [Fact]
     public async Task Register_ExpiredToken_Returns410WithFailureBody()
     {
         // Seed a token that's already past its ExpiresAt — domain TTL constraint

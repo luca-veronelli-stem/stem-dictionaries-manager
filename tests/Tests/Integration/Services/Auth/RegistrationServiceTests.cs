@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure.Entities.Auth;
@@ -16,8 +17,20 @@ public class RegistrationServiceTests : IntegrationTestBase
     private readonly FakeTimeProvider _time = new(
         new DateTime(2026, 5, 7, 12, 0, 0, DateTimeKind.Utc));
 
+    /// <summary>
+    /// Default policy registry used by every test that doesn't override it:
+    /// the production-registered ButtonPanelTester strict policy. Loose-
+    /// policy tests pass an explicit override.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, DescriptorPolicy> DefaultPolicies =
+        new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
+        {
+            ["ButtonPanelTester"] = new(OsUserIdRequired: true, MachineIdRequired: true),
+        };
+
     private RegistrationService BuildSut(IRegistrationEventRepository? eventsOverride = null,
-        IBootstrapTokenService? bootstrapSvcOverride = null)
+        IBootstrapTokenService? bootstrapSvcOverride = null,
+        IReadOnlyDictionary<string, DescriptorPolicy>? policiesOverride = null)
     {
         var bootstrapRepo = new BootstrapTokenRepository(Context);
         var installationRepo = new InstallationRepository(Context);
@@ -30,7 +43,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         var credentialSvc = new InstallationCredentialService(credentialRepo, _generator, _hasher);
 
         return new RegistrationService(Context, bootstrapSvc, credentialSvc,
-            installationRepo, eventsRepo, _time);
+            installationRepo, eventsRepo, policiesOverride ?? DefaultPolicies, _time);
     }
 
     private async Task<BootstrapTokenEntity> SeedTokenAsync(
@@ -236,8 +249,11 @@ public class RegistrationServiceTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task RegisterAsync_DescriptorMissingMachineId_FailsWithDescriptorMalformed()
+    public async Task RegisterAsync_StrictPolicy_RejectsMissingMachineIdWithDescriptorMissingField()
     {
+        // ButtonPanelTester is registered as strict (MachineIdRequired=true).
+        // A request that omits MachineId surfaces as DescriptorMissingField
+        // (distinct from DescriptorMalformed) -> 400.
         const string plaintext = "stbt_token-4";
         await SeedTokenAsync("ButtonPanelTester", plaintext);
         RegistrationService sut = BuildSut();
@@ -245,9 +261,85 @@ public class RegistrationServiceTests : IntegrationTestBase
         RegisterRequest request = BuildRequest(plaintext) with { MachineId = "" };
         RegistrationResult result = await sut.RegisterAsync(request);
 
-        Assert.IsType<RegistrationResult.Failure>(result);
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.DescriptorMissingField, failure.Outcome);
         RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
-        Assert.Equal(RegistrationOutcome.DescriptorMalformed, evt.Outcome);
+        Assert.Equal(RegistrationOutcome.DescriptorMissingField, evt.Outcome);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_LoosePolicy_AcceptsMissingMachineIdAndStoresNull()
+    {
+        // A loose-policy consumer (here represented by "MobileApp" registered
+        // with MachineIdRequired=false) is allowed to omit machineId; storage
+        // records null.
+        const string plaintext = "stbt_loose-machine";
+        await SeedTokenAsync("MobileApp", plaintext);
+        IReadOnlyDictionary<string, DescriptorPolicy> loosePolicies =
+            new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
+            {
+                ["MobileApp"] = new(OsUserIdRequired: true, MachineIdRequired: false),
+            };
+        RegistrationService sut = BuildSut(policiesOverride: loosePolicies);
+
+        RegisterRequest request = BuildRequest(plaintext, clientApp: "MobileApp") with
+        {
+            MachineId = ""
+        };
+        RegistrationResult result = await sut.RegisterAsync(request);
+
+        Assert.IsType<RegistrationResult.Success>(result);
+        InstallationEntity installation = await Context.Installations.AsNoTracking().SingleAsync();
+        Assert.Null(installation.MachineId);
+        Assert.NotNull(installation.OsUserId);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_LoosePolicy_AcceptsMissingBothAndStoresNulls()
+    {
+        // Headless-style consumer: neither OsUserId nor MachineId required.
+        const string plaintext = "stbt_loose-both";
+        await SeedTokenAsync("HeadlessService", plaintext);
+        IReadOnlyDictionary<string, DescriptorPolicy> loosePolicies =
+            new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
+            {
+                ["HeadlessService"] = new(OsUserIdRequired: false, MachineIdRequired: false),
+            };
+        RegistrationService sut = BuildSut(policiesOverride: loosePolicies);
+
+        RegisterRequest request = BuildRequest(plaintext, clientApp: "HeadlessService") with
+        {
+            OsUserId = null,
+            MachineId = null
+        };
+        RegistrationResult result = await sut.RegisterAsync(request);
+
+        Assert.IsType<RegistrationResult.Success>(result);
+        InstallationEntity installation = await Context.Installations.AsNoTracking().SingleAsync();
+        Assert.Null(installation.OsUserId);
+        Assert.Null(installation.MachineId);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_UnknownClientApp_ConflatesAs401ClientScopeMismatch()
+    {
+        // ClientApp = "UnregisteredApp" -- not in the policy registry. The
+        // lookup-miss conflates into ClientScopeMismatch (-> 401), hiding
+        // which apps the token was scoped to.
+        const string plaintext = "stbt_unknown-clientApp";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        RegistrationService sut = BuildSut();
+
+        RegisterRequest request = BuildRequest(plaintext, clientApp: "UnregisteredApp");
+        RegistrationResult result = await sut.RegisterAsync(request);
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.ClientScopeMismatch, failure.Outcome);
+        // The audit row carries the same outcome -- ops cannot distinguish
+        // unknown-clientApp from scope-mismatch from token-unknown via the
+        // outcome enum here; that's by design (the conflation is end-to-end).
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.ClientScopeMismatch, evt.Outcome);
     }
 
     [Fact]

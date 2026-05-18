@@ -6,8 +6,8 @@ public class InstallationEntity
 {
     public int Id { get; set; }
     public string ClientApp { get; set; } = string.Empty;
-    public string OsUserId { get; set; } = string.Empty;
-    public string MachineId { get; set; } = string.Empty;
+    public string? OsUserId { get; set; }
+    public string? MachineId { get; set; }
     public Guid InstallGuid { get; set; }
     public string? AppVersion { get; set; }
     public string DescriptorJson { get; set; } = string.Empty;

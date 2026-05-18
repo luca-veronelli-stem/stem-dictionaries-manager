@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Services.Auth;
 using Services.Interfaces;
 
 namespace Services;
@@ -37,6 +38,18 @@ public static class DependencyInjection
             Services.Auth.InstallationCredentialService>();
         services.AddScoped<Services.Interfaces.Auth.IRegistrationService,
             Services.Auth.RegistrationService>();
+
+        // Per-clientApp descriptor presence policy (see contracts/register.md).
+        // Today's only consumer is ButtonPanelTester (strict — Windows desktop
+        // with full identity guarantees). Future loose-policy consumers
+        // (mobile, web, headless) register their own entries here; a request
+        // whose clientApp has no entry surfaces as ClientScopeMismatch -> 401
+        // (conflated with token-unknown / scope-mismatch).
+        services.TryAddSingleton<IReadOnlyDictionary<string, DescriptorPolicy>>(_ =>
+            new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
+            {
+                ["ButtonPanelTester"] = new(OsUserIdRequired: true, MachineIdRequired: true),
+            });
 
         return services;
     }
