@@ -188,6 +188,53 @@ public class RegistrationServiceTests : IntegrationTestBase
         Assert.Equal(RegistrationOutcome.InstallGuidInvalid, evt.Outcome);
     }
 
+    [Theory]
+    [InlineData("banana")]
+    [InlineData("1")]
+    [InlineData("1.2")]
+    [InlineData("1.2.3.4")]
+    [InlineData("v1.0.0")]
+    [InlineData("01.0.0")]
+    public async Task RegisterAsync_DescriptorWithInvalidAppVersion_FailsWithDescriptorMalformed(
+        string appVersion)
+    {
+        // SemVer 2.0 grammar enforced at the service layer (so the unified
+        // {"error":"..."} envelope from FR-002 stays consistent vs an ASP.NET
+        // model-validation 400 with a different body shape).
+        string plaintext = $"stbt_semver-invalid-{appVersion.GetHashCode()}";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        RegistrationService sut = BuildSut();
+
+        RegisterRequest request = BuildRequest(plaintext) with { AppVersion = appVersion };
+        RegistrationResult result = await sut.RegisterAsync(request);
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.DescriptorMalformed, failure.Outcome);
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.DescriptorMalformed, evt.Outcome);
+    }
+
+    [Theory]
+    [InlineData("1.0.0")]
+    [InlineData("0.0.1")]
+    [InlineData("10.20.30")]
+    [InlineData("1.0.0-alpha")]
+    [InlineData("1.0.0-alpha.1")]
+    [InlineData("1.0.0+20260518")]
+    [InlineData("1.0.0-rc.1+build.42")]
+    [InlineData(" 1.0.0 ")] // whitespace trimmed before matching
+    public async Task RegisterAsync_DescriptorWithValidSemVer_Succeeds(string appVersion)
+    {
+        string plaintext = $"stbt_semver-valid-{appVersion.GetHashCode()}";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        RegistrationService sut = BuildSut();
+
+        RegisterRequest request = BuildRequest(plaintext) with { AppVersion = appVersion };
+        RegistrationResult result = await sut.RegisterAsync(request);
+
+        Assert.IsType<RegistrationResult.Success>(result);
+    }
+
     [Fact]
     public async Task RegisterAsync_DescriptorMissingMachineId_FailsWithDescriptorMalformed()
     {

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure;
@@ -18,8 +19,17 @@ namespace Services.Auth;
 /// (FR-013) — never 401, which would falsely tell the client their
 /// token is bad when in fact the server failed.
 /// </summary>
-public class RegistrationService : IRegistrationService
+public partial class RegistrationService : IRegistrationService
 {
+    /// <summary>
+    /// Canonical SemVer 2.0 regex from https://semver.org/. Used to validate
+    /// `appVersion` at the request-processing layer; malformed values become
+    /// <see cref="RegistrationOutcome.DescriptorMalformed"/> → 400. Source-
+    /// generated for compile-time validation and zero-allocation execution.
+    /// </summary>
+    [GeneratedRegex(@"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")]
+    private static partial Regex SemVer2Regex();
+
     private readonly AppDbContext _db;
     private readonly IBootstrapTokenService _bootstrapTokens;
     private readonly IInstallationCredentialService _credentials;
@@ -116,13 +126,14 @@ public class RegistrationService : IRegistrationService
         {
             return null;
         }
-        if (r.AppVersion is not null && string.IsNullOrWhiteSpace(r.AppVersion))
+
+        string? appVersion = r.AppVersion?.Trim();
+        if (appVersion is not null && !SemVer2Regex().IsMatch(appVersion))
         {
             return null;
         }
 
-        return new InstallationDescriptor(r.ClientApp, r.OsUserId, r.MachineId, g,
-            r.AppVersion?.Trim());
+        return new InstallationDescriptor(r.ClientApp, r.OsUserId, r.MachineId, g, appVersion);
     }
 
     private async Task<RegistrationResult> CommitSuccessAsync(BootstrapToken token,
