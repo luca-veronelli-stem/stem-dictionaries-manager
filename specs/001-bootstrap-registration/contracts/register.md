@@ -27,29 +27,93 @@ Content-Type: application/json
 - `bootstrapToken`: required, non-empty string. Server-side validation
   is by lookup of its PBKDF2 hash; format is informational.
 - `descriptor.clientApp`: required, non-empty. Must byte-match the
-  bootstrap token's recorded `ClientApp` scope (mismatch ⇒ 401 with
-  the same body shape as any other failure). Free-text on the wire,
-  but **by convention** the consumer sends the same string the admin
-  used at mint time, which is the `ApiKeys` config-key form
-  (`ButtonPanelTester`, `GlobalService`, `StemDeviceManager`,
-  `ProductionTracker`). The server does not maintain a repo-name → config-key
-  map.
-- `descriptor.osUserId`: required, non-empty. Stable per-(OS user)
-  identifier — server-opaque. Consumers MAY send a raw value
-  (Windows SID, POSIX `UID:username`) or a SHA-256 hex digest of one
-  for privacy reasons; the server stores whatever string is sent.
-- `descriptor.machineId`: required, non-empty. Stable per-machine
-  fingerprint — server-opaque. Same raw-or-hashed flexibility as
-  `osUserId`.
-- `descriptor.installGuid`: required, parseable as a `Guid`. Server
-  rejects the all-zeros `Guid`.
-- `descriptor.appVersion`: optional. Semver string for ops correlation
-  (e.g. matching version-specific bug reports to installations). When
-  present MUST be non-empty after trim; the server does NOT validate
-  against the semver grammar.
+  bootstrap token's recorded `ClientApp` scope **and** must be a
+  registered key in the per-`clientApp` descriptor-policy registry
+  (see *Per-clientApp descriptor policies* below). A scope mismatch or
+  a lookup miss both fail with **401**, deliberately conflated with
+  the "token unknown" failure to hide which app a token was scoped to.
+  Free-text on the wire, but **by convention** the consumer sends the
+  same string the admin used at mint time, which is the `ApiKeys`
+  config-key form (`ButtonPanelTester`, `GlobalService`,
+  `StemDeviceManager`, `ProductionTracker`). The server does not
+  maintain a repo-name → config-key map.
+- `descriptor.osUserId`: nullable at the schema level. Presence is
+  required per the active `DescriptorPolicy` for the request's
+  `clientApp` (see below). When the policy requires it and the field
+  is missing/empty, the response is **400 Bad Request** with
+  `DescriptorMissingField`. Server-opaque storage. See *Privacy
+  posture* for the raw-vs-hashed guidance.
+- `descriptor.machineId`: nullable at the schema level. Same
+  policy-driven enforcement as `osUserId`.
+- `descriptor.installGuid`: required, parseable as a `Guid`. The
+  all-zeros `Guid` is rejected with `InstallGuidInvalid → 400`. This
+  is a universal invariant — every platform can generate a random
+  128-bit GUID client-side, so the requirement is not per-policy.
+- `descriptor.appVersion`: optional. When present MUST conform to the
+  [SemVer 2.0](https://semver.org/spec/v2.0.0.html) grammar
+  (`MAJOR.MINOR.PATCH[-prerelease][+build]`, all parts of which are
+  validated by the standard SemVer regex). Malformed values are
+  rejected with `DescriptorMalformed → 400`. Used for ops correlation
+  (matching version-specific bug reports to installations).
 
 Additional properties on `descriptor` are accepted, persisted into the
 audit's `descriptorJson`, and ignored for validation (forward-compat).
+
+## Per-clientApp descriptor policies
+
+Different consumer apps run on platforms with different identity
+guarantees. A Windows desktop tool has a strong machine UUID and a
+stable OS-user SID; a mobile app has neither; a headless service may
+have no per-user identity at all. The server therefore enforces
+descriptor-field presence per `clientApp`, not uniformly.
+
+The policy registry is a server-side `IReadOnlyDictionary<string,
+DescriptorPolicy>` keyed by `clientApp`:
+
+```csharp
+public sealed record DescriptorPolicy(
+    bool OsUserIdRequired,
+    bool MachineIdRequired);
+```
+
+Today's only registered consumer:
+
+| `clientApp` | `OsUserIdRequired` | `MachineIdRequired` |
+|---|---|---|
+| `ButtonPanelTester` | `true` | `true` |
+
+When the lookup misses (`clientApp` field absent, empty, or carrying a
+string that no policy is registered for), the response is **401**
+conflated with token-unknown / scope-mismatch. New consumer apps must
+land a policy entry before they can register installations.
+
+The policy record intentionally has two bools, not four. `clientApp`
+required-ness is enforced by the lookup mechanism itself; `installGuid`
+required-ness is a contract-level invariant (every platform can produce
+a GUID) and lives at the DTO / `InstallGuidInvalid` outcome layer.
+
+## Privacy posture
+
+The server stores `osUserId` and `machineId` as opaque strings — it
+never parses, joins, or correlates them against external systems. Two
+guidance levels apply, depending on the deployment topology of the
+consumer:
+
+- **All consumers SHOULD** transmit a SHA-256 hex digest of the raw
+  identifier rather than the raw value. The hash is collision-resistant
+  enough (2^256) to function as a per-machine / per-user fingerprint for
+  revocation and forensics, and the server doesn't need the raw value
+  for any of its responsibilities.
+- **Supplier-deployed consumers MUST** hash. When the consumer runs on
+  hardware owned by an external organization (e.g.
+  `button-panel-tester` shipped to a STEM-Ems supplier), the OS user
+  ID and machine ID cross an organizational data boundary, and STEM
+  must not receive raw values. This is a cross-org compliance posture,
+  not a defense-in-depth nicety.
+
+The wire format is identical in both cases (a string); the consumer
+chooses the source before sending. The audit log records exactly what
+the consumer transmitted.
 
 ## Response — success
 
@@ -70,33 +134,51 @@ client MUST persist it under the OS's per-user secret store (DPAPI
 bootstrap token from any client-side storage immediately after this
 response.
 
-## Response — failure (any reason)
+## Response — failure
+
+Every failure response shares the envelope shape:
 
 ```http
-HTTP/1.1 401 Unauthorized
+HTTP/1.1 <status>
 Content-Type: application/json
 
-{ "error": "registration failed" }
+{ "error": "<short message>" }
 ```
 
-This identical body is returned for every failure mode:
+The status code distinguishes the failure class; the body always uses
+the same `{ "error": "..." }` envelope. The `error` message is a short
+operator/developer hint, not a token-validity oracle.
 
-- Bootstrap token missing or empty
-- Bootstrap token unknown (no matching hash)
-- Bootstrap token already used
-- Bootstrap token expired
-- Bootstrap token revoked
-- Bootstrap token's `ClientApp` ≠ descriptor's `clientApp`
-- Descriptor missing required fields or malformed
-- Descriptor's `installGuid` is the zero GUID
-- Audit DB write fails (FR-013) — note: this is the one failure mode
-  that returns 500, not 401, because returning 401 on an audit failure
-  would falsely tell the client "your token is bad" when in fact the
-  server failed.
+### Status → outcome map
 
-The `error` text is the same single string regardless of
-`Outcome` recorded server-side. Per FR-002, the response MUST NOT
-reveal which condition was violated.
+| Status | `RegistrationOutcome` | Trigger |
+|---|---|---|
+| `400 Bad Request` | `TokenMissing` | The `bootstrapToken` field is absent or empty. (Client bug, not a token-validity oracle — distinguishing missing from invalid does not reveal any token's scope.) |
+| `400 Bad Request` | `DescriptorMalformed` | Descriptor JSON is malformed, an unparseable Guid string, or `appVersion` fails the SemVer 2.0 grammar. |
+| `400 Bad Request` | `DescriptorMissingField` | A descriptor field required by the active `DescriptorPolicy` (e.g. `osUserId` for `ButtonPanelTester`) is missing or empty. |
+| `400 Bad Request` | `InstallGuidInvalid` | `descriptor.installGuid` parsed to `Guid.Empty` (the all-zeros GUID). |
+| `401 Unauthorized` | `TokenInvalid` *or* `ClientScopeMismatch` *or* policy-lookup miss | **Deliberately conflated.** The bootstrap token is unknown, OR the token's `ClientApp` scope does not match the descriptor's `clientApp`, OR the request's `clientApp` is absent / not in the policy registry. The response does not distinguish these three causes — see *Threat model* below. |
+| `409 Conflict` | `TokenAlreadyUsed` | The bootstrap token has been consumed by a prior successful registration (including a race-loser branch of a concurrent ceremony). |
+| `410 Gone` | `TokenExpired` | The bootstrap token's TTL has elapsed. |
+| `423 Locked` | `TokenRevoked` | The bootstrap token has been administratively revoked. |
+| `500 Internal Server Error` | `AuditFailure` | The pre-response `RegistrationEvent` write failed (FR-013). Body becomes `{ "error": "audit failure" }` — this is the only failure mode that doesn't use "registration failed" as the message, because operator-actionable distinct from "your token is bad". |
+
+The audit log records the exact `RegistrationOutcome` value for every
+attempt regardless of which status code was returned — server-side ops
+sees the full picture, the client sees only the actionable status.
+
+### Threat model — what the 401 conflation buys
+
+Three distinct causes share the 401 response: an unknown token, a
+token whose scope does not match the claimed `clientApp`, and a
+request whose `clientApp` is not in the policy registry. The
+conflation hides which apps a given token was scoped to. A token
+holder cannot probe "is this token scoped to `GlobalService`?" by
+trying different `clientApp` values — every wrong guess returns
+the same 401 as an unknown token. The bootstrap token's entropy
+(43-char base64url ≈ 2^258) makes random-guess enumeration
+infeasible regardless, so this conflation is defense-in-depth, not
+the primary line.
 
 ## Side effects
 
