@@ -61,14 +61,75 @@ jobs:
       - name: Restore
         run: dotnet restore src/API/API.csproj
 
+      - name: Build API
+        run: |
+          dotnet build src/API/API.csproj \
+            -c Release \
+            --no-restore \
+            -p:Version=${{ steps.version.outputs.version }} \
+            -p:InformationalVersion=${{ steps.version.outputs.informational }}
+
+      - name: Install dotnet-ef
+        # Pin to EF Core 10.x to match the runtime packages in
+        # Directory.Packages.props (10.0.x). Patch floats inside the major.
+        run: dotnet tool install --global dotnet-ef --version "10.0.*"
+
+      - name: Generate idempotent migration script
+        env:
+          # `dotnet ef` boots the API's HostBuilder at design time; the API
+          # reads DatabaseProvider + ConnectionStrings:SqlServer from config.
+          # The script generator only inspects the model, so a dummy SqlServer
+          # connection is enough — it must be SqlServer to emit SqlServer-
+          # dialect SQL for the Azure SQL target.
+          DatabaseProvider: SqlServer
+          ConnectionStrings__SqlServer: "Server=(local);Database=dummy;Integrated Security=true;TrustServerCertificate=true;"
+        run: |
+          dotnet ef migrations script \
+            --project src/Infrastructure/Infrastructure.csproj \
+            --startup-project src/API/API.csproj \
+            --configuration Release \
+            --idempotent \
+            --no-build \
+            --output migrations.sql
+
       - name: Publish API (framework-dependent)
         run: |
           dotnet publish src/API/API.csproj \
             -c Release \
             --no-restore \
+            --no-build \
             -p:Version=${{ steps.version.outputs.version }} \
             -p:InformationalVersion=${{ steps.version.outputs.informational }} \
             -o publish/api
+
+      - name: Upload migration script artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: migrations-${{ steps.version.outputs.tag }}
+          path: migrations.sql
+          retention-days: 90
+
+      - name: Apply migrations to Azure SQL
+        shell: pwsh
+        env:
+          AZURE_SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+        run: |
+          if (-not $env:AZURE_SQL_CONNECTION_STRING) {
+            Write-Error "AZURE_SQL_CONNECTION_STRING secret is not set."
+            exit 1
+          }
+          Write-Host "::group::Install SqlServer PowerShell module"
+          Install-Module -Name SqlServer -Force -AllowClobber -Scope CurrentUser -SkipPublisherCheck
+          Write-Host "::endgroup::"
+          Write-Host "::group::Apply idempotent migration script"
+          Invoke-Sqlcmd `
+            -ConnectionString $env:AZURE_SQL_CONNECTION_STRING `
+            -InputFile migrations.sql `
+            -AbortOnError `
+            -ErrorAction Stop `
+            -Verbose
+          Write-Host "::endgroup::"
+          Write-Host "Migrations applied successfully."
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
