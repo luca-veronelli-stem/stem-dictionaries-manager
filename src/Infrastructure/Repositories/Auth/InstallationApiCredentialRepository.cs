@@ -34,6 +34,15 @@ public class InstallationApiCredentialRepository : IInstallationApiCredentialRep
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<InstallationApiCredentialEntity>>
+        ListActiveByInstallationIdAsync(int installationId, CancellationToken ct = default)
+    {
+        return await _context.InstallationApiCredentials
+            .Where(c => c.InstallationId == installationId
+                && c.Status == InstallationStatus.Active)
+            .ToListAsync(ct);
+    }
+
     public async Task<InstallationApiCredentialEntity> AddAsync(
         InstallationApiCredentialEntity entity, CancellationToken ct = default)
     {

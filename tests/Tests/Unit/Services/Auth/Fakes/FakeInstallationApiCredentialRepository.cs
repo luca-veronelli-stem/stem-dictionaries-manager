@@ -35,6 +35,16 @@ internal sealed class FakeInstallationApiCredentialRepository : IInstallationApi
         return Task.FromResult(hit);
     }
 
+    public Task<IReadOnlyList<InstallationApiCredentialEntity>> ListActiveByInstallationIdAsync(
+        int installationId, CancellationToken ct = default)
+    {
+        IReadOnlyList<InstallationApiCredentialEntity> active = _store
+            .Where(e => e.InstallationId == installationId
+                && e.Status == InstallationStatus.Active)
+            .ToList();
+        return Task.FromResult(active);
+    }
+
     public Task<InstallationApiCredentialEntity> AddAsync(InstallationApiCredentialEntity entity,
         CancellationToken ct = default)
     {
@@ -43,5 +53,11 @@ internal sealed class FakeInstallationApiCredentialRepository : IInstallationApi
     }
 
     public Task UpdateAsync(InstallationApiCredentialEntity entity, CancellationToken ct = default)
-        => Task.CompletedTask;
+    {
+        // The real repo flips status via tracker; the fake mirrors that by
+        // letting the caller mutate the entity object in-place — _store
+        // holds the same reference, so the status flip is visible to
+        // subsequent ListActiveByInstallationIdAsync reads.
+        return Task.CompletedTask;
+    }
 }

@@ -22,6 +22,10 @@ public class InstallationRepository : IInstallationRepository
     public Task<InstallationEntity?> GetByIdAsync(int id, CancellationToken ct = default)
         => _context.Installations.FirstOrDefaultAsync(i => i.Id == id, ct);
 
+    public Task<InstallationEntity?> FindByInstallGuidAsync(Guid installGuid,
+        CancellationToken ct = default)
+        => _context.Installations.FirstOrDefaultAsync(i => i.InstallGuid == installGuid, ct);
+
     public async Task<IReadOnlyList<InstallationEntity>> ListAsync(string? clientApp,
         InstallationStatus? status, CancellationToken ct = default)
     {
