@@ -185,8 +185,14 @@ jobs:
             exit 1
           }
           Write-Host "API reports version=$($payload.version) environment=$($payload.environment)"
-          if ($payload.version -ne $env:EXPECTED_VERSION) {
-            Write-Error "Version mismatch — expected '$env:EXPECTED_VERSION', got '$($payload.version)'."
+          # The SDK appends `+<source-revision-id>` to AssemblyInformationalVersion
+          # (IncludeSourceRevisionInInformationalVersion is on by default), which
+          # is a useful operational breadcrumb but SemVer build metadata, so
+          # ignore it for the equality check. Prerelease suffix (e.g. `-rc.1`)
+          # IS significant and stays in $reportedSemVer.
+          $reportedSemVer = ($payload.version -split '\+')[0]
+          if ($reportedSemVer -ne $env:EXPECTED_VERSION) {
+            Write-Error "Version mismatch — expected '$env:EXPECTED_VERSION', got '$($payload.version)' (SemVer prefix '$reportedSemVer')."
             exit 1
           }
           Write-Host "Smoke check passed."
