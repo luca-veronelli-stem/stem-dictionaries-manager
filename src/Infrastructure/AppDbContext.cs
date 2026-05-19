@@ -274,13 +274,24 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // InstallationApiCredential (spec 001)
+        // InstallationApiCredential (spec 001 + 002)
         modelBuilder.Entity<InstallationApiCredentialEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SecretHash).HasMaxLength(200).IsRequired();
             entity.HasIndex(e => e.InstallationId);
             entity.HasIndex(e => e.SecretHash).IsUnique();
+            // Spec 002 invariant 6: at most one Active credential per
+            // Installation at any instant. Enforced via a filtered unique
+            // index on (InstallationId) WHERE Status = Active. The filter
+            // literal references the enum ordinal — `0 = InstallationStatus.Active`
+            // (Active is the first value in the enum). Reordering the
+            // enum would change the filter semantics; the enum's
+            // doc-comment notes the contract.
+            entity.HasIndex(e => e.InstallationId)
+                  .HasFilter("[Status] = 0")
+                  .IsUnique()
+                  .HasDatabaseName("UX_InstallationApiCredentials_Active");
         });
 
         // RegistrationEvent (spec 001)
