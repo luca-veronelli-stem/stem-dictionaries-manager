@@ -148,11 +148,20 @@ Long-lived authentication secret bound to one Installation.
 | `Status` | `InstallationStatus` enum | `Active | Revoked`. Mirrors the owning Installation's status. |
 | `RevokedAt` | `DateTime?` (UTC) | Set when transitioning to `Revoked`. |
 
-**Lifecycle relationship to Installation**: One credential per
-Installation in this feature. Revoking the Installation revokes the
-credential atomically in the same transaction. (Future feature: key
-rotation will introduce many-credentials-per-Installation, deprecating
-this 1:1 invariant; not in scope here.)
+**Lifecycle relationship to Installation**: One Installation holds
+**zero or more** credentials over its lifetime. At any instant, at
+most one of those is `Status = Active`; the rest linger as
+`Revoked` historical rows preserved for forensics (the prior
+`SecretHash` value is kept). The at-most-one-Active invariant is
+enforced by a filtered unique index — see *Cross-cutting invariants*
+§ 6 below. The relationship was 1:1 in spec 001 (`HasOne.WithOne`
+mapping); spec 002 (#71) shifted it to 1:N (`HasMany.WithOne`) to
+support the re-registration flow.
+
+Revoking the Installation revokes the Active credential atomically in
+the same transaction. Re-registration (spec 002 / #71) flips the
+prior Active credential to Revoked and inserts a new Active one
+within a single transaction.
 
 **Validation rules**:
 
@@ -164,7 +173,13 @@ this 1:1 invariant; not in scope here.)
 
 EF mapping:
 
-- Index on `InstallationId`.
+- Index on `InstallationId` (non-unique after spec 002; the 1:1
+  `HasOne.WithOne` mapping that implicitly carried a unique constraint
+  was replaced by the 1:N `HasMany.WithOne` mapping).
+- Filtered unique index `UX_InstallationApiCredentials_Active` on
+  `(InstallationId) WHERE Status = 0` (= `Active`) — enforces the
+  at-most-one-Active invariant (see § *Cross-cutting invariants* 6).
+  Migration `MultiActiveCredentialPerInstallationGuard` introduces it.
 - Unique index on `SecretHash` (same defensive rationale as
   BootstrapTokenEntity).
 
@@ -201,6 +216,8 @@ Audit-trail record of one registration attempt (success or failure).
 | `ClientScopeMismatch` | Token's `ClientApp` ≠ descriptor's `clientApp`. |
 | `DescriptorMalformed` | Descriptor missing required fields or unparseable. |
 | `AuditFailure` | DB error while writing the event itself; sentinel value used only by tests, never persisted (the failure mode collapses into a 500 response per FR-013). |
+| `ReRegistrationSuccess` | Spec 002 / #71 — re-registration happy path. Wire response identical to `Success` (200 + new credential body); audit value distinct so operators can filter for re-registrations. |
+| `ExistingInstallationRevoked` | Spec 002 / #71 — re-registration rejected because the matched Installation row's own `Status` is `Revoked`. Wire response identical to `ClientScopeMismatch` (conflated 401); installation is NOT auto-unrevoked. |
 
 **Server-only**: per spec FR-002, the `Outcome` value is recorded
 server-side and never disclosed to the client. The `/register` failure
@@ -334,3 +351,11 @@ API keys remain valid in parallel" and per the constitution).
    `InstallationApiCredential` X does not modify the `Status` of any
    other credential. Asserted by integration tests in the
    "Story 3 — independent revoke" suite.
+6. **At-most-one-Active credential per Installation** (spec 002 / #71):
+   at any instant, at most one row in `InstallationApiCredentials`
+   has `(InstallationId = X) AND (Status = Active)` for any
+   installation `X`. Enforced by the filtered unique index
+   `UX_InstallationApiCredentials_Active` (`HasFilter("[Status] = 0")
+   .IsUnique()`). The re-registration path (spec 002) revokes the
+   prior Active row **before** inserting the new Active row inside a
+   single transaction, upholding the invariant by ordering.

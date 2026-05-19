@@ -163,6 +163,15 @@ operator/developer hint, not a token-validity oracle.
 | `423 Locked` | `TokenRevoked` | The bootstrap token has been administratively revoked. |
 | `500 Internal Server Error` | `AuditFailure` | The pre-response `RegistrationEvent` write failed (FR-013). Body becomes `{ "error": "audit failure" }` — this is the only failure mode that doesn't use "registration failed" as the message, because operator-actionable distinct from "your token is bad". |
 
+Server-only outcomes (spec 002 / #71) — wire response identical to
+the conflated cases above, distinguishable only in
+`RegistrationEvents.Outcome`:
+
+| Wire shape | `RegistrationOutcome` | Trigger |
+|---|---|---|
+| `200 OK` (Success-shape body, new credential plaintext) | `ReRegistrationSuccess` | A fresh bootstrap token validated against an existing **Active** Installation with matching ClientApp. The atomic re-registration path ran. See *Re-registration path* below. |
+| `401 Unauthorized` (conflated body) | `ExistingInstallationRevoked` | A fresh bootstrap token validated against an existing **Revoked** Installation with matching ClientApp. Installation is NOT auto-unrevoked; recovery requires a separate admin flow. |
+
 The audit log records the exact `RegistrationOutcome` value for every
 attempt regardless of which status code was returned — server-side ops
 sees the full picture, the client sees only the actionable status.
@@ -202,6 +211,45 @@ On success only:
 
 All four writes are committed in a single SaveChangesAsync transaction
 (invariant 3 in `data-model.md`).
+
+### Re-registration path (spec 002 / #71)
+
+When all of the following hold:
+
+- The bootstrap token validates as `Issued` and matches the request's
+  `clientApp` scope.
+- The descriptor validates fully.
+- An `Installation` row already exists for the request's
+  `installGuid`, its `ClientApp` byte-matches the request's
+  `ClientApp`, and its `Status` is `Active`.
+
+…the endpoint takes the **re-registration path** (option B from
+issue #71, FR-018 from spec 001):
+
+1. Every `Active` `InstallationApiCredential` row for the matched
+   installation is flipped to `Status = Revoked`, `RevokedAt = now`.
+   Prior `SecretHash` values are preserved (forensic value).
+2. A new `InstallationApiCredential` row is inserted with
+   `Status = Active` and a freshly-generated `SecretHash`.
+3. The bootstrap token transitions `Issued → Used` exactly as in the
+   first-time path.
+4. A `RegistrationEvent` audit row is inserted with
+   `Outcome = ReRegistrationSuccess` — server-only outcome; wire
+   response is byte-identical to a first-time `Success` (200 + new
+   credential body).
+
+All four writes commit in a single SaveChangesAsync transaction.
+
+When the matched installation's `ClientApp` differs from the
+request's `ClientApp`, the request is rejected through the existing
+conflated 401 path (`Outcome = ClientScopeMismatch`); no row in
+`Installations` or `InstallationApiCredentials` is mutated.
+
+When the matched installation's `Status` is `Revoked`, the request is
+rejected through the existing conflated 401 path
+(`Outcome = ExistingInstallationRevoked` — server-only outcome with
+the same wire shape). The installation is **not** auto-unrevoked; a
+separate admin flow is required to recover.
 
 ## Authentication / middleware
 
