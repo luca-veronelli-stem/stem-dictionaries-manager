@@ -479,6 +479,109 @@ public class RegistrationServiceTests : IntegrationTestBase
         BootstrapTokenEntity[] tokens = await Context.BootstrapTokens.AsNoTracking().ToArrayAsync();
         Assert.All(tokens, t => Assert.Equal(BootstrapTokenStatus.Issued, t.Status));
     }
+
+    // ----- Re-registration rejection paths (#71 slice 5) -----
+
+    private static readonly Guid ReRegInstallGuid =
+        new("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c");
+
+    private async Task<InstallationEntity> SeedInstallationAsync(string clientApp,
+        InstallationStatus status, Guid? installGuid = null)
+    {
+        InstallationEntity entity = new()
+        {
+            ClientApp = clientApp,
+            OsUserId = "S-1-5-21-2127521184-1604012920-1887927527-72713",
+            MachineId = "8a5e9b3c-6f4d-4d2a-9c1b-7d8e3f4b6c2a",
+            InstallGuid = installGuid ?? ReRegInstallGuid,
+            AppVersion = "1.0.0",
+            DescriptorJson = "{}",
+            RegisteredAt = _time.GetUtcNow().UtcDateTime,
+            Status = status,
+            RevokedAt = status == InstallationStatus.Revoked
+                ? _time.GetUtcNow().UtcDateTime : null
+        };
+        Context.Installations.Add(entity);
+        await Context.SaveChangesAsync();
+        return entity;
+    }
+
+    [Fact]
+    public async Task RegisterAsync_FreshTokenOnExistingInstallGuid_CrossApp_RoutesToClientScopeMismatch_NoMutation()
+    {
+        // Existing installation under a different ClientApp than the
+        // request. Spec 002 FR-002: the conflated 401 path takes the
+        // request; no row in Installations / InstallationApiCredentials
+        // is mutated; only an audit row is written.
+        InstallationEntity existing = await SeedInstallationAsync(
+            clientApp: "GlobalService", status: InstallationStatus.Active);
+        const string plaintext = "stbt_cross-app";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.ClientScopeMismatch, failure.Outcome);
+
+        // Existing installation is untouched.
+        InstallationEntity? after = await Context.Installations.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == existing.Id);
+        Assert.NotNull(after);
+        Assert.Equal("GlobalService", after!.ClientApp);
+        Assert.Equal(InstallationStatus.Active, after.Status);
+        Assert.Equal(1, await Context.Installations.CountAsync());
+
+        // No new credential issued.
+        Assert.Equal(0, await Context.InstallationApiCredentials.CountAsync());
+
+        // Token not consumed.
+        BootstrapTokenEntity[] tokens = await Context.BootstrapTokens.AsNoTracking().ToArrayAsync();
+        Assert.All(tokens, t => Assert.Equal(BootstrapTokenStatus.Issued, t.Status));
+
+        // Audit row records the conflated-401 outcome.
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking()
+            .SingleAsync();
+        Assert.Equal(RegistrationOutcome.ClientScopeMismatch, evt.Outcome);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_FreshTokenOnExistingInstallGuid_RevokedInstallation_RoutesToExistingInstallationRevoked_NoMutation()
+    {
+        // Existing installation is Revoked. Spec 002 FR-003: reject via
+        // the conflated 401 path with the dedicated server-only outcome
+        // ExistingInstallationRevoked. Installation must NOT be
+        // auto-unrevoked.
+        InstallationEntity existing = await SeedInstallationAsync(
+            clientApp: "ButtonPanelTester", status: InstallationStatus.Revoked);
+        const string plaintext = "stbt_revoked-install";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.ExistingInstallationRevoked, failure.Outcome);
+
+        // Installation stays Revoked (not auto-unrevoked).
+        InstallationEntity? after = await Context.Installations.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == existing.Id);
+        Assert.NotNull(after);
+        Assert.Equal(InstallationStatus.Revoked, after!.Status);
+        Assert.NotNull(after.RevokedAt);
+
+        // No credential issued.
+        Assert.Equal(0, await Context.InstallationApiCredentials.CountAsync());
+
+        // Token not consumed.
+        BootstrapTokenEntity[] tokens = await Context.BootstrapTokens.AsNoTracking().ToArrayAsync();
+        Assert.All(tokens, t => Assert.Equal(BootstrapTokenStatus.Issued, t.Status));
+
+        // Audit row records the dedicated server-only outcome.
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking()
+            .SingleAsync();
+        Assert.Equal(RegistrationOutcome.ExistingInstallationRevoked, evt.Outcome);
+    }
 }
 
 internal sealed class FakeTimeProvider : TimeProvider
