@@ -53,4 +53,24 @@ public class InstallationCredentialService : IInstallationCredentialService
         InstallationApiCredential record = new(installationId, hash, issuedAt);
         return (record, plaintext);
     }
+
+    public async Task<int> RevokeActiveAsync(int installationId, DateTime revokedAt,
+        CancellationToken ct = default)
+    {
+        if (installationId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(installationId),
+                "InstallationId must be a positive integer.");
+        }
+
+        IReadOnlyList<InstallationApiCredentialEntity> active = await _credentials
+            .ListActiveByInstallationIdAsync(installationId, ct).ConfigureAwait(false);
+        foreach (InstallationApiCredentialEntity row in active)
+        {
+            row.Status = InstallationStatus.Revoked;
+            row.RevokedAt = revokedAt;
+            await _credentials.UpdateAsync(row, ct).ConfigureAwait(false);
+        }
+        return active.Count;
+    }
 }
