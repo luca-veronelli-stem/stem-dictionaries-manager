@@ -40,6 +40,7 @@ builder.Services.AddServices();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<ITokenGenerator, TokenGenerator>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddScoped<IInstallationCredentialValidator, InstallationCredentialValidator>();
 
 // JSON: camelCase + nulls omitted (BR-API-004)
