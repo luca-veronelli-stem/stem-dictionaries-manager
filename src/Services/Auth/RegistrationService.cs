@@ -71,7 +71,39 @@ public partial class RegistrationService : IRegistrationService
 
         if (outcome == RegistrationOutcome.Success)
         {
-            return await CommitSuccessAsync(token!, descriptor!, request, now, ct)
+            // Spec 002 (#71): when the descriptor's InstallGuid matches an
+            // existing Installation row, branch out of the first-time
+            // insert path and either reject (cross-app reuse / revoked
+            // installation) or re-register atomically (slice 6).
+            InstallationEntity? existing = await _installations
+                .FindByInstallGuidAsync(descriptor!.InstallGuid, ct)
+                .ConfigureAwait(false);
+            if (existing is not null)
+            {
+                if (!string.Equals(existing.ClientApp, descriptor.ClientApp,
+                    StringComparison.Ordinal))
+                {
+                    // Cross-app InstallGuid reuse — conflated 401, no
+                    // mutation outside the audit row.
+                    return await CommitFailureAsync(request, now,
+                        RegistrationOutcome.ClientScopeMismatch, ct)
+                        .ConfigureAwait(false);
+                }
+                if (existing.Status != InstallationStatus.Active)
+                {
+                    // Revoked installation — server-only outcome, same
+                    // conflated 401 wire shape.
+                    return await CommitFailureAsync(request, now,
+                        RegistrationOutcome.ExistingInstallationRevoked, ct)
+                        .ConfigureAwait(false);
+                }
+                // Active existing installation — slice 6 replaces this
+                // fall-through with CommitReRegistrationAsync. Until then,
+                // hitting the unique-InstallGuid index in
+                // CommitSuccessAsync throws and surfaces today's #71 500.
+                // No existing test exercises this combination.
+            }
+            return await CommitSuccessAsync(token!, descriptor, request, now, ct)
                 .ConfigureAwait(false);
         }
 
