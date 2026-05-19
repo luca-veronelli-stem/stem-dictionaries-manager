@@ -4,6 +4,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-05-19
+
+Hotfix for v0.7.1's API deploy. The `Microsoft.EntityFrameworkCore.Design` reference was missing from `src/API`, so `dotnet ef migrations script --startup-project src/API` failed during the v0.7.1 deploy run before it could touch Azure SQL or App Service. Latent since `0.7.0` — never surfaced because EF tooling had only ever been invoked locally against `Infrastructure` as both project and startup project.
+
+### Fixed
+
+- **API**: `src/API/API.csproj` now references `Microsoft.EntityFrameworkCore.Design` with `<PrivateAssets>all</PrivateAssets>` + `<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>` (the canonical EF design-time-only pattern, already used by `src/Infrastructure`). Design assemblies stay out of the published runtime and the API code's compile surface — they exist on disk under `bin/` only so `dotnet ef` can load them via reflection during the deploy workflow.
+
 ## [0.7.1] - 2026-05-19
 
 Operations cycle — closes the gap between "API code on `main`" and "running production on Azure App Service" that v0.7.0's manual ship procedure exposed. Two bug fixes ride along: the `/register` outcome-classification fix from #58, and the `release.yml` path fix that left v0.5.0–v0.7.0 with no GitHub Release artifact.
