@@ -1,0 +1,84 @@
+name: Deploy API
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy (e.g. v0.8.0)'
+        required: true
+
+concurrency:
+  group: deploy-api-prod
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_WEBAPP_NAME: app-dictionaries-manager-prod
+  DOTNET_NOLOGO: true
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app-dictionaries-manager-prod.azurewebsites.net
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = if ($env:GITHUB_REF_NAME -match '^v\d') {
+            $env:GITHUB_REF_NAME
+          } else {
+            '${{ inputs.tag }}'
+          }
+          $informational = $tag.TrimStart('v')
+          # AssemblyVersion accepts Major.Minor.Build[.Revision] only —
+          # strip any SemVer prerelease/build suffix.
+          $version = $informational -replace '[-+].*$', ''
+          "tag=$tag"                     | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$version"             | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "informational=$informational" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Restore
+        run: dotnet restore src/API/API.csproj
+
+      - name: Publish API (framework-dependent)
+        run: |
+          dotnet publish src/API/API.csproj \
+            -c Release \
+            --no-restore \
+            -p:Version=${{ steps.version.outputs.version }} \
+            -p:InformationalVersion=${{ steps.version.outputs.informational }} \
+            -o publish/api
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: publish/api
