@@ -312,13 +312,13 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
-    public async Task Register_SameTokenReplayed_OnlyFirstCallSucceeds()
+    public async Task Register_SameTokenReplayed_FirstSucceedsSecondReturns409TokenAlreadyUsed()
     {
-        // Single-use enforcement (SC-003 spirit): once a token is consumed, any
-        // subsequent attempt returns 401 — the lookup ignores Used rows so the
-        // second call surfaces as TokenInvalid (conflated with unknown-token).
-        // The race-loser path which can observe the token in Used state directly
-        // surfaces TokenAlreadyUsed -> 409 (exercised separately below).
+        // Single-use enforcement (SC-003): the first /register consumes the
+        // token; the second sees the Used row directly via LookupAsync (#58)
+        // and surfaces TokenAlreadyUsed -> 409, distinct from the conflated
+        // 401 the unknown-token branch produces. The race-loser path is
+        // exercised separately for the rare flip-between-lookup-and-mark case.
         await SeedActiveTokenAsync("ButtonPanelTester", "stbt_single-use");
         using HttpClient client = _factory.CreateClient();
 
@@ -328,7 +328,7 @@ public class RegisterEndpointTests : IDisposable
             JsonBody(new { bootstrapToken = "stbt_single-use", descriptor = ValidDescriptor() }));
 
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized, second.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
         Assert.Equal(FailureBody, await ReadBodyAsync(second));
 
         // Exactly one Installation row exists with the FK back-pointing.
@@ -338,6 +338,90 @@ public class RegisterEndpointTests : IDisposable
         BootstrapTokenEntity[] tokens = await db.BootstrapTokens.AsNoTracking().ToArrayAsync();
         Assert.Single(tokens);
         Assert.Equal(BootstrapTokenStatus.Used, tokens[0].Status);
+    }
+
+    [Fact]
+    public async Task Register_PreviouslyConsumedToken_Returns409AndAuditRowCarriesTokenAlreadyUsed()
+    {
+        // #58 non-race path: seed a Used row directly (no preceding success)
+        // and assert 409 + TokenAlreadyUsed audit. End-to-end repro of the
+        // Azure-deployment bug.
+        DateTime mintedAt = DateTime.UtcNow.AddSeconds(-30);
+        await using (AppDbContext seed = _factory.NewContext())
+        {
+            InstallationEntity priorInstall = new()
+            {
+                ClientApp = "ButtonPanelTester",
+                OsUserId = "u",
+                MachineId = "m",
+                InstallGuid = Guid.NewGuid(),
+                AppVersion = "1.0.0",
+                DescriptorJson = "{}",
+                RegisteredAt = mintedAt.AddMinutes(1),
+                Status = InstallationStatus.Active
+            };
+            seed.Installations.Add(priorInstall);
+            await seed.SaveChangesAsync();
+            seed.BootstrapTokens.Add(new BootstrapTokenEntity
+            {
+                ClientApp = "ButtonPanelTester",
+                SecretHash = _hasher.Hash("stbt_already-used"),
+                MintedAt = mintedAt,
+                ExpiresAt = mintedAt + TimeSpan.FromDays(30),
+                Status = BootstrapTokenStatus.Used,
+                UsedAt = mintedAt.AddMinutes(1),
+                ConsumedByInstallationId = priorInstall.Id
+            });
+            await seed.SaveChangesAsync();
+        }
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_already-used", descriptor = ValidDescriptor() }));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        // Only the pre-existing prior install remains — the rejected attempt
+        // did not create a second Installation or credential row.
+        Assert.Equal(1, await db.Installations.CountAsync());
+        Assert.Equal(0, await db.InstallationApiCredentials.CountAsync());
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, evt.Outcome);
+        Assert.Null(evt.ResultingInstallationId);
+    }
+
+    [Fact]
+    public async Task Register_RevokedToken_Returns423AndAuditRowCarriesTokenRevoked()
+    {
+        // #58: a Revoked token surfaces as 423 Locked + TokenRevoked audit
+        // (forensically distinct from TokenAlreadyUsed; same failure-body envelope).
+        DateTime mintedAt = DateTime.UtcNow.AddSeconds(-30);
+        await using (AppDbContext seed = _factory.NewContext())
+        {
+            seed.BootstrapTokens.Add(new BootstrapTokenEntity
+            {
+                ClientApp = "ButtonPanelTester",
+                SecretHash = _hasher.Hash("stbt_revoked"),
+                MintedAt = mintedAt,
+                ExpiresAt = mintedAt + TimeSpan.FromDays(30),
+                Status = BootstrapTokenStatus.Revoked,
+                RevokedAt = mintedAt.AddMinutes(5)
+            });
+            await seed.SaveChangesAsync();
+        }
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_revoked", descriptor = ValidDescriptor() }));
+
+        Assert.Equal((HttpStatusCode)423, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenRevoked, evt.Outcome);
     }
 
     [Fact]

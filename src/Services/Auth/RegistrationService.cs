@@ -89,6 +89,19 @@ public partial class RegistrationService : IRegistrationService
         {
             return RegistrationOutcome.TokenInvalid;
         }
+        // Non-race terminal states must surface before the expiry check so a
+        // Used-and-now-expired token still maps to TokenAlreadyUsed (the
+        // actionable user-facing message), not TokenExpired (#58). The
+        // race-loser path in CommitSuccessAsync remains a second line of
+        // defence for tokens that flip between LookupAsync and MarkUsedAsync.
+        if (token.Status == BootstrapTokenStatus.Used)
+        {
+            return RegistrationOutcome.TokenAlreadyUsed;
+        }
+        if (token.Status == BootstrapTokenStatus.Revoked)
+        {
+            return RegistrationOutcome.TokenRevoked;
+        }
         if (token.IsExpiredAt(now))
         {
             return RegistrationOutcome.TokenExpired;

@@ -1,4 +1,3 @@
-using Core.Enums.Auth;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +26,9 @@ public class BootstrapTokenRepository : IBootstrapTokenRepository
     public Task<BootstrapTokenEntity?> GetByIdAsync(int id, CancellationToken ct = default)
         => _context.BootstrapTokens.FirstOrDefaultAsync(t => t.Id == id, ct);
 
-    public async Task<IReadOnlyList<BootstrapTokenEntity>> ListByStatusAsync(
-        BootstrapTokenStatus status, CancellationToken ct = default)
+    public async Task<IReadOnlyList<BootstrapTokenEntity>> ListAllAsync(CancellationToken ct = default)
     {
-        return await _context.BootstrapTokens
-            .Where(t => t.Status == status)
-            .ToListAsync(ct);
+        return await _context.BootstrapTokens.ToListAsync(ct);
     }
 
     public async Task<BootstrapTokenEntity> AddAsync(BootstrapTokenEntity entity,

@@ -343,6 +343,69 @@ public class RegistrationServiceTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task RegisterAsync_PreviouslyConsumedToken_FailsWithTokenAlreadyUsed()
+    {
+        // #58 non-race path: a Used row is visible to LookupAsync and
+        // ClassifyOutcome branches it directly to TokenAlreadyUsed (-> 409),
+        // distinct from the conflated 401 it used to receive.
+        const string plaintext = "stbt_consumed";
+        await SeedTokenAsync("ButtonPanelTester", plaintext,
+            status: BootstrapTokenStatus.Used);
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, failure.Outcome);
+        Assert.Equal(0, await Context.Installations.CountAsync());
+        Assert.Equal(0, await Context.InstallationApiCredentials.CountAsync());
+
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, evt.Outcome);
+        Assert.Null(evt.ResultingInstallationId);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_RevokedToken_FailsWithTokenRevoked()
+    {
+        // #58 non-race path: a Revoked row maps to TokenRevoked (-> 423),
+        // forensically distinct from the consumed (Used) case.
+        const string plaintext = "stbt_revoked";
+        await SeedTokenAsync("ButtonPanelTester", plaintext,
+            status: BootstrapTokenStatus.Revoked);
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.TokenRevoked, failure.Outcome);
+        Assert.Equal(0, await Context.Installations.CountAsync());
+
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenRevoked, evt.Outcome);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_UsedTokenAlsoExpired_FailsWithTokenAlreadyUsedNotExpired()
+    {
+        // Ordering check (#58): when a token is both Used and past its TTL,
+        // TokenAlreadyUsed wins over TokenExpired -- the actionable user-facing
+        // message is "you already registered with this token", not "it expired".
+        const string plaintext = "stbt_used-and-expired";
+        BootstrapTokenEntity entity = await SeedTokenAsync("ButtonPanelTester", plaintext,
+            ttl: TimeSpan.FromHours(1),
+            status: BootstrapTokenStatus.Used);
+        _time.Advance(TimeSpan.FromHours(2));
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, failure.Outcome);
+        _ = entity;
+    }
+
+    [Fact]
     public async Task RegisterAsync_RaceLoserAfterLookup_ReturnsFailureAndRollsBackInstall()
     {
         // SC-003 / data-model invariant 1: when a concurrent /register on the
