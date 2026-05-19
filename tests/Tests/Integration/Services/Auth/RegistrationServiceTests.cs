@@ -582,6 +582,127 @@ public class RegistrationServiceTests : IntegrationTestBase
             .SingleAsync();
         Assert.Equal(RegistrationOutcome.ExistingInstallationRevoked, evt.Outcome);
     }
+
+    // ----- Re-registration happy path + race-loser (#71 slice 6) -----
+
+    private async Task<InstallationApiCredentialEntity> SeedActiveCredentialAsync(
+        InstallationEntity installation, string plaintext)
+    {
+        InstallationApiCredentialEntity entity = new()
+        {
+            InstallationId = installation.Id,
+            Installation = installation,
+            SecretHash = _hasher.Hash(plaintext),
+            IssuedAt = _time.GetUtcNow().UtcDateTime,
+            Status = InstallationStatus.Active
+        };
+        Context.InstallationApiCredentials.Add(entity);
+        await Context.SaveChangesAsync();
+        return entity;
+    }
+
+    [Fact]
+    public async Task RegisterAsync_FreshTokenOnExistingActiveInstallation_RevokesPriorCredentialsIssuesNew_AuditsReRegistrationSuccess()
+    {
+        // Pre-existing installation + Active credential. A fresh
+        // bootstrap token arrives. The atomic re-registration path
+        // revokes the prior credential, issues a new one against the
+        // same Installation row, and audits with ReRegistrationSuccess.
+        InstallationEntity existing = await SeedInstallationAsync(
+            clientApp: "ButtonPanelTester", status: InstallationStatus.Active);
+        InstallationApiCredentialEntity priorCred =
+            await SeedActiveCredentialAsync(existing, "stak_prior-cred");
+        const string plaintext = "stbt_rereg-token";
+        BootstrapTokenEntity token = await SeedTokenAsync("ButtonPanelTester", plaintext);
+        DateTime now = _time.GetUtcNow().UtcDateTime;
+        RegistrationService sut = BuildSut();
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Success success = Assert.IsType<RegistrationResult.Success>(result);
+        Assert.Equal(existing.Id, success.InstallationId);
+        Assert.StartsWith("stak_", success.ApiCredentialPlaintext);
+
+        // Installation row is unchanged.
+        InstallationEntity? installAfter = await Context.Installations.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == existing.Id);
+        Assert.NotNull(installAfter);
+        Assert.Equal(InstallationStatus.Active, installAfter!.Status);
+        Assert.Equal(1, await Context.Installations.CountAsync());
+
+        // Prior credential is now Revoked with the now timestamp;
+        // SecretHash is preserved.
+        InstallationApiCredentialEntity? priorAfter = await Context.InstallationApiCredentials
+            .AsNoTracking().FirstOrDefaultAsync(c => c.Id == priorCred.Id);
+        Assert.NotNull(priorAfter);
+        Assert.Equal(InstallationStatus.Revoked, priorAfter!.Status);
+        Assert.Equal(now, priorAfter.RevokedAt);
+        Assert.Equal(priorCred.SecretHash, priorAfter.SecretHash);
+
+        // A new Active credential exists with a different SecretHash.
+        InstallationApiCredentialEntity[] active = await Context.InstallationApiCredentials
+            .AsNoTracking().Where(c => c.Status == InstallationStatus.Active).ToArrayAsync();
+        Assert.Single(active);
+        Assert.Equal(existing.Id, active[0].InstallationId);
+        Assert.NotEqual(priorCred.SecretHash, active[0].SecretHash);
+        Assert.True(_hasher.Verify(success.ApiCredentialPlaintext, active[0].SecretHash));
+
+        // Plaintext changed.
+        Assert.NotEqual("stak_prior-cred", success.ApiCredentialPlaintext);
+
+        // Token transitioned to Used.
+        BootstrapTokenEntity? tokenAfter = await Context.BootstrapTokens.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == token.Id);
+        Assert.NotNull(tokenAfter);
+        Assert.Equal(BootstrapTokenStatus.Used, tokenAfter!.Status);
+        Assert.Equal(existing.Id, tokenAfter.ConsumedByInstallationId);
+
+        // Audit row uses the dedicated server-only outcome.
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking()
+            .SingleAsync();
+        Assert.Equal(RegistrationOutcome.ReRegistrationSuccess, evt.Outcome);
+        Assert.Equal(existing.Id, evt.ResultingInstallationId);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_FreshTokenOnExistingActiveInstallation_TokenRaceLoserOnMarkUsed_RollsBackAndAuditsRaceOutcome()
+    {
+        // Same precondition as the happy path, but a fake
+        // IBootstrapTokenService throws BootstrapTokenStateException on
+        // MarkUsedAsync (the race-loser scenario). Re-registration must
+        // roll back the in-flight revoke + new-credential insert and
+        // write a failure audit with the race outcome.
+        InstallationEntity existing = await SeedInstallationAsync(
+            clientApp: "ButtonPanelTester", status: InstallationStatus.Active);
+        InstallationApiCredentialEntity priorCred =
+            await SeedActiveCredentialAsync(existing, "stak_prior-cred");
+        const string plaintext = "stbt_race-loser";
+        await SeedTokenAsync("ButtonPanelTester", plaintext);
+
+        var realSvc = new BootstrapTokenService(new BootstrapTokenRepository(Context), _hasher);
+        var raceSvc = new RaceLosingBootstrapTokenService(realSvc, BootstrapTokenStatus.Used);
+        RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
+
+        RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
+
+        RegistrationResult.Failure failure = Assert.IsType<RegistrationResult.Failure>(result);
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, failure.Outcome);
+
+        // Prior credential is still Active (revoke rolled back).
+        InstallationApiCredentialEntity? priorAfter = await Context.InstallationApiCredentials
+            .AsNoTracking().FirstOrDefaultAsync(c => c.Id == priorCred.Id);
+        Assert.NotNull(priorAfter);
+        Assert.Equal(InstallationStatus.Active, priorAfter!.Status);
+        Assert.Null(priorAfter.RevokedAt);
+
+        // No new credential was inserted.
+        Assert.Equal(1, await Context.InstallationApiCredentials.CountAsync());
+
+        // Audit row records the race outcome.
+        RegistrationEventEntity evt = await Context.RegistrationEvents.AsNoTracking()
+            .SingleAsync();
+        Assert.Equal(RegistrationOutcome.TokenAlreadyUsed, evt.Outcome);
+    }
 }
 
 internal sealed class FakeTimeProvider : TimeProvider

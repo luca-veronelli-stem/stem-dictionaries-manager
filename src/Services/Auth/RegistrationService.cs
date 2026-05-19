@@ -97,11 +97,12 @@ public partial class RegistrationService : IRegistrationService
                         RegistrationOutcome.ExistingInstallationRevoked, ct)
                         .ConfigureAwait(false);
                 }
-                // Active existing installation — slice 6 replaces this
-                // fall-through with CommitReRegistrationAsync. Until then,
-                // hitting the unique-InstallGuid index in
-                // CommitSuccessAsync throws and surfaces today's #71 500.
-                // No existing test exercises this combination.
+                // Active existing installation — atomic re-registration
+                // (option B from #71): revoke prior credentials, issue a
+                // new one against the same Installation row, transition
+                // the bootstrap token, audit with ReRegistrationSuccess.
+                return await CommitReRegistrationAsync(existing, token!, request,
+                    now, ct).ConfigureAwait(false);
             }
             return await CommitSuccessAsync(token!, descriptor, request, now, ct)
                 .ConfigureAwait(false);
@@ -263,6 +264,64 @@ public partial class RegistrationService : IRegistrationService
         await txn.CommitAsync(ct).ConfigureAwait(false);
 
         return new RegistrationResult.Success(installEntity.Id, plaintext, now);
+    }
+
+    /// <summary>
+    /// Atomic re-registration on an existing Active Installation
+    /// (spec 002 / #71, option B). Revokes every Active credential,
+    /// issues a fresh one against the same Installation row,
+    /// transitions the bootstrap token <c>Issued → Used</c>, and
+    /// writes a <see cref="RegistrationOutcome.ReRegistrationSuccess"/>
+    /// audit row — all in one transaction (data-model invariant 3).
+    /// </summary>
+    /// <remarks>
+    /// Known limitation: a concurrent re-registration race using two
+    /// different bootstrap tokens against the same Installation will
+    /// have one loser hit the filtered unique index on
+    /// <c>InstallationApiCredentials.InstallationId WHERE Status = Active</c>
+    /// at <c>AppDbContext.SaveChangesAsync</c> time. The
+    /// resulting <c>DbUpdateException</c> propagates up to the endpoint
+    /// catch and surfaces as a logged 500 (FR-008). A future PR may
+    /// reclassify that specific exception as a race outcome.
+    /// </remarks>
+    private async Task<RegistrationResult> CommitReRegistrationAsync(
+        InstallationEntity existing, BootstrapToken token,
+        RegisterRequest request, DateTime now, CancellationToken ct)
+    {
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction txn =
+            await _db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+
+        await _credentials.RevokeActiveAsync(existing.Id, now, ct).ConfigureAwait(false);
+        (_, string plaintext) = await _credentials
+            .IssueAsync(existing.Id, now, ct).ConfigureAwait(false);
+
+        try
+        {
+            await _bootstrapTokens.MarkUsedAsync(token.Id, existing.Id, now, ct)
+                .ConfigureAwait(false);
+        }
+        catch (BootstrapTokenStateException ex)
+        {
+            // Race-loser: same shape as CommitSuccessAsync. Roll back the
+            // in-flight revoke + new-credential insert, clear the tracker,
+            // and audit the race outcome.
+            await txn.RollbackAsync(ct).ConfigureAwait(false);
+            _db.ChangeTracker.Clear();
+            RegistrationOutcome raceOutcome = ex.FoundStatus == BootstrapTokenStatus.Revoked
+                ? RegistrationOutcome.TokenRevoked
+                : RegistrationOutcome.TokenAlreadyUsed;
+            return await CommitFailureAsync(request, now, raceOutcome, ct)
+                .ConfigureAwait(false);
+        }
+
+        RegistrationEventEntity reRegEvent = BuildEvent(request, now,
+            RegistrationOutcome.ReRegistrationSuccess, existing.Id);
+        await _events.AddAsync(reRegEvent, ct).ConfigureAwait(false);
+
+        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        await txn.CommitAsync(ct).ConfigureAwait(false);
+
+        return new RegistrationResult.Success(existing.Id, plaintext, now);
     }
 
     private async Task<RegistrationResult> CommitFailureAsync(RegisterRequest request,
