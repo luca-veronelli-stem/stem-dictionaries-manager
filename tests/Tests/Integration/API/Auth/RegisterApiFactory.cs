@@ -6,7 +6,9 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces.Auth;
+using Tests.Unit.Services.Auth.Fakes;
 
 namespace Tests.Integration.API.Auth;
 
@@ -29,6 +31,13 @@ internal sealed class RegisterApiFactory : WebApplicationFactory<Program>
     /// (<c>Register_ConcurrentRaceLoser_Returns401WithUnifiedBody</c>).
     /// </summary>
     public Func<IServiceProvider, IBootstrapTokenService>? BootstrapTokenSvcFactory { get; set; }
+
+    /// <summary>
+    /// Captures every log call from the API host. Set before
+    /// <c>CreateClient</c> is invoked. Used by the FR-008 test (#71 slice 7) to assert the
+    /// endpoint logs swallowed exceptions before returning 500.
+    /// </summary>
+    public CapturingLoggerProvider? LoggerProviderOverride { get; set; }
 
     public RegisterApiFactory()
     {
@@ -85,6 +94,16 @@ internal sealed class RegisterApiFactory : WebApplicationFactory<Program>
                     services.Remove(svcDescriptor);
                 }
                 services.AddScoped(BootstrapTokenSvcFactory);
+            }
+
+            if (LoggerProviderOverride is not null)
+            {
+                CapturingLoggerProvider captured = LoggerProviderOverride;
+                services.AddLogging(builder =>
+                {
+                    builder.AddProvider(captured);
+                    builder.SetMinimumLevel(LogLevel.Trace);
+                });
             }
         });
 

@@ -474,6 +474,61 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_SwallowedExceptionInService_LogsErrorAndReturns500()
+    {
+        // #71 spec 002 FR-008: any unhandled exception from the service
+        // layer MUST be logged at error level with the exception object
+        // attached before the 500 audit-failure response is returned.
+        // Without this, operators have no way to see the proximate cause
+        // of a /register 500 without enabling EF verbose logging.
+        Tests.Unit.Services.Auth.Fakes.CapturingLoggerProvider captured = new();
+        _factory.LoggerProviderOverride = captured;
+        _factory.EventRepoOverride = new ThrowingEventRepository();
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_log-check");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_log-check", descriptor = ValidDescriptor() }));
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("{\"error\":\"audit failure\"}", await ReadBodyAsync(response));
+
+        // Exactly one error-level entry from the registration endpoint
+        // category, carrying the swallowed exception object.
+        Tests.Unit.Services.Auth.Fakes.CapturedLogEntry[] endpointErrors = captured.Entries
+            .Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Error
+                && e.Category.Contains("RegistrationEndpoints",
+                    StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        Assert.Single(endpointErrors);
+        Assert.NotNull(endpointErrors[0].Exception);
+    }
+
+    [Fact]
+    public async Task Register_ClassifiedFailure_DoesNotEmitEndpointErrorLog()
+    {
+        // FR-008 follow-up: for already-classified failure modes
+        // (TokenInvalid, TokenAlreadyUsed, ...) the endpoint catch is
+        // never entered, so no extra error log is written.
+        Tests.Unit.Services.Auth.Fakes.CapturingLoggerProvider captured = new();
+        _factory.LoggerProviderOverride = captured;
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_classified");
+        using HttpClient client = _factory.CreateClient();
+
+        // TokenInvalid path (unknown plaintext).
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_unknown", descriptor = ValidDescriptor() }));
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        Tests.Unit.Services.Auth.Fakes.CapturedLogEntry[] endpointErrors = captured.Entries
+            .Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Error
+                && e.Category.Contains("RegistrationEndpoints",
+                    StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        Assert.Empty(endpointErrors);
+    }
+
+    [Fact]
     public async Task Register_PlaintextCredentialNotEchoedBackInRequest()
     {
         // SC-007 invariant 4 surface check: the plaintext returned in the body
