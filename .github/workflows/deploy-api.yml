@@ -143,3 +143,50 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: publish/api
+
+      - name: Post-deploy smoke (/health + /api/version)
+        shell: pwsh
+        env:
+          BASE_URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
+          EXPECTED_VERSION: ${{ steps.version.outputs.informational }}
+        run: |
+          $maxAttempts = 12
+          $delaySec    = 10
+          $healthUrl   = "$env:BASE_URL/health"
+          $versionUrl  = "$env:BASE_URL/api/version"
+
+          # /health — App Service cold-start can take a few attempts after a
+          # fresh zip-deploy. 12 * 10s = 2 min upper bound.
+          $healthy = $false
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            try {
+              $resp = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 30
+              if ($resp.StatusCode -eq 200) {
+                Write-Host "Health OK on attempt ${i}: HTTP $($resp.StatusCode) — $($resp.Content.Trim())"
+                $healthy = $true
+                break
+              }
+              Write-Host "Attempt ${i}/${maxAttempts}: HTTP $($resp.StatusCode)"
+            } catch {
+              Write-Host "Attempt ${i}/${maxAttempts}: $($_.Exception.Message)"
+            }
+            Start-Sleep -Seconds $delaySec
+          }
+          if (-not $healthy) {
+            Write-Error "Health check did not return 200 after $maxAttempts attempts."
+            exit 1
+          }
+
+          # /api/version — must match the InformationalVersion baked at build.
+          try {
+            $payload = Invoke-RestMethod -Uri $versionUrl -TimeoutSec 30
+          } catch {
+            Write-Error "Failed to read $versionUrl : $($_.Exception.Message)"
+            exit 1
+          }
+          Write-Host "API reports version=$($payload.version) environment=$($payload.environment)"
+          if ($payload.version -ne $env:EXPECTED_VERSION) {
+            Write-Error "Version mismatch — expected '$env:EXPECTED_VERSION', got '$($payload.version)'."
+            exit 1
+          }
+          Write-Host "Smoke check passed."
