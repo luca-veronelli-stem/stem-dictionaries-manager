@@ -10,6 +10,14 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+    <!-- Design-time tooling for `dotnet ef migrations script` against API as
+         the startup project (deploy-api.yml). PrivateAssets=all + IncludeAssets
+         without `compile` keep Design out of the published runtime and out of
+         the API code's compile surface. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
