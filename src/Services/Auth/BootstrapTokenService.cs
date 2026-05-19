@@ -98,11 +98,15 @@ public class BootstrapTokenService : IBootstrapTokenService
             return null;
         }
 
-        IReadOnlyList<BootstrapTokenEntity> active = await _tokens
-            .ListByStatusAsync(BootstrapTokenStatus.Issued, ct)
+        // Lookup across all statuses; the caller (RegistrationService.ClassifyOutcome)
+        // decides the outcome from token.Status. Narrowing to Issued here conflated
+        // Used / Revoked / unknown into a single 401 path (#58); each non-race
+        // terminal status now reaches its contracted status code.
+        IReadOnlyList<BootstrapTokenEntity> candidates = await _tokens
+            .ListAllAsync(ct)
             .ConfigureAwait(false);
 
-        foreach (BootstrapTokenEntity candidate in active)
+        foreach (BootstrapTokenEntity candidate in candidates)
         {
             if (_hasher.Verify(plaintext, candidate.SecretHash))
             {

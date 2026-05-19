@@ -4,6 +4,10 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Fixed
+
+- **Auth**: `POST /register` now surfaces `TokenAlreadyUsed → 409` and `TokenRevoked → 423` on the non-race path. Previously `BootstrapTokenService.LookupAsync` filtered to `Issued`-only rows, so a Used or Revoked token surfaced as `TokenInvalid → 401`, conflated with the unknown-token branch. The lookup now iterates all statuses; `RegistrationService.ClassifyOutcome` branches `Used` / `Revoked` to their contracted outcomes before the existing expiry check. The race-loser branch in `CommitSuccessAsync` is unchanged. Closes #58.
+
 ## [0.7.0] - 2026-05-18
 
 Bootstrap registration system (spec 001): clients obtain per-installation API credentials via a one-shot admin-issued bootstrap token. End-to-end ceremony is now functional: admin mints a token, the consumer calls `/register` from a fresh install, the server returns a long-lived API credential exactly once and records every attempt in an audit log. Also: `llm-settings v1.3.2` standards adoption and an Italian → English translation pass across the codebase.

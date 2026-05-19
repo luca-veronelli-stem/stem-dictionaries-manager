@@ -1,4 +1,3 @@
-using Core.Enums.Auth;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
 
@@ -35,13 +34,10 @@ internal sealed class FakeBootstrapTokenRepository : IBootstrapTokenRepository
     public Task<BootstrapTokenEntity?> GetByIdAsync(int id, CancellationToken ct = default)
         => Task.FromResult(_store.FirstOrDefault(t => t.Id == id));
 
-    public Task<IReadOnlyList<BootstrapTokenEntity>> ListByStatusAsync(
-        BootstrapTokenStatus status, CancellationToken ct = default)
+    public Task<IReadOnlyList<BootstrapTokenEntity>> ListAllAsync(CancellationToken ct = default)
     {
-        IReadOnlyList<BootstrapTokenEntity> matched = _store
-            .Where(t => t.Status == status)
-            .ToList();
-        return Task.FromResult(matched);
+        IReadOnlyList<BootstrapTokenEntity> snapshot = _store.ToList();
+        return Task.FromResult(snapshot);
     }
 
     public Task<BootstrapTokenEntity> AddAsync(BootstrapTokenEntity entity,

@@ -158,7 +158,7 @@ operator/developer hint, not a token-validity oracle.
 | `400 Bad Request` | `DescriptorMissingField` | A descriptor field required by the active `DescriptorPolicy` (e.g. `osUserId` for `ButtonPanelTester`) is missing or empty. |
 | `400 Bad Request` | `InstallGuidInvalid` | `descriptor.installGuid` parsed to `Guid.Empty` (the all-zeros GUID). |
 | `401 Unauthorized` | `TokenInvalid` *or* `ClientScopeMismatch` *or* policy-lookup miss | **Deliberately conflated.** The bootstrap token is unknown, OR the token's `ClientApp` scope does not match the descriptor's `clientApp`, OR the request's `clientApp` is absent / not in the policy registry. The response does not distinguish these three causes — see *Threat model* below. |
-| `409 Conflict` | `TokenAlreadyUsed` | The bootstrap token has been consumed by a prior successful registration (including a race-loser branch of a concurrent ceremony). |
+| `409 Conflict` | `TokenAlreadyUsed` | The bootstrap token has been consumed by a prior successful registration. The race-loser branch of a concurrent ceremony also lands here. |
 | `410 Gone` | `TokenExpired` | The bootstrap token's TTL has elapsed. |
 | `423 Locked` | `TokenRevoked` | The bootstrap token has been administratively revoked. |
 | `500 Internal Server Error` | `AuditFailure` | The pre-response `RegistrationEvent` write failed (FR-013). Body becomes `{ "error": "audit failure" }` — this is the only failure mode that doesn't use "registration failed" as the message, because operator-actionable distinct from "your token is bad". |

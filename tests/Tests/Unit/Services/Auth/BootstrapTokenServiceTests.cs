@@ -63,33 +63,32 @@ public class BootstrapTokenServiceTests
         Assert.Null(await sut.LookupAsync(string.Empty));
     }
 
-    [Fact]
-    public async Task LookupAsync_OnlyIteratesIssuedTokens_NotUsedOrRevoked()
+    [Theory]
+    [InlineData(BootstrapTokenStatus.Issued)]
+    [InlineData(BootstrapTokenStatus.Used)]
+    [InlineData(BootstrapTokenStatus.Revoked)]
+    public async Task LookupAsync_PlaintextMatchesAnyStatus_ReturnsDomainTokenWithThatStatus(
+        BootstrapTokenStatus status)
     {
-        // T045: iteration is bounded by ListByStatusAsync(Issued) — terminal-state
-        // rows must not match even if their hash collides with the input.
+        // #58: lookup iterates across all statuses so RegistrationService can
+        // branch Used/Revoked into their contracted 409/423 outcomes instead
+        // of conflating them with token-unknown into the 401 path.
         FakeBootstrapTokenRepository repo = new();
         FakePasswordHasher hasher = new();
         repo.Seed(new BootstrapTokenEntity
         {
             ClientApp = "ButtonPanelTester",
-            SecretHash = hasher.Hash("stbt_used-already"),
+            SecretHash = hasher.Hash("stbt_terminal-token"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,
-            Status = BootstrapTokenStatus.Used
-        });
-        repo.Seed(new BootstrapTokenEntity
-        {
-            ClientApp = "ButtonPanelTester",
-            SecretHash = hasher.Hash("stbt_revoked-already"),
-            MintedAt = _mintedAt,
-            ExpiresAt = _expiresAt,
-            Status = BootstrapTokenStatus.Revoked
+            Status = status
         });
         BootstrapTokenService sut = new(repo, hasher);
 
-        Assert.Null(await sut.LookupAsync("stbt_used-already"));
-        Assert.Null(await sut.LookupAsync("stbt_revoked-already"));
+        BootstrapToken? hit = await sut.LookupAsync("stbt_terminal-token");
+
+        Assert.NotNull(hit);
+        Assert.Equal(status, hit!.Status);
     }
 
     [Fact]
