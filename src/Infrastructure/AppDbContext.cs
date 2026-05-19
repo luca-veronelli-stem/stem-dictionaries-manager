@@ -263,9 +263,14 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DescriptorJson).IsRequired();
             entity.HasIndex(e => new { e.ClientApp, e.OsUserId, e.MachineId });
             entity.HasIndex(e => e.InstallGuid).IsUnique();
-            entity.HasOne(e => e.Credential)
+            // Spec 002 (#71): one Installation holds many credentials over
+            // its lifetime — at most one Active, zero-or-more Revoked
+            // historical rows. The at-most-one-Active invariant is
+            // enforced by a filtered unique index in slice 2 (data-model
+            // § 6).
+            entity.HasMany(e => e.Credentials)
                   .WithOne(c => c.Installation)
-                  .HasForeignKey<InstallationApiCredentialEntity>(c => c.InstallationId)
+                  .HasForeignKey(c => c.InstallationId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

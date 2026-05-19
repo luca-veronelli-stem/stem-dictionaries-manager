@@ -15,6 +15,10 @@ public class InstallationEntity
     public InstallationStatus Status { get; set; }
     public DateTime? RevokedAt { get; set; }
 
-    // Navigation
-    public InstallationApiCredentialEntity? Credential { get; set; }
+    // Navigation — multi-row per Installation over the installation's
+    // lifetime (spec 002): at most one Active, zero-or-more Revoked
+    // historical rows. The at-most-one-Active invariant is enforced by a
+    // filtered unique index on InstallationId WHERE Status = Active.
+    public ICollection<InstallationApiCredentialEntity> Credentials { get; set; }
+        = new List<InstallationApiCredentialEntity>();
 }
