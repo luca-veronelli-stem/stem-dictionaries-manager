@@ -42,7 +42,6 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
     {
         // T051: default TTL of 30 days, plaintext returned, exactly one
         // BootstrapTokens row in Status=Issued.
-        DateTime before = DateTime.UtcNow;
         using HttpClient client = AdminClient();
 
         HttpResponseMessage response = await client.PostAsync(
@@ -62,11 +61,8 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
         Assert.True(tokenId > 0);
         Assert.Equal("ButtonPanelTester", clientApp);
         Assert.Matches(PlaintextPattern, plaintext);
-        Assert.True(Math.Abs((mintedAt - before).TotalSeconds) < 5,
-            $"mintedAt={mintedAt:O} should be within 5s of before={before:O}");
-        TimeSpan ttl = expiresAt - mintedAt;
-        Assert.InRange(ttl, TimeSpan.FromDays(30) - TimeSpan.FromSeconds(2),
-            TimeSpan.FromDays(30) + TimeSpan.FromSeconds(2));
+        Assert.Equal(AdminAuthApiFactory.FixedNow, mintedAt);
+        Assert.Equal(AdminAuthApiFactory.FixedNow + TimeSpan.FromDays(30), expiresAt);
 
         await using AppDbContext db = _factory.NewContext();
         BootstrapTokenEntity[] rows = await db.BootstrapTokens.AsNoTracking().ToArrayAsync();

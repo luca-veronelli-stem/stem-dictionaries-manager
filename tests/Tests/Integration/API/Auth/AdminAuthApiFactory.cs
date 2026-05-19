@@ -35,6 +35,13 @@ internal sealed class AdminAuthApiFactory : WebApplicationFactory<Program>
     /// <summary>From <c>appsettings.json</c> § ApiKeys.ButtonPanelTester — present in ApiKeys but NOT in AdminApiKeys.</summary>
     public const string NonAdminKey = "STEM-BT-DEV-KEY-2026";
 
+    /// <summary>
+    /// Fixed wall-clock the host's <see cref="TimeProvider"/> reports.
+    /// Lets endpoint tests assert <c>mintedAt</c> exactly (#60) without
+    /// depending on PBKDF2 + cold-JIT timing on CI runners.
+    /// </summary>
+    public static readonly DateTime FixedNow = new(2026, 5, 18, 12, 0, 0, DateTimeKind.Utc);
+
     private readonly SqliteConnection _connection;
 
     public AdminAuthApiFactory()
@@ -66,6 +73,14 @@ internal sealed class AdminAuthApiFactory : WebApplicationFactory<Program>
                 services.Remove(optionsDescriptor);
             }
             services.AddDbContext<AppDbContext>(o => o.UseSqlite(_connection));
+
+            ServiceDescriptor? timeDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(TimeProvider));
+            if (timeDescriptor is not null)
+            {
+                services.Remove(timeDescriptor);
+            }
+            services.AddSingleton<TimeProvider>(new FixedTimeProvider(FixedNow));
         });
 
         IHost host = base.CreateHost(builder);
@@ -100,5 +115,12 @@ internal sealed class AdminAuthApiFactory : WebApplicationFactory<Program>
             _connection.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    private sealed class FixedTimeProvider : TimeProvider
+    {
+        private readonly DateTimeOffset _now;
+        public FixedTimeProvider(DateTime utc) => _now = new DateTimeOffset(utc, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => _now;
     }
 }
