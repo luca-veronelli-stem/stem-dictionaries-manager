@@ -1,6 +1,7 @@
 using System.Text.Json;
 using API.Dtos.Auth;
 using Core.Enums.Auth;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces.Auth;
 
 namespace API.Endpoints.Auth;
@@ -35,8 +36,10 @@ public static class RegistrationEndpoints
     }
 
     private static async Task<IResult> Register(HttpContext context,
-        IRegistrationService registration, CancellationToken ct)
+        IRegistrationService registration,
+        ILoggerFactory loggerFactory, CancellationToken ct)
     {
+        ILogger logger = loggerFactory.CreateLogger("API.Endpoints.Auth.RegistrationEndpoints");
         // Drain the body once so we keep the raw descriptor JSON for the audit
         // trail regardless of parse outcome (DescriptorMalformed needs the
         // claimed-fields-as-submitted on the RegistrationEvent row).
@@ -70,10 +73,17 @@ public static class RegistrationEndpoints
                 _ => RawJson(FailureBody, StatusCodes.Status401Unauthorized)
             };
         }
-        catch
+        catch (Exception ex)
         {
             // FR-013: audit/persistence failures must not look like a token
             // failure to the client — return 500, never 401.
+            // FR-008 (#71): log the exception object at error level before
+            // returning so the proximate cause surfaces in the application
+            // log alongside the 500. Without this, operators must enable
+            // EF verbose logging to find out what threw.
+            logger.LogError(ex,
+                "Registration failed with unhandled exception (sourceIp={SourceIp}, clientApp={ClientApp}, installGuid={InstallGuid}).",
+                sourceIp, dto?.Descriptor?.ClientApp, dto?.Descriptor?.InstallGuid);
             return RawJson(AuditFailureBody, StatusCodes.Status500InternalServerError);
         }
     }
