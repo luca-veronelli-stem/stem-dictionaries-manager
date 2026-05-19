@@ -4,6 +4,10 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-19
+
+Atomic re-registration on existing installation (#71). Closes the recovery gap exposed by v0.7.2's `500 audit failure` on the duplicate-`InstallGuid` path: technicians can now recover from a lost-credential scenario (machine reimage, profile corruption, hardware swap) by re-running the standard registration ceremony with a fresh bootstrap token — no admin pre-revoke required, no spurious "service unavailable" surfaced to the user. Includes the prerequisite data-model shift to multi-credential-per-installation enforced by a filtered unique active-only index, plus an endpoint-layer logging fix so future `/register` exceptions surface at the API layer instead of being swallowed.
+
 ### Added
 
 - **Auth**: `POST /register` now atomically re-registers an existing
