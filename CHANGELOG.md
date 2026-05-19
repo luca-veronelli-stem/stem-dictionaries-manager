@@ -4,6 +4,63 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Auth**: `POST /register` now atomically re-registers an existing
+  `InstallGuid` when a fresh bootstrap token is presented (option B
+  from #71). The prior credential is revoked, a new one is issued,
+  the bootstrap token transitions `Issued → Used`, and an audit row
+  with the dedicated server-only outcome `ReRegistrationSuccess` is
+  written — all in one transaction. Lets technicians recover from a
+  lost-credential scenario (machine reimage, profile corruption,
+  hardware swap) without admin pre-revoke, without any user-facing
+  "service unavailable" message, and without the `500` that v0.7.2
+  surfaced on the duplicate-`InstallGuid` path. Closes #71.
+- **Services**: `IInstallationCredentialService.RevokeActiveAsync` —
+  service-layer primitive for revoking every `Active` credential on a
+  given installation. Reusable by the future admin revoke endpoint
+  (#68); the credential-only shape means the admin path will
+  delegate here and own its own Installation-row flip.
+- **Infrastructure**: filtered unique index
+  `UX_InstallationApiCredentials_Active` on
+  `InstallationApiCredentials.InstallationId WHERE Status = Active`,
+  carried by migration `MultiActiveCredentialPerInstallationGuard`.
+  Enforces the at-most-one-Active invariant (data-model § 6) at the
+  DB level on both SQL Server (prod) and SQLite (dev/test).
+- **Infrastructure**: `IInstallationRepository.FindByInstallGuidAsync`
+  and `IInstallationApiCredentialRepository.ListActiveByInstallationIdAsync`
+  for the re-registration lookup path.
+
+### Fixed
+
+- **API**: `POST /register` no longer silently swallows exceptions.
+  The parameterless `catch` in `RegistrationEndpoints.Register`
+  discarded the exception object, leaving operators dependent on EF
+  verbose logging to find out what threw. Replaced with a typed
+  `catch (Exception ex)` that logs at error level with the exception
+  object attached (plus structured `sourceIp` / `clientApp` /
+  `installGuid` fields) before returning the `500 audit failure`
+  response. The response shape is unchanged. Closes Part 1 of #71.
+
+### Changed
+
+- **Data model**: `InstallationApiCredentials` now holds **multiple
+  rows per installation** over an installation's lifetime — at most
+  one with `Status = Active` at any instant, plus zero-or-more
+  `Revoked` historical rows preserved for forensics. The EF mapping
+  shifted from `HasOne.WithOne` to `HasMany.WithOne`; the implicit
+  unique constraint on `InstallationId` is dropped by migration
+  `MultiCredentialPerInstallationModel` and replaced by the filtered
+  unique active-only index above.
+- **Audit**: `RegistrationOutcome` gains two server-only values —
+  `ReRegistrationSuccess` (re-registration happy path; wire response
+  identical to `Success` → 200) and `ExistingInstallationRevoked`
+  (re-registration rejected because the matched Installation is
+  itself revoked; wire response identical to `ClientScopeMismatch` →
+  conflated 401). Operators can now filter the audit log for
+  re-registrations or revoked-installation re-attempts by outcome
+  alone.
+
 ## [0.7.2] - 2026-05-19
 
 Hotfix for v0.7.1's API deploy. The `Microsoft.EntityFrameworkCore.Design` reference was missing from `src/API`, so `dotnet ef migrations script --startup-project src/API` failed during the v0.7.1 deploy run before it could touch Azure SQL or App Service. Latent since `0.7.0` — never surfaced because EF tooling had only ever been invoked locally against `Infrastructure` as both project and startup project.
