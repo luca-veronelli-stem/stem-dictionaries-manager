@@ -46,7 +46,7 @@ jobs:
 
       - name: Publish (win-x64, self-contained)
         run: |
-          dotnet publish src/DictionariesManager.GUI `
+          dotnet publish src/GUI.Windows/GUI.Windows.csproj `
             -c Release `
             -r win-x64 `
             --self-contained `
