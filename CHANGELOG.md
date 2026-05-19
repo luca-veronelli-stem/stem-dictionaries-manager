@@ -4,9 +4,20 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-05-19
+
+Operations cycle — closes the gap between "API code on `main`" and "running production on Azure App Service" that v0.7.0's manual ship procedure exposed. Two bug fixes ride along: the `/register` outcome-classification fix from #58, and the `release.yml` path fix that left v0.5.0–v0.7.0 with no GitHub Release artifact.
+
+### Added
+
+- **CI**: `.github/workflows/deploy-api.yml` — tag-triggered API deploy. On a `v*.*.*` tag push the workflow checks out the tagged commit, publishes `src/API` framework-dependent, generates an idempotent EF Core migration script (`dotnet ef migrations script --idempotent`), applies it to Azure SQL via `Invoke-Sqlcmd` ahead of the swap, zip-deploys to `app-dictionaries-manager-prod` via `azure/webapps-deploy@v3`, and smoke-checks `/health` (retried for up to 2 min over App Service cold-start) and `/api/version` (asserts the deployed `InformationalVersion` matches the tag). Authenticates via GitHub OIDC federated identity against the `production` environment. Closes #57.
+- **CI**: Generated migration script is also uploaded as a 90-day Actions artifact (`migrations-<tag>`) for audit and manual replay.
+- **Docs**: `docs/Deploy.md` ops runbook — App Service Configuration matrix, federated-identity provisioning (App Registration + federated credential + GitHub Variables/Secrets + environment protection), bootstrap-token mint procedure, manual deploy and rollback procedures, dry-run procedure, troubleshooting for the common failures (AADSTS70021, SQL firewall, version mismatch, unhealthy health-check).
+
 ### Fixed
 
 - **Auth**: `POST /register` now surfaces `TokenAlreadyUsed → 409` and `TokenRevoked → 423` on the non-race path. Previously `BootstrapTokenService.LookupAsync` filtered to `Issued`-only rows, so a Used or Revoked token surfaced as `TokenInvalid → 401`, conflated with the unknown-token branch. The lookup now iterates all statuses; `RegistrationService.ClassifyOutcome` branches `Used` / `Revoked` to their contracted outcomes before the existing expiry check. The race-loser branch in `CommitSuccessAsync` is unchanged. Closes #58.
+- **CI**: `.github/workflows/release.yml` publishes from `src/GUI.Windows/GUI.Windows.csproj` (post-standards-adoption path) instead of the obsolete `src/DictionariesManager.GUI`. The v0.7.0 tag run had failed at the publish step with `MSB1009`, producing an empty GitHub Release; v0.7.1 is the first tag through the fixed pipeline. Closes #61.
 
 ## [0.7.0] - 2026-05-18
 
