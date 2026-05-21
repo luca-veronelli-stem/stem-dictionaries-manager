@@ -4,27 +4,85 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-21
+
+Admin management surface for per-installation API credentials (#68 / US3
+of spec 001). Operators can now list every registered installation and
+independently revoke any one with a single audited HTTP call, closing
+FR-010 / FR-011 and the documented gap from #1 ("the data model
+supports it but no endpoint exercises it"). A model-wide DateTime
+UTC-pinning convention rides along and closes a subtle wire-format
+bug where existing endpoints returned timestamps without the `Z`
+suffix.
+
 ### Added
 
-- **Auth**: admin per-installation management surface
-  (`GET /api/admin/installations` + `POST /api/admin/installations/{id}/revoke`)
-  per [`contracts/admin-installations.md`](specs/001-bootstrap-registration/contracts/admin-installations.md).
-  Closes FR-010 (list with `clientApp` / `status` filters) and FR-011
-  (independent, idempotent revoke that flips `Installation` and the
-  owning `InstallationApiCredential` atomically and writes one
-  `AuditEntityType.Installation` audit row). The first time STEM ops has
-  a documented in-process way to cut off a compromised installation
-  instead of running ad-hoc SQL. Closes #68.
-- **Services**: `IInstallationCredentialService.ListAsync` and
-  `RevokeAsync` (with a `RevokeResult` discriminated union covering
-  `Success(revokedAt, wasFirstRevoke)` and `NotFound`).
+- **API**: `GET /api/admin/installations?clientApp=…&status=…` —
+  list installations with the contract metadata fields per
+  [`contracts/admin-installations.md`](specs/001-bootstrap-registration/contracts/admin-installations.md).
+  Server-side filtering by exact `clientApp` and by
+  `active | revoked | all`; an unrecognised `status` value yields a
+  400 with a validation error. Behind `AdminAuthenticationMiddleware`
+  (`AdminApiKeys` config gate). Closes FR-010.
+- **API**: `POST /api/admin/installations/{id}/revoke` — idempotent,
+  atomic revoke. First call flips `Installation.Status` and every
+  owning `InstallationApiCredential.Status` from `Active` to
+  `Revoked`, stamps `RevokedAt`, writes one
+  `AuditEntityType.Installation` audit row via
+  `IAuditService.LogUpdateAsync`, and invalidates the validator cache
+  after commit. Second call on an already-revoked installation returns
+  the original `revokedAt` with no mutation and no audit row. Unknown
+  id returns `404 { "error": "installation not found" }`. Closes
+  FR-011.
+- **Services**: `IInstallationService` (new) carries the admin-facing
+  `ListAsync` + `RevokeAsync` + `RevokeResult` discriminated union
+  (`Success(revokedAt, wasFirstRevoke)` / `NotFound`). Single-
+  responsibility split from `IInstallationCredentialService`, which
+  stays focused on per-credential operations called by
+  `RegistrationService` (`IssueAsync` + `RevokeActiveAsync`).
 - **Services**: `IInstallationCredentialValidator.Invalidate(int installationId)`
   overload. The existing `Invalidate(string plaintext)` is unreachable
   from the admin revoke path (FR-014 plaintext-once), so the validator
-  now keeps a same-TTL `icv-byinst:{id}` side-entry on every positive
-  resolution and the admin revoke flow uses it to evict the cache
-  immediately after the durable write commits — keeping SC-004 well
-  under the 5 s ceiling instead of riding it.
+  now keeps a same-TTL `icv-byinst:{id}` side-entry in `IMemoryCache`
+  on every positive resolution and the admin revoke flow uses it to
+  evict the cache immediately after the durable write commits — keeping
+  SC-004 well under the 5 s ceiling (local smoke: ~20 ms post-warm
+  rejection) instead of riding it.
+- **API config**: `appsettings.json` ships a second
+  `ButtonPanelTesterSeedRefresh` entry under `ApiKeys` so the
+  `refresh-seed.ps1` dry-run flow has a non-rotating dev key (rotation
+  of the main `ButtonPanelTester` key no longer breaks local
+  refresh-seed checks).
+
+### Fixed
+
+- **Infrastructure**: `AppDbContext.ConfigureConventions` now applies a
+  UTC-pinning `ValueConverter` to every `DateTime` / `DateTime?`
+  column in the model. SQLite stores DateTime as TEXT without a `Kind`
+  marker, and SQL Server's `datetime2` has the same gap, so EF Core
+  returned `Kind = Unspecified` on read; downstream JSON serialization
+  then emitted the value without a trailing `Z` and parsers treated it
+  as local time. Symptoms before this fix: every `registeredAt`,
+  `issuedAt`, `mintedAt`, `expiresAt`, `occurredAt` field in API
+  responses came back without a `Z` suffix; the first revoke's
+  `revokedAt` (in-memory) and the idempotent re-revoke's `revokedAt`
+  (DB round-trip) serialized differently. Every domain DateTime in
+  this repo is written as UTC, so re-stamping `DateTimeKind.Utc` on
+  read is provider-agnostic and idempotent. Covered by
+  `Tests/Integration/Infrastructure/DateTimeKindConventionTests.cs`
+  across the four spec 001 entities.
+
+### Changed
+
+- **Docs**: `specs/001-bootstrap-registration/contracts/admin-installations.md`
+  clarifies the BR-API-004 nulls-omitted convention. The example
+  response no longer shows `"revokedAt": null` for active rows; the
+  contract now explicitly states an absent `revokedAt` is semantically
+  equivalent to `null`.
+- **Repo hygiene**: `.gitignore` now excludes `WIP.md` and `.llm/` —
+  the per-worktree scratch files the `worktrees` skill maintains. No
+  effect on shipped code; prevents the files from polluting
+  `git status` and reaching commits accidentally.
 
 ## [0.8.0] - 2026-05-19
 
