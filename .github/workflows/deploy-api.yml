@@ -178,10 +178,22 @@ jobs:
           }
 
           # /api/version — must match the InformationalVersion baked at build.
-          try {
-            $payload = Invoke-RestMethod -Uri $versionUrl -TimeoutSec 30
-          } catch {
-            Write-Error "Failed to read $versionUrl : $($_.Exception.Message)"
+          # First request after a fresh zip-deploy can transiently 500
+          # (route binding + JIT + DI graph warm-up — issue #80); retry
+          # with the same cadence as /health rather than single-shot.
+          $payload = $null
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            try {
+              $payload = Invoke-RestMethod -Uri $versionUrl -TimeoutSec 30
+              Write-Host "Version OK on attempt ${i}"
+              break
+            } catch {
+              Write-Host "Version attempt ${i}/${maxAttempts}: $($_.Exception.Message)"
+            }
+            Start-Sleep -Seconds $delaySec
+          }
+          if (-not $payload) {
+            Write-Error "Failed to read $versionUrl after $maxAttempts attempts."
             exit 1
           }
           Write-Host "API reports version=$($payload.version) environment=$($payload.environment)"

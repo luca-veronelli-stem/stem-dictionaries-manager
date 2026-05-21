@@ -4,6 +4,17 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI**: `.github/workflows/deploy-api.yml` post-deploy smoke now
+  retries `/api/version` with the same 12-attempt × 10-second cadence
+  already in place for `/health`. The v0.9.0 deploy succeeded but the
+  workflow status flipped to `failure` because the very first hit to
+  `/api/version` after the zip-deploy transiently 500'd (route binding
+  / JIT / DI graph warm-up race that `/health` won); a manual hit one
+  second later returned the expected `0.9.0+<sha>`. Single-shot smoke
+  on `/api/version` was the bug, not the deploy. Closes #80.
+
 ## [0.9.0] - 2026-05-21
 
 Admin management surface for per-installation API credentials (#68 / US3
