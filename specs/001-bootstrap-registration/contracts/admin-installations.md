@@ -38,8 +38,7 @@ Content-Type: application/json
     "machineId":      "8a5e9b3c-6f4d-4d2a-9c1b-7d8e3f4b6c2a",
     "installGuid":    "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c",
     "registeredAt":   "2026-05-07T10:23:45.000Z",
-    "status":         "active",
-    "revokedAt":      null
+    "status":         "active"
   },
   {
     "installationId": 141,
@@ -56,6 +55,12 @@ Content-Type: application/json
 
 Empty list ⇒ `200 OK` with `[]`. The endpoint never returns the
 plaintext API credential or its hash; only the metadata fields above.
+Per the global BR-API-004 JSON convention (`JsonIgnoreCondition
+.WhenWritingNull`), nullable fields are **omitted** when their value
+is `null`. So `revokedAt` is present (with an ISO-8601 UTC timestamp)
+only on revoked rows; on active rows it is absent. Consumers MUST
+treat an absent `revokedAt` as semantically equivalent to
+`revokedAt = null`.
 
 ### Side effects
 

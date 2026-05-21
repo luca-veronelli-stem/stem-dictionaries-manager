@@ -36,6 +36,8 @@ public static class DependencyInjection
             Services.Auth.BootstrapTokenService>();
         services.AddScoped<Services.Interfaces.Auth.IInstallationCredentialService,
             Services.Auth.InstallationCredentialService>();
+        services.AddScoped<Services.Interfaces.Auth.IInstallationService,
+            Services.Auth.InstallationService>();
         services.AddScoped<Services.Interfaces.Auth.IRegistrationService,
             Services.Auth.RegistrationService>();
 

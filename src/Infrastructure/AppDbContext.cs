@@ -3,6 +3,7 @@ using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infrastructure;
 
@@ -69,6 +70,43 @@ public class AppDbContext : DbContext
                     entry.Entity.UpdatedAt = now;
                     break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Apply a UTC-pinning conversion to every <c>DateTime</c> / <c>DateTime?</c>
+    /// property in the model. SQLite stores DateTime as TEXT without a Kind
+    /// marker, so EF Core returns <c>DateTimeKind.Unspecified</c> on read;
+    /// downstream JSON serialization then misses the <c>Z</c> suffix and
+    /// parsers may treat the value as local time. SQL Server's
+    /// <c>datetime2</c> has the same issue. Every domain DateTime in this
+    /// repo is written as UTC (<see cref="DateTime.UtcNow"/> /
+    /// <c>TimeProvider.GetUtcNow().UtcDateTime</c>), so re-stamping
+    /// <see cref="DateTimeKind.Utc"/> on read is provider-agnostic and
+    /// idempotent.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+    }
+
+    private sealed class UtcDateTimeConverter : ValueConverter<DateTime, DateTime>
+    {
+        public UtcDateTimeConverter()
+            : base(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc))
+        {
+        }
+    }
+
+    private sealed class NullableUtcDateTimeConverter : ValueConverter<DateTime?, DateTime?>
+    {
+        public NullableUtcDateTimeConverter()
+            : base(
+                v => v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null)
+        {
         }
     }
 

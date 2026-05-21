@@ -19,11 +19,22 @@ namespace Services.Auth;
 /// N active credentials this is O(N · 50 ms) — the cache amortises it.
 /// Both hits and misses are cached for a 5-second absolute window so an
 /// attacker cannot pin one credential's iteration cost on the request path.
+/// <para>
+/// A second cache entry — keyed <c>icv-byinst:{installationId}</c> — holds
+/// the credential-hash key of each positive resolution so the admin revoke
+/// flow can evict by installation id without ever holding the plaintext
+/// (FR-014 plaintext-once). Both entries share the same TTL, so natural
+/// expiry keeps them in lock-step; this service is registered scoped, so
+/// the side-index intentionally lives in the singleton
+/// <see cref="IMemoryCache"/> rather than on a per-request field.
+/// </para>
 /// </remarks>
 public class InstallationCredentialValidator : IInstallationCredentialValidator
 {
     /// <summary>Absolute TTL for cache entries — the SC-004 ceiling.</summary>
     public static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(5);
+
+    private const string InstallationKeyPrefix = "icv-byinst:";
 
     private readonly IMemoryCache _cache;
     private readonly IInstallationApiCredentialRepository _credentials;
@@ -54,11 +65,18 @@ public class InstallationCredentialValidator : IInstallationCredentialValidator
 
         int? resolved = await ResolveAsync(plaintext, ct).ConfigureAwait(false);
 
-        var entryOptions = new MemoryCacheEntryOptions
+        MemoryCacheEntryOptions entryOptions = new()
         {
             AbsoluteExpirationRelativeToNow = CacheTtl
         };
         _cache.Set(key, resolved, entryOptions);
+
+        if (resolved is int installationId)
+        {
+            // Side-index for Invalidate(int) — same TTL so they age together.
+            _cache.Set(InstallationKey(installationId), key,
+                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheTtl });
+        }
 
         return resolved;
     }
@@ -71,6 +89,17 @@ public class InstallationCredentialValidator : IInstallationCredentialValidator
         }
 
         _cache.Remove(CacheKey(plaintext));
+    }
+
+    public void Invalidate(int installationId)
+    {
+        string installationKey = InstallationKey(installationId);
+        if (_cache.TryGetValue(installationKey, out string? credentialKey)
+            && credentialKey is not null)
+        {
+            _cache.Remove(credentialKey);
+        }
+        _cache.Remove(installationKey);
     }
 
     private async Task<int?> ResolveAsync(string plaintext, CancellationToken ct)
@@ -97,4 +126,7 @@ public class InstallationCredentialValidator : IInstallationCredentialValidator
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(plaintext));
         return "icv:" + Convert.ToHexString(bytes);
     }
+
+    private static string InstallationKey(int installationId)
+        => InstallationKeyPrefix + installationId.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

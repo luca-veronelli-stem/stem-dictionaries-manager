@@ -17,8 +17,18 @@ public interface IInstallationCredentialValidator
 
     /// <summary>
     /// Synchronously evicts the cached resolution for <paramref name="plaintext"/>.
-    /// Called by the revoke flow after the DB write commits — guarantees the
-    /// SC-004 ≤ 5 s revocation latency holds even within the cache TTL window.
+    /// Reachable only when the caller already has the plaintext in hand
+    /// (e.g. fresh from <c>POST /register</c>).
     /// </summary>
     void Invalidate(string plaintext);
+
+    /// <summary>
+    /// Synchronously evicts the cached resolution that maps to
+    /// <paramref name="installationId"/>. Called by the admin revoke flow
+    /// after the DB write commits; the admin never holds the plaintext
+    /// (FR-014 plaintext-once), so the lookup goes installation-side via
+    /// a side-index maintained on positive resolutions. Guarantees the
+    /// SC-004 revocation latency stays well under the 5 s TTL ceiling.
+    /// </summary>
+    void Invalidate(int installationId);
 }
