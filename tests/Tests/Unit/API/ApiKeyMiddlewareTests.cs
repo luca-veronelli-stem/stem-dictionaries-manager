@@ -34,6 +34,17 @@ public class ApiKeyMiddlewareTests
             => Task.FromResult(_hits.TryGetValue(plaintext, out int id) ? id : (int?)null);
 
         public void Invalidate(string plaintext) => _hits.Remove(plaintext);
+
+        public void Invalidate(int installationId)
+        {
+            foreach (KeyValuePair<string, int> pair in _hits.ToArray())
+            {
+                if (pair.Value == installationId)
+                {
+                    _hits.Remove(pair.Key);
+                }
+            }
+        }
     }
 
     private static ApiKeyMiddleware CreateMiddleware(
@@ -235,5 +246,6 @@ public class ApiKeyMiddlewareTests
             return Task.FromResult<int?>(null);
         }
         public void Invalidate(string plaintext) { }
+        public void Invalidate(int installationId) { }
     }
 }

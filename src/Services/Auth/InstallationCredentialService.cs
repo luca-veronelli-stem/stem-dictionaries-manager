@@ -7,10 +7,12 @@ using Services.Interfaces.Auth;
 namespace Services.Auth;
 
 /// <summary>
-/// Issues per-installation API credentials. The plaintext is generated
-/// here, hashed via <see cref="IPasswordHasher"/>, and returned once to
-/// the caller; only the hash is persisted (<c>data-model.md</c> invariant
-/// 4 — plaintext-once).
+/// Issues per-installation API credentials and flips an installation's
+/// Active credential(s) to Revoked. The plaintext is generated here,
+/// hashed via <see cref="IPasswordHasher"/>, and returned once to the
+/// caller; only the hash is persisted (<c>data-model.md</c> invariant 4
+/// — plaintext-once). Admin-facing list/revoke operations live on
+/// <see cref="IInstallationService"/>.
 /// </summary>
 public class InstallationCredentialService : IInstallationCredentialService
 {

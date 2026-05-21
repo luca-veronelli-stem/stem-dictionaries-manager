@@ -4,6 +4,28 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Auth**: admin per-installation management surface
+  (`GET /api/admin/installations` + `POST /api/admin/installations/{id}/revoke`)
+  per [`contracts/admin-installations.md`](specs/001-bootstrap-registration/contracts/admin-installations.md).
+  Closes FR-010 (list with `clientApp` / `status` filters) and FR-011
+  (independent, idempotent revoke that flips `Installation` and the
+  owning `InstallationApiCredential` atomically and writes one
+  `AuditEntityType.Installation` audit row). The first time STEM ops has
+  a documented in-process way to cut off a compromised installation
+  instead of running ad-hoc SQL. Closes #68.
+- **Services**: `IInstallationCredentialService.ListAsync` and
+  `RevokeAsync` (with a `RevokeResult` discriminated union covering
+  `Success(revokedAt, wasFirstRevoke)` and `NotFound`).
+- **Services**: `IInstallationCredentialValidator.Invalidate(int installationId)`
+  overload. The existing `Invalidate(string plaintext)` is unreachable
+  from the admin revoke path (FR-014 plaintext-once), so the validator
+  now keeps a same-TTL `icv-byinst:{id}` side-entry on every positive
+  resolution and the admin revoke flow uses it to evict the cache
+  immediately after the durable write commits — keeping SC-004 well
+  under the 5 s ceiling instead of riding it.
+
 ## [0.8.0] - 2026-05-19
 
 Atomic re-registration on existing installation (#71). Closes the recovery gap exposed by v0.7.2's `500 audit failure` on the duplicate-`InstallGuid` path: technicians can now recover from a lost-credential scenario (machine reimage, profile corruption, hardware swap) by re-running the standard registration ceremony with a fresh bootstrap token — no admin pre-revoke required, no spurious "service unavailable" surfaced to the user. Includes the prerequisite data-model shift to multi-credential-per-installation enforced by a filtered unique active-only index, plus an endpoint-layer logging fix so future `/register` exceptions surface at the API layer instead of being swallowed.

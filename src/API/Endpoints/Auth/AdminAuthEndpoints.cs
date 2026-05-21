@@ -1,6 +1,7 @@
 using System.Text.Json;
 using API.Dtos.Auth;
 using Core.Enums;
+using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -22,6 +23,14 @@ public static class AdminAuthEndpoints
     {
         app.MapPost("/api/admin/bootstrap-tokens", MintBootstrapToken)
             .WithName("AdminMintBootstrapToken")
+            .WithTags("Admin");
+
+        app.MapGet("/api/admin/installations", ListInstallations)
+            .WithName("AdminListInstallations")
+            .WithTags("Admin");
+
+        app.MapPost("/api/admin/installations/{id:int}/revoke", RevokeInstallation)
+            .WithName("AdminRevokeInstallation")
             .WithTags("Admin");
     }
 
@@ -92,4 +101,78 @@ public static class AdminAuthEndpoints
                 MintedAt: record.MintedAt,
                 ExpiresAt: record.ExpiresAt));
     }
+
+    private static async Task<IResult> ListInstallations(
+        string? clientApp,
+        string? status,
+        IInstallationService installations,
+        CancellationToken ct)
+    {
+        InstallationStatus? statusFilter = ParseStatusFilter(status);
+        if (status is not null && status.Length > 0
+            && !string.Equals(status, "all", StringComparison.OrdinalIgnoreCase)
+            && statusFilter is null)
+        {
+            return Results.BadRequest(new { error = "status must be 'active', 'revoked', or 'all'" });
+        }
+
+        IReadOnlyList<Installation> rows = await installations
+            .ListAsync(clientApp, statusFilter, ct).ConfigureAwait(false);
+
+        InstallationListItemDto[] items = [.. rows.Select(MapToDto)];
+        return Results.Ok(items);
+    }
+
+    private static async Task<IResult> RevokeInstallation(
+        int id,
+        IInstallationService installations,
+        ICurrentUserProvider currentUser,
+        CancellationToken ct)
+    {
+        int adminId = currentUser.CurrentUserId
+            ?? throw new InvalidOperationException(
+                "AdminAuthenticationMiddleware did not stamp CurrentUserId.");
+
+        RevokeResult result = await installations.RevokeAsync(id, adminId, ct)
+            .ConfigureAwait(false);
+
+        return result switch
+        {
+            RevokeResult.NotFound => Results.NotFound(new { error = "installation not found" }),
+            RevokeResult.Success s => Results.Ok(new RevokeInstallationResponseDto(
+                InstallationId: id,
+                Status: InstallationStatus.Revoked.ToString().ToLowerInvariant(),
+                RevokedAt: s.RevokedAt)),
+            _ => throw new InvalidOperationException(
+                $"Unhandled RevokeResult variant: {result.GetType().Name}")
+        };
+    }
+
+    private static InstallationStatus? ParseStatusFilter(string? value)
+    {
+        if (string.IsNullOrEmpty(value) || string.Equals(value, "all", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+        if (string.Equals(value, "active", StringComparison.OrdinalIgnoreCase))
+        {
+            return InstallationStatus.Active;
+        }
+        if (string.Equals(value, "revoked", StringComparison.OrdinalIgnoreCase))
+        {
+            return InstallationStatus.Revoked;
+        }
+        return null;
+    }
+
+    private static InstallationListItemDto MapToDto(Installation install)
+        => new(
+            InstallationId: install.Id,
+            ClientApp: install.ClientApp,
+            OsUserId: install.OsUserId,
+            MachineId: install.MachineId,
+            InstallGuid: install.InstallGuid,
+            RegisteredAt: install.RegisteredAt,
+            Status: install.Status.ToString().ToLowerInvariant(),
+            RevokedAt: install.RevokedAt);
 }

@@ -3,8 +3,10 @@ using Core.Models.Auth;
 namespace Services.Interfaces.Auth;
 
 /// <summary>
-/// Per-installation API credential service. US1 ships
-/// <see cref="IssueAsync"/>; list and revoke arrive in US3.
+/// Per-installation API credential service. Issues credentials during
+/// <c>/register</c> and revokes the Active row(s) on an installation
+/// during re-registration. Admin-facing list/revoke operations live on
+/// <see cref="IInstallationService"/>.
 /// </summary>
 public interface IInstallationCredentialService
 {
@@ -29,10 +31,9 @@ public interface IInstallationCredentialService
     /// Installation stays untouched. Does NOT call
     /// <c>AppDbContext.SaveChangesAsync</c>; the caller batches the revoke
     /// into the surrounding transaction (so the re-registration flow can
-    /// commit revoke + issue + token-flip + audit atomically).
-    /// Reusable by the future admin revoke endpoint (#68), which will
-    /// flip <c>Installation.Status</c> itself and delegate the credential
-    /// revoke here.
+    /// commit revoke + issue + token-flip + audit atomically). Also used
+    /// by <see cref="IInstallationService.RevokeAsync"/> from inside its
+    /// own transaction.
     /// </remarks>
     Task<int> RevokeActiveAsync(int installationId, DateTime revokedAt,
         CancellationToken ct = default);

@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Services.Auth;
 
 namespace Tests.Integration.API.Auth;
 
@@ -41,6 +42,14 @@ internal sealed class AdminAuthApiFactory : WebApplicationFactory<Program>
     /// depending on PBKDF2 + cold-JIT timing on CI runners.
     /// </summary>
     public static readonly DateTime FixedNow = new(2026, 5, 18, 12, 0, 0, DateTimeKind.Utc);
+
+    /// <summary>
+    /// Optional override of the per-clientApp descriptor-policy registry
+    /// the test host resolves. The default registry only carries
+    /// <c>ButtonPanelTester</c>; US3 list-with-filters tests need a second
+    /// active clientApp so the filter assertions are meaningful.
+    /// </summary>
+    public IReadOnlyDictionary<string, DescriptorPolicy>? DescriptorPoliciesOverride { get; set; }
 
     private readonly SqliteConnection _connection;
 
@@ -81,6 +90,18 @@ internal sealed class AdminAuthApiFactory : WebApplicationFactory<Program>
                 services.Remove(timeDescriptor);
             }
             services.AddSingleton<TimeProvider>(new FixedTimeProvider(FixedNow));
+
+            if (DescriptorPoliciesOverride is not null)
+            {
+                IReadOnlyDictionary<string, DescriptorPolicy> overrides = DescriptorPoliciesOverride;
+                ServiceDescriptor? policiesDescriptor = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(IReadOnlyDictionary<string, DescriptorPolicy>));
+                if (policiesDescriptor is not null)
+                {
+                    services.Remove(policiesDescriptor);
+                }
+                services.AddSingleton<IReadOnlyDictionary<string, DescriptorPolicy>>(overrides);
+            }
         });
 
         IHost host = base.CreateHost(builder);
