@@ -297,7 +297,7 @@ public class AppDbContext : DbContext
             // DescriptorPolicy enforces presence at the service layer.
             entity.Property(e => e.OsUserId).HasMaxLength(200);
             entity.Property(e => e.MachineId).HasMaxLength(200);
-            entity.Property(e => e.AppVersion).HasMaxLength(50);
+            entity.Property(e => e.AppVersion).HasMaxLength(128);
             entity.Property(e => e.DescriptorJson).IsRequired();
             entity.HasIndex(e => new { e.ClientApp, e.OsUserId, e.MachineId });
             entity.HasIndex(e => e.InstallGuid).IsUnique();
@@ -339,7 +339,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.ClaimedClientApp).HasMaxLength(100);
             entity.Property(e => e.ClaimedOsUserId).HasMaxLength(200);
             entity.Property(e => e.ClaimedMachineId).HasMaxLength(200);
-            entity.Property(e => e.ClaimedAppVersion).HasMaxLength(50);
+            entity.Property(e => e.ClaimedAppVersion).HasMaxLength(128);
             entity.Property(e => e.SourceIp).HasMaxLength(45).IsRequired();
             entity.HasIndex(e => e.OccurredAt);
             entity.HasIndex(e => new { e.ClaimedClientApp, e.OccurredAt });

@@ -2,7 +2,7 @@
 
 One bisect-safe implementation slice (single worker, single commit).
 
-- [ ] **T001** — `fix(infra): widen AppVersion columns to nvarchar(128)`
+- [X] **T001** — `fix(infra): widen AppVersion columns to nvarchar(128)`
 
   Vertical slice closing all code-side acceptance criteria.
 
