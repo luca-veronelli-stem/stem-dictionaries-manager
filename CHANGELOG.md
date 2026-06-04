@@ -6,6 +6,20 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **API**: `POST /register` no longer returns `500` (`audit failure`)
+  when `Descriptor.AppVersion` exceeds 50 characters. NerdBank.GitVersioning
+  emits a prerelease informational version for PR/dev builds
+  (`0.0.0-prNNN-<sha>+<sha>`, 50+ chars) that overflowed
+  `Installations.AppVersion` and `RegistrationEvents.ClaimedAppVersion`
+  (`nvarchar(50)`), which SQL Server rejected with `String or binary data
+  would be truncated`. The bootstrap token was not consumed (the
+  transaction rolled back), so retry succeeds once the schema is widened.
+  Both columns are widened to `nvarchar(128)` via a new
+  `WidenAppVersionColumns` migration; a model-metadata regression test
+  guards the EF model max length. The SQLite integration harness cannot
+  reproduce the truncation (type affinity ignores `nvarchar` length), so
+  the regression proof reads the EF model rather than exercising
+  `/register`. Closes #86.
 - **API**: `POST /register` now returns `423 Locked` (previously
   `401 Unauthorized`) when a fresh, valid bootstrap token is presented
   against an existing **revoked** installation
