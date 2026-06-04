@@ -21,7 +21,7 @@ token-scope information and must not be 401. Target: `423 Locked`
   clarification session in `spec.md`, and the outcome-table row +
   Outcome-vs-wire-status note in `data-model.md`. Orchestrator-owned;
   lands in a `docs:` commit.
-- [ ] T002 [impl] Enumerate `RegistrationOutcome.ExistingInstallationRevoked`
+- [X] T002 [impl] Enumerate `RegistrationOutcome.ExistingInstallationRevoked`
   in `StatusFor` (`src/API/Endpoints/Auth/RegistrationEndpoints.cs`)
   as `423 Locked`; drop the "identical to `ClientScopeMismatch`" claim
   from the enum XML doc (`src/Core/Enums/Auth/RegistrationOutcome.cs`);

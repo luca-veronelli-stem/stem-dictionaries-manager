@@ -107,6 +107,7 @@ public static class RegistrationEndpoints
         RegistrationOutcome.TokenAlreadyUsed => StatusCodes.Status409Conflict,
         RegistrationOutcome.TokenExpired => StatusCodes.Status410Gone,
         RegistrationOutcome.TokenRevoked => StatusCodes.Status423Locked,
+        RegistrationOutcome.ExistingInstallationRevoked => StatusCodes.Status423Locked,
         _ => StatusCodes.Status401Unauthorized
     };
 

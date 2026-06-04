@@ -425,6 +425,43 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_FreshTokenAgainstRevokedInstallation_Returns423AndAuditRowCarriesExistingInstallationRevoked()
+    {
+        // #85: a fresh, valid token whose descriptor matches an existing
+        // Installation row that is Revoked surfaces as 423 Locked +
+        // ExistingInstallationRevoked audit. The outcome fires only after the
+        // bootstrap token and client-app scope have validated, so per the
+        // narrowed FR-002 it leaks no token-scope info and is not conflated 401.
+        await using (AppDbContext seed = _factory.NewContext())
+        {
+            seed.Installations.Add(new InstallationEntity
+            {
+                ClientApp = "ButtonPanelTester",
+                OsUserId = "u",
+                MachineId = "m",
+                DescriptorJson = "{}",
+                AppVersion = "1.0.0",
+                RegisteredAt = DateTime.UtcNow.AddMinutes(-5),
+                InstallGuid = Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
+                Status = InstallationStatus.Revoked
+            });
+            await seed.SaveChangesAsync();
+        }
+        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_revoked-install");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_revoked-install", descriptor = ValidDescriptor() }));
+
+        Assert.Equal((HttpStatusCode)423, response.StatusCode);
+        Assert.Equal(FailureBody, await ReadBodyAsync(response));
+
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.ExistingInstallationRevoked, evt.Outcome);
+    }
+
+    [Fact]
     public async Task Register_ConcurrentRaceLoser_Returns409WithFailureBodyAndNoInstallation()
     {
         // SC-003: when MarkUsedAsync throws BootstrapTokenStateException — the
