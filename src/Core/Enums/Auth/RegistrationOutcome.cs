@@ -40,11 +40,12 @@ public enum RegistrationOutcome
     ReRegistrationSuccess,
     /// <summary>
     /// Re-registration rejected because the matched Installation row's
-    /// own <c>Status</c> is <c>Revoked</c> (spec 002 / #71). Server-only
-    /// — wire response is identical to <see cref="ClientScopeMismatch"/>
-    /// (conflated 401 + standard failure body) to preserve the FR-002
-    /// no-info-leak invariant. The Installation is NOT auto-unrevoked;
-    /// recovery requires a separate admin flow.
+    /// own <c>Status</c> is <c>Revoked</c> (spec 002 / #71). Maps to
+    /// <c>423 Locked</c> on the wire (since #85): the outcome fires only
+    /// after the bootstrap token and client-app scope have validated, so
+    /// it leaks no token-scope information and is distinguishable per the
+    /// narrowed FR-002. The Installation is NOT auto-unrevoked; recovery
+    /// requires a separate admin flow.
     /// </summary>
     ExistingInstallationRevoked
 }
