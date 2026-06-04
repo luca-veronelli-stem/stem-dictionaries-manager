@@ -161,16 +161,22 @@ operator/developer hint, not a token-validity oracle.
 | `409 Conflict` | `TokenAlreadyUsed` | The bootstrap token has been consumed by a prior successful registration. The race-loser branch of a concurrent ceremony also lands here. |
 | `410 Gone` | `TokenExpired` | The bootstrap token's TTL has elapsed. |
 | `423 Locked` | `TokenRevoked` | The bootstrap token has been administratively revoked. |
+| `423 Locked` | `ExistingInstallationRevoked` | A fresh, valid bootstrap token validated against an existing **Revoked** Installation with matching `clientApp` (spec 002 / #71). Fires only **after** the token's validity and the client-app scope have been verified, so it reveals no token-scope information and is distinguishable per the narrowed FR-002 (clarification 2026-06-04). Mirrors `TokenRevoked`'s 423 — a revoked/locked resource. The Installation is NOT auto-unrevoked; recovery requires a separate admin flow. |
 | `500 Internal Server Error` | `AuditFailure` | The pre-response `RegistrationEvent` write failed (FR-013). Body becomes `{ "error": "audit failure" }` — this is the only failure mode that doesn't use "registration failed" as the message, because operator-actionable distinct from "your token is bad". |
 
-Server-only outcomes (spec 002 / #71) — wire response identical to
-the conflated cases above, distinguishable only in
+Server-only outcome (spec 002 / #71) — wire response identical to a
+first-time `Success`, distinguishable only in
 `RegistrationEvents.Outcome`:
 
 | Wire shape | `RegistrationOutcome` | Trigger |
 |---|---|---|
 | `200 OK` (Success-shape body, new credential plaintext) | `ReRegistrationSuccess` | A fresh bootstrap token validated against an existing **Active** Installation with matching ClientApp. The atomic re-registration path ran. See *Re-registration path* below. |
-| `401 Unauthorized` (conflated body) | `ExistingInstallationRevoked` | A fresh bootstrap token validated against an existing **Revoked** Installation with matching ClientApp. Installation is NOT auto-unrevoked; recovery requires a separate admin flow. |
+
+`ExistingInstallationRevoked` was historically listed here as a
+`401`-conflated server-only outcome; since #85 it maps to its own
+`423 Locked` (in the status map above), because it fires only after
+token + scope validation and therefore leaks no token-scope
+information.
 
 The audit log records the exact `RegistrationOutcome` value for every
 attempt regardless of which status code was returned — server-side ops
@@ -246,10 +252,12 @@ conflated 401 path (`Outcome = ClientScopeMismatch`); no row in
 `Installations` or `InstallationApiCredentials` is mutated.
 
 When the matched installation's `Status` is `Revoked`, the request is
-rejected through the existing conflated 401 path
-(`Outcome = ExistingInstallationRevoked` — server-only outcome with
-the same wire shape). The installation is **not** auto-unrevoked; a
-separate admin flow is required to recover.
+rejected with `423 Locked` (`Outcome = ExistingInstallationRevoked`).
+This outcome fires only after the token and client-app scope have
+already validated, so per the narrowed FR-002 (clarification
+2026-06-04) it gets its own RFC-meaningful status rather than the
+conflated 401 — mirroring `TokenRevoked`. The installation is **not**
+auto-unrevoked; a separate admin flow is required to recover.
 
 ## Authentication / middleware
 

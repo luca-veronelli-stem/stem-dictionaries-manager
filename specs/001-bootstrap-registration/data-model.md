@@ -217,12 +217,18 @@ Audit-trail record of one registration attempt (success or failure).
 | `DescriptorMalformed` | Descriptor missing required fields or unparseable. |
 | `AuditFailure` | DB error while writing the event itself; sentinel value used only by tests, never persisted (the failure mode collapses into a 500 response per FR-013). |
 | `ReRegistrationSuccess` | Spec 002 / #71 — re-registration happy path. Wire response identical to `Success` (200 + new credential body); audit value distinct so operators can filter for re-registrations. |
-| `ExistingInstallationRevoked` | Spec 002 / #71 — re-registration rejected because the matched Installation row's own `Status` is `Revoked`. Wire response identical to `ClientScopeMismatch` (conflated 401); installation is NOT auto-unrevoked. |
+| `ExistingInstallationRevoked` | Spec 002 / #71 — re-registration rejected because the matched Installation row's own `Status` is `Revoked`. Maps to `423 Locked` (since #85): fires after token + scope validation, so it is distinguishable per the narrowed FR-002. Installation is NOT auto-unrevoked. |
 
-**Server-only**: per spec FR-002, the `Outcome` value is recorded
-server-side and never disclosed to the client. The `/register` failure
-response is a single `401 { "error": "registration failed" }` regardless
-of `Outcome`.
+**Outcome vs. wire status**: the exact `Outcome` value is always
+recorded server-side on the `RegistrationEvent` row. Per the narrowed
+FR-002 (clarification 2026-05-18), the wire status is conflated to
+`401 { "error": "registration failed" }` **only** for the three
+scope-related outcomes (`TokenInvalid`, `ClientScopeMismatch`, and the
+unknown-`clientApp` policy-lookup miss); every other outcome carries
+its own RFC-meaningful status (`400`/`409`/`410`/`423`/`500`) per
+`contracts/register.md`. The failure body envelope stays
+`{ "error": "registration failed" }` across all failure statuses
+(`500` uses `{ "error": "audit failure" }`).
 
 **Infrastructure (`Infrastructure/Entities/Auth/RegistrationEventEntity.cs`)**
 

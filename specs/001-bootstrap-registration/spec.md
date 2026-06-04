@@ -140,6 +140,27 @@ the dictionaries-manager owner and the button-panel-tester owner.
   is identical in both cases (an opaque string); the consumer chooses
   the source before sending.
 
+### Session 2026-06-04
+
+Triggered by issue #85 -- `ExistingInstallationRevoked` (added in #71)
+fell through `StatusFor` to the `401` default, contradicting the
+2026-05-18 narrowing.
+
+- Q: Should `ExistingInstallationRevoked` (re-registration rejected
+  because the matched Installation row's own `Status` is `Revoked`)
+  share the conflated `401`, or get a distinct status code? → A:
+  **Distinct -- `423 Locked`.** The outcome fires only *after* the
+  bootstrap token's validity and the client-app scope have already
+  been verified, so by construction it reveals nothing about which
+  apps a token is scoped to; the 2026-05-18 narrowing therefore
+  applies to it. `423 Locked` mirrors `TokenRevoked` (both denote a
+  revoked/locked resource state) and lets the consumer GUI surface
+  "this installation was revoked by an admin -- reinstall the app"
+  instead of the misleading "token not accepted". The Installation is
+  still NOT auto-unrevoked; recovery remains a separate admin flow
+  (out of scope for #85). The audit log continues to record the exact
+  `RegistrationOutcome`.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Client app obtains its API credential on first launch (Priority: P1)
