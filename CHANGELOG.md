@@ -6,6 +6,17 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **API**: `POST /register` now returns `423 Locked` (previously
+  `401 Unauthorized`) when a fresh, valid bootstrap token is presented
+  against an existing **revoked** installation
+  (`RegistrationOutcome.ExistingInstallationRevoked`). The outcome
+  fires only after the token's validity and client-app scope have been
+  verified, so per the narrowed FR-002 it leaks no token-scope
+  information and must not be conflated into the scope-related 401 -- a
+  prior gap where it fell through the `StatusFor` default. A consumer
+  can now distinguish "this installation was revoked by an admin --
+  reinstall the app" from the misleading "token not accepted". Closes
+  #85.
 - **CI**: `.github/workflows/deploy-api.yml` post-deploy smoke now
   retries `/api/version` with the same 12-attempt × 10-second cadence
   already in place for `/health`. The v0.9.0 deploy succeeded but the
