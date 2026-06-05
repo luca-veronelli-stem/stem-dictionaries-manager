@@ -62,12 +62,16 @@ Appended to the existing enum in
 | Value | When | Wire status |
 |---|---|---|
 | `ReRegistrationSuccess` | Re-registration happy path — fresh token + existing `Active` Installation with matching ClientApp. | `200 OK` (same body shape as `Success`). |
-| `ExistingInstallationRevoked` | The matched Installation has `Status = Revoked`. Request is rejected. | `401 Unauthorized` (conflated body with `TokenInvalid` / `ClientScopeMismatch`). |
+| `ExistingInstallationRevoked` | The matched Installation has `Status = Revoked`. Request is rejected. | `423 Locked` (since #85). Fires only after token + scope validation, so the distinct code leaks no token-scope info (FR-002 preserved). |
 
-Both are **server-only**: the wire response does not distinguish them
-from existing outcomes (FR-002 no-info-leak invariant preserved). The
-distinction is only visible in the `RegistrationEvents.Outcome`
-column.
+`ReRegistrationSuccess` is **server-only**: its wire response is the
+`200` success body, indistinguishable from a first-time `Success`
+(FR-002 no-info-leak invariant preserved); the distinction is only
+visible in the `RegistrationEvents.Outcome` column.
+`ExistingInstallationRevoked` is recorded in `Outcome` too, but since
+#85 it maps to a distinct `423 Locked` status — it fires only after
+token + scope validation, so the distinct code leaks no token-scope
+information.
 
 ### `RegistrationResult` — unchanged
 

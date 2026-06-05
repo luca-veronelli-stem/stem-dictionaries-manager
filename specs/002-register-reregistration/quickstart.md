@@ -111,7 +111,7 @@ sqlite3 src/API/bin/Debug/net10.0/dictionaries.db \
 
 # Now re-register with a fresh token
 curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:5000/register ...
-# Expected: 401
+# Expected: 423   (ExistingInstallationRevoked; was 401 before #85)
 ```
 
 Audit row appears with `Outcome = ExistingInstallationRevoked` (the

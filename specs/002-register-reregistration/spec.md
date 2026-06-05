@@ -136,8 +136,10 @@ attached, sourced from the registration endpoint logger category.
   mutated. This preserves the FR-002 invariant that scope-related
   outcomes never leak which app a token or `InstallGuid` belongs to.
 - **Revoked installation**: the matched `Installation` row's own
-  `Status` is `Revoked`. The request MUST be rejected through the
-  existing conflated 401 path. Re-registration MUST NOT auto-unrevoke
+  `Status` is `Revoked`. The request MUST be rejected with `423 Locked`
+  (`ExistingInstallationRevoked`; since #85 — distinguishable per the
+  narrowed FR-002, as it fires only after token + scope validation).
+  Re-registration MUST NOT auto-unrevoke
   an installation — operators revoke an installation deliberately, and
   a fresh `Issued` bootstrap token alone is not enough to clear that
   state. To recover, the operator must explicitly mint a flow that
@@ -176,8 +178,10 @@ attached, sourced from the registration endpoint logger category.
   the `RegistrationEvents` audit table.
 - **FR-003**: The re-registration path MUST require the matched
   `Installation.Status` to be `Active`. A `Revoked` installation MUST
-  cause the request to be rejected through the existing conflated 401
-  path; the installation MUST NOT be auto-unrevoked.
+  cause the request to be rejected with `423 Locked`
+  (`ExistingInstallationRevoked`; distinguishable since #85, as it fires
+  only after token + scope validation); the installation MUST NOT be
+  auto-unrevoked.
 - **FR-004**: A successful re-registration MUST set every `Active`
   `InstallationApiCredential` row for the matched installation to
   `Status = Revoked` with `RevokedAt = now`, and MUST insert a new
