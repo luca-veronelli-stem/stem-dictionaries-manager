@@ -9,9 +9,9 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
-    <Version>0.9.0</Version>
-    <FileVersion>0.9.0.0</FileVersion>
-    <AssemblyVersion>0.9.0.0</AssemblyVersion>
+    <Version>0.9.1</Version>
+    <FileVersion>0.9.1.0</FileVersion>
+    <AssemblyVersion>0.9.1.0</AssemblyVersion>
     <Company>STEM E.m.s.</Company>
     <Authors>Luca Veronelli</Authors>
     <Copyright>© $([System.DateTime]::Now.ToString('yyyy')) STEM E.m.s.</Copyright>

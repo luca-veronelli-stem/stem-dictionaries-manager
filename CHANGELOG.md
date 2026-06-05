@@ -4,6 +4,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-06-04
+
+Patch release: two production `/register` fixes shipped together — the
+`nvarchar(50)` → `nvarchar(128)` `AppVersion` widening (#86) that resolves
+the NBGV PR-build `500`, and the `ExistingInstallationRevoked → 423` status
+correction (#85). The deploy workflow's `/api/version` smoke is also
+hardened against cold-start flakiness (#80).
+
 ### Fixed
 
 - **API**: `POST /register` no longer returns `500` (`audit failure`)
