@@ -3,6 +3,15 @@
 **Branch**: `fix/71-register-reregistration` | **Date**: 2026-05-19 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `specs/002-register-reregistration/spec.md`
 
+> **Update — #85 (0.9.1):** this #71-era plan documents
+> `ExistingInstallationRevoked` as mapping to the conflated **401** path.
+> Issue #85 reversed that: the 2026-05-18 FR-002 narrowing made the outcome
+> distinguishable (it fires only after token + scope validation), so it now
+> maps to **`423 Locked`**. Treat any `401` for the revoked-installation
+> case below as historical; see
+> `specs/001-bootstrap-registration/contracts/register.md` for the current
+> mapping.
+
 ## Summary
 
 Issue #71 of `stem-dictionaries-manager`: when `POST /register` receives
@@ -75,7 +84,7 @@ Gates evaluated against `.specify/memory/constitution.md` v1.0.1.
 | **III. Test-First, Manual Fakes, Integration over Mocks** | ✅ Test-first per slice (RED test → minimal GREEN → next slice). Manual fakes only — extend `FakeInstallationApiCredentialRepository` with the new method. `CapturingLoggerProvider` is a manual fake (no Moq/NSubstitute). Integration tests reuse `RegisterApiFactory` (SQLite-in-memory). |
 | **IV. Pragmatic .NET — Explicit, Nullable, Exceptional** | ✅ `Nullable=enable` inherited. Manual DI in `API/Program.cs` (one new line for the logger; the service registration is `AddScoped` already in place). Errors propagate via exceptions; the FR-008 catch logs-then-rethrows-shape (returns 500, doesn't throw past the endpoint). `ArgumentException.ThrowIfNullOrWhiteSpace` not needed (no new string params). Function bodies ≤ 15 LOC; the new `CommitReRegistrationAsync` mirrors `CommitSuccessAsync`'s shape. |
 | **V. Workflow Discipline** | ✅ Single fix branch `fix/71-register-reregistration`. Conventional commits per `tasks.md`. Dual-remote in effect (mirror via Actions on merge to `main`). CI green-gate required on both `ubuntu-latest` and `windows-latest`. CHANGELOG.md `[Unreleased]` entry to land with the final work commit. Rebase merge planned. |
-| **Security & Auditability** | ✅ FR-002 no-info-leak preserved: `ReRegistrationSuccess` returns the same `200` body as `Success`; `ExistingInstallationRevoked` returns the same `401 { "error": "registration failed" }` body as `ClientScopeMismatch`. Audit-or-no-issue: re-registration's revoke + issue + token-flip + audit row all commit in one `BeginTransactionAsync` block, mirroring `CommitSuccessAsync`. Banned APIs: none. |
+| **Security & Auditability** | ✅ FR-002 no-info-leak preserved: `ReRegistrationSuccess` returns the same `200` body as `Success`; `ExistingInstallationRevoked` returns the `{ "error": "registration failed" }` body with a `423 Locked` status (changed from the conflated `401` by #85 — a post-token+scope-validation outcome, so the distinct code leaks no scope info). Audit-or-no-issue: re-registration's revoke + issue + token-flip + audit row all commit in one `BeginTransactionAsync` block, mirroring `CommitSuccessAsync`. Banned APIs: none. |
 | **Quality Gates** | Verified pre-PR: `dotnet format whitespace --verify-no-changes --no-restore`; `dotnet build -c Release` (warnings-as-errors); `dotnet test -c Release` on both OS legs. CHANGELOG.md entry under `[Unreleased]`. Standard version unchanged. |
 
 **Result**: ✅ All gates pass. No deviations recorded; Complexity Tracking section is empty.
@@ -326,7 +335,7 @@ they fall through as `null`/empty strings.
 | Outcome | Status |
 |---|---|
 | `ReRegistrationSuccess` | `200 OK` (handled in the result-`Success` branch, not via `StatusFor` — the service returns `RegistrationResult.Success` for both happy paths) |
-| `ExistingInstallationRevoked` | `401 Unauthorized` (conflated with `TokenInvalid` / `ClientScopeMismatch`) |
+| `ExistingInstallationRevoked` | `423 Locked` (since #85; this #71-era plan specified `401` conflated, corrected by the #85 status-mapping fix) |
 
 ### Contract update
 

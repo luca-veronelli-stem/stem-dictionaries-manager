@@ -395,7 +395,8 @@ gap (FR-009 + FR-010). No code change.
 - **T8.2** Extend the `RegistrationOutcome` table in the same file's
   "Status → outcome map" subsection with the two new server-only
   outcomes (`ReRegistrationSuccess` → 200,
-  `ExistingInstallationRevoked` → 401 conflated).
+  `ExistingInstallationRevoked` → 423 `Locked` — corrected by #85; this
+  #71-era task originally wrote 401 conflated).
 - **T8.3** Update `specs/001-bootstrap-registration/data-model.md`
   § `InstallationApiCredential` "Lifecycle relationship to
   Installation": replace the 1:1 prose with the 1:N + at-most-one-

@@ -140,6 +140,14 @@ concern, not 002's.
 
 ## R3 — Audit outcome for revoked-installation rejection (spec-review Finding 2)
 
+> **Update — #85 (0.9.1):** the decision below (conflated **401**) was
+> later reversed. The "New wire status (`423 Locked`)" alternative this
+> section rejected on FR-002 grounds became viable once the 2026-05-18
+> FR-002 clarification narrowed the conflation to pre-token/scope-validation
+> outcomes only. `ExistingInstallationRevoked` fires *after* token and scope
+> validation, so it leaks no scope info, and #85 adopted the **`423 Locked`**
+> mapping. The #71 reasoning below is preserved as the historical record.
+
 ### Decision
 
 Add a new server-only `RegistrationOutcome.ExistingInstallationRevoked`.
