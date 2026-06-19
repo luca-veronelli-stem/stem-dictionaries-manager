@@ -4,6 +4,21 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI**: every `dotnet restore` failed with `NU1903` (NuGetAudit +
+  `TreatWarningsAsErrors`) because `SQLitePCLRaw.lib.e_sqlite3` 2.1.11,
+  pulled transitively by `Microsoft.EntityFrameworkCore.Sqlite` 10.0.8,
+  carries CVE-2025-6965 (advisory GHSA-2m69-gcr7-jv3q) with no patched
+  2.1.x release. This blocked `main`'s scheduled CI and every open PR.
+  Resolved with a documented `NuGetAuditSuppress` in
+  `Directory.Packages.props`: real exposure is nil (embedded local SQLite,
+  EF-generated queries, no untrusted SQL), and forward-pinning the chain
+  to 3.x is not achievable from central package management without an
+  out-of-scope bump of the `Microsoft.Extensions.*` family. Remove the
+  suppression once EF Core's dependency chain moves onto a patched native
+  lib. Closes #107.
+
 ## [0.9.1] - 2026-06-04
 
 Patch release: two production `/register` fixes shipped together — the
