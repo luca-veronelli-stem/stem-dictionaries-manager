@@ -1,12 +1,12 @@
-using System.Text.Json;
 using Core.Models;
 using Infrastructure.Entities;
 
 namespace Services.Mapping;
 
 /// <summary>
-/// Bidirectional mapper for Command Entity ↔ Domain.
-/// Handles JSON conversion of parameters.
+/// Bidirectional mapper for Command Entity &lt;-&gt; Domain. Parameter
+/// (de)serialization is owned by the EF Core typed value conversion on
+/// <c>CommandEntity.Parameters</c>, so the mapper only copies the list.
 /// </summary>
 public static class CommandMapper
 {
@@ -17,15 +17,13 @@ public static class CommandMapper
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        IReadOnlyList<string> parameters = DeserializeParameters(entity.ParametersJson);
-
         return Command.Restore(
             entity.Id,
             entity.Name,
             entity.CodeHigh,
             entity.CodeLow,
             entity.IsResponse,
-            parameters);
+            entity.Parameters);
     }
 
     /// <summary>
@@ -42,7 +40,7 @@ public static class CommandMapper
             CodeHigh = domain.CodeHigh,
             CodeLow = domain.CodeLow,
             IsResponse = domain.IsResponse,
-            ParametersJson = SerializeParameters(domain.Parameters)
+            Parameters = [.. domain.Parameters]
         };
     }
 
@@ -58,7 +56,7 @@ public static class CommandMapper
         entity.CodeHigh = domain.CodeHigh;
         entity.CodeLow = domain.CodeLow;
         entity.IsResponse = domain.IsResponse;
-        entity.ParametersJson = SerializeParameters(domain.Parameters);
+        entity.Parameters = [.. domain.Parameters];
     }
 
     /// <summary>
@@ -67,34 +65,5 @@ public static class CommandMapper
     public static IReadOnlyList<Command> ToDomainList(IEnumerable<CommandEntity> entities)
     {
         return [.. entities.Select(ToDomain)];
-    }
-
-    // === Private helpers ===
-
-    private static IReadOnlyList<string> DeserializeParameters(string json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<List<string>>(json) ?? [];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
-
-    private static string SerializeParameters(IReadOnlyList<string> parameters)
-    {
-        if (parameters == null || parameters.Count == 0)
-        {
-            return "[]";
-        }
-
-        return JsonSerializer.Serialize(parameters);
     }
 }

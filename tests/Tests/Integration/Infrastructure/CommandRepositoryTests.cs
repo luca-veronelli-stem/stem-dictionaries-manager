@@ -24,7 +24,7 @@ public class CommandRepositoryTests : IntegrationTestBase
             CodeHigh = 0x01,
             CodeLow = 0x00,
             IsResponse = false,
-            ParametersJson = "[\"address\", \"length\"]"
+            Parameters = ["address", "length"]
         };
 
         CommandEntity result = await _repository.AddAsync(command);

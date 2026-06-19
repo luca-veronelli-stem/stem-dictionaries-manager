@@ -33,7 +33,7 @@ public class CommandWorkflowTests : IntegrationTestBase
             CodeHigh = 0x00,
             CodeLow = 0x01,
             IsResponse = false,
-            ParametersJson = "[]"
+            Parameters = []
         };
         await cmdRepo.AddAsync(command);
 
@@ -74,7 +74,7 @@ public class CommandWorkflowTests : IntegrationTestBase
             CodeHigh = 0x00, // Comando
             CodeLow = 0x01,
             IsResponse = false,
-            ParametersJson = "[\"2|Address\"]"
+            Parameters = ["2|Address"]
         };
         var response = new CommandEntity
         {
@@ -82,7 +82,7 @@ public class CommandWorkflowTests : IntegrationTestBase
             CodeHigh = 0x80, // Response
             CodeLow = 0x01, // Same CodeLow!
             IsResponse = true,
-            ParametersJson = "[\"2|Address\",\"4|Value\"]"
+            Parameters = ["2|Address", "4|Value"]
         };
         await cmdRepo.AddAsync(request);
         await cmdRepo.AddAsync(response);
@@ -113,22 +113,18 @@ public class CommandWorkflowTests : IntegrationTestBase
             CodeHigh = 0x00,
             CodeLow = 0x10,
             IsResponse = false,
-            ParametersJson = "[\"2|Indirizzo memoria\",\"4|Valore registro\",\"1|Flags\"]"
+            Parameters = ["2|Indirizzo memoria", "4|Valore registro", "1|Flags"]
         };
         await cmdRepo.AddAsync(command);
 
-        // Verify
+        // Verify the typed list survives a real round-trip through SQLite via
+        // the EF Core value conversion (this is the #7 conversion proof).
+        Context.ChangeTracker.Clear();
         CommandEntity? loaded = await cmdRepo.GetByIdAsync(command.Id);
         Assert.NotNull(loaded);
-        Assert.NotNull(loaded.ParametersJson);
-
-        // Parse JSON
-        List<string>? params_ = System.Text.Json.JsonSerializer.Deserialize<List<string>>(loaded.ParametersJson);
-        Assert.NotNull(params_);
-        Assert.Equal(3, params_.Count);
-        Assert.Equal("2|Indirizzo memoria", params_[0]);
-        Assert.Equal("4|Valore registro", params_[1]);
-        Assert.Equal("1|Flags", params_[2]);
+        Assert.Equal(
+            ["2|Indirizzo memoria", "4|Valore registro", "1|Flags"],
+            loaded.Parameters);
     }
 
     #endregion

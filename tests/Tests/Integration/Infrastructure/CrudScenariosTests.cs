@@ -111,20 +111,20 @@ public class CrudScenariosTests : IntegrationTestBase
             CodeHigh = 0x01,
             CodeLow = 0x02,
             IsResponse = false,
-            ParametersJson = "{\"old\": true}"
+            Parameters = ["old"]
         };
         await Context.Commands.AddAsync(command);
         await Context.SaveChangesAsync();
 
         // Act
-        command.ParametersJson = "{\"new\": true}";
+        command.Parameters = ["new"];
         Context.Commands.Update(command);
         await Context.SaveChangesAsync();
 
         // Assert
         CommandEntity? updated = await Context.Commands.FindAsync(command.Id);
         Assert.NotNull(updated);
-        Assert.Equal("{\"new\": true}", updated.ParametersJson);
+        Assert.Equal(["new"], updated.Parameters);
         Assert.NotNull(updated.UpdatedAt);
     }
 

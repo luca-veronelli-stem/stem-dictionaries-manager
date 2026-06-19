@@ -6941,18 +6941,13 @@ public static class DatabaseSeeder
     private static CommandEntity Cmd(string name, byte codeHigh, byte codeLow, bool isResponse,
         params string[] parameters)
     {
-        // Serialize parameters as a JSON array
-        string paramsJson = parameters.Length > 0
-            ? "[" + string.Join(",", parameters.Select(p => $"\"{p}\"")) + "]"
-            : "[]";
-
         return new CommandEntity
         {
             Name = name,
             CodeHigh = codeHigh,
             CodeLow = codeLow,
             IsResponse = isResponse,
-            ParametersJson = paramsJson
+            Parameters = [.. parameters]
         };
     }
 

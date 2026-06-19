@@ -5,8 +5,8 @@ using Services.Mapping;
 namespace Tests.Unit.Services.Mapping;
 
 /// <summary>
-/// Unit tests per CommandMapper.
-/// Verifica la conversione JSON dei parametri.
+/// Unit tests per CommandMapper. La (de)serializzazione JSON dei parametri e'
+/// ora gestita dalla value conversion EF Core: il mapper copia solo la lista.
 /// </summary>
 public class CommandMapperTests
 {
@@ -21,7 +21,7 @@ public class CommandMapperTests
             CodeHigh = 0x01,
             CodeLow = 0x00,
             IsResponse = false,
-            ParametersJson = "[\"address\", \"length\"]"
+            Parameters = ["address", "length"]
         };
 
         // Act
@@ -49,7 +49,7 @@ public class CommandMapperTests
             CodeHigh = 0x01,
             CodeLow = 0x00,
             IsResponse = true,
-            ParametersJson = "[\"data\"]"
+            Parameters = ["data"]
         };
 
         // Act
@@ -61,7 +61,7 @@ public class CommandMapperTests
     }
 
     [Fact]
-    public void ToDomain_EmptyParametersJson_ReturnsEmptyList()
+    public void ToDomain_EmptyParameters_ReturnsEmptyList()
     {
         // Arrange
         var entity = new CommandEntity
@@ -71,7 +71,7 @@ public class CommandMapperTests
             CodeHigh = 0x00,
             CodeLow = 0x00,
             IsResponse = false,
-            ParametersJson = "[]"
+            Parameters = []
         };
 
         // Act
@@ -82,9 +82,9 @@ public class CommandMapperTests
     }
 
     [Fact]
-    public void ToDomain_NullParametersJson_ReturnsEmptyList()
+    public void ToDomain_NullParameters_ReturnsEmptyList()
     {
-        // Arrange
+        // Arrange — defensive: a null list maps to an empty parameter set.
         var entity = new CommandEntity
         {
             Id = 4,
@@ -92,28 +92,7 @@ public class CommandMapperTests
             CodeHigh = 0xFF,
             CodeLow = 0xFF,
             IsResponse = false,
-            ParametersJson = null!
-        };
-
-        // Act
-        Command result = CommandMapper.ToDomain(entity);
-
-        // Assert
-        Assert.Empty(result.Parameters);
-    }
-
-    [Fact]
-    public void ToDomain_InvalidJson_ReturnsEmptyList()
-    {
-        // Arrange
-        var entity = new CommandEntity
-        {
-            Id = 5,
-            Name = "BROKEN",
-            CodeHigh = 0x00,
-            CodeLow = 0x01,
-            IsResponse = false,
-            ParametersJson = "not valid json"
+            Parameters = null!
         };
 
         // Act
@@ -150,11 +129,11 @@ public class CommandMapperTests
         Assert.Equal(0x01, result.CodeHigh);
         Assert.Equal(0x01, result.CodeLow);
         Assert.False(result.IsResponse);
-        Assert.Equal("[\"address\",\"value\"]", result.ParametersJson);
+        Assert.Equal(["address", "value"], result.Parameters);
     }
 
     [Fact]
-    public void ToEntity_NoParameters_ReturnsEmptyJsonArray()
+    public void ToEntity_NoParameters_ReturnsEmptyList()
     {
         // Arrange
         var command = Command.Restore(
@@ -169,7 +148,7 @@ public class CommandMapperTests
         CommandEntity result = CommandMapper.ToEntity(command);
 
         // Assert
-        Assert.Equal("[]", result.ParametersJson);
+        Assert.Empty(result.Parameters);
     }
 
     [Fact]
@@ -189,7 +168,7 @@ public class CommandMapperTests
             CodeHigh = 0x00,
             CodeLow = 0x00,
             IsResponse = false,
-            ParametersJson = "[]"
+            Parameters = []
         };
 
         var domain = Command.Restore(
@@ -208,9 +187,7 @@ public class CommandMapperTests
         Assert.Equal(0xFF, entity.CodeHigh);
         Assert.Equal(0xFE, entity.CodeLow);
         Assert.True(entity.IsResponse);
-        Assert.Contains("param1", entity.ParametersJson);
-        Assert.Contains("param2", entity.ParametersJson);
-        Assert.Contains("param3", entity.ParametersJson);
+        Assert.Equal(["param1", "param2", "param3"], entity.Parameters);
         Assert.Equal(1, entity.Id);
     }
 
@@ -221,11 +198,11 @@ public class CommandMapperTests
         var entities = new List<CommandEntity>
         {
             new() { Id = 1, Name = "CMD1", CodeHigh = 0x01, CodeLow = 0x00,
-                    IsResponse = false, ParametersJson = "[\"a\"]" },
+                    IsResponse = false, Parameters = ["a"] },
             new() { Id = 2, Name = "CMD2", CodeHigh = 0x02, CodeLow = 0x00,
-                    IsResponse = false, ParametersJson = "[\"b\", \"c\"]" },
+                    IsResponse = false, Parameters = ["b", "c"] },
             new() { Id = 3, Name = "CMD3", CodeHigh = 0x01, CodeLow = 0x00,
-                    IsResponse = true, ParametersJson = "[]" }
+                    IsResponse = true, Parameters = [] }
         };
 
         // Act
@@ -252,7 +229,7 @@ public class CommandMapperTests
             CodeHigh = 0xAB,
             CodeLow = 0xCD,
             IsResponse = true,
-            ParametersJson = "[\"x\", \"y\", \"z\"]"
+            Parameters = ["x", "y", "z"]
         };
 
         // Act
@@ -265,10 +242,7 @@ public class CommandMapperTests
         Assert.Equal(originalEntity.CodeHigh, resultEntity.CodeHigh);
         Assert.Equal(originalEntity.CodeLow, resultEntity.CodeLow);
         Assert.Equal(originalEntity.IsResponse, resultEntity.IsResponse);
-        // JSON potrebbe avere formattazione diversa ma stesso contenuto
-        Assert.Contains("x", resultEntity.ParametersJson);
-        Assert.Contains("y", resultEntity.ParametersJson);
-        Assert.Contains("z", resultEntity.ParametersJson);
+        Assert.Equal(["x", "y", "z"], resultEntity.Parameters);
     }
 
     [Fact]
@@ -282,7 +256,7 @@ public class CommandMapperTests
             CodeHigh = 0x12,
             CodeLow = 0x34,
             IsResponse = false,
-            ParametersJson = "[]"
+            Parameters = []
         };
 
         // Act
