@@ -46,4 +46,35 @@ public class StemAppDataMigrationTests
             Directory.Delete(sandbox, recursive: true);
         }
     }
+
+    [Fact]
+    public void MigrateOnce_MarkerHeldOpenByAnotherHandle_DoesNotThrow()
+    {
+        string sandbox = Path.Combine(
+            Path.GetTempPath(), "stem-migrate-" + Guid.NewGuid().ToString("N"));
+        string appRoot = Path.Combine(sandbox, "Stem", "DictionariesManager");
+        string newDbDir = Path.Combine(appRoot, "db");
+        string legacyDb = Path.Combine(sandbox, "legacy", "sqldb-dictionaries-manager-test.db");
+        Directory.CreateDirectory(appRoot);
+        string marker = Path.Combine(appRoot, ".appdata-version");
+        File.WriteAllText(marker, "0");
+
+        try
+        {
+            // Another process holds the marker open with read+write sharing,
+            // exactly as a second API host racing on a cold runner would. The
+            // migration must read and rewrite the marker without crashing.
+            using var contended = new FileStream(
+                marker, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+
+            Exception? ex = Record.Exception(
+                () => StemAppDataMigration.MigrateOnce(legacyDb, newDbDir, appRoot));
+
+            Assert.Null(ex);
+        }
+        finally
+        {
+            Directory.Delete(sandbox, recursive: true);
+        }
+    }
 }
