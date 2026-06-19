@@ -51,6 +51,11 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   no test runs `StemAppDataMigration.MigrateOnce` against the machine-global
   `.appdata-version` marker -- removing the parallel-host file race that made
   Windows CI intermittently red. Closes #113.
+- **Infrastructure**: `StemAppDataMigration.MigrateOnce` now reads and rewrites
+  the `.appdata-version` marker with `FileShare.ReadWrite` and treats a contended
+  marker or a concurrently-moved legacy database as an idempotent no-op, so two
+  processes starting together no longer crash with an `IOException` on the shared
+  marker. Closes #113.
 - **Core**: `BitInterpretation` now rejects a non-positive `VariableId`
   with `ArgumentOutOfRangeException`, matching the existing
   `WordIndex` / `BitIndex` fail-fast guards. Closes #6.
