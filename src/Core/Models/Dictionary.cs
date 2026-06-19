@@ -69,7 +69,13 @@ public class Dictionary
 
     public void RemoveVariable(Variable variable)
     {
-        _variables.Remove(variable);
+        ArgumentNullException.ThrowIfNull(variable);
+
+        if (!_variables.Remove(variable))
+        {
+            throw new InvalidOperationException(
+                $"Variable '{variable.Name}' not found in dictionary.");
+        }
     }
 
     /// <summary>

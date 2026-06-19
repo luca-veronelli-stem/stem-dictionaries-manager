@@ -99,6 +99,25 @@ public class DictionaryTests
     }
 
     [Fact]
+    public void RemoveVariable_AbsentVariable_ThrowsInvalidOperationException()
+    {
+        var dictionary = new Dictionary("test");
+        var absent = new Variable("Absent", 0x00, 0x01, DataTypeKind.UInt8,
+            AccessMode.ReadOnly, "uint8_t");
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => dictionary.RemoveVariable(absent));
+        Assert.Contains("Absent", ex.Message);
+    }
+
+    [Fact]
+    public void RemoveVariable_NullVariable_ThrowsArgumentNullException()
+    {
+        var dictionary = new Dictionary("test");
+        Assert.Throws<ArgumentNullException>(() => dictionary.RemoveVariable(null!));
+    }
+
+    [Fact]
     public void HasUniqueAddresses_AllUnique_ReturnsTrue()
     {
         var dictionary = new Dictionary("test");
