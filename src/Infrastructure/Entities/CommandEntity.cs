@@ -9,7 +9,13 @@ public class CommandEntity : IAuditable
     public byte CodeHigh { get; set; }
     public byte CodeLow { get; set; }
     public bool IsResponse { get; set; }
-    public string ParametersJson { get; set; } = "[]";
+
+    /// <summary>
+    /// Structured command parameters. Persisted to the <c>ParametersJson</c>
+    /// column as a JSON array via an EF Core typed value conversion
+    /// (see <c>AppDbContext.OnModelCreating</c>).
+    /// </summary>
+    public List<string> Parameters { get; set; } = [];
 
     // IAuditable
     public DateTime CreatedAt { get; set; }

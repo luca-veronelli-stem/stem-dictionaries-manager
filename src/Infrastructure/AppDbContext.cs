@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Infrastructure.Entities;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces;
@@ -224,7 +225,15 @@ public class AppDbContext : DbContext
             // BR-016: unique command name
             entity.HasIndex(e => e.Name).IsUnique();
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.ParametersJson).HasMaxLength(1000);
+            // EF Core typed JSON conversion. The column stays "ParametersJson"
+            // (string, max 1000) so no schema migration is needed; the entity
+            // exposes a typed List<string> instead of a raw JSON string.
+            entity.Property(e => e.Parameters)
+                  .HasColumnName("ParametersJson")
+                  .HasMaxLength(1000)
+                  .HasConversion(
+                      v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                      v => JsonSerializer.Deserialize<List<string>>(v, JsonSerializerOptions.Default) ?? new List<string>());
         });
 
         // CommandDeviceState
