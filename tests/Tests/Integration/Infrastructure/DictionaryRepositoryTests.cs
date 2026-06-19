@@ -51,6 +51,18 @@ public class DictionaryRepositoryTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task GetByNameAsync_DifferentCase_ReturnsDictionary()
+    {
+        // Stored lower-case, queried upper-case: must match (mirrors UserRepository).
+        await _dictionaryRepo.AddAsync(new DictionaryEntity { Name = "optimus-xp" });
+
+        DictionaryEntity? result = await _dictionaryRepo.GetByNameAsync("OPTIMUS-XP");
+
+        Assert.NotNull(result);
+        Assert.Equal("optimus-xp", result.Name);
+    }
+
+    [Fact]
     public async Task GetWithVariables_IncludesVariables()
     {
         // Arrange
