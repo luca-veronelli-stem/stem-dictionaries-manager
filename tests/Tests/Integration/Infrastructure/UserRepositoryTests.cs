@@ -81,7 +81,10 @@ public class UserRepositoryTests : IntegrationTestBase
 
         IReadOnlyList<UserEntity> result = await _repository.GetAllAsync();
 
-        Assert.Equal(2, result.Count);
+        // 2 added here + 1 system-admin seeded via HasData (#88).
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, u => u.Username == "user1");
+        Assert.Contains(result, u => u.Username == "user2");
     }
 
     [Fact]

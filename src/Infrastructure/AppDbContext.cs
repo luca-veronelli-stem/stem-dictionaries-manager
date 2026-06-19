@@ -122,6 +122,19 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.Username).IsUnique();
             entity.Property(e => e.Username).HasMaxLength(50).IsRequired();
             entity.Property(e => e.DisplayName).HasMaxLength(100).IsRequired();
+            // Seed the system-admin user (data-model.md Audit split) into the
+            // model so BOTH providers receive it: SQLite via EnsureCreated and
+            // SQL Server via the existing AddBootstrapRegistration migration.
+            // Id 1 matches the identity value that migration's InsertData
+            // produced on a fresh SQL Server DB, so the Migrate path stays
+            // consistent (the reconcile migration is a no-op).
+            entity.HasData(new UserEntity
+            {
+                Id = 1,
+                Username = "system-admin",
+                DisplayName = "System Admin (API key)",
+                CreatedAt = new DateTime(2026, 5, 7, 0, 0, 0, DateTimeKind.Utc)
+            });
         });
 
         // Device

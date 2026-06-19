@@ -71,8 +71,12 @@ public partial class App : Application
                 AppDbContext dbContext = scope.ServiceProvider
                     .GetRequiredService<AppDbContext>();
 
-                // SQL Server: apply versioned migrations
-                // SQLite: recreate the schema from the model (migrations are SQL Server-only)
+                // Provider policy (see docs/Persistence.md):
+                //   SQL Server -> always Migrate (versioned migrations).
+                //   SQLite     -> always EnsureCreated (schema built from the
+                //                 model; migrations are SQL Server-only).
+                // Model-level seed data (HasData, e.g. the system-admin user)
+                // is applied by both paths; migration InsertData is not.
                 if (dbContext.Database.IsSqlServer())
                 {
                     await dbContext.Database.MigrateAsync();
