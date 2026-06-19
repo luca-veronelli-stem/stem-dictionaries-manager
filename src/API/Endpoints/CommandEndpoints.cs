@@ -1,3 +1,4 @@
+using API.Dtos;
 using API.Mapping;
 using Core.Models;
 using Services.Interfaces;
@@ -14,8 +15,13 @@ public static class CommandEndpoints
         RouteGroupBuilder group = app.MapGroup("/api/commands")
             .WithTags("Commands");
 
-        group.MapGet("/", GetAll).WithName("GetCommands");
-        group.MapGet("/device/{deviceId:int}", GetByDevice).WithName("GetDeviceCommands");
+        group.MapGet("/", GetAll).WithName("GetCommands")
+            .Produces<CommandDto[]>(StatusCodes.Status200OK)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/device/{deviceId:int}", GetByDevice).WithName("GetDeviceCommands")
+            .Produces<CommandDeviceDto[]>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
     }
 
     private static async Task<IResult> GetAll(

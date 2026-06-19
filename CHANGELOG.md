@@ -67,6 +67,11 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   `ParametersJson` string and the manual (de)serialization scattered across
   `CommandMapper` and the seeder. The column name and shape are unchanged, so
   no schema migration is required. Closes #7.
+- **API**: every Minimal API endpoint now declares its response types via
+  `.Produces<T>()` / `.Produces(StatusCodes…)`, so the generated OpenAPI
+  document describes the success payload and the documented error statuses
+  (per-endpoint `404`/`400`, shared `401`/`503`, and `/register`'s full
+  `409`/`410`/`423`/`500` set) instead of a bodyless `200`. Closes #13.
 
 ### Fixed
 

@@ -32,7 +32,14 @@ public static class RegistrationEndpoints
         app.MapPost("/register", Register)
             .WithName("Register")
             .WithTags("Auth")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .Produces<RegisterResponseDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status410Gone)
+            .Produces(StatusCodes.Status423Locked)
+            .Produces(StatusCodes.Status500InternalServerError);
     }
 
     private static async Task<IResult> Register(HttpContext context,
