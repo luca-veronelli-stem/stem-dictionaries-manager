@@ -6,7 +6,6 @@
              xmlns:vm="clr-namespace:GUI.Windows.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:DictionaryEditViewModel}"
-             Loaded="UserControl_Loaded"
              Background="#1E1E1E">
 
     <Grid>

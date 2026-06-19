@@ -58,6 +58,13 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   `InvalidOperationException` ("Call AddInfrastructure() before AddServices().")
   when Infrastructure's repositories are not registered, instead of surfacing an
   opaque error at the first DI resolution. Closes #11.
+- **GUI**: removed the static `App.Services` service locator. The main window,
+  login view, and view-models are already resolved from the host's
+  `IServiceProvider` at startup; the only consumer of the global static was
+  `DictionaryEditView`, which used it to initialize its view-model on load.
+  That was redundant — `MainViewModel` already initializes the view-model with
+  the navigation parameter when it creates it — so the code-behind handler was
+  dropped rather than swapped for an injected provider. Closes #15.
 - **Build**: removed the redundant `<Nullable>` and `<ImplicitUsings>`
   properties from the `Core`, `Infrastructure`, `Services`, and `API`
   project files. Both are already enabled in root `Directory.Build.props`,
