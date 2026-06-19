@@ -5,6 +5,7 @@ using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
+using Services.Validation;
 
 namespace Services;
 
@@ -17,6 +18,7 @@ public class CommandService : ICommandService
     private readonly ICommandDeviceStateRepository _deviceStateRepository;
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
+    private readonly ICommandValidator _commandValidator;
 
     public CommandService(
         ICommandRepository repository,
@@ -32,6 +34,7 @@ public class CommandService : ICommandService
         _deviceStateRepository = deviceStateRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _commandValidator = new CommandValidator(repository);
     }
 
     // === Base CRUD ===
@@ -52,23 +55,7 @@ public class CommandService : ICommandService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // Name uniqueness check
-        CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
-        if (existingByName is not null)
-        {
-            throw new InvalidOperationException(
-                $"Command with name '{command.Name}' already exists.");
-        }
-
-        // Code uniqueness check
-        CommandEntity? existing = await _repository.GetByCodeAsync(
-            command.CodeHigh, command.CodeLow, command.IsResponse, ct);
-        if (existing is not null)
-        {
-            throw new InvalidOperationException(
-                $"Command with code 0x{command.CodeHigh:X2}{command.CodeLow:X2} " +
-                $"(IsResponse={command.IsResponse}) already exists ('{existing.Name}').");
-        }
+        (await _commandValidator.ValidateForCreateAsync(command, ct)).EnsureValid();
 
         CommandEntity entity = CommandMapper.ToEntity(command);
         CommandEntity created = await _repository.AddAsync(entity, ct);
@@ -88,16 +75,7 @@ public class CommandService : ICommandService
         CommandEntity entity = await _repository.GetByIdAsync(command.Id, ct)
             ?? throw new KeyNotFoundException($"Command '{command.Name}' (Id={command.Id}) not found.");
 
-        // Name uniqueness check (if changed)
-        if (!entity.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
-        {
-            CommandEntity? existingByName = await _repository.GetByNameAsync(command.Name, ct);
-            if (existingByName is not null)
-            {
-                throw new InvalidOperationException(
-                    $"Command with name '{command.Name}' already exists.");
-            }
-        }
+        (await _commandValidator.ValidateForUpdateAsync(command, ct)).EnsureValid();
 
         Command previous = CommandMapper.ToDomain(entity);
         string prevJson = JsonSerializer.Serialize(previous);

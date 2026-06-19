@@ -36,6 +36,17 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Changed
 
+- **Services**: business-rules validation is centralized behind a
+  `Services/Validation/` layer -- a `ValidationResult` type plus per-entity
+  validators (`IDictionaryValidator`, `IVariableValidator`, `ICommandValidator`,
+  `IDeviceValidator`) -- replacing the lookup-then-throw blocks that were
+  duplicated across `DictionaryService`, `VariableService`, `CommandService`, and
+  `DeviceService`. The services delegate name/address/code uniqueness (and the
+  BR-004 single-Standard-dictionary rule) to the validators; the existing
+  `InvalidOperationException` contract is preserved, and the previously divergent
+  duplicate-address message on `DictionaryService.AddVariableAsync` is unified
+  with `VariableService`. `BoardService` keeps its bespoke primary-board and
+  dictionary-existence rules. Closes #10.
 - **Services**: `AddServices()` now fails fast with a clear
   `InvalidOperationException` ("Call AddInfrastructure() before AddServices().")
   when Infrastructure's repositories are not registered, instead of surfacing an

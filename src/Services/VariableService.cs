@@ -5,6 +5,7 @@ using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
+using Services.Validation;
 
 namespace Services;
 
@@ -21,6 +22,7 @@ public class VariableService : IVariableService
     private readonly IStandardVariableOverrideRepository _overrideRepository;
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
+    private readonly IVariableValidator _variableValidator;
 
     public VariableService(
         IVariableRepository repository,
@@ -42,6 +44,7 @@ public class VariableService : IVariableService
         _overrideRepository = overrideRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _variableValidator = new VariableValidator(repository);
     }
 
     // === Base CRUD ===
@@ -70,15 +73,7 @@ public class VariableService : IVariableService
                 $"Dictionary (Id={dictionaryId}) not found.");
         }
 
-        // Address uniqueness check within the dictionary
-        VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
-            dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
-        if (existingByAddress is not null)
-        {
-            throw new InvalidOperationException(
-                $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
-                $"already exists in this dictionary.");
-        }
+        (await _variableValidator.ValidateForCreateAsync(dictionaryId, variable, ct)).EnsureValid();
 
         VariableEntity entity = VariableMapper.ToEntity(variable, dictionaryId);
         VariableEntity created = await _repository.AddAsync(entity, ct);
@@ -99,18 +94,7 @@ public class VariableService : IVariableService
             ?? throw new KeyNotFoundException(
                 $"Variable '{variable.Name}' (Id={variable.Id}) not found.");
 
-        // Address uniqueness check (if changed)
-        if (entity.AddressHigh != variable.AddressHigh || entity.AddressLow != variable.AddressLow)
-        {
-            VariableEntity? existingByAddress = await _repository.GetByAddressAsync(
-                entity.DictionaryId, variable.AddressHigh, variable.AddressLow, ct);
-            if (existingByAddress is not null && existingByAddress.Id != variable.Id)
-            {
-                throw new InvalidOperationException(
-                    $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
-                    $"already exists in this dictionary.");
-            }
-        }
+        (await _variableValidator.ValidateForUpdateAsync(variable, ct)).EnsureValid();
 
         Variable previous = VariableMapper.ToDomain(entity);
         string prevJson = JsonSerializer.Serialize(previous);
