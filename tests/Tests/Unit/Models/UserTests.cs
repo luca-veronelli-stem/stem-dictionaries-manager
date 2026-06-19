@@ -62,4 +62,44 @@ public class UserTests
         Assert.Equal("luca", user.Username);
         Assert.Equal("Luca Veronelli", user.DisplayName);
     }
+
+    [Fact]
+    public void UpdateDisplayName_ValidValue_UpdatesDisplayName()
+    {
+        var user = new User("luca", "Luca Veronelli");
+
+        user.UpdateDisplayName("Luca V.");
+
+        Assert.Equal("Luca V.", user.DisplayName);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateDisplayName_InvalidValue_ThrowsArgumentException(string displayName)
+    {
+        var user = new User("luca", "Luca Veronelli");
+
+        Assert.Throws<ArgumentException>(() => user.UpdateDisplayName(displayName));
+    }
+
+    [Fact]
+    public void UpdateUsername_ValidValue_UpdatesAndNormalizesToLowercase()
+    {
+        var user = new User("luca", "Luca Veronelli");
+
+        user.UpdateUsername("NewLuca");
+
+        Assert.Equal("newluca", user.Username);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateUsername_InvalidValue_ThrowsArgumentException(string username)
+    {
+        var user = new User("luca", "Luca Veronelli");
+
+        Assert.Throws<ArgumentException>(() => user.UpdateUsername(username));
+    }
 }

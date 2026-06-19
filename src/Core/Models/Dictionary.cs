@@ -86,4 +86,21 @@ public class Dictionary
         var addresses = _variables.Select(v => v.FullAddress).ToList();
         return addresses.Count == addresses.Distinct().Count();
     }
+
+    /// <summary>
+    /// Updates the dictionary name.
+    /// </summary>
+    public void UpdateName(string newName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newName);
+        Name = newName;
+    }
+
+    /// <summary>
+    /// Updates the optional description. Pass null to clear it.
+    /// </summary>
+    public void UpdateDescription(string? newDescription)
+    {
+        Description = newDescription;
+    }
 }
