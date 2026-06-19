@@ -61,4 +61,26 @@
     <PackageVersion Include="InTheHand.Net.Bluetooth" Version="4.2.21" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      CVE-2025-6965 (#107) / advisory GHSA-2m69-gcr7-jv3q: SQLitePCLRaw.lib.e_sqlite3
+      2.1.11 is pulled transitively by Microsoft.EntityFrameworkCore.Sqlite 10.0.8 and
+      has no patched 2.1.x release. NuGetAudit + TreatWarningsAsErrors turns this into
+      NU1903 on every restore, which blocks all CI.
+
+      Forward-pinning the chain to 3.x (the issue's preferred fix) is not applicable
+      from central package management alone: a bare PackageVersion for a transitive-only
+      package is inert, and enabling CentralPackageTransitivePinningEnabled to make it
+      bite triggers an NU1109 downgrade cascade because the Microsoft.Extensions.*
+      family is centrally pinned at 9.0.1 while EF Core 10 / Hosting 10 require 10.0.8.
+      Bumping that family is out of scope for a security pin, and a direct PackageReference
+      would have to live in the consuming project files, outside this change.
+
+      Real exposure is nil: SQLite is embedded and local, all queries are EF-generated,
+      and no untrusted SQL is executed. Suppress the advisory until EF Core's dependency
+      chain moves onto a patched native lib, then remove this entry.
+    -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+  </ItemGroup>
+
 </Project>
