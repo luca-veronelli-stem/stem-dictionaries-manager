@@ -1,3 +1,4 @@
+using Infrastructure.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Services.Auth;
@@ -16,6 +17,16 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        // Fail fast: the Services layer depends on Infrastructure's repositories.
+        // Probe for one of them so a missing AddInfrastructure() surfaces here,
+        // with a clear message, instead of as an opaque DI-resolution error later.
+        if (!services.Any(s => s.ServiceType == typeof(IDictionaryRepository)))
+        {
+            throw new InvalidOperationException(
+                "Infrastructure services are not registered. " +
+                "Call AddInfrastructure() before AddServices().");
+        }
+
         // Default current-user provider (singleton, used by the GUI host).
         // The API host registers its HttpContext-aware variant first, in which
         // case the TryAdd here is a no-op (spec 001 § data-model.md Audit split).

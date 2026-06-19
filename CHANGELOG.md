@@ -30,6 +30,10 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Changed
 
+- **Services**: `AddServices()` now fails fast with a clear
+  `InvalidOperationException` ("Call AddInfrastructure() before AddServices().")
+  when Infrastructure's repositories are not registered, instead of surfacing an
+  opaque error at the first DI resolution. Closes #11.
 - **Build**: removed the redundant `<Nullable>` and `<ImplicitUsings>`
   properties from the `Core`, `Infrastructure`, `Services`, and `API`
   project files. Both are already enabled in root `Directory.Build.props`,

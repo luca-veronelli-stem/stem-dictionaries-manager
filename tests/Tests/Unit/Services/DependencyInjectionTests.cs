@@ -139,16 +139,16 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddServices_WithoutInfrastructure_ThrowsOnResolve()
+    public void AddServices_WithoutInfrastructure_ThrowsImmediately()
     {
-        // Arrange - Only register Services, not Infrastructure
+        // Arrange - Infrastructure not registered
         var services = new ServiceCollection();
-        services.AddServices();
-        ServiceProvider provider = services.BuildServiceProvider();
 
-        // Act & Assert - Should throw because dependencies are missing
-        Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<IDictionaryService>());
+        // Act & Assert - AddServices fails fast at registration time with a
+        // clear message, instead of an opaque error at DI-resolution time.
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => services.AddServices());
+        Assert.Contains("AddInfrastructure", ex.Message);
     }
 
     [Fact]
