@@ -32,6 +32,24 @@ public class BitInterpretationTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void Constructor_NonPositiveVariableId_ThrowsArgumentOutOfRangeException(int variableId)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new BitInterpretation(variableId, 0, 0, "test", dictionaryId: null));
+    }
+
+    [Fact]
+    public void Constructor_PositiveVariableId_IsAccepted()
+    {
+        var interpretation = new BitInterpretation(1, 0, 0, "test", dictionaryId: null);
+
+        Assert.Equal(1, interpretation.VariableId);
+    }
+
+    [Theory]
     [InlineData(-1)]
     [InlineData(16)]
     [InlineData(100)]
