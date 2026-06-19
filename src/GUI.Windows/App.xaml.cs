@@ -19,12 +19,6 @@ public partial class App : Application
 {
     private readonly IHost _host;
 
-    /// <summary>
-    /// Service provider for accessing registered services.
-    /// Used by Views to create dialogs through DI.
-    /// </summary>
-    public static IServiceProvider Services { get; private set; } = null!;
-
     public App()
     {
         _host = Host.CreateDefaultBuilder()
@@ -59,7 +53,6 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         await _host.StartAsync();
-        Services = _host.Services;
 
         // Create/update the DB and seed initial data if empty.
         // Retry loop: when the DB is unreachable, show a Retry/Exit dialog.
