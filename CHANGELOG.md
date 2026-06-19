@@ -44,6 +44,13 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **Tests**: API-host integration tests (`WebApplicationFactory<Program>`) no
+  longer resolve the default `%LocalAppData%\Stem\DictionariesManager` SQLite
+  path when booting the real `Program.cs`. A module initializer points
+  `ConnectionStrings__Sqlite` at a throwaway temp path before any host boots, so
+  no test runs `StemAppDataMigration.MigrateOnce` against the machine-global
+  `.appdata-version` marker -- removing the parallel-host file race that made
+  Windows CI intermittently red. Closes #113.
 - **Core**: `BitInterpretation` now rejects a non-positive `VariableId`
   with `ArgumentOutOfRangeException`, matching the existing
   `WordIndex` / `BitIndex` fail-fast guards. Closes #6.
