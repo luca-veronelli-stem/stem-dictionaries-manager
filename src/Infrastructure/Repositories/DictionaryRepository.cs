@@ -13,7 +13,9 @@ public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionar
     public async Task<DictionaryEntity?> GetByNameAsync(string name,
         CancellationToken cancellationToken = default)
     {
-        return await DbSet.FirstOrDefaultAsync(d => d.Name == name, cancellationToken);
+        string normalizedName = name.ToLowerInvariant();
+        return await DbSet
+            .FirstOrDefaultAsync(d => d.Name.ToLower() == normalizedName, cancellationToken);
     }
 
     public async Task<DictionaryEntity?> GetWithVariablesAsync(int id,
