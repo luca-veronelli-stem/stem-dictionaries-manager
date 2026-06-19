@@ -12,8 +12,12 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // If data already exists, do nothing
-        if (await context.Users.AnyAsync())
+        // If data already exists, do nothing. The system-admin user is seeded
+        // unconditionally via HasData in OnModelCreating (#88), so it is always
+        // present on a fresh EnsureCreated database and must be excluded from
+        // this guard — otherwise SeedAsync would always short-circuit here and
+        // seed no users, devices, commands, or boards at all.
+        if (await context.Users.AnyAsync(u => u.Username != "system-admin"))
         {
             return;
         }
@@ -243,6 +247,11 @@ public static class DatabaseSeeder
             // 0x2A - Esegui autotest
             Cmd("Esegui autotest", 0x00, 0x2A, false),
             Cmd("Esegui autotest risposta", 0x80, 0x2A, true, "1|Risultato (0 = ok, !0 = codice errore)"),
+
+            // 0x2C - Start Calibrazione IMU reply only (the 0x002C request is firmware-side, not seeded here).
+            // NB: bit 0 = 1 means accepted, inverting the dictionary's usual "0 = ok, !0 = codice errore" convention.
+            Cmd("Start Calibrazione IMU risposta", 0x80, 0x2C, true,
+                "1|Esito (bit 0: 1 = accettato/macchina ferma, 0 = rifiutato/macchina in movimento)"),
         };
         context.Commands.AddRange(commands);
 

@@ -12,6 +12,16 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   that centralize the constructors' validation, so callers no longer
   rebuild a whole instance to change a single property. `Command` is kept
   minimal pending the Services-layer changes. Closes #5.
+- **Infrastructure**: the production protocol command seed now includes the
+  `0x802C` "Start Calibrazione IMU risposta" reply (1-byte `Esito`, bit 0:
+  `1` = accepted / machine stale, `0` = rejected / machine in motion). This
+  reply inverts the dictionary's usual `0 = ok, !0 = codice errore`
+  convention, so the seed entry carries a clarifying comment. The companion
+  `0x802B` "Unlock Cambio Firmware Schede H7 risposta" reply remains absent
+  from the seed -- it was patched into production via the admin GUI and never
+  backported, and re-seeding it is out of scope here. This fixes fresh installs
+  only; already-provisioned databases need `0x802C` added the same way via the
+  admin GUI. Closes #79.
 
 ### Changed
 
@@ -71,6 +81,12 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   Server `Migrate` path consistent (no double-insert). The
   "SQLite EnsureCreated / SQL Server Migrate, seed via HasData" policy is
   documented in `docs/Persistence.md`. Closes #88.
+- **Infrastructure**: `DatabaseSeeder.SeedAsync` no longer short-circuits on a
+  fresh database. Its "already seeded" guard checked `Users.AnyAsync()`, but the
+  `system-admin` user added via `HasData` (#88) is now always present right after
+  `EnsureCreated`, so the guard tripped on every fresh DB and seeded no users,
+  devices, commands, or boards at all. The guard now excludes the `system-admin`
+  seed user. Caught by the new `0x802C` seeder test. Regression from #88.
 
 ## [0.9.1] - 2026-06-04
 
