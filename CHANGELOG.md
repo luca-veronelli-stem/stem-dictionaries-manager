@@ -4,6 +4,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Changed
+
+- **Build**: removed the redundant `<Nullable>` and `<ImplicitUsings>`
+  properties from the `Core`, `Infrastructure`, `Services`, and `API`
+  project files. Both are already enabled in root `Directory.Build.props`,
+  so the per-project copies were dead weight that only risked drift.
+  Closes #2.
+
 ### Fixed
 
 - **CI**: every `dotnet restore` failed with `NU1903` (NuGetAudit +
