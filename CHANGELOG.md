@@ -14,6 +14,11 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **API**: the `https` launch profile now binds `https://localhost:7065`
+  (previously `7290`), matching the consumer consensus port that
+  `button-panel-tester` and other clients expect. A fresh
+  `dotnet run --project src/API` is now reachable from those consumers
+  without an `ASPNETCORE_URLS` override. Closes #89.
 - **CI**: every `dotnet restore` failed with `NU1903` (NuGetAudit +
   `TreatWarningsAsErrors`) because `SQLitePCLRaw.lib.e_sqlite3` 2.1.11,
   pulled transitively by `Microsoft.EntityFrameworkCore.Sqlite` 10.0.8,
