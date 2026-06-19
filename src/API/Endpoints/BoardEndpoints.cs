@@ -16,7 +16,10 @@ public static class BoardEndpoints
             .WithTags("Boards");
 
         group.MapGet("/{id:int}/definition", GetDefinition)
-            .WithName("GetBoardDefinition");
+            .WithName("GetBoardDefinition")
+            .Produces<BoardDefinitionDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
     }
 
     /// <summary>

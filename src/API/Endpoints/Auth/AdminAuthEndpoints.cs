@@ -23,15 +23,24 @@ public static class AdminAuthEndpoints
     {
         app.MapPost("/api/admin/bootstrap-tokens", MintBootstrapToken)
             .WithName("AdminMintBootstrapToken")
-            .WithTags("Admin");
+            .WithTags("Admin")
+            .Produces<MintBootstrapTokenResponseDto>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         app.MapGet("/api/admin/installations", ListInstallations)
             .WithName("AdminListInstallations")
-            .WithTags("Admin");
+            .WithTags("Admin")
+            .Produces<InstallationListItemDto[]>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         app.MapPost("/api/admin/installations/{id:int}/revoke", RevokeInstallation)
             .WithName("AdminRevokeInstallation")
-            .WithTags("Admin");
+            .WithTags("Admin")
+            .Produces<RevokeInstallationResponseDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
     private static async Task<IResult> MintBootstrapToken(

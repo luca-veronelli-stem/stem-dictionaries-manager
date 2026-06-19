@@ -15,9 +15,17 @@ public static class DeviceEndpoints
         RouteGroupBuilder group = app.MapGroup("/api/devices")
             .WithTags("Devices");
 
-        group.MapGet("/", GetAll).WithName("GetDevices");
-        group.MapGet("/{id:int}", GetById).WithName("GetDevice");
-        group.MapGet("/{id:int}/boards", GetBoards).WithName("GetDeviceBoards");
+        group.MapGet("/", GetAll).WithName("GetDevices")
+            .Produces<DeviceSummaryDto[]>(StatusCodes.Status200OK)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/{id:int}", GetById).WithName("GetDevice")
+            .Produces<DeviceDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/{id:int}/boards", GetBoards).WithName("GetDeviceBoards")
+            .Produces<BoardSummaryDto[]>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
     }
 
     private static async Task<IResult> GetAll(

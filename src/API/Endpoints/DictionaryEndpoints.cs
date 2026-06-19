@@ -15,10 +15,22 @@ public static class DictionaryEndpoints
         RouteGroupBuilder group = app.MapGroup("/api/dictionaries")
             .WithTags("Dictionaries");
 
-        group.MapGet("/", GetAll).WithName("GetDictionaries");
-        group.MapGet("/standard", GetStandard).WithName("GetStandardDictionary");
-        group.MapGet("/{id:int}", GetById).WithName("GetDictionary");
-        group.MapGet("/{id:int}/resolved", GetResolved).WithName("GetDictionaryResolved");
+        group.MapGet("/", GetAll).WithName("GetDictionaries")
+            .Produces<DictionarySummaryDto[]>(StatusCodes.Status200OK)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/standard", GetStandard).WithName("GetStandardDictionary")
+            .Produces<DictionaryDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/{id:int}", GetById).WithName("GetDictionary")
+            .Produces<DictionaryDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
+        group.MapGet("/{id:int}/resolved", GetResolved).WithName("GetDictionaryResolved")
+            .Produces<DictionaryResolvedDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesAuthAndDbErrors();
     }
 
     private static async Task<IResult> GetAll(
