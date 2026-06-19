@@ -4,6 +4,15 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ## [Unreleased]
 
+### Added
+
+- **Core**: `User`, `Dictionary`, and `Command` now expose focused
+  `Update*` mutators (`User.UpdateUsername` / `UpdateDisplayName`,
+  `Dictionary.UpdateName` / `UpdateDescription`, `Command.UpdateName`)
+  that centralize the constructors' validation, so callers no longer
+  rebuild a whole instance to change a single property. `Command` is kept
+  minimal pending the Services-layer changes. Closes #5.
+
 ### Changed
 
 - **Build**: removed the redundant `<Nullable>` and `<ImplicitUsings>`
@@ -14,6 +23,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **Core**: `BitInterpretation` now rejects a non-positive `VariableId`
+  with `ArgumentOutOfRangeException`, matching the existing
+  `WordIndex` / `BitIndex` fail-fast guards. Closes #6.
+- **Core**: `Dictionary.RemoveVariable` now throws
+  `InvalidOperationException` when the variable is absent (and
+  `ArgumentNullException` on null) instead of silently discarding the
+  result of `List<T>.Remove`, restoring symmetry with `AddVariable`.
+  Closes #4.
 - **API**: the `https` launch profile now binds `https://localhost:7065`
   (previously `7290`), matching the consumer consensus port that
   `button-panel-tester` and other clients expect. A fresh
