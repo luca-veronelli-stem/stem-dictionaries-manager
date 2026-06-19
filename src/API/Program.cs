@@ -6,6 +6,7 @@ using API.Endpoints;
 using API.Endpoints.Auth;
 using API.Middleware;
 using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Services;
 using Services.Auth;
@@ -58,6 +59,30 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 
 WebApplication app = builder.Build();
+
+// Development convenience (#87): create + seed a fresh SQLite schema so a clean
+// `dotnet run --project src/API` against SQLite serves data without first
+// launching the WPF GUI. Production (SQL Server) is migrated out of band by the
+// deploy workflow; GUI.Windows keeps its own copy for the desktop launch path.
+if (app.Environment.IsDevelopment())
+{
+    using IServiceScope scope = app.Services.CreateScope();
+    AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Provider policy (docs/Persistence.md): SQL Server -> Migrate (versioned
+    // migrations); SQLite -> EnsureCreated (schema built from the model).
+    // Model-level HasData seeds (e.g. the system-admin user) apply on both paths.
+    if (dbContext.Database.IsSqlServer())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    else
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+    }
+
+    await DatabaseSeeder.SeedAsync(dbContext);
+}
 
 // Swagger UI in Development only
 if (app.Environment.IsDevelopment())

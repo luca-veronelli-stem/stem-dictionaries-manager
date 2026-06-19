@@ -70,6 +70,16 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **API**: a development `dotnet run --project src/API` against SQLite now
+  creates and seeds the database on startup, so DB-touching endpoints serve
+  data immediately. Previously only `GUI.Windows` ran `EnsureCreated` +
+  `DatabaseSeeder.SeedAsync`, so a fresh API run hit an empty schema and the
+  first DB-touching call threw — the undocumented "launch the GUI once first"
+  workaround. The `EnsureCreated`/`Migrate` + seed block is hoisted into
+  `Program.cs` behind `app.Environment.IsDevelopment()` (production SQL Server
+  is migrated out of band by the deploy workflow); `GUI.Windows` keeps its own
+  copy for the desktop launch path. README updated to drop the workaround.
+  Closes #87.
 - **Tests**: API-host integration tests (`WebApplicationFactory<Program>`) no
   longer resolve the default `%LocalAppData%\Stem\DictionariesManager` SQLite
   path when booting the real `Program.cs`. A module initializer points

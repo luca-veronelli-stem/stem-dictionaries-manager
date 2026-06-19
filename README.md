@@ -26,10 +26,10 @@ The desktop GUI is currently WPF; an Avalonia + FuncUI migration is tracked in `
 dotnet restore
 dotnet build
 dotnet test tests/Tests/Tests.csproj --framework net10.0
-dotnet run --project src/GUI.Windows
+dotnet run --project src/GUI.Windows   # or: dotnet run --project src/API
 ```
 
-SQLite is the default in development — the DB is created on first run via `EnsureCreated`. To target Azure SQL, set `DatabaseProvider=SqlServer` and the appropriate connection string in `appsettings.json` (or via environment variables in production).
+SQLite is the default in development. Both the desktop GUI and a development API run create and seed the SQLite database on first launch via `EnsureCreated` + `DatabaseSeeder`, so `dotnet run --project src/API` serves data immediately — there is no longer any need to launch the GUI first. To target Azure SQL, set `DatabaseProvider=SqlServer` and the appropriate connection string in `appsettings.json` (or via environment variables in production).
 
 ## Solution Structure
 
