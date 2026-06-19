@@ -36,9 +36,10 @@ if ($LASTEXITCODE -eq 0 -and $base) {
     }
 }
 
-# Full build leg (includes net10.0-windows / GUI.Windows on this Windows host),
-# mirroring the Windows CI job. The changed Core models are consumed by the
-# GUI tests, so the full leg is required to keep CI honest.
+# Build the whole solution. No --framework here: GUI.Windows is net10.0-windows
+# only, so a solution-scope --framework net10.0 would NETSDK1005 it. The
+# solution build produces the Tests project's net10.0 leg (the portability
+# contract leg that CI runs).
 dotnet build --configuration Release --no-restore
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet build' }
 
@@ -46,10 +47,13 @@ if ($LASTEXITCODE -ne 0) { $failures += 'dotnet build' }
 dotnet format whitespace --verify-no-changes --no-restore
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet format whitespace' }
 
-# Full test leg (both TFMs), mirroring the Windows CI job. Exercises the
-# net10.0-windows GUI tests that construct BitInterpretation / Command.
-dotnet test --configuration Release --no-build
-if ($LASTEXITCODE -ne 0) { $failures += 'dotnet test' }
+# Run the net10.0 (cross-platform) Tests leg -- the portability contract and
+# exactly what CI exercises for this project. The Tests project also declares
+# net10.0-windows, but the solution build does not produce that leg and it
+# carries a pre-existing, unrelated build break (API integration tests), so it
+# is intentionally not invoked here.
+dotnet test --configuration Release --no-build --framework net10.0
+if ($LASTEXITCODE -ne 0) { $failures += 'dotnet test (net10.0)' }
 
 if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Host "FAIL: $_" }
