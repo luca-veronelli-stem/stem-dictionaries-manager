@@ -75,15 +75,15 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Returns the SQLite database path under AppData.
+    /// Returns the SQLite database path under the APP_DATA v1.9.0 root
+    /// (<c>%LocalAppData%\Stem\DictionariesManager\db\</c>) and migrates any
+    /// database left at the legacy Roaming path
+    /// (<c>%AppData%\STEM\DictionariesManager\</c>) into place on first call.
     /// Creates the folder if it does not exist.
-    /// Path: %APPDATA%/STEM/DictionariesManager/sqldb-dictionaries-manager-test.db
     /// </summary>
     public static string GetDefaultSqlitePath()
     {
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string folder = Path.Combine(appData, "STEM", "DictionariesManager");
-        Directory.CreateDirectory(folder);
-        return Path.Combine(folder, SqliteDatabaseFileName);
+        StemAppDataMigration.MigrateDefaultDatabase(SqliteDatabaseFileName);
+        return Path.Combine(StemAppData.GetDbDir(), SqliteDatabaseFileName);
     }
 }
