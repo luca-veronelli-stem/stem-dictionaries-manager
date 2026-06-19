@@ -5,6 +5,7 @@ using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
+using Services.Validation;
 
 namespace Services;
 
@@ -20,6 +21,7 @@ public class DeviceService : IDeviceService
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
+    private readonly IDeviceValidator _deviceValidator;
 
     public DeviceService(
         IDeviceRepository repository,
@@ -38,6 +40,7 @@ public class DeviceService : IDeviceService
         _dictionaryRepository = dictionaryRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _deviceValidator = new DeviceValidator(repository);
     }
 
     public async Task<Device?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -56,21 +59,7 @@ public class DeviceService : IDeviceService
     {
         ArgumentNullException.ThrowIfNull(device);
 
-        // Name uniqueness
-        DeviceEntity? existing = await _repository.GetByNameAsync(device.Name, ct);
-        if (existing is not null)
-        {
-            throw new InvalidOperationException(
-                $"A device with name '{device.Name}' already exists.");
-        }
-
-        // MachineCode uniqueness
-        DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
-        if (byCode is not null)
-        {
-            throw new InvalidOperationException(
-                $"A device with MachineCode {device.MachineCode} already exists.");
-        }
+        (await _deviceValidator.ValidateForCreateAsync(device, ct)).EnsureValid();
 
         DeviceEntity entity = DeviceMapper.ToEntity(device);
         DeviceEntity created = await _repository.AddAsync(entity, ct);
@@ -91,21 +80,7 @@ public class DeviceService : IDeviceService
             ?? throw new KeyNotFoundException(
                 $"Device '{device.Name}' (Id={device.Id}) not found.");
 
-        // Name uniqueness (excludes itself)
-        DeviceEntity? byName = await _repository.GetByNameAsync(device.Name, ct);
-        if (byName is not null && byName.Id != device.Id)
-        {
-            throw new InvalidOperationException(
-                $"A device with name '{device.Name}' already exists.");
-        }
-
-        // MachineCode uniqueness (excludes itself)
-        DeviceEntity? byCode = await _repository.GetByMachineCodeAsync(device.MachineCode, ct);
-        if (byCode is not null && byCode.Id != device.Id)
-        {
-            throw new InvalidOperationException(
-                $"A device with MachineCode {device.MachineCode} already exists.");
-        }
+        (await _deviceValidator.ValidateForUpdateAsync(device, ct)).EnsureValid();
 
         Device previous = DeviceMapper.ToDomain(entity);
         string prevJson = JsonSerializer.Serialize(previous);

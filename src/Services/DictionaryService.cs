@@ -5,6 +5,7 @@ using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Services.Interfaces;
 using Services.Mapping;
+using Services.Validation;
 
 namespace Services;
 
@@ -18,6 +19,8 @@ public class DictionaryService : IDictionaryService
     private readonly IVariableRepository _variableRepository;
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
+    private readonly IDictionaryValidator _dictionaryValidator;
+    private readonly IVariableValidator _variableValidator;
 
     public DictionaryService(
         IDictionaryRepository dictionaryRepository,
@@ -33,6 +36,8 @@ public class DictionaryService : IDictionaryService
         _variableRepository = variableRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _dictionaryValidator = new DictionaryValidator(dictionaryRepository);
+        _variableValidator = new VariableValidator(variableRepository);
     }
 
     public async Task<Dictionary?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -51,24 +56,7 @@ public class DictionaryService : IDictionaryService
     {
         ArgumentNullException.ThrowIfNull(dictionary);
 
-        // Name uniqueness check
-        DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
-        if (existingByName is not null)
-        {
-            throw new InvalidOperationException(
-                $"Dictionary with name '{dictionary.Name}' already exists.");
-        }
-
-        // BR-004: max 1 Standard dictionary
-        if (dictionary.IsStandard)
-        {
-            DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
-            if (existingStandard is not null)
-            {
-                throw new InvalidOperationException(
-                    "A Standard dictionary already exists. Only one is allowed (BR-004).");
-            }
-        }
+        (await _dictionaryValidator.ValidateForCreateAsync(dictionary, ct)).EnsureValid();
 
         DictionaryEntity entity = DictionaryMapper.ToEntity(dictionary);
         DictionaryEntity created = await _dictionaryRepository.AddAsync(entity, ct);
@@ -89,27 +77,7 @@ public class DictionaryService : IDictionaryService
             ?? throw new KeyNotFoundException(
                 $"Dictionary '{dictionary.Name}' (Id={dictionary.Id}) not found.");
 
-        // Name uniqueness check (if changed)
-        if (!entity.Name.Equals(dictionary.Name, StringComparison.OrdinalIgnoreCase))
-        {
-            DictionaryEntity? existingByName = await _dictionaryRepository.GetByNameAsync(dictionary.Name, ct);
-            if (existingByName is not null)
-            {
-                throw new InvalidOperationException(
-                    $"Dictionary with name '{dictionary.Name}' already exists.");
-            }
-        }
-
-        // BR-004: if becoming Standard, check none already exists
-        if (dictionary.IsStandard && !entity.IsStandard)
-        {
-            DictionaryEntity? existingStandard = await _dictionaryRepository.GetStandardDictionaryAsync(ct);
-            if (existingStandard is not null)
-            {
-                throw new InvalidOperationException(
-                    "A Standard dictionary already exists. Only one is allowed (BR-004).");
-            }
-        }
+        (await _dictionaryValidator.ValidateForUpdateAsync(dictionary, ct)).EnsureValid();
 
         Dictionary previous = DictionaryMapper.ToDomain(entity);
         string prevJson = JsonSerializer.Serialize(previous);
@@ -163,19 +131,12 @@ public class DictionaryService : IDictionaryService
     {
         ArgumentNullException.ThrowIfNull(variable);
 
-        DictionaryEntity dictionary = await _dictionaryRepository.GetWithVariablesAsync(dictionaryId, ct)
-            ?? throw new KeyNotFoundException(
-                $"Dictionary (Id={dictionaryId}) not found.");
-
-        // Address uniqueness check
-        VariableEntity? existingByAddress = await _variableRepository.GetByAddressAsync(
-            dictionaryId, variable.AddressHigh, variable.AddressLow, ct);
-        if (existingByAddress is not null)
+        if (!await _dictionaryRepository.ExistsAsync(dictionaryId, ct))
         {
-            throw new InvalidOperationException(
-                $"Variable with address 0x{variable.AddressHigh:X2}{variable.AddressLow:X2} " +
-                $"already exists in dictionary '{dictionary.Name}'.");
+            throw new KeyNotFoundException($"Dictionary (Id={dictionaryId}) not found.");
         }
+
+        (await _variableValidator.ValidateForCreateAsync(dictionaryId, variable, ct)).EnsureValid();
 
         VariableEntity entity = VariableMapper.ToEntity(variable, dictionaryId);
         VariableEntity created = await _variableRepository.AddAsync(entity, ct);
