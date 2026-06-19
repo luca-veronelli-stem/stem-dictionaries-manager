@@ -100,6 +100,13 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   `X-Api-Key` (`apiKey`, header) security scheme to the generated document and
   applies it as a document-wide requirement, keyed by
   `OpenApiSecuritySchemeReference` per the v2 API. Closes #12.
+- **Tests**: the `net10.0-windows` test leg now compiles, so the WPF GUI tests
+  (`#if WINDOWS`) actually run again. They had silently stopped compiling since
+  #68: the API Auth integration tests rely on a global `System.Net.Http` using
+  that the Windows Desktop SDK implicit-usings set (enabled by `UseWPF`) drops,
+  along with `System.IO`. Both are restored for that TFM in `Tests.csproj`. The
+  pre-existing Italian/English assertion drift this surfaced in the GUI tests is
+  tracked under #119.
 - **Tests**: API-host integration tests (`WebApplicationFactory<Program>`) no
   longer resolve the default `%LocalAppData%\Stem\DictionariesManager` SQLite
   path when booting the real `Program.cs`. A module initializer points
