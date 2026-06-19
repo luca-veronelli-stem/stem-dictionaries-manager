@@ -20,6 +20,17 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   project files. Both are already enabled in root `Directory.Build.props`,
   so the per-project copies were dead weight that only risked drift.
   Closes #2.
+- **Infrastructure**: the default SQLite database path now follows APP_DATA
+  v1.9.0 — `%LocalAppData%\Stem\DictionariesManager\db\` (Local not Roaming,
+  PascalCase `Stem`, `db\` sub-folder) instead of
+  `%AppData%\STEM\DictionariesManager\`. A transient one-shot migration moves
+  an existing database from the legacy path on first launch, guarded by a
+  `.appdata-version` marker. Closes #90.
+- **Infrastructure**: `CommandEntity.Parameters` is now a typed `List<string>`
+  persisted through an EF Core value conversion, replacing the raw
+  `ParametersJson` string and the manual (de)serialization scattered across
+  `CommandMapper` and the seeder. The column name and shape are unchanged, so
+  no schema migration is required. Closes #7.
 
 ### Fixed
 
@@ -48,6 +59,18 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   out-of-scope bump of the `Microsoft.Extensions.*` family. Remove the
   suppression once EF Core's dependency chain moves onto a patched native
   lib. Closes #107.
+- **Infrastructure**: `DictionaryRepository.GetByNameAsync` now normalizes its
+  input and matches case-insensitively (mirroring
+  `UserRepository.GetByUsernameAsync`), so `GetByNameAsync("OPTIMUS-XP")` finds
+  a row stored as `optimus-xp`. Closes #8.
+- **Infrastructure**: the `system-admin` user is now seeded via `HasData` in
+  `OnModelCreating` instead of migration `InsertData`, so it is present on
+  SQLite databases built with `EnsureCreated` (previously it was missing on
+  SQLite dev/CI, silently breaking `AdminAuthenticationMiddleware` audit
+  attribution for `/api/admin/*`). A no-op reconcile migration keeps the SQL
+  Server `Migrate` path consistent (no double-insert). The
+  "SQLite EnsureCreated / SQL Server Migrate, seed via HasData" policy is
+  documented in `docs/Persistence.md`. Closes #88.
 
 ## [0.9.1] - 2026-06-04
 
