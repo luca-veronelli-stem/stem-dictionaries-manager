@@ -141,15 +141,8 @@ public class CommandService : ICommandService
     public async Task<Command?> GetWithDeviceStatesAsync(int id, CancellationToken ct = default)
     {
         CommandEntity? entity = await _repository.GetWithDeviceStatesAsync(id, ct);
-        if (entity is null)
-        {
-            return null;
-        }
-
-        Command command = CommandMapper.ToDomain(entity);
-        // Note: DeviceStates are loaded but not exposed on the Command domain model.
-        // To access states, use GetDeviceStateAsync or SetDeviceStateAsync.
-        return command;
+        // The mapper carries the eager-loaded states onto Command.DeviceStates.
+        return entity is null ? null : CommandMapper.ToDomain(entity);
     }
 
     public async Task SetDeviceStateAsync(int commandId, int deviceId, bool isEnabled,

@@ -14,6 +14,15 @@ public class Command
     private readonly List<string> _parameters = [];
     public IReadOnlyList<string> Parameters => _parameters.AsReadOnly();
 
+    private readonly List<CommandDeviceState> _deviceStates = [];
+
+    /// <summary>
+    /// Per-device enable/disable states for this command. Populated only when
+    /// the command is loaded through <c>GetWithDeviceStatesAsync</c>; empty for
+    /// the other read paths that do not eager-load the states.
+    /// </summary>
+    public IReadOnlyList<CommandDeviceState> DeviceStates => _deviceStates.AsReadOnly();
+
     /// <summary>
     /// Full command code composed as <c>(CodeHigh &lt;&lt; 8) | CodeLow</c>.
     /// </summary>
@@ -39,12 +48,19 @@ public class Command
     /// Factory method to reconstruct from the DB.
     /// </summary>
     public static Command Restore(int id, string name, byte codeHigh, byte codeLow,
-        bool isResponse, IEnumerable<string> parameters)
+        bool isResponse, IEnumerable<string> parameters,
+        IEnumerable<CommandDeviceState>? deviceStates = null)
     {
         var command = new Command(name, codeHigh, codeLow, isResponse, parameters)
         {
             Id = id
         };
+
+        if (deviceStates is not null)
+        {
+            command._deviceStates.AddRange(deviceStates);
+        }
+
         return command;
     }
 
