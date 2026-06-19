@@ -99,6 +99,32 @@ public class RegisterEndpointTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_WithTelemetryManagerToken_Returns200AndCredentialShape()
+    {
+        // #110: TelemetryManager is a registered strict-policy clientApp (osUserId +
+        // machineId required). A valid bootstrap token plus a descriptor carrying both
+        // hashed identifiers is accepted (200 + stak_ credential); before the registry
+        // entry, the policy-lookup miss surfaced as ClientScopeMismatch -> 401.
+        await SeedActiveTokenAsync("TelemetryManager", "stbt_telemetry-1");
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.PostAsync("/register",
+            JsonBody(new { bootstrapToken = "stbt_telemetry-1", descriptor = ValidDescriptor("TelemetryManager") }));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var doc = JsonDocument.Parse(await ReadBodyAsync(response));
+        Assert.True(doc.RootElement.GetProperty("installationId").GetInt32() > 0);
+        string apiCredential = doc.RootElement.GetProperty("apiCredential").GetString()!;
+        Assert.StartsWith("stak_", apiCredential);
+
+        // The audit row records a clean success, not a ClientScopeMismatch.
+        await using AppDbContext db = _factory.NewContext();
+        RegistrationEventEntity evt = await db.RegistrationEvents.AsNoTracking().SingleAsync();
+        Assert.Equal(RegistrationOutcome.Success, evt.Outcome);
+    }
+
+    [Fact]
     public async Task Register_ReturnedCredentialAuthenticatesProtectedEndpoint()
     {
         // FR-005: the freshly issued credential must work via the union-mode
