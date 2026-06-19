@@ -110,8 +110,8 @@ public class UserServiceTests : IntegrationTestBase
         // Act
         IReadOnlyList<User> result = await _service.GetAllAsync();
 
-        // Assert
-        Assert.Equal(3, result.Count);
+        // Assert: 3 added here + 1 system-admin seeded via HasData (#88).
+        Assert.Equal(4, result.Count);
     }
 
     [Fact]
