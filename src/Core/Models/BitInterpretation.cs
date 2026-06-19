@@ -18,6 +18,11 @@ public class BitInterpretation
     public BitInterpretation(int variableId, int wordIndex, int bitIndex,
         string? meaning, int? dictionaryId, int maxBitIndex = 15)
     {
+        if (variableId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(variableId), "VariableId must be positive.");
+        }
+
         if (wordIndex < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(wordIndex), "WordIndex must be non-negative.");
