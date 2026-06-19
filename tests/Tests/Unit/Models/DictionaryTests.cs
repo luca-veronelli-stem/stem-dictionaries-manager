@@ -213,4 +213,44 @@ public class DictionaryTests
 
         Assert.Equal(2, dictionary.Variables.Count);
     }
+
+    [Fact]
+    public void UpdateName_ValidValue_UpdatesName()
+    {
+        var dictionary = new Dictionary("old-name");
+
+        dictionary.UpdateName("new-name");
+
+        Assert.Equal("new-name", dictionary.Name);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateName_InvalidValue_ThrowsArgumentException(string name)
+    {
+        var dictionary = new Dictionary("old-name");
+
+        Assert.Throws<ArgumentException>(() => dictionary.UpdateName(name));
+    }
+
+    [Fact]
+    public void UpdateDescription_SetsValue()
+    {
+        var dictionary = new Dictionary("test");
+
+        dictionary.UpdateDescription("A description");
+
+        Assert.Equal("A description", dictionary.Description);
+    }
+
+    [Fact]
+    public void UpdateDescription_Null_ClearsValue()
+    {
+        var dictionary = new Dictionary("test", "Initial");
+
+        dictionary.UpdateDescription(null);
+
+        Assert.Null(dictionary.Description);
+    }
 }

@@ -47,4 +47,13 @@ public class Command
         };
         return command;
     }
+
+    /// <summary>
+    /// Updates the command name.
+    /// </summary>
+    public void UpdateName(string newName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newName);
+        Name = newName;
+    }
 }

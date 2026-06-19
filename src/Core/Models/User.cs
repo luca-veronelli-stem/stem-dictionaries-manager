@@ -29,4 +29,22 @@ public class User
         };
         return user;
     }
+
+    /// <summary>
+    /// Updates the username, normalizing it to lowercase.
+    /// </summary>
+    public void UpdateUsername(string newUsername)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newUsername);
+        Username = newUsername.ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Updates the display name.
+    /// </summary>
+    public void UpdateDisplayName(string newDisplayName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newDisplayName);
+        DisplayName = newDisplayName;
+    }
 }

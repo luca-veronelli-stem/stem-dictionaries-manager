@@ -72,4 +72,24 @@ public class CommandTests
         Assert.True(command.IsResponse);
         Assert.Equal(2, command.Parameters.Count);
     }
+
+    [Fact]
+    public void UpdateName_ValidValue_UpdatesName()
+    {
+        var command = new Command("Old name", 0x00, 0x01);
+
+        command.UpdateName("New name");
+
+        Assert.Equal("New name", command.Name);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateName_InvalidValue_ThrowsArgumentException(string name)
+    {
+        var command = new Command("Old name", 0x00, 0x01);
+
+        Assert.Throws<ArgumentException>(() => command.UpdateName(name));
+    }
 }
