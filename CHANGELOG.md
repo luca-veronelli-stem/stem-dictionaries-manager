@@ -58,6 +58,11 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   `InvalidOperationException` ("Call AddInfrastructure() before AddServices().")
   when Infrastructure's repositories are not registered, instead of surfacing an
   opaque error at the first DI resolution. Closes #11.
+- **GUI**: `DialogService` is now genuinely asynchronous. Each method queues the
+  modal `DarkDialog` on the UI dispatcher and completes a `TaskCompletionSource`
+  when it closes, returning a pending task instead of running a synchronous
+  `ShowDialog()` and wrapping the result in `Task.FromResult`. The dialog still
+  shows modally; callers awaiting it are no longer blocked inline. Closes #16.
 - **GUI**: removed the static `App.Services` service locator. The main window,
   login view, and view-models are already resolved from the host's
   `IServiceProvider` at startup; the only consumer of the global static was
