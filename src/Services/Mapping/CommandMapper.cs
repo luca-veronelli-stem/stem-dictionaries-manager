@@ -23,7 +23,8 @@ public static class CommandMapper
             entity.CodeHigh,
             entity.CodeLow,
             entity.IsResponse,
-            entity.Parameters);
+            entity.Parameters,
+            entity.DeviceStates?.Select(CommandDeviceStateMapper.ToDomain));
     }
 
     /// <summary>

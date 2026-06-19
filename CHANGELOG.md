@@ -27,6 +27,12 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   required), alongside `ButtonPanelTester`. Without it, `POST /register`
   rejected the telemetry CLI with 401 `ClientScopeMismatch`; it now issues a
   `stak_` credential. Closes #110.
+- **Core / Services**: `Command` now exposes a read-only `DeviceStates`
+  collection, populated by `CommandMapper` from the eager-loaded entity
+  navigation. `CommandService.GetWithDeviceStatesAsync` therefore returns a
+  command whose `DeviceStates` are actually accessible, instead of loading
+  them and discarding them. Other read paths that do not eager-load the
+  states leave the collection empty. Closes #9.
 
 ### Changed
 

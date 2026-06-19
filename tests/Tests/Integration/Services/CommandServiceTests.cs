@@ -289,13 +289,12 @@ public class CommandServiceTests : IntegrationTestBase
         // Act
         Command? result = await _service.GetWithDeviceStatesAsync(command.Id);
 
-        // Assert
+        // Assert - the loaded states are now exposed on the domain model.
         Assert.NotNull(result);
-        // Stati sono caricati ma accessibili tramite GetDeviceStateAsync
-        CommandDeviceState? state1 = await _service.GetDeviceStateAsync(command.Id, 10);
-        CommandDeviceState? state2 = await _service.GetDeviceStateAsync(command.Id, 3);
-        Assert.True(state1!.IsEnabled);
-        Assert.False(state2!.IsEnabled);
+        Assert.Equal(3, result.DeviceStates.Count);
+        Assert.Contains(result.DeviceStates, s => s.DeviceId == 10 && s.IsEnabled);
+        Assert.Contains(result.DeviceStates, s => s.DeviceId == 3 && !s.IsEnabled);
+        Assert.Contains(result.DeviceStates, s => s.DeviceId == 7 && s.IsEnabled);
     }
 
     [Fact]

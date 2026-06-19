@@ -265,4 +265,53 @@ public class CommandMapperTests
         // Assert
         Assert.Equal(0x1234, result.FullCode);
     }
+
+    [Fact]
+    public void ToDomain_WithDeviceStates_MapsThemOntoDomain()
+    {
+        // Arrange
+        var entity = new CommandEntity
+        {
+            Id = 7,
+            Name = "WITH_STATES",
+            CodeHigh = 0x05,
+            CodeLow = 0x00,
+            IsResponse = false,
+            Parameters = [],
+            DeviceStates =
+            [
+                new CommandDeviceStateEntity { Id = 1, CommandId = 7, DeviceId = 10, IsEnabled = true },
+                new CommandDeviceStateEntity { Id = 2, CommandId = 7, DeviceId = 3, IsEnabled = false }
+            ]
+        };
+
+        // Act
+        Command result = CommandMapper.ToDomain(entity);
+
+        // Assert
+        Assert.Equal(2, result.DeviceStates.Count);
+        Assert.Contains(result.DeviceStates, s => s.DeviceId == 10 && s.IsEnabled);
+        Assert.Contains(result.DeviceStates, s => s.DeviceId == 3 && !s.IsEnabled);
+    }
+
+    [Fact]
+    public void ToDomain_NoDeviceStates_ReturnsEmptyCollection()
+    {
+        // Arrange
+        var entity = new CommandEntity
+        {
+            Id = 8,
+            Name = "NO_STATES",
+            CodeHigh = 0x00,
+            CodeLow = 0x00,
+            IsResponse = false,
+            Parameters = []
+        };
+
+        // Act
+        Command result = CommandMapper.ToDomain(entity);
+
+        // Assert
+        Assert.Empty(result.DeviceStates);
+    }
 }
