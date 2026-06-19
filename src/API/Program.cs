@@ -5,6 +5,7 @@ using API.Auth;
 using API.Endpoints;
 using API.Endpoints.Auth;
 using API.Middleware;
+using API.OpenApi;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -51,8 +52,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-// OpenAPI/Swagger
-builder.Services.AddOpenApi();
+// OpenAPI/Swagger — the document transformer adds the X-Api-Key security
+// scheme so the Swagger UI gets an "Authorize" button (#12).
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer<ApiKeySecuritySchemeTransformer>());
 
 // Health check that verifies DB connectivity
 builder.Services.AddHealthChecks()

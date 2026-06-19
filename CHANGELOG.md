@@ -80,6 +80,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   is migrated out of band by the deploy workflow); `GUI.Windows` keeps its own
   copy for the desktop launch path. README updated to drop the workaround.
   Closes #87.
+- **API**: the Swagger UI "Authorize" button is restored. The
+  `Microsoft.OpenApi` v2 surface in .NET 10 dropped the old inline
+  `SecurityScheme` wiring, so the `/swagger` page offered no way to enter an
+  API key and every try-it-out call came back 401. An
+  `IOpenApiDocumentTransformer` (`ApiKeySecuritySchemeTransformer`) now adds the
+  `X-Api-Key` (`apiKey`, header) security scheme to the generated document and
+  applies it as a document-wide requirement, keyed by
+  `OpenApiSecuritySchemeReference` per the v2 API. Closes #12.
 - **Tests**: API-host integration tests (`WebApplicationFactory<Program>`) no
   longer resolve the default `%LocalAppData%\Stem\DictionariesManager` SQLite
   path when booting the real `Program.cs`. A module initializer points
