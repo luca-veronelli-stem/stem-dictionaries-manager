@@ -1,7 +1,7 @@
 # GUI test files were never compiled until the net10.0-windows test leg was
 # restored (broken since #68), so they predate the repo's var/brace style rules.
 # Bringing them into full IDE0008/IDE0011 compliance is part of the GUI test
-# rehabilitation tracked in #33; until then keep these two rules non-blocking
+# rehabilitation tracked in #119; until then keep these two rules non-blocking
 # here so the leg builds and the GUI tests run. The rules stay enforced
 # everywhere else in the repo.
 [*.cs]
