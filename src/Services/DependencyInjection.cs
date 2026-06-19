@@ -42,15 +42,17 @@ public static class DependencyInjection
             Services.Auth.RegistrationService>();
 
         // Per-clientApp descriptor presence policy (see contracts/register.md).
-        // Today's only consumer is ButtonPanelTester (strict — Windows desktop
-        // with full identity guarantees). Future loose-policy consumers
-        // (mobile, web, headless) register their own entries here; a request
-        // whose clientApp has no entry surfaces as ClientScopeMismatch -> 401
-        // (conflated with token-unknown / scope-mismatch).
+        // Both consumers are strict (Windows desktop / CLI with full identity
+        // guarantees): ButtonPanelTester and TelemetryManager (#110) each send
+        // osUserId + machineId. Future loose-policy consumers (mobile, web,
+        // headless) register their own entries here; a request whose clientApp
+        // has no entry surfaces as ClientScopeMismatch -> 401 (conflated with
+        // token-unknown / scope-mismatch).
         services.TryAddSingleton<IReadOnlyDictionary<string, DescriptorPolicy>>(_ =>
             new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
             {
                 ["ButtonPanelTester"] = new(OsUserIdRequired: true, MachineIdRequired: true),
+                ["TelemetryManager"] = new(OsUserIdRequired: true, MachineIdRequired: true),
             });
 
         return services;

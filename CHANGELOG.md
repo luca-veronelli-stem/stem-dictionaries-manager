@@ -22,6 +22,11 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   backported, and re-seeding it is out of scope here. This fixes fresh installs
   only; already-provisioned databases need `0x802C` added the same way via the
   admin GUI. Closes #79.
+- **Services**: the `/register` per-`clientApp` `DescriptorPolicy` registry now
+  includes `TelemetryManager` (strict -- both `osUserId` and `machineId`
+  required), alongside `ButtonPanelTester`. Without it, `POST /register`
+  rejected the telemetry CLI with 401 `ClientScopeMismatch`; it now issues a
+  `stak_` credential. Closes #110.
 
 ### Changed
 
