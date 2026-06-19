@@ -40,4 +40,15 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- UseWPF flips the net10.0-windows leg to the Windows Desktop SDK's
+       implicit-usings set, which drops System.IO and System.Net.Http from the
+       default Microsoft.NET.Sdk set the net10.0 leg gets. Restore them here so
+       the Infrastructure/API tests' Path/File/Directory and
+       HttpClient/StringContent/HttpResponseMessage usages compile and the GUI
+       test leg builds at all. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
+  </ItemGroup>
+
 </Project>
