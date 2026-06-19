@@ -33,6 +33,13 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   command whose `DeviceStates` are actually accessible, instead of loading
   them and discarding them. Other read paths that do not eager-load the
   states leave the collection empty. Closes #9.
+- **API**: per-API-key rate limiting. A global `Microsoft.AspNetCore.RateLimiting`
+  fixed-window limiter partitions on the `X-Api-Key` header (100 requests / 1
+  minute per key), so one consumer can no longer overload the server; over-budget
+  requests get `429 Too Many Requests`. The unauthenticated allow-list paths
+  (`/health`, `/api/version`, `/register`, OpenAPI/Swagger) are exempt, mirroring
+  `ApiKeyMiddleware`, so probes and the registration entry point are never
+  throttled. Closes #14.
 
 ### Changed
 

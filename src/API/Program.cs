@@ -6,6 +6,7 @@ using API.Endpoints;
 using API.Endpoints.Auth;
 using API.Middleware;
 using API.OpenApi;
+using API.RateLimiting;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -57,6 +58,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<ApiKeySecuritySchemeTransformer>());
 
+// Per-API-key fixed-window rate limiting (#14)
+builder.Services.AddApiRateLimiter();
+
 // Health check that verifies DB connectivity
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
@@ -93,6 +97,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Stem.Dictionaries.Manager API v1"));
 }
+
+// Rate limiting (#14) — runs ahead of auth so a flooding key is throttled
+// before it reaches the DB; the limiter partitions on the X-Api-Key header.
+app.UseRateLimiter();
 
 // DB error handling — 503 Service Unavailable with structured JSON (API-004)
 app.UseMiddleware<DatabaseExceptionMiddleware>();
