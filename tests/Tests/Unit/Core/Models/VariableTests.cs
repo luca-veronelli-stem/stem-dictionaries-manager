@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Models;
+using Tests.Shared;
 
 namespace Tests.Unit.Core.Models;
 
@@ -17,13 +18,13 @@ public class VariableTests
             addressLow: 0x00,
             dataTypeKind: DataTypeKind.UInt16,
             accessMode: AccessMode.ReadOnly,
-            dataTypeRaw: "uint16_t");
+            dataTypeRaw: TestData.DataTypes.UInt16);
 
         Assert.Equal("Firmware macchina", variable.Name);
         Assert.Equal(0x00, variable.AddressHigh);
         Assert.Equal(0x00, variable.AddressLow);
         Assert.Equal(DataTypeKind.UInt16, variable.DataTypeKind);
-        Assert.Equal("uint16_t", variable.DataTypeRaw);
+        Assert.Equal(TestData.DataTypes.UInt16, variable.DataTypeRaw);
         Assert.Null(variable.DataTypeParam);
         Assert.Equal(AccessMode.ReadOnly, variable.AccessMode);
         Assert.True(variable.IsEnabled);
@@ -39,12 +40,12 @@ public class VariableTests
             addressLow: 0x02,
             dataTypeKind: DataTypeKind.String,
             accessMode: AccessMode.ReadOnly,
-            dataTypeRaw: "String[20]",
+            dataTypeRaw: TestData.DataTypes.String20,
             dataTypeParam: 20);
 
         Assert.Equal(DataTypeKind.String, variable.DataTypeKind);
         Assert.Equal(20, variable.DataTypeParam);
-        Assert.Equal("String[20]", variable.DataTypeRaw);
+        Assert.Equal(TestData.DataTypes.String20, variable.DataTypeRaw);
     }
 
     [Fact]
@@ -88,7 +89,7 @@ public class VariableTests
             addressLow: 0x0F,
             dataTypeKind: DataTypeKind.UInt16,
             accessMode: AccessMode.ReadOnly,
-            dataTypeRaw: "uint16_t",
+            dataTypeRaw: TestData.DataTypes.UInt16,
             isEnabled: true,
             minValue: 0,
             maxValue: 100,
@@ -106,8 +107,7 @@ public class VariableTests
     [Fact]
     public void FullAddress_ReturnsCorrectValue()
     {
-        var variable = new Variable("Test", 0x80, 0x15, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+        Variable variable = TestData.CreateVariable("Test", 0x80, 0x15);
 
         Assert.Equal(0x8015, variable.FullAddress);
     }
@@ -118,7 +118,7 @@ public class VariableTests
     public void Category_IsDerivedFromAddressHigh(byte addressHigh, VariableCategory expected)
     {
         var variable = new Variable("Test", addressHigh, 0x00, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
 
         Assert.Equal(expected, variable.Category);
     }
@@ -131,14 +131,14 @@ public class VariableTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new Variable("Test", addressHigh, 0x00, DataTypeKind.UInt8,
-                AccessMode.ReadOnly, "uint8_t"));
+                AccessMode.ReadOnly, TestData.DataTypes.UInt8));
     }
 
     [Fact]
     public void Enable_SetsIsEnabledTrue()
     {
         var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t", isEnabled: false);
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8, isEnabled: false);
 
         variable.Enable();
 
@@ -149,7 +149,7 @@ public class VariableTests
     public void Disable_SetsIsEnabledFalse()
     {
         var variable = new Variable("Test", 0x00, 0x00, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t", isEnabled: true);
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8, isEnabled: true);
 
         variable.Disable();
 
@@ -162,14 +162,14 @@ public class VariableTests
     public void Constructor_InvalidName_ThrowsArgumentException(string name)
     {
         Assert.Throws<ArgumentException>(() =>
-            new Variable(name, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable(name, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
     }
 
     [Fact]
     public void Constructor_NullName_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new Variable(null!, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable(null!, 0x00, 0x00, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
     }
 
     [Theory]
@@ -236,7 +236,7 @@ public class VariableTests
     public void Constructor_NullWordSize_DefaultsToNull()
     {
         var variable = new Variable("Test", 0x00, 0x00,
-            DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t");
+            DataTypeKind.UInt16, AccessMode.ReadOnly, TestData.DataTypes.UInt16);
 
         Assert.Null(variable.WordSize);
     }
@@ -275,7 +275,7 @@ public class VariableTests
     {
         var variable = Variable.Restore(
             id: 10, name: "Test", addressHigh: 0x00, addressLow: 0x00,
-            dataTypeKind: DataTypeKind.UInt16, dataTypeRaw: "uint16_t",
+            dataTypeKind: DataTypeKind.UInt16, dataTypeRaw: TestData.DataTypes.UInt16,
             dataTypeParam: null, accessMode: AccessMode.ReadOnly, isEnabled: true,
             format: null, minValue: null, maxValue: null, unit: null,
             usage: null, description: null);

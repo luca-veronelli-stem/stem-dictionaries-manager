@@ -1,5 +1,6 @@
 using Core.Enums.Auth;
 using Core.Models.Auth;
+using Tests.Shared;
 
 namespace Tests.Unit.Core.Models.Auth;
 
@@ -11,7 +12,7 @@ namespace Tests.Unit.Core.Models.Auth;
 public class BootstrapTokenStateMachineTests
 {
     private static BootstrapToken NewIssuedToken(DateTime? mintedAt = null,
-        TimeSpan? ttl = null, string clientApp = "ButtonPanelTester",
+        TimeSpan? ttl = null, string clientApp = TestData.ClientApps.ButtonPanelTester,
         string secretHash = "pbkdf2-sha256$600000$AAAAAAAAAAAAAAAAAAAAAA==$" +
             "B2GZ8/g6oW5jaeATsnPVQOyKfV7gcRmkxh7K6OjA4ho=")
     {
@@ -156,7 +157,7 @@ public class BootstrapTokenStateMachineTests
         DateTime mintedAt = new(2026, 5, 7, 12, 0, 0, DateTimeKind.Utc);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new BootstrapToken("ButtonPanelTester", "hash",
+            new BootstrapToken(TestData.ClientApps.ButtonPanelTester, "hash",
                 mintedAt, mintedAt.AddMinutes(59)));
     }
 
@@ -166,7 +167,7 @@ public class BootstrapTokenStateMachineTests
         DateTime mintedAt = new(2026, 5, 7, 12, 0, 0, DateTimeKind.Utc);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new BootstrapToken("ButtonPanelTester", "hash",
+            new BootstrapToken(TestData.ClientApps.ButtonPanelTester, "hash",
                 mintedAt, mintedAt.AddDays(90).AddSeconds(1)));
     }
 }

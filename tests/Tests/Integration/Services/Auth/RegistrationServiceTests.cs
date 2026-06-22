@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Services.Interfaces.Auth;
+using Tests.Shared;
 
 namespace Tests.Integration.Services.Auth;
 
@@ -26,7 +27,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     private static readonly IReadOnlyDictionary<string, DescriptorPolicy> DefaultPolicies =
         new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
         {
-            ["ButtonPanelTester"] = new(OsUserIdRequired: true, MachineIdRequired: true),
+            [TestData.ClientApps.ButtonPanelTester] = new(OsUserIdRequired: true, MachineIdRequired: true),
         };
 
     private RegistrationService BuildSut(IRegistrationEventRepository? eventsOverride = null,
@@ -66,7 +67,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         return entity;
     }
 
-    private static RegisterRequest BuildRequest(string? token, string clientApp = "ButtonPanelTester")
+    private static RegisterRequest BuildRequest(string? token, string clientApp = TestData.ClientApps.ButtonPanelTester)
         => new(
             BootstrapTokenPlaintext: token,
             ClientApp: clientApp,
@@ -81,7 +82,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     public async Task RegisterAsync_ValidToken_PersistsInstallationCredentialAndAudit()
     {
         const string plaintext = "stbt_valid-token";
-        BootstrapTokenEntity tokenEntity = await SeedTokenAsync("ButtonPanelTester", plaintext);
+        BootstrapTokenEntity tokenEntity = await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
@@ -94,7 +95,7 @@ public class RegistrationServiceTests : IntegrationTestBase
             .FirstOrDefaultAsync(i => i.Id == success.InstallationId);
         Assert.NotNull(install);
         Assert.Equal(InstallationStatus.Active, install!.Status);
-        Assert.Equal("ButtonPanelTester", install.ClientApp);
+        Assert.Equal(TestData.ClientApps.ButtonPanelTester, install.ClientApp);
 
         InstallationApiCredentialEntity? cred = await Context.InstallationApiCredentials
             .AsNoTracking()
@@ -134,7 +135,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     [Fact]
     public async Task RegisterAsync_UnknownToken_FailsWithTokenInvalidOutcome()
     {
-        await SeedTokenAsync("ButtonPanelTester", "stbt_real-token");
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_real-token");
         RegistrationService sut = BuildSut();
 
         RegistrationResult result = await sut.RegisterAsync(BuildRequest("stbt_unknown-token"));
@@ -149,7 +150,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     public async Task RegisterAsync_ExpiredToken_FailsAndDoesNotMarkUsed()
     {
         const string plaintext = "stbt_expiring-token";
-        BootstrapTokenEntity tokenEntity = await SeedTokenAsync("ButtonPanelTester", plaintext,
+        BootstrapTokenEntity tokenEntity = await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext,
             ttl: TimeSpan.FromHours(1));
         // Advance the clock past the token's TTL.
         _time.Advance(TimeSpan.FromHours(2));
@@ -172,7 +173,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     public async Task RegisterAsync_ClientScopeMismatch_FailsWithMismatchOutcome()
     {
         const string plaintext = "stbt_scoped-token";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegistrationResult result = await sut.RegisterAsync(
@@ -191,7 +192,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // problem on the first attempt (400) instead of via the unique-index
         // collision on the second attempt (would otherwise be a confusing 500).
         const string plaintext = "stbt_token-3";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegisterRequest request = BuildRequest(plaintext) with { InstallGuid = Guid.Empty };
@@ -217,7 +218,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // {"error":"..."} envelope from FR-002 stays consistent vs an ASP.NET
         // model-validation 400 with a different body shape).
         string plaintext = $"stbt_semver-invalid-{appVersion.GetHashCode()}";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegisterRequest request = BuildRequest(plaintext) with { AppVersion = appVersion };
@@ -241,7 +242,7 @@ public class RegistrationServiceTests : IntegrationTestBase
     public async Task RegisterAsync_DescriptorWithValidSemVer_Succeeds(string appVersion)
     {
         string plaintext = $"stbt_semver-valid-{appVersion.GetHashCode()}";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegisterRequest request = BuildRequest(plaintext) with { AppVersion = appVersion };
@@ -257,7 +258,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // A request that omits MachineId surfaces as DescriptorMissingField
         // (distinct from DescriptorMalformed) -> 400.
         const string plaintext = "stbt_token-4";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegisterRequest request = BuildRequest(plaintext) with { MachineId = "" };
@@ -329,7 +330,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // lookup-miss conflates into ClientScopeMismatch (-> 401), hiding
         // which apps the token was scoped to.
         const string plaintext = "stbt_unknown-clientApp";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegisterRequest request = BuildRequest(plaintext, clientApp: "UnregisteredApp");
@@ -351,7 +352,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // ClassifyOutcome branches it directly to TokenAlreadyUsed (-> 409),
         // distinct from the conflated 401 it used to receive.
         const string plaintext = "stbt_consumed";
-        await SeedTokenAsync("ButtonPanelTester", plaintext,
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext,
             status: BootstrapTokenStatus.Used);
         RegistrationService sut = BuildSut();
 
@@ -373,7 +374,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // #58 non-race path: a Revoked row maps to TokenRevoked (-> 423),
         // forensically distinct from the consumed (Used) case.
         const string plaintext = "stbt_revoked";
-        await SeedTokenAsync("ButtonPanelTester", plaintext,
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext,
             status: BootstrapTokenStatus.Revoked);
         RegistrationService sut = BuildSut();
 
@@ -394,7 +395,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // TokenAlreadyUsed wins over TokenExpired -- the actionable user-facing
         // message is "you already registered with this token", not "it expired".
         const string plaintext = "stbt_used-and-expired";
-        BootstrapTokenEntity entity = await SeedTokenAsync("ButtonPanelTester", plaintext,
+        BootstrapTokenEntity entity = await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext,
             ttl: TimeSpan.FromHours(1),
             status: BootstrapTokenStatus.Used);
         _time.Advance(TimeSpan.FromHours(2));
@@ -416,7 +417,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // must roll back the in-flight install + credential and emit a
         // TokenAlreadyUsed audit so the endpoint responds with the unified 401.
         const string plaintext = "stbt_race-token";
-        BootstrapTokenEntity tokenEntity = await SeedTokenAsync("ButtonPanelTester", plaintext);
+        BootstrapTokenEntity tokenEntity = await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
 
         BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher,
             NullLogger<BootstrapTokenService>.Instance);
@@ -448,7 +449,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // FoundStatus=Revoked must surface as TokenRevoked in the audit row
         // (still 401 to the client, but forensically distinct from AlreadyUsed).
         const string plaintext = "stbt_race-revoked";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
 
         BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher,
             NullLogger<BootstrapTokenService>.Instance);
@@ -469,7 +470,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         // FR-013: a thrown audit-write must propagate up; the endpoint maps to
         // 500 with {"error":"audit failure"} and NO installation row remains.
         const string plaintext = "stbt_token-5";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut(
             eventsOverride: new ThrowingRegistrationEventRepository());
 
@@ -520,7 +521,7 @@ public class RegistrationServiceTests : IntegrationTestBase
         InstallationEntity existing = await SeedInstallationAsync(
             clientApp: "GlobalService", status: InstallationStatus.Active);
         const string plaintext = "stbt_cross-app";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
@@ -557,9 +558,9 @@ public class RegistrationServiceTests : IntegrationTestBase
         // ExistingInstallationRevoked. Installation must NOT be
         // auto-unrevoked.
         InstallationEntity existing = await SeedInstallationAsync(
-            clientApp: "ButtonPanelTester", status: InstallationStatus.Revoked);
+            clientApp: TestData.ClientApps.ButtonPanelTester, status: InstallationStatus.Revoked);
         const string plaintext = "stbt_revoked-install";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         RegistrationService sut = BuildSut();
 
         RegistrationResult result = await sut.RegisterAsync(BuildRequest(plaintext));
@@ -613,11 +614,11 @@ public class RegistrationServiceTests : IntegrationTestBase
         // revokes the prior credential, issues a new one against the
         // same Installation row, and audits with ReRegistrationSuccess.
         InstallationEntity existing = await SeedInstallationAsync(
-            clientApp: "ButtonPanelTester", status: InstallationStatus.Active);
+            clientApp: TestData.ClientApps.ButtonPanelTester, status: InstallationStatus.Active);
         InstallationApiCredentialEntity priorCred =
             await SeedActiveCredentialAsync(existing, "stak_prior-cred");
         const string plaintext = "stbt_rereg-token";
-        BootstrapTokenEntity token = await SeedTokenAsync("ButtonPanelTester", plaintext);
+        BootstrapTokenEntity token = await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
         DateTime now = _time.GetUtcNow().UtcDateTime;
         RegistrationService sut = BuildSut();
 
@@ -677,11 +678,11 @@ public class RegistrationServiceTests : IntegrationTestBase
         // roll back the in-flight revoke + new-credential insert and
         // write a failure audit with the race outcome.
         InstallationEntity existing = await SeedInstallationAsync(
-            clientApp: "ButtonPanelTester", status: InstallationStatus.Active);
+            clientApp: TestData.ClientApps.ButtonPanelTester, status: InstallationStatus.Active);
         InstallationApiCredentialEntity priorCred =
             await SeedActiveCredentialAsync(existing, "stak_prior-cred");
         const string plaintext = "stbt_race-loser";
-        await SeedTokenAsync("ButtonPanelTester", plaintext);
+        await SeedTokenAsync(TestData.ClientApps.ButtonPanelTester, plaintext);
 
         var realSvc = new BootstrapTokenService(new BootstrapTokenRepository(Context), _hasher,
             NullLogger<BootstrapTokenService>.Instance);

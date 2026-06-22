@@ -3,6 +3,7 @@ using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -18,7 +19,7 @@ public class CrudScenariosTests : IntegrationTestBase
     public async Task UpdateAsync_User_ModifiesDisplayName()
     {
         // Arrange
-        var user = new UserEntity { Username = "testuser", DisplayName = "Old Name" };
+        UserEntity user = TestData.CreateUser("testuser", "Old Name");
         await Context.Users.AddAsync(user);
         await Context.SaveChangesAsync();
         DateTime originalCreatedAt = user.CreatedAt;
@@ -48,7 +49,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             Dictionary = dictionary
         };
         await Context.Dictionaries.AddAsync(dictionary);
@@ -82,7 +83,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             Dictionary = dictionary
         };
         await Context.Dictionaries.AddAsync(dictionary);
@@ -145,7 +146,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             Dictionary = dictionary
         };
         var variable2 = new VariableEntity
@@ -155,7 +156,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x02,
             DataTypeKind = DataTypeKind.UInt16,
             AccessMode = AccessMode.ReadWrite,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             Dictionary = dictionary
         };
         await Context.Dictionaries.AddAsync(dictionary);
@@ -188,7 +189,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.Bitmapped,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             Dictionary = dictionary
         };
         var bit1 = new BitInterpretationEntity
@@ -265,12 +266,12 @@ public class CrudScenariosTests : IntegrationTestBase
     public async Task AddUser_DuplicateUsername_ThrowsDbUpdateException()
     {
         // Arrange
-        var user1 = new UserEntity { Username = "duplicate", DisplayName = "User 1" };
+        UserEntity user1 = TestData.CreateUser("duplicate", "User 1");
         await Context.Users.AddAsync(user1);
         await Context.SaveChangesAsync();
 
         // Act & Assert
-        var user2 = new UserEntity { Username = "duplicate", DisplayName = "User 2" };
+        UserEntity user2 = TestData.CreateUser("duplicate", "User 2");
         await Context.Users.AddAsync(user2);
         await Assert.ThrowsAsync<DbUpdateException>(() => Context.SaveChangesAsync());
     }
@@ -301,7 +302,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             Dictionary = dictionary
         };
         await Context.Dictionaries.AddAsync(dictionary);
@@ -316,7 +317,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01, // Same address!
             DataTypeKind = DataTypeKind.UInt16,
             AccessMode = AccessMode.ReadWrite,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             DictionaryId = dictionary.Id
         };
         await Context.Variables.AddAsync(var2);
@@ -340,7 +341,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             DictionaryId = dict1.Id
         };
         var var2 = new VariableEntity
@@ -350,7 +351,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01, // Same address!
             DataTypeKind = DataTypeKind.UInt16,
             AccessMode = AccessMode.ReadWrite,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             DictionaryId = dict2.Id
         };
         await Context.Variables.AddRangeAsync(var1, var2);
@@ -419,7 +420,7 @@ public class CrudScenariosTests : IntegrationTestBase
     public async Task AuditTrail_CreateUpdateDelete_TracksAllChanges()
     {
         // Arrange & Act - Create
-        var user = new UserEntity { Username = "audituser", DisplayName = "Initial" };
+        UserEntity user = TestData.CreateUser("audituser", "Initial");
         await Context.Users.AddAsync(user);
         await Context.SaveChangesAsync();
         DateTime createdAt = user.CreatedAt;
@@ -483,7 +484,7 @@ public class CrudScenariosTests : IntegrationTestBase
     {
         // Arrange
         var repository = new UserRepository(Context, NullLogger<RepositoryBase<UserEntity>>.Instance);
-        var user = new UserEntity { Username = "repouser", DisplayName = "Original" };
+        UserEntity user = TestData.CreateUser("repouser", "Original");
         await repository.AddAsync(user);
 
         // Act
@@ -514,7 +515,7 @@ public class CrudScenariosTests : IntegrationTestBase
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
             AccessMode = AccessMode.ReadOnly,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             DictionaryId = dictionary.Id
         };
         await varRepository.AddAsync(variable);

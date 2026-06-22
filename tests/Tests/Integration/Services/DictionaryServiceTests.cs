@@ -5,6 +5,7 @@ using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
+using Tests.Shared;
 
 namespace Tests.Integration.Services;
 
@@ -138,9 +139,9 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         Dictionary created = await _service.AddAsync(new Core.Models.Dictionary("with-vars"));
         await _service.AddVariableAsync(created.Id,
-            new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
         await _service.AddVariableAsync(created.Id,
-            new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t"));
+            new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, TestData.DataTypes.UInt16));
 
         Dictionary? result = await _service.GetWithVariablesAsync(created.Id);
 
@@ -164,7 +165,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         Dictionary dict = await _service.AddAsync(new Core.Models.Dictionary("add-var"));
         var variable = new Variable("NewVar", 0x00, 0x10, DataTypeKind.UInt32,
-            AccessMode.ReadWrite, "uint32_t");
+            AccessMode.ReadWrite, TestData.DataTypes.UInt32);
 
         Variable result = await _service.AddVariableAsync(dict.Id, variable);
 
@@ -177,11 +178,11 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         Dictionary dict = await _service.AddAsync(new Core.Models.Dictionary("dup-addr"));
         await _service.AddVariableAsync(dict.Id,
-            new Variable("First", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable("First", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.AddVariableAsync(dict.Id,
-                new Variable("Second", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t")));
+                new Variable("Second", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, TestData.DataTypes.UInt16)));
         Assert.Contains("already exists", exception.Message);
     }
 
@@ -189,7 +190,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     public async Task AddVariableAsync_NonExistingDictionary_ThrowsKeyNotFoundException()
     {
         var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddVariableAsync(999, variable));
@@ -200,7 +201,7 @@ public class DictionaryServiceTests : IntegrationTestBase
     {
         Dictionary dict = await _service.AddAsync(new Core.Models.Dictionary("remove-var"));
         Variable variable = await _service.AddVariableAsync(dict.Id,
-            new Variable("ToRemove", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable("ToRemove", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
 
         await _service.RemoveVariableAsync(dict.Id, variable.Id);
 
@@ -214,7 +215,7 @@ public class DictionaryServiceTests : IntegrationTestBase
         Dictionary dict1 = await _service.AddAsync(new Core.Models.Dictionary("dict1"));
         Dictionary dict2 = await _service.AddAsync(new Core.Models.Dictionary("dict2"));
         Variable variable = await _service.AddVariableAsync(dict1.Id,
-            new Variable("InDict1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"));
+            new Variable("InDict1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8));
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.RemoveVariableAsync(dict2.Id, variable.Id));

@@ -9,6 +9,7 @@ using Infrastructure.Entities;
 using Infrastructure.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
 using Services.Auth;
+using Tests.Shared;
 
 namespace Tests.Integration.API.Auth;
 
@@ -28,7 +29,7 @@ public class AdminInstallationEndpointTests : IDisposable
         // set here is test-only.
         DescriptorPoliciesOverride = new Dictionary<string, DescriptorPolicy>(StringComparer.Ordinal)
         {
-            ["ButtonPanelTester"] = new(OsUserIdRequired: true, MachineIdRequired: true),
+            [TestData.ClientApps.ButtonPanelTester] = new(OsUserIdRequired: true, MachineIdRequired: true),
             ["GlobalService"] = new(OsUserIdRequired: true, MachineIdRequired: true),
         }
     };
@@ -111,7 +112,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int id1, _) = await RegisterInstallationAsync(unauthed,
-            clientApp: "ButtonPanelTester",
+            clientApp: TestData.ClientApps.ButtonPanelTester,
             osUserId: "S-1-5-21-2127521184-1604012920-1887927527-72713",
             machineId: "8a5e9b3c-6f4d-4d2a-9c1b-7d8e3f4b6c2a",
             installGuid: Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
@@ -177,7 +178,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int btId, _) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester",
+            TestData.ClientApps.ButtonPanelTester,
             "u1", "m1", Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_filter-bt");
         (int gsId, _) = await RegisterInstallationAsync(unauthed,
@@ -223,7 +224,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int id, _) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "u", "m",
+            TestData.ClientApps.ButtonPanelTester, "u", "m",
             Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_revoke-target");
 
@@ -263,11 +264,11 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int idA, _) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "userA", "machineA",
+            TestData.ClientApps.ButtonPanelTester, "userA", "machineA",
             Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_iso-a");
         (int idB, string plaintextB) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "userB", "machineB",
+            TestData.ClientApps.ButtonPanelTester, "userB", "machineB",
             Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef0123456789"),
             "stbt_iso-b");
         Assert.NotEqual(idA, idB);
@@ -293,7 +294,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int id, string plaintext) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "u", "m",
+            TestData.ClientApps.ButtonPanelTester, "u", "m",
             Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_revoke-5s");
 
@@ -326,7 +327,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int id, _) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "u", "m",
+            TestData.ClientApps.ButtonPanelTester, "u", "m",
             Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_idem");
 
@@ -380,7 +381,7 @@ public class AdminInstallationEndpointTests : IDisposable
         using HttpClient admin = AdminClient();
 
         (int id, _) = await RegisterInstallationAsync(unauthed,
-            "ButtonPanelTester", "u", "m",
+            TestData.ClientApps.ButtonPanelTester, "u", "m",
             Guid.Parse("f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"),
             "stbt_audit");
 

@@ -1,6 +1,7 @@
 using Core.Enums.Auth;
 using Infrastructure.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -15,7 +16,7 @@ public class InstallationApiCredentialUniqueActiveTests : IntegrationTestBase
     {
         InstallationEntity entity = new()
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             OsUserId = "u1",
             MachineId = "m1",
             InstallGuid = Guid.NewGuid(),

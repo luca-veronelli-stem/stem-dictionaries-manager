@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Services.Mapping;
+using Tests.Shared;
 
 namespace Tests.Unit.Services.Mapping;
 
@@ -24,7 +25,7 @@ public class VariableMapperTests
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt16,
             DataTypeParam = null,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true,
             Format = "%04X",
@@ -45,7 +46,7 @@ public class VariableMapperTests
         Assert.Equal(0x01, result.AddressLow);
         Assert.Equal(DataTypeKind.UInt16, result.DataTypeKind);
         Assert.Null(result.DataTypeParam);
-        Assert.Equal("uint16_t", result.DataTypeRaw);
+        Assert.Equal(TestData.DataTypes.UInt16, result.DataTypeRaw);
         Assert.Equal(AccessMode.ReadOnly, result.AccessMode);
         Assert.True(result.IsEnabled);
         Assert.Equal("%04X", result.Format);
@@ -67,7 +68,7 @@ public class VariableMapperTests
             AddressLow = 0x10,
             DataTypeKind = DataTypeKind.String,
             DataTypeParam = 20,
-            DataTypeRaw = "String[20]",
+            DataTypeRaw = TestData.DataTypes.String20,
             AccessMode = AccessMode.ReadWrite,
             IsEnabled = true
         };
@@ -78,7 +79,7 @@ public class VariableMapperTests
         // Assert
         Assert.Equal(DataTypeKind.String, result.DataTypeKind);
         Assert.Equal(20, result.DataTypeParam);
-        Assert.Equal("String[20]", result.DataTypeRaw);
+        Assert.Equal(TestData.DataTypes.String20, result.DataTypeRaw);
     }
 
     [Fact]
@@ -93,7 +94,7 @@ public class VariableMapperTests
             AddressHigh = 0x80,
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -118,7 +119,7 @@ public class VariableMapperTests
             AddressHigh = 0x00,
             AddressLow = 0x05,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -194,7 +195,7 @@ public class VariableMapperTests
             AddressHigh = 0x00,
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -205,7 +206,7 @@ public class VariableMapperTests
             addressHigh: 0x80,
             addressLow: 0x02,
             dataTypeKind: DataTypeKind.UInt32,
-            dataTypeRaw: "uint32_t",
+            dataTypeRaw: TestData.DataTypes.UInt32,
             dataTypeParam: null,
             accessMode: AccessMode.ReadWrite,
             isEnabled: false,
@@ -224,7 +225,7 @@ public class VariableMapperTests
         Assert.Equal(0x80, entity.AddressHigh);
         Assert.Equal(0x02, entity.AddressLow);
         Assert.Equal(DataTypeKind.UInt32, entity.DataTypeKind);
-        Assert.Equal("uint32_t", entity.DataTypeRaw);
+        Assert.Equal(TestData.DataTypes.UInt32, entity.DataTypeRaw);
         Assert.Equal(AccessMode.ReadWrite, entity.AccessMode);
         Assert.False(entity.IsEnabled);
         Assert.Equal("%d ms", entity.Format);
@@ -239,10 +240,10 @@ public class VariableMapperTests
         var entities = new List<VariableEntity>
         {
             new() { Id = 1, Name = "Var1", AddressHigh = 0x00, AddressLow = 0x01,
-                    DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = "uint8_t",
+                    DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = TestData.DataTypes.UInt8,
                     AccessMode = AccessMode.ReadOnly, IsEnabled = true },
             new() { Id = 2, Name = "Var2", AddressHigh = 0x00, AddressLow = 0x02,
-                    DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
+                    DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = TestData.DataTypes.UInt16,
                     AccessMode = AccessMode.ReadWrite, IsEnabled = true },
             new() { Id = 3, Name = "Var3", AddressHigh = 0x80, AddressLow = 0x01,
                     DataTypeKind = DataTypeKind.Float, DataTypeRaw = "float",
@@ -339,7 +340,7 @@ public class VariableMapperTests
             AddressHigh = 0x00,
             AddressLow = 0x00,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true,
             WordSize = null
@@ -373,7 +374,7 @@ public class VariableMapperTests
             AddressHigh = 0x00,
             AddressLow = 0x06,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true,
             WordSize = null

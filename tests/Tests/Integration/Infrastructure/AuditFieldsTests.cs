@@ -1,5 +1,6 @@
 using Core.Enums;
 using Infrastructure.Entities;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -11,11 +12,7 @@ public class AuditFieldsTests : IntegrationTestBase
     [Fact]
     public async Task Add_SetsCreatedAt()
     {
-        var user = new UserEntity
-        {
-            Username = "testuser",
-            DisplayName = "Test User"
-        };
+        UserEntity user = TestData.CreateUser("testuser", "Test User");
 
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
@@ -28,11 +25,7 @@ public class AuditFieldsTests : IntegrationTestBase
     public async Task Update_SetsUpdatedAt()
     {
         // Arrange - crea utente
-        var user = new UserEntity
-        {
-            Username = "testuser",
-            DisplayName = "Test User"
-        };
+        UserEntity user = TestData.CreateUser("testuser", "Test User");
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
         DateTime createdAt = user.CreatedAt;
@@ -52,11 +45,7 @@ public class AuditFieldsTests : IntegrationTestBase
     public async Task AuditEntry_DoesNotHaveAuditFields()
     {
         // Prima crea un utente (necessario per FK)
-        var user = new UserEntity
-        {
-            Username = "admin",
-            DisplayName = "Admin"
-        };
+        UserEntity user = TestData.CreateAdmin();
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
 

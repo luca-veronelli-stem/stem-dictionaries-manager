@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
+using Tests.Shared;
 
 namespace Tests.Integration.API;
 
@@ -39,7 +40,7 @@ public abstract class ApiIntegrationTestBase : IDisposable
         Context.Database.EnsureCreated();
 
         // Seed utente per audit
-        Context.Users.Add(new UserEntity { Username = "test", DisplayName = "Test" });
+        Context.Users.Add(TestData.CreateUser("test", "Test"));
         Context.SaveChanges();
 
         // Repositories

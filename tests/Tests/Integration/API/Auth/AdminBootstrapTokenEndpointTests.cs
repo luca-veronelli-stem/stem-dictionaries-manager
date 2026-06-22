@@ -9,6 +9,7 @@ using Infrastructure;
 using Infrastructure.Entities;
 using Infrastructure.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
+using Tests.Shared;
 
 namespace Tests.Integration.API.Auth;
 
@@ -46,7 +47,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
@@ -59,7 +60,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
         DateTime expiresAt = body.RootElement.GetProperty("expiresAt").GetDateTime().ToUniversalTime();
 
         Assert.True(tokenId > 0);
-        Assert.Equal("ButtonPanelTester", clientApp);
+        Assert.Equal(TestData.ClientApps.ButtonPanelTester, clientApp);
         Assert.Matches(PlaintextPattern, plaintext);
         Assert.Equal(AdminAuthApiFactory.FixedNow, mintedAt);
         Assert.Equal(AdminAuthApiFactory.FixedNow + TimeSpan.FromDays(30), expiresAt);
@@ -83,7 +84,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester", ttlHours }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester, ttlHours }));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -106,7 +107,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester", ttlHours }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester, ttlHours }));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         using JsonDocument body = await ReadJsonAsync(response);
@@ -128,7 +129,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
         using HttpClient client = AdminClient();
         HttpResponseMessage mint = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
         Assert.Equal(HttpStatusCode.Created, mint.StatusCode);
 
         using JsonDocument body = await ReadJsonAsync(mint);
@@ -139,7 +140,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
         // first plaintext back. (Stronger surface checks land with US3.)
         HttpResponseMessage second = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
         string secondBody = await second.Content.ReadAsStringAsync();
         Assert.DoesNotContain(plaintext, secondBody);
 
@@ -157,7 +158,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
 
         await AssertContractUnauthorizedAsync(response);
     }
@@ -171,7 +172,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
 
         await AssertContractUnauthorizedAsync(response);
     }
@@ -185,7 +186,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
 
         await AssertContractUnauthorizedAsync(response);
     }
@@ -245,7 +246,7 @@ public class AdminBootstrapTokenEndpointTests : IDisposable
 
         HttpResponseMessage response = await client.PostAsync(
             "/api/admin/bootstrap-tokens",
-            JsonBody(new { clientApp = "ButtonPanelTester" }));
+            JsonBody(new { clientApp = TestData.ClientApps.ButtonPanelTester }));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         using JsonDocument body = await ReadJsonAsync(response);
