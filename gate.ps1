@@ -18,10 +18,12 @@ dotnet build -c Release
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet build -c Release' }
 
 # Both test legs -- this PR moves files across BOTH target frameworks.
-dotnet test tests/Tests/Tests.csproj --framework net10.0 --no-build -c Release
+# No --no-build: the solution build above does not always emit the
+# net10.0-windows Tests leg, so let each test run build its own TFM.
+dotnet test tests/Tests/Tests.csproj -c Release --framework net10.0
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet test net10.0' }
 
-dotnet test tests/Tests/Tests.csproj --framework net10.0-windows --no-build -c Release
+dotnet test tests/Tests/Tests.csproj -c Release --framework net10.0-windows
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet test net10.0-windows' }
 
 # Commit-message Conventional-Commits gate on HEAD (no Tasks: trailer -- this
