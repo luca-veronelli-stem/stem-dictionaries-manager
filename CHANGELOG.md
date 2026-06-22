@@ -6,6 +6,14 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Added
 
+- **GUI**: structured logging (`ILogger<T>`) across the GUI view-models,
+  completing the `ILogger<T>` rollout begun in Infrastructure and Services. All
+  14 view-models take an injected `ILogger<TVm>` and emit template-based
+  structured log calls at meaningful actions (sign-in, entity create/save, list
+  loads, navigation and load failures); `NavigationService` logs view
+  transitions. `App.xaml.cs` configures the logging provider (`ClearProviders`
+  + `AddDebug`) so diagnostics reach the debugger output without console noise.
+  Closes #3.
 - **Infrastructure / Services**: structured logging (`ILogger<T>`) across the
   Infrastructure and Services layers. `RepositoryBase` and every service now
   take an injected `ILogger<T>` and emit template-based structured log calls at

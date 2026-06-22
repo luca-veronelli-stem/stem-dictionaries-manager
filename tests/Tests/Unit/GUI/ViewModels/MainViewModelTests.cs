@@ -3,6 +3,7 @@ using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 using Tests.Unit.GUI.Mocks;
@@ -46,13 +47,15 @@ public class MainViewModelTests
             sp.GetRequiredService<MockDeviceService>(),
             sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<IDialogService>(),
-            sp.GetRequiredService<IMessageService>()));
+            sp.GetRequiredService<IMessageService>(),
+            NullLogger<DeviceListViewModel>.Instance));
 
         services.AddTransient(sp => new DictionaryListViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
-            sp.GetRequiredService<IMessageService>()));
+            sp.GetRequiredService<IMessageService>(),
+            NullLogger<DictionaryListViewModel>.Instance));
 
         services.AddTransient(sp => new DictionaryEditViewModel(
             sp.GetRequiredService<MockDictionaryService>(),
@@ -60,13 +63,15 @@ public class MainViewModelTests
             sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
-            sp.GetRequiredService<IMessageService>()));
+            sp.GetRequiredService<IMessageService>(),
+            NullLogger<DictionaryEditViewModel>.Instance));
 
         services.AddTransient(sp => new CommandListViewModel(
             sp.GetRequiredService<MockCommandService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
-            sp.GetRequiredService<IMessageService>()));
+            sp.GetRequiredService<IMessageService>(),
+            NullLogger<CommandListViewModel>.Instance));
 
         _serviceProvider = services.BuildServiceProvider();
 
@@ -75,7 +80,8 @@ public class MainViewModelTests
             _dialogService,
             _messageService,
             _serviceProvider,
-            _currentUserProvider);
+            _currentUserProvider,
+            NullLogger<MainViewModel>.Instance);
     }
 
     [Fact]
@@ -229,7 +235,7 @@ public class MainViewModelTests
 
         var vm = new MainViewModel(
             navService, _dialogService, _messageService, throwingProvider,
-            _currentUserProvider);
+            _currentUserProvider, NullLogger<MainViewModel>.Instance);
 
         navService.NavigateTo(ViewType.DictionaryList);
 
@@ -249,7 +255,7 @@ public class MainViewModelTests
 
         var vm = new MainViewModel(
             navService, _dialogService, msgService, throwingProvider,
-            _currentUserProvider);
+            _currentUserProvider, NullLogger<MainViewModel>.Instance);
 
         navService.NavigateTo(ViewType.DictionaryList);
 

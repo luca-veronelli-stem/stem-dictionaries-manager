@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -11,6 +12,7 @@ namespace GUI.Windows.ViewModels;
 public partial class LoginViewModel : ObservableObject
 {
     private readonly IUserService _userService;
+    private readonly ILogger<LoginViewModel> _logger;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmLoginCommand))]
@@ -31,9 +33,10 @@ public partial class LoginViewModel : ObservableObject
     /// </summary>
     public event Action<User>? LoginConfirmed;
 
-    public LoginViewModel(IUserService userService)
+    public LoginViewModel(IUserService userService, ILogger<LoginViewModel> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -56,6 +59,7 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to load users for the login screen");
             ErrorMessage = $"Error loading users: {ex.Message}";
         }
         finally
@@ -71,6 +75,7 @@ public partial class LoginViewModel : ObservableObject
     {
         if (SelectedUser is not null)
         {
+            _logger.LogInformation("Login confirmed for user {UserId}", SelectedUser.Id);
             LoginConfirmed?.Invoke(SelectedUser);
         }
     }

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -18,6 +19,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<BoardEditViewModel> _logger;
 
     private int? _editingId;
     private int? _existingDictionaryId;
@@ -98,13 +100,15 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         IDeviceService deviceService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<BoardEditViewModel> logger)
     {
         _boardService = boardService;
         _deviceService = deviceService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     public async Task InitializeAsync(int? boardId, int? presetDeviceId = null)
@@ -242,6 +246,9 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
                     isPrimary: IsPrimary);
 
                 await _boardService.AddAsync(board);
+                _logger.LogInformation(
+                    "Created board {Name} (FW {FirmwareType}) on device {DeviceId}",
+                    Name, FirmwareType, DeviceId);
                 _messageService.Show($"Board '{Name}' created", MessageSeverity.Success);
             }
             else
@@ -266,6 +273,7 @@ public partial class BoardEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save board {Name}", Name);
             await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally

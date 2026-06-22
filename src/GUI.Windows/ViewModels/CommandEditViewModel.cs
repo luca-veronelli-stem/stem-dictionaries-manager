@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -16,6 +17,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<CommandEditViewModel> _logger;
 
     private int? _editingId;
     private bool _isInitialized;
@@ -80,12 +82,14 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         ICommandService commandService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<CommandEditViewModel> logger)
     {
         _commandService = commandService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -207,6 +211,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
                     parameters: parameters);
 
                 await _commandService.AddAsync(command);
+                _logger.LogInformation("Created command {Name} (0x{FullCode:X4})", Name, CodeHigh << 8 | CodeLow);
                 _messageService.Show($"Command '{Name}' created", MessageSeverity.Success);
             }
             else
@@ -228,6 +233,7 @@ public partial class CommandEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save command {Name}", Name);
             await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally

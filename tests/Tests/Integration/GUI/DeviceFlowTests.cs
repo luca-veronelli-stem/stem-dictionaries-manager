@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -38,7 +39,8 @@ public class DeviceFlowTests
             Device.Restore(2, "Spark", 7, "Test 2")
         );
         var viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
 
         // Act
         await viewModel.LoadAsync();
@@ -57,7 +59,8 @@ public class DeviceFlowTests
             Device.Restore(3, "Optimus-XP", 10, "Supporto elettrico")
         );
         var viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
         await viewModel.LoadAsync();
 
         // Act
@@ -74,7 +77,8 @@ public class DeviceFlowTests
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test"));
         var viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
         await viewModel.LoadAsync();
 
         // Act
@@ -91,7 +95,8 @@ public class DeviceFlowTests
     {
         // Arrange
         var viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
 
         // Act
         viewModel.AddDeviceCommand.Execute(null);
@@ -109,7 +114,8 @@ public class DeviceFlowTests
     {
         // Arrange
         var viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
         await viewModel.InitializeAsync(null);
 
         viewModel.Name = "NewDevice";
@@ -130,7 +136,8 @@ public class DeviceFlowTests
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Existing", 3, null));
         var viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
         await viewModel.InitializeAsync(null);
 
         viewModel.Name = "NewDevice";
@@ -153,7 +160,8 @@ public class DeviceFlowTests
     {
         // Arrange
         var viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
         await viewModel.InitializeAsync(null);
 
         viewModel.Name = "TestBLE";
@@ -176,7 +184,8 @@ public class DeviceFlowTests
         // Arrange
         _deviceService.SeedData(Device.Restore(1, "Eden-XP", 3, "Test description"));
         var viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
 
         // Act
         await viewModel.InitializeAsync(deviceId: 1);
@@ -195,7 +204,8 @@ public class DeviceFlowTests
         _deviceService.SeedData(Device.Restore(1, "ToDelete", 99, null));
         _dialogService.ConfirmResult = DialogResult.Yes;
         var viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
         await viewModel.InitializeAsync(deviceId: 1);
 
         // Act

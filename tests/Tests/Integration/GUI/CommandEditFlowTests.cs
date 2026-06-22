@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -29,7 +30,8 @@ public class CommandEditFlowTests
             _commandService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<CommandEditViewModel>.Instance);
     }
 
     [Fact]

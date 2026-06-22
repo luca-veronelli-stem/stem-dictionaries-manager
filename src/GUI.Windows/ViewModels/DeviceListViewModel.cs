@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -42,6 +43,7 @@ public partial class DeviceListViewModel : ObservableObject
     private readonly IBoardService _boardService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DeviceListViewModel> _logger;
 
     [ObservableProperty]
     private ObservableCollection<DeviceItem> _devices = [];
@@ -62,13 +64,15 @@ public partial class DeviceListViewModel : ObservableObject
         IDeviceService deviceService,
         IBoardService boardService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DeviceListViewModel> logger)
     {
         _navigationService = navigationService;
         _deviceService = deviceService;
         _boardService = boardService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     public async Task LoadAsync()
@@ -102,9 +106,11 @@ public partial class DeviceListViewModel : ObservableObject
                         boardCount, dictionaryCount);
                 })];
             ApplyFilter();
+            _logger.LogDebug("Loaded {Count} devices", _allDevices.Count);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to load devices");
             _messageService.Show($"Error loading devices: {ex.Message}",
                 MessageSeverity.Error);
         }

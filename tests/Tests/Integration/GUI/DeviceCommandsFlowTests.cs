@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -39,7 +40,8 @@ public class DeviceCommandsFlowTests
             _commandService,
             _deviceService,
             _navigationService,
-            _messageService);
+            _messageService,
+            NullLogger<DeviceCommandsViewModel>.Instance);
     }
 
     #region Load Tests

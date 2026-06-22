@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -57,6 +58,7 @@ public partial class DeviceDetailViewModel : ObservableObject
     private readonly ICommandService _commandService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DeviceDetailViewModel> _logger;
 
     [ObservableProperty]
     private int? _deviceId;
@@ -89,7 +91,8 @@ public partial class DeviceDetailViewModel : ObservableObject
         IDeviceService deviceService,
         ICommandService commandService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DeviceDetailViewModel> logger)
     {
         _navigationService = navigationService;
         _dictionaryService = dictionaryService;
@@ -98,6 +101,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         _commandService = commandService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -179,6 +183,7 @@ public partial class DeviceDetailViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to load detail for device {DeviceId}", DeviceId);
             ErrorMessage = $"Error: {ex.Message}";
         }
         finally

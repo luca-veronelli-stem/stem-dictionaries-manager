@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -48,6 +49,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DictionaryEditViewModel> _logger;
 
     private int? _editingId;
     private int? _deviceId;
@@ -163,7 +165,8 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         IBoardService boardService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DictionaryEditViewModel> logger)
     {
         _dictionaryService = dictionaryService;
         _variableService = variableService;
@@ -171,6 +174,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     partial void OnNameChanged(string value) => HasChanges = true;
@@ -410,6 +414,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
 
                 Dictionary created = await _dictionaryService.AddAsync(dictionary);
                 _editingId = created.Id;
+                _logger.LogInformation("Created dictionary {DictionaryId} ({Name})", created.Id, Name);
 
                 // Link the selected board to the new dictionary
                 if (!IsStandard && SelectedBoard is not null)
@@ -469,6 +474,7 @@ public partial class DictionaryEditViewModel : ObservableObject, IEditableViewMo
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save dictionary {Name}", Name);
             await _dialogService.ShowErrorAsync("Save error", ex.Message);
         }
         finally
