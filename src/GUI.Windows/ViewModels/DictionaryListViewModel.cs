@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -15,6 +16,7 @@ public partial class DictionaryListViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DictionaryListViewModel> _logger;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -42,12 +44,14 @@ public partial class DictionaryListViewModel : ObservableObject
         IDictionaryService dictionaryService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DictionaryListViewModel> logger)
     {
         _dictionaryService = dictionaryService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -80,10 +84,12 @@ public partial class DictionaryListViewModel : ObservableObject
                 })];
 
             ApplyFilter();
+            _logger.LogDebug("Loaded {Count} dictionaries", _allDictionaries.Count);
             _messageService.Show($"Loaded {_allDictionaries.Count} dictionaries", MessageSeverity.Success);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to load dictionaries");
             ErrorMessage = ex.Message;
             _messageService.Show($"Error: {ex.Message}", MessageSeverity.Error);
         }

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace GUI.Windows.ViewModels;
 
@@ -12,6 +13,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly INavigationService _navigationService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
     private string _appVersion = "1.0.0";
@@ -21,10 +23,12 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(
         INavigationService navigationService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<SettingsViewModel> logger)
     {
         _navigationService = navigationService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -35,6 +39,8 @@ public partial class SettingsViewModel : ObservableObject
         // TODO: load real settings
         DatabasePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
             + @"\Stem.Dictionaries.Manager\dictionaries.db";
+
+        _logger.LogDebug("Settings initialized for app version {AppVersion}", AppVersion);
 
         return Task.CompletedTask;
     }

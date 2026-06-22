@@ -1,6 +1,7 @@
 #if WINDOWS
 using Core.Models;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -16,7 +17,7 @@ public class LoginViewModelTests
     public LoginViewModelTests()
     {
         _userService = new MockUserService();
-        _viewModel = new LoginViewModel(_userService);
+        _viewModel = new LoginViewModel(_userService, NullLogger<LoginViewModel>.Instance);
     }
 
     [Fact]

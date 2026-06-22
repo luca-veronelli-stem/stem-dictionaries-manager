@@ -1,5 +1,6 @@
 #if WINDOWS
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -20,7 +21,8 @@ public class SettingsViewModelTests
 
         _viewModel = new SettingsViewModel(
             _navigationService,
-            _messageService);
+            _messageService,
+            NullLogger<SettingsViewModel>.Instance);
     }
 
     [Fact]

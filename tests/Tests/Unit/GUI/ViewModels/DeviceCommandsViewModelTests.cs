@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -18,7 +19,8 @@ public class DeviceCommandsViewModelTests
     {
         _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceCommandsViewModel(
-            _commandService, _deviceService, _navigationService, _messageService);
+            _commandService, _deviceService, _navigationService, _messageService,
+            NullLogger<DeviceCommandsViewModel>.Instance);
     }
 
     // === Defaults ===
@@ -268,7 +270,8 @@ public class DeviceCommandsViewModelTests
 
         var vm = new DeviceDetailViewModel(
             navigationService, dictionaryService, boardService, deviceService,
-            commandService, dialogService, messageService);
+            commandService, dialogService, messageService,
+            NullLogger<DeviceDetailViewModel>.Instance);
 
         await vm.LoadAsync(7);
 

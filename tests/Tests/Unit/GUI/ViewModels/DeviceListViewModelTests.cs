@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -28,7 +29,8 @@ public class DeviceListViewModelTests
         _messageService = new MockMessageService();
         _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceListViewModel(
-            _navigationService, _deviceService, _boardService, _dialogService, _messageService);
+            _navigationService, _deviceService, _boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
     }
 
     [Fact]
@@ -172,7 +174,8 @@ public class DeviceListViewModelTests
             Board.Restore(3, 1, "Puls 2", 4, 3, null, false, dictionaryId: 20, machineCode: 1));
 
         var vm = new DeviceListViewModel(
-            _navigationService, deviceService, boardService, _dialogService, _messageService);
+            _navigationService, deviceService, boardService, _dialogService, _messageService,
+            NullLogger<DeviceListViewModel>.Instance);
 
         // Act
         await vm.LoadAsync();

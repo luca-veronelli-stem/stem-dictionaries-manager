@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -35,7 +36,8 @@ public class VariableEditFlowTests
             _dictionaryService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<VariableEditViewModel>.Instance);
     }
 
     [Fact]
@@ -246,7 +248,8 @@ public class VariableEditFlowTests
             _dictionaryService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<VariableEditViewModel>.Instance);
 
         await viewModelStandard.InitializeAsync(null, dictionaryId: 1);
         viewModelStandard.AddressLowHex = "10";

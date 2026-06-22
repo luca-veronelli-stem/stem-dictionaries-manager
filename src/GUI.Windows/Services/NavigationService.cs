@@ -1,4 +1,5 @@
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace GUI.Windows.Services;
 
@@ -9,9 +10,15 @@ namespace GUI.Windows.Services;
 public sealed class NavigationService : INavigationService
 {
     private readonly Stack<(ViewType View, NavigationParameter? Parameter, object? ViewModel)> _history = new();
+    private readonly ILogger<NavigationService> _logger;
     private ViewType _currentView = ViewType.DeviceList;
     private NavigationParameter? _currentParameter;
     private object? _currentViewModel;
+
+    public NavigationService(ILogger<NavigationService> logger)
+    {
+        _logger = logger;
+    }
 
     public ViewType CurrentView => _currentView;
 
@@ -48,6 +55,7 @@ public sealed class NavigationService : INavigationService
         _currentViewModel = null;
         CachedViewModel = null;
 
+        _logger.LogDebug("Navigating forward to {ViewType}", viewType);
         OnCurrentViewChanged();
     }
 
@@ -64,6 +72,7 @@ public sealed class NavigationService : INavigationService
         CachedViewModel = cachedVm;
         _currentViewModel = cachedVm;
 
+        _logger.LogDebug("Navigating back to {ViewType}", _currentView);
         OnCurrentViewChanged();
         return true;
     }

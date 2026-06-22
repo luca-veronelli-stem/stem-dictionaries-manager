@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -35,7 +36,8 @@ public class VariableEditViewModelTests
             _dictionaryService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<VariableEditViewModel>.Instance);
     }
 
     [Fact]
@@ -868,7 +870,8 @@ public class VariableEditViewModelTests
 
         var vm = new VariableEditViewModel(
             _variableService, _dictionaryService,
-            _navigationService, _dialogService, _messageService);
+            _navigationService, _dialogService, _messageService,
+            NullLogger<VariableEditViewModel>.Instance);
 
         // Act
         await vm.InitializeAsync(null, dictionaryId: 1);
@@ -908,7 +911,8 @@ public class VariableEditViewModelTests
 
         var vm = new VariableEditViewModel(
             _variableService, _dictionaryService,
-            _navigationService, _dialogService, _messageService);
+            _navigationService, _dialogService, _messageService,
+            NullLogger<VariableEditViewModel>.Instance);
 
         await vm.InitializeAsync(null, dictionaryId: 1);
         vm.Name = "StdVar";

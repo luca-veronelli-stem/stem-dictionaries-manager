@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -17,6 +18,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DeviceEditViewModel> _logger;
 
     private int? _editingId;
     private bool _showValidation;
@@ -61,13 +63,15 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         IBoardService boardService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DeviceEditViewModel> logger)
     {
         _deviceService = deviceService;
         _boardService = boardService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     public async Task InitializeAsync(int? deviceId)
@@ -136,6 +140,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
             {
                 var device = new Device(Name.Trim(), code, desc);
                 await _deviceService.AddAsync(device);
+                _logger.LogInformation("Created device with machine code {MachineCode}", code);
                 _messageService.Show($"Device '{Name}' created.",
                     MessageSeverity.Success, autoHideSeconds: 3);
             }
@@ -153,6 +158,7 @@ public partial class DeviceEditViewModel : ObservableObject, IEditableViewModel
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save device with machine code {MachineCode}", MachineCode);
             _messageService.Show($"Save error: {ex.Message}",
                 MessageSeverity.Error);
         }

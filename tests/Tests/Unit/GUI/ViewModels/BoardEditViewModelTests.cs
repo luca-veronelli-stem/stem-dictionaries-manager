@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -32,7 +33,8 @@ public class BoardEditViewModelTests
             _deviceService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<BoardEditViewModel>.Instance);
     }
 
     [Fact]
@@ -62,7 +64,7 @@ public class BoardEditViewModelTests
 
         var vm = new BoardEditViewModel(
             _boardService, _deviceService, _navigationService,
-            _dialogService, _messageService);
+            _dialogService, _messageService, NullLogger<BoardEditViewModel>.Instance);
         await vm.InitializeAsync(null);
 
         Assert.Equal(21, vm.FirmwareType);

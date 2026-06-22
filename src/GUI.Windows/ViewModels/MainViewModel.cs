@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -17,6 +18,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IMessageService _messageService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ICurrentUserProvider _currentUserProvider;
+    private readonly ILogger<MainViewModel> _logger;
 
     [ObservableProperty]
     private string _title = "Stem Dictionaries Manager";
@@ -71,13 +73,15 @@ public partial class MainViewModel : ObservableObject
         IDialogService dialogService,
         IMessageService messageService,
         IServiceProvider serviceProvider,
-        ICurrentUserProvider currentUserProvider)
+        ICurrentUserProvider currentUserProvider,
+        ILogger<MainViewModel> logger)
     {
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
         _serviceProvider = serviceProvider;
         _currentUserProvider = currentUserProvider;
+        _logger = logger;
 
         // Subscribe to navigation changes
         _navigationService.CurrentViewChanged += OnCurrentViewChanged;
@@ -99,6 +103,7 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentUser = user;
         _currentUserProvider.CurrentUserId = user.Id;
+        _logger.LogInformation("User {UserId} signed in", user.Id);
 
         // Reset navigation: each user session starts clean
         _navigationService.Reset();
@@ -170,6 +175,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Navigation to {ViewType} failed", viewType);
             CurrentViewModel = null;
             UpdateTitle(viewType);
             _messageService.Show(

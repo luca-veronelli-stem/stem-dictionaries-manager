@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Services;
 
 namespace GUI.Windows;
@@ -22,6 +23,13 @@ public partial class App : Application
     public App()
     {
         _host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(logging =>
+            {
+                // WPF has no console: route diagnostics to the debugger output
+                // only, dropping the default console/event providers' noise.
+                logging.ClearProviders();
+                logging.AddDebug();
+            })
             .ConfigureServices((context, services) =>
             {
                 // Reads provider and connection string from appsettings.json / User Secrets

@@ -2,6 +2,7 @@
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Tests.Unit.GUI.Mocks;
 
@@ -36,7 +37,8 @@ public class DictionaryEditNavigationTests
             sp.GetRequiredService<MockBoardService>(),
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IDialogService>(),
-            sp.GetRequiredService<IMessageService>()));
+            sp.GetRequiredService<IMessageService>(),
+            NullLogger<DictionaryEditViewModel>.Instance));
         IServiceProvider provider = services.BuildServiceProvider();
 
         _viewModel = new MainViewModel(
@@ -44,7 +46,8 @@ public class DictionaryEditNavigationTests
             _dialogService,
             _messageService,
             provider,
-            new CurrentUserProvider());
+            new CurrentUserProvider(),
+            NullLogger<MainViewModel>.Instance);
     }
 
     [Fact]

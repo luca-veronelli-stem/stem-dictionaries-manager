@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -24,7 +25,8 @@ public class DeviceEditViewModelTests
     {
         _deviceService.SeedDefaultDevices();
         _viewModel = new DeviceEditViewModel(
-            _deviceService, _boardService, _navigationService, _dialogService, _messageService);
+            _deviceService, _boardService, _navigationService, _dialogService, _messageService,
+            NullLogger<DeviceEditViewModel>.Instance);
     }
 
     // === Defaults ===

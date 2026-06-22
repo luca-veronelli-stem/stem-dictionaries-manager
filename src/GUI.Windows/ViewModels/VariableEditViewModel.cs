@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -18,6 +19,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<VariableEditViewModel> _logger;
 
     private int? _editingId;
     private int _dictionaryId;
@@ -402,13 +404,15 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         IDictionaryService dictionaryService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<VariableEditViewModel> logger)
     {
         _variableService = variableService;
         _dictionaryService = dictionaryService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -627,6 +631,7 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save variable {Name}", Name);
             await _dialogService.ShowErrorAsync("Error", $"Unable to save: {ex.Message}");
         }
         finally
@@ -663,6 +668,9 @@ public partial class VariableEditViewModel : ObservableObject, IEditableViewMode
 
             Variable created = await _variableService.AddAsync(_dictionaryId, variable);
             _editingId = created.Id;
+            _logger.LogInformation(
+                "Created variable {VariableId} in dictionary {DictionaryId}",
+                created.Id, _dictionaryId);
             _messageService.Show($"Variable '{Name}' created", MessageSeverity.Success);
         }
         else

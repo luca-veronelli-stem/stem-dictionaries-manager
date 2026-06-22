@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models;
 using GUI.Windows.Abstractions;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
 namespace GUI.Windows.ViewModels;
@@ -17,6 +18,7 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
     private readonly IDeviceService _deviceService;
     private readonly INavigationService _navigationService;
     private readonly IMessageService _messageService;
+    private readonly ILogger<DeviceCommandsViewModel> _logger;
 
     [ObservableProperty]
     private int? _deviceId;
@@ -39,12 +41,14 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
         ICommandService commandService,
         IDeviceService deviceService,
         INavigationService navigationService,
-        IMessageService messageService)
+        IMessageService messageService,
+        ILogger<DeviceCommandsViewModel> logger)
     {
         _commandService = commandService;
         _deviceService = deviceService;
         _navigationService = navigationService;
         _messageService = messageService;
+        _logger = logger;
     }
 
     public async Task LoadAsync(int deviceId, string? deviceName = null)
@@ -117,12 +121,16 @@ public partial class DeviceCommandsViewModel : ObservableObject, IEditableViewMo
                 await LoadAsync(DeviceId.Value, DeviceName);
             }
 
+            _logger.LogInformation(
+                "Saved {Count} command states for device {DeviceId}",
+                changedItems.Count, DeviceId);
             _messageService.Show(
                 $"Saved {changedItems.Count} command states.",
                 MessageSeverity.Success, autoHideSeconds: 3);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to save command states for device {DeviceId}", DeviceId);
             _messageService.Show(
                 $"Save error: {ex.Message}",
                 MessageSeverity.Error, autoHideSeconds: 0);

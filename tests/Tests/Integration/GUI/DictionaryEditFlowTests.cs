@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -35,7 +36,8 @@ public class DictionaryEditFlowTests
             _boardService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<DictionaryEditViewModel>.Instance);
     }
 
     #region Create Dictionary Tests

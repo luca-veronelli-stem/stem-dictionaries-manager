@@ -1,6 +1,7 @@
 #if WINDOWS
 using GUI.Windows.Abstractions;
 using GUI.Windows.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Unit.GUI.Services;
 
@@ -13,7 +14,7 @@ public class NavigationServiceTests
 
     public NavigationServiceTests()
     {
-        _service = new NavigationService();
+        _service = new NavigationService(NullLogger<NavigationService>.Instance);
     }
 
     [Fact]

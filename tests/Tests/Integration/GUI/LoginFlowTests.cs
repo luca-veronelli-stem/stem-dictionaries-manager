@@ -2,6 +2,7 @@
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Integration.GUI;
@@ -18,7 +19,7 @@ public class LoginFlowTests
     public LoginFlowTests()
     {
         _userService = new MockUserService();
-        _viewModel = new LoginViewModel(_userService);
+        _viewModel = new LoginViewModel(_userService, NullLogger<LoginViewModel>.Instance);
     }
 
     [Fact]

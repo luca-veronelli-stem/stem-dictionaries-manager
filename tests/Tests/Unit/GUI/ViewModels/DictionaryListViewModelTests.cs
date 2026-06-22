@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Unit.GUI.Mocks;
 
 namespace Tests.Unit.GUI.ViewModels;
@@ -29,7 +30,8 @@ public class DictionaryListViewModelTests
             _dictionaryService,
             _navigationService,
             _dialogService,
-            _messageService);
+            _messageService,
+            NullLogger<DictionaryListViewModel>.Instance);
     }
 
     [Fact]
