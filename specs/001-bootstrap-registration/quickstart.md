@@ -10,13 +10,13 @@ and as the "happy path" reference for the integration tests.
   ```powershell
   dotnet run --project src/API
   ```
-  defaults to `http://localhost:5000` (see
+  defaults to `http://localhost:5062` (see
   `src/API/Properties/launchSettings.json`).
 - A configured admin key in `src/API/appsettings.Development.json`:
   ```json
   {
     "AdminApiKeys": [
-      "dev-admin-key-do-not-ship"
+      "STEM-ADMIN-DEV-KEY-2026"
     ]
   }
   ```
@@ -28,8 +28,8 @@ and as the "happy path" reference for the integration tests.
 ## Step 1 — Mint a bootstrap token (admin)
 
 ```powershell
-curl -X POST http://localhost:5000/api/admin/bootstrap-tokens `
-  -H "X-Api-Key: dev-admin-key-do-not-ship" `
+curl -X POST http://localhost:5062/api/admin/bootstrap-tokens `
+  -H "X-Api-Key: STEM-ADMIN-DEV-KEY-2026" `
   -H "Content-Type: application/json" `
   -d '{ "clientApp": "ButtonPanelTester", "ttlHours": 24 }'
 ```
@@ -64,7 +64,7 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:5000/register `
+  -Uri http://localhost:5062/register `
   -ContentType "application/json" `
   -Body $body
 ```
@@ -87,7 +87,7 @@ be erased.
 
 ```powershell
 $cred = "stak_<paste-from-step-2>"
-Invoke-RestMethod -Uri http://localhost:5000/api/dictionaries `
+Invoke-RestMethod -Uri http://localhost:5062/api/dictionaries `
   -Headers @{ "X-Api-Key" = $cred }
 ```
 
@@ -97,16 +97,18 @@ credentials (FR-005, union mode).
 
 ## Step 4 — Confirm single-use
 
-Re-run **Step 2** with the same bootstrap token. Expected: `401
-Unauthorized` with `{ "error": "registration failed" }`. The body
-shape is identical to every other failure mode (FR-002).
+Re-run **Step 2** with the same bootstrap token. Expected: `409
+Conflict` with `{ "error": "registration failed" }`. The body shape
+is identical to every other failure mode (FR-002); the status code
+carries the failure class — token reuse maps to `TokenAlreadyUsed ->
+409` per `contracts/register.md`.
 
 ## Step 5 — List installations (admin)
 
 ```powershell
 Invoke-RestMethod `
-  -Uri "http://localhost:5000/api/admin/installations?clientApp=ButtonPanelTester" `
-  -Headers @{ "X-Api-Key" = "dev-admin-key-do-not-ship" }
+  -Uri "http://localhost:5062/api/admin/installations?clientApp=ButtonPanelTester" `
+  -Headers @{ "X-Api-Key" = "STEM-ADMIN-DEV-KEY-2026" }
 ```
 
 Expected: a list including the installation from Step 2 with `status:
@@ -116,8 +118,8 @@ Expected: a list including the installation from Step 2 with `status:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:5000/api/admin/installations/1/revoke `
-  -Headers @{ "X-Api-Key" = "dev-admin-key-do-not-ship" }
+  -Uri http://localhost:5062/api/admin/installations/1/revoke `
+  -Headers @{ "X-Api-Key" = "STEM-ADMIN-DEV-KEY-2026" }
 ```
 
 Then re-run Step 3. Expected within ≤ 5 seconds (SC-004): `401
