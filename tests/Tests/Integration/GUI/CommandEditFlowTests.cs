@@ -139,7 +139,7 @@ public class CommandEditFlowTests
         Assert.Contains("DeleteAsync:1", _commandService.MethodCalls);
         Assert.True(_navigationService.GoBackCalled);
         Assert.Contains(_messageService.Messages, m =>
-            m.Severity == MessageSeverity.Success && m.Message.Contains("eliminato"));
+            m.Severity == MessageSeverity.Success && m.Message.Contains("deleted"));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class CommandEditFlowTests
         await _viewModel.CancelCommand.ExecuteAsync(null);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("annullare"));
+            c.Type == "Confirm" && c.Message.Contains("discard"));
         Assert.True(_navigationService.GoBackCalled);
     }
 

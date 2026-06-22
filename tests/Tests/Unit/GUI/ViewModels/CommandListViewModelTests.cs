@@ -99,7 +99,7 @@ public class CommandListViewModelTests
 
         // Assert
         Assert.Contains(_messageService.Messages, m =>
-            m.Message.Contains("Caricati") && m.Severity == MessageSeverity.Success);
+            m.Message.Contains("Loaded") && m.Severity == MessageSeverity.Success);
     }
 
     [Fact]

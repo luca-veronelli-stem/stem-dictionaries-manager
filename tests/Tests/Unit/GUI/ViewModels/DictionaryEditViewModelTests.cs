@@ -78,7 +78,7 @@ public class DictionaryEditViewModelTests
     {
         await _viewModel.InitializeAsync(999);
 
-        Assert.Contains(_dialogService.Calls, c => c.Type == "Error" && c.Message.Contains("non trovato"));
+        Assert.Contains(_dialogService.Calls, c => c.Type == "Error" && c.Message.Contains("not found"));
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         Assert.Contains(_messageService.Messages, m =>
-            m.Message.Contains("creato") && m.Severity == MessageSeverity.Success);
+            m.Message.Contains("created") && m.Severity == MessageSeverity.Success);
     }
 
     [Fact]
@@ -537,7 +537,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.CancelCommand.ExecuteAsync(null);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("annullare"));
+            c.Type == "Confirm" && c.Message.Contains("discard"));
         Assert.True(_navigationService.GoBackCalled);
     }
 
@@ -585,7 +585,7 @@ public class DictionaryEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         var (Message, Severity) = _messageService.Messages.First(m => m.Severity == MessageSeverity.Warning);
-        Assert.Contains("Nome", Message);
+        Assert.Contains("Name", Message);
     }
 
     // === StandardVariableOverride Tests ===

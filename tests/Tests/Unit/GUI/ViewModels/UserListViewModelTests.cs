@@ -69,7 +69,7 @@ public class UserListViewModelTests
 
         // Assert
         Assert.Contains(_messageService.Messages, m =>
-            m.Message.Contains("Caricati") && m.Severity == MessageSeverity.Success);
+            m.Message.Contains("Loaded") && m.Severity == MessageSeverity.Success);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class UserListViewModelTests
 
         // Assert
         Assert.Contains(_messageService.Messages, m =>
-            m.Message.Contains("creato") && m.Severity == MessageSeverity.Success);
+            m.Message.Contains("created") && m.Severity == MessageSeverity.Success);
     }
 
     [Fact]

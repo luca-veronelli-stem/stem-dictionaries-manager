@@ -372,7 +372,7 @@ public class CommandEditViewModelTests
         // Assert
         Assert.Contains("DeleteAsync:1", _commandService.MethodCalls);
         Assert.True(_navigationService.GoBackCalled);
-        Assert.Contains(_messageService.Messages, m => m.Message.Contains("eliminato"));
+        Assert.Contains(_messageService.Messages, m => m.Message.Contains("deleted"));
     }
 
     [Fact]

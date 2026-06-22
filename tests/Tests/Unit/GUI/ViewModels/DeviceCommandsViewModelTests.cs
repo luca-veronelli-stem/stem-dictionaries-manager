@@ -110,7 +110,7 @@ public class DeviceCommandsViewModelTests
         var item = _viewModel.Commands[0];
         Assert.Equal("Read Variable", item.Name);
         Assert.Equal("0x0001", item.FullCode);
-        Assert.Equal("Comando", item.TypeDisplay);
+        Assert.Equal("Command", item.TypeDisplay);
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class DeviceCommandsViewModelTests
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        Assert.Contains("Salvati", _messageService.CurrentMessage ?? "");
+        Assert.Contains("Saved", _messageService.CurrentMessage ?? "");
     }
 
     [Fact]
