@@ -2,6 +2,7 @@ using Core.Enums.Auth;
 using Infrastructure;
 using Infrastructure.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -21,7 +22,7 @@ public class DateTimeKindConventionTests : IntegrationTestBase
     {
         Context.BootstrapTokens.Add(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = "hash-1",
             MintedAt = new DateTime(2026, 5, 7, 10, 0, 0, DateTimeKind.Utc),
             ExpiresAt = new DateTime(2026, 5, 8, 10, 0, 0, DateTimeKind.Utc),
@@ -44,7 +45,7 @@ public class DateTimeKindConventionTests : IntegrationTestBase
     {
         Context.Installations.Add(new InstallationEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             OsUserId = "u",
             MachineId = "m",
             InstallGuid = Guid.NewGuid(),
@@ -66,7 +67,7 @@ public class DateTimeKindConventionTests : IntegrationTestBase
     {
         Context.Installations.Add(new InstallationEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             OsUserId = "u",
             MachineId = "m",
             InstallGuid = Guid.NewGuid(),
@@ -99,7 +100,7 @@ public class DateTimeKindConventionTests : IntegrationTestBase
         Context.RegistrationEvents.Add(new RegistrationEventEntity
         {
             OccurredAt = new DateTime(2026, 5, 7, 10, 0, 0, DateTimeKind.Utc),
-            ClaimedClientApp = "ButtonPanelTester",
+            ClaimedClientApp = TestData.ClientApps.ButtonPanelTester,
             SourceIp = "127.0.0.1",
             Outcome = RegistrationOutcome.Success
         });

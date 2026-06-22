@@ -5,6 +5,7 @@ using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
+using Tests.Shared;
 
 namespace Tests.Integration.Services;
 
@@ -59,7 +60,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x10,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadWrite,
             IsEnabled = true
         };
@@ -95,7 +96,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
@@ -160,7 +161,7 @@ public class VariableServiceTests : IntegrationTestBase
             addressLow: 0x30,
             dataTypeKind: DataTypeKind.UInt8,
             accessMode: AccessMode.ReadOnly,
-            dataTypeRaw: "uint8_t");
+            dataTypeRaw: TestData.DataTypes.UInt8);
 
         KeyNotFoundException exception = await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.AddAsync(999, variable));
@@ -178,7 +179,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x80,
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
@@ -189,7 +190,7 @@ public class VariableServiceTests : IntegrationTestBase
             addressLow: 0x01,
             dataTypeKind: DataTypeKind.UInt16,
             accessMode: AccessMode.ReadWrite,
-            dataTypeRaw: "uint16_t");
+            dataTypeRaw: TestData.DataTypes.UInt16);
 
         // Act & Assert
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -217,7 +218,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x40,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -229,7 +230,7 @@ public class VariableServiceTests : IntegrationTestBase
             addressHigh: 0x00,
             addressLow: 0x40,
             dataTypeKind: DataTypeKind.UInt16,
-            dataTypeRaw: "uint16_t",
+            dataTypeRaw: TestData.DataTypes.UInt16,
             dataTypeParam: null,
             accessMode: AccessMode.ReadWrite,
             isEnabled: false,
@@ -261,7 +262,7 @@ public class VariableServiceTests : IntegrationTestBase
             addressHigh: 0x00,
             addressLow: 0x50,
             dataTypeKind: DataTypeKind.UInt8,
-            dataTypeRaw: "uint8_t",
+            dataTypeRaw: TestData.DataTypes.UInt8,
             dataTypeParam: null,
             accessMode: AccessMode.ReadOnly,
             isEnabled: true,
@@ -287,7 +288,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x60,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -300,7 +301,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x61,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -313,7 +314,7 @@ public class VariableServiceTests : IntegrationTestBase
             addressHigh: 0x00,
             addressLow: 0x60,
             dataTypeKind: DataTypeKind.UInt8,
-            dataTypeRaw: "uint8_t",
+            dataTypeRaw: TestData.DataTypes.UInt8,
             dataTypeParam: null,
             accessMode: AccessMode.ReadOnly,
             isEnabled: true,
@@ -350,7 +351,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x70,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -387,7 +388,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x80,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
@@ -398,7 +399,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x81,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
@@ -545,7 +546,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0xC0,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -656,7 +657,7 @@ public class VariableServiceTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0xE1,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };

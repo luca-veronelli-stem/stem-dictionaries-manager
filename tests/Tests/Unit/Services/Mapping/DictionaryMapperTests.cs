@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Services.Mapping;
+using Tests.Shared;
 
 namespace Tests.Unit.Services.Mapping;
 
@@ -62,10 +63,10 @@ public class DictionaryMapperTests
             Variables =
             [
                 new() { Id = 1, Name = "Var1", AddressHigh = 0x00, AddressLow = 0x01,
-                        DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = "uint8_t",
+                        DataTypeKind = DataTypeKind.UInt8, DataTypeRaw = TestData.DataTypes.UInt8,
                         AccessMode = AccessMode.ReadOnly, IsEnabled = true },
                 new() { Id = 2, Name = "Var2", AddressHigh = 0x00, AddressLow = 0x02,
-                        DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = "uint16_t",
+                        DataTypeKind = DataTypeKind.UInt16, DataTypeRaw = TestData.DataTypes.UInt16,
                         AccessMode = AccessMode.ReadWrite, IsEnabled = true },
                 new() { Id = 3, Name = "Var3", AddressHigh = 0x00, AddressLow = 0x03,
                         DataTypeKind = DataTypeKind.Float, DataTypeRaw = "float",

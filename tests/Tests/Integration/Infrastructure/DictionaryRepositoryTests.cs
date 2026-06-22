@@ -2,6 +2,7 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -77,7 +78,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x00,
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -106,7 +107,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x01,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -119,7 +120,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x01, // Stesso indirizzo!
             DataTypeKind = DataTypeKind.UInt16,
-            DataTypeRaw = "uint16_t",
+            DataTypeRaw = TestData.DataTypes.UInt16,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };
@@ -212,7 +213,7 @@ public class DictionaryRepositoryTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x50,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         };

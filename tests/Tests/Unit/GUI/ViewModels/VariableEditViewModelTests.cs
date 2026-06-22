@@ -55,7 +55,7 @@ public class VariableEditViewModelTests
     public async Task InitializeAsync_WithId_SetsIsNewFalse()
     {
         // Arrange
-        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t");
+        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, TestData.DataTypes.UInt16);
         _variableService.SeedData(variable);
 
         // Act
@@ -197,7 +197,7 @@ public class VariableEditViewModelTests
     public async Task SaveCommand_WhenEditing_CallsUpdateAsync()
     {
         // Arrange
-        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, "uint16_t",
+        var variable = new Variable("Existing", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadOnly, TestData.DataTypes.UInt16,
             description: "Existing desc");
         _variableService.SeedData(variable);
         await _viewModel.InitializeAsync(1, 1);

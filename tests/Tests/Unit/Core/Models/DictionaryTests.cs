@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Models;
+using Tests.Shared;
 
 namespace Tests.Unit.Core.Models;
 
@@ -55,7 +56,7 @@ public class DictionaryTests
     {
         var dictionary = new Dictionary("test");
         var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
 
         dictionary.AddVariable(variable);
 
@@ -75,9 +76,9 @@ public class DictionaryTests
     {
         var dictionary = new Dictionary("test");
         var var1 = new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
         var var2 = new Variable("Var2", 0x00, 0x01, DataTypeKind.UInt16,
-            AccessMode.ReadWrite, "uint16_t");
+            AccessMode.ReadWrite, TestData.DataTypes.UInt16);
 
         dictionary.AddVariable(var1);
 
@@ -90,7 +91,7 @@ public class DictionaryTests
     {
         var dictionary = new Dictionary("test");
         var variable = new Variable("Test", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
         dictionary.AddVariable(variable);
 
         dictionary.RemoveVariable(variable);
@@ -103,7 +104,7 @@ public class DictionaryTests
     {
         var dictionary = new Dictionary("test");
         var absent = new Variable("Absent", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t");
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8);
 
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
             () => dictionary.RemoveVariable(absent));
@@ -122,11 +123,11 @@ public class DictionaryTests
     {
         var dictionary = new Dictionary("test");
         dictionary.AddVariable(new Variable("Var1", 0x00, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t"));
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8));
         dictionary.AddVariable(new Variable("Var2", 0x00, 0x02, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t"));
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8));
         dictionary.AddVariable(new Variable("Var3", 0x80, 0x01, DataTypeKind.UInt8,
-            AccessMode.ReadOnly, "uint8_t"));
+            AccessMode.ReadOnly, TestData.DataTypes.UInt8));
 
         Assert.True(dictionary.HasUniqueAddresses());
     }
@@ -143,8 +144,8 @@ public class DictionaryTests
     {
         var variables = new List<Variable>
         {
-            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t")
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("Var2", 0x00, 0x02, DataTypeKind.UInt16, AccessMode.ReadWrite, TestData.DataTypes.UInt16)
         };
 
         var dictionary = Dictionary.Restore(10, "test", "Description", false, variables);
@@ -169,8 +170,8 @@ public class DictionaryTests
     {
         var variables = new List<Variable>
         {
-            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("Var2", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, "uint16_t") // stesso indirizzo
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("Var2", 0x00, 0x01, DataTypeKind.UInt16, AccessMode.ReadWrite, TestData.DataTypes.UInt16) // stesso indirizzo
         };
 
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
@@ -185,11 +186,11 @@ public class DictionaryTests
     {
         var variables = new List<Variable>
         {
-            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("Var2", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"), // dup 0x0001
-            new("Var3", 0x00, 0x02, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("Var4", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("Var5", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t")  // dup 0x8010
+            new("Var1", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("Var2", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8), // dup 0x0001
+            new("Var3", 0x00, 0x02, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("Var4", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("Var5", 0x80, 0x10, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8)  // dup 0x8010
         };
 
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
@@ -205,8 +206,8 @@ public class DictionaryTests
         // 0x0001 (Standard) e 0x8001 (DeviceSpecific) sono indirizzi DIVERSI
         var variables = new List<Variable>
         {
-            new("StandardVar", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t"),
-            new("DeviceVar", 0x80, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t")
+            new("StandardVar", 0x00, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8),
+            new("DeviceVar", 0x80, 0x01, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8)
         };
 
         var dictionary = Dictionary.Restore(10, "test", null, false, variables);

@@ -1,4 +1,5 @@
 using Core.Models;
+using Tests.Shared;
 
 namespace Tests.Unit.Core.Models;
 
@@ -10,7 +11,7 @@ public class CommandTests
     [Fact]
     public void Constructor_ValidInput_CreatesCommand()
     {
-        var command = new Command("Leggi variabile logica", 0x00, 0x01);
+        Command command = TestData.CreateCommand("Leggi variabile logica", 0x00, 0x01);
 
         Assert.Equal("Leggi variabile logica", command.Name);
         Assert.Equal(0x00, command.CodeHigh);
@@ -42,7 +43,7 @@ public class CommandTests
     [Fact]
     public void FullCode_ReturnsCorrectValue()
     {
-        var command = new Command("Test", 0x80, 0x07);
+        Command command = TestData.CreateCommand("Test", 0x80, 0x07);
 
         Assert.Equal(0x8007, command.FullCode);
     }
@@ -76,7 +77,7 @@ public class CommandTests
     [Fact]
     public void UpdateName_ValidValue_UpdatesName()
     {
-        var command = new Command("Old name", 0x00, 0x01);
+        Command command = TestData.CreateCommand("Old name", 0x00, 0x01);
 
         command.UpdateName("New name");
 
@@ -88,7 +89,7 @@ public class CommandTests
     [InlineData("   ")]
     public void UpdateName_InvalidValue_ThrowsArgumentException(string name)
     {
-        var command = new Command("Old name", 0x00, 0x01);
+        Command command = TestData.CreateCommand("Old name", 0x00, 0x01);
 
         Assert.Throws<ArgumentException>(() => command.UpdateName(name));
     }

@@ -4,6 +4,7 @@ using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services.Validation;
+using Tests.Shared;
 
 namespace Tests.Integration.Services.Validation;
 
@@ -39,13 +40,13 @@ public class VariableValidatorTests : IntegrationTestBase
             AddressHigh = addressHigh,
             AddressLow = addressLow,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
 
     private static Variable MakeVariable(byte addressHigh, byte addressLow, string name = "Var") =>
-        new(name, addressHigh, addressLow, DataTypeKind.UInt8, AccessMode.ReadOnly, "uint8_t");
+        new(name, addressHigh, addressLow, DataTypeKind.UInt8, AccessMode.ReadOnly, TestData.DataTypes.UInt8);
 
     [Fact]
     public async Task ValidateForCreateAsync_DuplicateAddress_ReturnsInvalid()
@@ -79,13 +80,13 @@ public class VariableValidatorTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x02,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
 
         var update = Variable.Restore(moving.Id, "B", 0x00, 0x01, DataTypeKind.UInt8,
-            "uint8_t", null, AccessMode.ReadOnly, true, null, null, null, null, null, null);
+            TestData.DataTypes.UInt8, null, AccessMode.ReadOnly, true, null, null, null, null, null, null);
 
         ValidationResult result = await _validator.ValidateForUpdateAsync(update);
 
@@ -103,13 +104,13 @@ public class VariableValidatorTests : IntegrationTestBase
             AddressHigh = 0x00,
             AddressLow = 0x07,
             DataTypeKind = DataTypeKind.UInt8,
-            DataTypeRaw = "uint8_t",
+            DataTypeRaw = TestData.DataTypes.UInt8,
             AccessMode = AccessMode.ReadOnly,
             IsEnabled = true
         });
 
         var update = Variable.Restore(existing.Id, "Keep", 0x00, 0x07, DataTypeKind.UInt8,
-            "uint8_t", null, AccessMode.ReadOnly, true, null, null, null, null, null, null);
+            TestData.DataTypes.UInt8, null, AccessMode.ReadOnly, true, null, null, null, null, null, null);
 
         ValidationResult result = await _validator.ValidateForUpdateAsync(update);
 

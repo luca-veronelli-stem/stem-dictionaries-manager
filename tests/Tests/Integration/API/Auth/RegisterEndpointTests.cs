@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Services.Interfaces.Auth;
+using Tests.Shared;
 
 namespace Tests.Integration.API.Auth;
 
@@ -58,7 +59,7 @@ public class RegisterEndpointTests : IDisposable
     private static StringContent JsonBody(object payload)
         => new(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-    private static object ValidDescriptor(string clientApp = "ButtonPanelTester")
+    private static object ValidDescriptor(string clientApp = TestData.ClientApps.ButtonPanelTester)
         => new
         {
             clientApp,
@@ -74,7 +75,7 @@ public class RegisterEndpointTests : IDisposable
     [Fact]
     public async Task Register_WithValidToken_Returns200AndCredentialShape()
     {
-        BootstrapTokenEntity token = await SeedActiveTokenAsync("ButtonPanelTester", "stbt_valid-1");
+        BootstrapTokenEntity token = await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_valid-1");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -130,7 +131,7 @@ public class RegisterEndpointTests : IDisposable
     {
         // FR-005: the freshly issued credential must work via the union-mode
         // ApiKeyMiddleware on a subsequent request to /api/dictionaries.
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_valid-2");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_valid-2");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage register = await client.PostAsync("/register",
@@ -156,7 +157,7 @@ public class RegisterEndpointTests : IDisposable
         // code distinguishes the failure class.
         if (seedToken)
         {
-            await SeedActiveTokenAsync("ButtonPanelTester", "stbt_seeded");
+            await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_seeded");
         }
         using HttpClient client = _factory.CreateClient();
 
@@ -195,7 +196,7 @@ public class RegisterEndpointTests : IDisposable
                 bootstrapToken = "stbt_seeded",
                 descriptor = new
                 {
-                    clientApp = "ButtonPanelTester",
+                    clientApp = TestData.ClientApps.ButtonPanelTester,
                     osUserId = "u",
                     machineId = "m",
                     installGuid = "00000000-0000-0000-0000-000000000000",
@@ -209,7 +210,7 @@ public class RegisterEndpointTests : IDisposable
                 bootstrapToken = "stbt_seeded",
                 descriptor = new
                 {
-                    clientApp = "ButtonPanelTester",
+                    clientApp = TestData.ClientApps.ButtonPanelTester,
                     osUserId = "u",
                     installGuid = "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c"
                 }
@@ -225,7 +226,7 @@ public class RegisterEndpointTests : IDisposable
         // Distinct outcome (vs DescriptorMalformed): a buggy client hardcoded
         // to Guid.Empty gets a clean 400 surface, and the audit log records
         // the specific outcome for ops forensics.
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_zero-guid");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_zero-guid");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -234,7 +235,7 @@ public class RegisterEndpointTests : IDisposable
                 bootstrapToken = "stbt_zero-guid",
                 descriptor = new
                 {
-                    clientApp = "ButtonPanelTester",
+                    clientApp = TestData.ClientApps.ButtonPanelTester,
                     osUserId = "u",
                     machineId = "m",
                     installGuid = "00000000-0000-0000-0000-000000000000",
@@ -255,7 +256,7 @@ public class RegisterEndpointTests : IDisposable
     {
         // ButtonPanelTester is registered (in Services/DependencyInjection)
         // as strict; omitting machineId surfaces as DescriptorMissingField.
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_missing-machine");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_missing-machine");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -264,7 +265,7 @@ public class RegisterEndpointTests : IDisposable
                 bootstrapToken = "stbt_missing-machine",
                 descriptor = new
                 {
-                    clientApp = "ButtonPanelTester",
+                    clientApp = TestData.ClientApps.ButtonPanelTester,
                     osUserId = "u",
                     installGuid = "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c",
                     appVersion = "1.0.0"
@@ -285,7 +286,7 @@ public class RegisterEndpointTests : IDisposable
         // The policy registry only contains ButtonPanelTester; a request whose
         // clientApp is anything else fails the policy lookup and gets the
         // conflated 401 (same wire response as token-unknown / scope-mismatch).
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_unknown-clientApp");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_unknown-clientApp");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -321,7 +322,7 @@ public class RegisterEndpointTests : IDisposable
         {
             db.BootstrapTokens.Add(new BootstrapTokenEntity
             {
-                ClientApp = "ButtonPanelTester",
+                ClientApp = TestData.ClientApps.ButtonPanelTester,
                 SecretHash = _hasher.Hash("stbt_expired"),
                 MintedAt = past,
                 ExpiresAt = past.AddHours(1),
@@ -346,7 +347,7 @@ public class RegisterEndpointTests : IDisposable
         // and surfaces TokenAlreadyUsed -> 409, distinct from the conflated
         // 401 the unknown-token branch produces. The race-loser path is
         // exercised separately for the rare flip-between-lookup-and-mark case.
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_single-use");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_single-use");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage first = await client.PostAsync("/register",
@@ -378,7 +379,7 @@ public class RegisterEndpointTests : IDisposable
         {
             InstallationEntity priorInstall = new()
             {
-                ClientApp = "ButtonPanelTester",
+                ClientApp = TestData.ClientApps.ButtonPanelTester,
                 OsUserId = "u",
                 MachineId = "m",
                 InstallGuid = Guid.NewGuid(),
@@ -391,7 +392,7 @@ public class RegisterEndpointTests : IDisposable
             await seed.SaveChangesAsync();
             seed.BootstrapTokens.Add(new BootstrapTokenEntity
             {
-                ClientApp = "ButtonPanelTester",
+                ClientApp = TestData.ClientApps.ButtonPanelTester,
                 SecretHash = _hasher.Hash("stbt_already-used"),
                 MintedAt = mintedAt,
                 ExpiresAt = mintedAt + TimeSpan.FromDays(30),
@@ -429,7 +430,7 @@ public class RegisterEndpointTests : IDisposable
         {
             seed.BootstrapTokens.Add(new BootstrapTokenEntity
             {
-                ClientApp = "ButtonPanelTester",
+                ClientApp = TestData.ClientApps.ButtonPanelTester,
                 SecretHash = _hasher.Hash("stbt_revoked"),
                 MintedAt = mintedAt,
                 ExpiresAt = mintedAt + TimeSpan.FromDays(30),
@@ -463,7 +464,7 @@ public class RegisterEndpointTests : IDisposable
         {
             seed.Installations.Add(new InstallationEntity
             {
-                ClientApp = "ButtonPanelTester",
+                ClientApp = TestData.ClientApps.ButtonPanelTester,
                 OsUserId = "u",
                 MachineId = "m",
                 DescriptorJson = "{}",
@@ -474,7 +475,7 @@ public class RegisterEndpointTests : IDisposable
             });
             await seed.SaveChangesAsync();
         }
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_revoked-install");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_revoked-install");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -495,7 +496,7 @@ public class RegisterEndpointTests : IDisposable
         // canonical race-loser signal — the endpoint must respond with 409
         // (TokenAlreadyUsed; not 500, not the conflated 401) and leave no
         // Installation row behind.
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_race-http");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_race-http");
         _factory.BootstrapTokenSvcFactory = sp => new RaceLosingBootstrapTokenServiceForHttp(
             sp.GetRequiredService<AppDbContext>(), _hasher);
         using HttpClient client = _factory.CreateClient();
@@ -522,7 +523,7 @@ public class RegisterEndpointTests : IDisposable
         // failure body and ensure no Installation/credential is persisted —
         // the endpoint must not falsely tell the client their token is bad.
         _factory.EventRepoOverride = new ThrowingEventRepository();
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_audit-fail");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_audit-fail");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -548,7 +549,7 @@ public class RegisterEndpointTests : IDisposable
         Tests.Unit.Services.Auth.Fakes.CapturingLoggerProvider captured = new();
         _factory.LoggerProviderOverride = captured;
         _factory.EventRepoOverride = new ThrowingEventRepository();
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_log-check");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_log-check");
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsync("/register",
@@ -576,7 +577,7 @@ public class RegisterEndpointTests : IDisposable
         // never entered, so no extra error log is written.
         Tests.Unit.Services.Auth.Fakes.CapturingLoggerProvider captured = new();
         _factory.LoggerProviderOverride = captured;
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_classified");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_classified");
         using HttpClient client = _factory.CreateClient();
 
         // TokenInvalid path (unknown plaintext).
@@ -600,7 +601,7 @@ public class RegisterEndpointTests : IDisposable
         // in a follow-up — there's no app-level logger writing the credential
         // anywhere on the success path, so this end-to-end check is the
         // strongest assertion we can make from outside the process.)
-        await SeedActiveTokenAsync("ButtonPanelTester", "stbt_plaintext-check");
+        await SeedActiveTokenAsync(TestData.ClientApps.ButtonPanelTester, "stbt_plaintext-check");
         using HttpClient client = _factory.CreateClient();
         const string requestToken = "stbt_plaintext-check";
 

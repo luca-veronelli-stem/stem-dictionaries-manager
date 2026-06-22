@@ -1,6 +1,7 @@
 using Core.Enums.Auth;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Repositories.Auth;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -18,7 +19,7 @@ public class InstallationRepositoryTests : IntegrationTestBase
     }
 
     private async Task<InstallationEntity> SeedInstallationAsync(Guid installGuid,
-        string clientApp = "ButtonPanelTester",
+        string clientApp = TestData.ClientApps.ButtonPanelTester,
         InstallationStatus status = InstallationStatus.Active)
     {
         InstallationEntity entity = new()

@@ -2,6 +2,7 @@ using Infrastructure;
 using Infrastructure.Entities;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Tests.Shared;
 
 namespace Tests.Integration;
 
@@ -37,11 +38,7 @@ public abstract class IntegrationTestBase : IDisposable, IAsyncLifetime
     {
         if (!Context.Users.Any(u => u.Username == "test-user"))
         {
-            Context.Users.Add(new UserEntity
-            {
-                Username = "test-user",
-                DisplayName = "Test User"
-            });
+            Context.Users.Add(TestData.CreateUser("test-user", "Test User"));
             Context.SaveChanges();
         }
     }

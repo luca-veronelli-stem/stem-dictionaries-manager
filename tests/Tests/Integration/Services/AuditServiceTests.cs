@@ -4,6 +4,7 @@ using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
+using Tests.Shared;
 
 namespace Tests.Integration.Services;
 
@@ -23,7 +24,7 @@ public class AuditServiceTests : IntegrationTestBase
 
     public override async Task InitializeAsync()
     {
-        _testUser = new UserEntity { Username = "admin", DisplayName = "Admin" };
+        _testUser = TestData.CreateAdmin();
         Context.Users.Add(_testUser);
         await Context.SaveChangesAsync();
     }
@@ -199,8 +200,7 @@ public class AuditServiceTests : IntegrationTestBase
     [Fact]
     public async Task GetByUserAsync_FiltersCorrectly()
     {
-        var otherUser = new UserEntity
-        { Username = "other", DisplayName = "Other User" };
+        UserEntity otherUser = TestData.CreateUser("other", "Other User");
         Context.Users.Add(otherUser);
         await Context.SaveChangesAsync();
 

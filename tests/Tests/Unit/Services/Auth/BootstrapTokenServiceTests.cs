@@ -4,6 +4,7 @@ using Infrastructure.Entities.Auth;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Tests.Unit.Services.Auth.Fakes;
+using Tests.Shared;
 
 namespace Tests.Unit.Services.Auth;
 
@@ -19,7 +20,7 @@ public class BootstrapTokenServiceTests
         FakePasswordHasher hasher = new();
         repo.Seed(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = hasher.Hash("stbt_real-token-plaintext"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,
@@ -30,7 +31,7 @@ public class BootstrapTokenServiceTests
         BootstrapToken? hit = await sut.LookupAsync("stbt_real-token-plaintext");
 
         Assert.NotNull(hit);
-        Assert.Equal("ButtonPanelTester", hit!.ClientApp);
+        Assert.Equal(TestData.ClientApps.ButtonPanelTester, hit!.ClientApp);
         Assert.Equal(BootstrapTokenStatus.Issued, hit.Status);
     }
 
@@ -41,7 +42,7 @@ public class BootstrapTokenServiceTests
         FakePasswordHasher hasher = new();
         repo.Seed(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = hasher.Hash("stbt_actual-token"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,
@@ -78,7 +79,7 @@ public class BootstrapTokenServiceTests
         FakePasswordHasher hasher = new();
         repo.Seed(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = hasher.Hash("stbt_terminal-token"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,
@@ -99,7 +100,7 @@ public class BootstrapTokenServiceTests
         FakePasswordHasher hasher = new();
         BootstrapTokenEntity seeded = repo.Seed(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = hasher.Hash("stbt_x"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,
@@ -123,7 +124,7 @@ public class BootstrapTokenServiceTests
         FakePasswordHasher hasher = new();
         BootstrapTokenEntity seeded = repo.Seed(new BootstrapTokenEntity
         {
-            ClientApp = "ButtonPanelTester",
+            ClientApp = TestData.ClientApps.ButtonPanelTester,
             SecretHash = hasher.Hash("stbt_x"),
             MintedAt = _mintedAt,
             ExpiresAt = _expiresAt,

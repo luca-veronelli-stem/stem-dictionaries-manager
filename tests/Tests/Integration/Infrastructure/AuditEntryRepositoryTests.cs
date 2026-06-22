@@ -2,6 +2,7 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -21,7 +22,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
 
     public override async Task InitializeAsync()
     {
-        _testUser = new UserEntity { Username = "admin", DisplayName = "Admin" };
+        _testUser = TestData.CreateAdmin();
         Context.Users.Add(_testUser);
         await Context.SaveChangesAsync();
     }

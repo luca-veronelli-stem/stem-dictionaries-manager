@@ -1,6 +1,7 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
+using Tests.Shared;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -19,11 +20,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task AddAsync_CreatesUser()
     {
-        var user = new UserEntity
-        {
-            Username = "luca",
-            DisplayName = "Luca V."
-        };
+        UserEntity user = TestData.CreateUser("luca", "Luca V.");
 
         UserEntity result = await _repository.AddAsync(user);
 
@@ -34,7 +31,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByIdAsync_ReturnsUser()
     {
-        var user = new UserEntity { Username = "test", DisplayName = "Test" };
+        UserEntity user = TestData.CreateUser("test", "Test");
         await _repository.AddAsync(user);
 
         UserEntity? result = await _repository.GetByIdAsync(user.Id);
@@ -54,7 +51,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByUsernameAsync_ReturnsUser()
     {
-        var user = new UserEntity { Username = "findme", DisplayName = "Find Me" };
+        UserEntity user = TestData.CreateUser("findme", "Find Me");
         await _repository.AddAsync(user);
 
         UserEntity? result = await _repository.GetByUsernameAsync("findme");
@@ -66,7 +63,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByUsernameAsync_IsCaseInsensitive()
     {
-        var user = new UserEntity { Username = "lowercase", DisplayName = "Test" };
+        UserEntity user = TestData.CreateUser("lowercase", "Test");
         await _repository.AddAsync(user);
 
         UserEntity? result = await _repository.GetByUsernameAsync("LOWERCASE");
@@ -77,8 +74,8 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetAllAsync_ReturnsAllUsers()
     {
-        await _repository.AddAsync(new UserEntity { Username = "user1", DisplayName = "User 1" });
-        await _repository.AddAsync(new UserEntity { Username = "user2", DisplayName = "User 2" });
+        await _repository.AddAsync(TestData.CreateUser("user1", "User 1"));
+        await _repository.AddAsync(TestData.CreateUser("user2", "User 2"));
 
         IReadOnlyList<UserEntity> result = await _repository.GetAllAsync();
 
@@ -91,7 +88,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task UpdateAsync_ModifiesUser()
     {
-        var user = new UserEntity { Username = "update", DisplayName = "Before" };
+        UserEntity user = TestData.CreateUser("update", "Before");
         await _repository.AddAsync(user);
 
         user.DisplayName = "After";
@@ -104,7 +101,7 @@ public class UserRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task DeleteAsync_RemovesUser()
     {
-        var user = new UserEntity { Username = "delete", DisplayName = "Delete Me" };
+        UserEntity user = TestData.CreateUser("delete", "Delete Me");
         await _repository.AddAsync(user);
 
         await _repository.DeleteAsync(user.Id);
