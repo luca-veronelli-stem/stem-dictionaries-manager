@@ -21,9 +21,16 @@ if ($LASTEXITCODE -ne 0) { $failures += 'git diff --check' }
 dotnet format whitespace --verify-no-changes
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet format whitespace' }
 
-# Full Release build (Windows host -> compiles the net10.0-windows GUI leg too).
+# Full Release build (no --framework: builds each project's own TFMs, incl.
+# the GUI.Windows app). A global TargetFramework=net10.0 leaks into the
+# multi-targeted Tests.csproj here and suppresses its net10.0-windows leg, so
+# that leg is built explicitly below -- this mirrors CI exactly.
 dotnet build -c Release
 if ($LASTEXITCODE -ne 0) { $failures += 'dotnet build -c Release' }
+
+# Build the net10.0-windows test leg explicitly (includes the WPF GUI tests).
+dotnet build tests/Tests/Tests.csproj --framework net10.0-windows -c Release
+if ($LASTEXITCODE -ne 0) { $failures += 'dotnet build Tests (net10.0-windows)' }
 
 # Cross-platform test leg (net10.0): confirms the GUI ctor changes do not
 # disturb the cross-platform contract owned by the other slices.
