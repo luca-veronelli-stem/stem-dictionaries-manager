@@ -91,6 +91,15 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   document describes the success payload and the documented error statuses
   (per-endpoint `404`/`400`, shared `401`/`503`, and `/register`'s full
   `409`/`410`/`423`/`500` set) instead of a bodyless `200`. Closes #13.
+- **CI**: the `windows-latest` job now builds and runs the `net10.0-windows`
+  test leg explicitly (`dotnet build` / `dotnet test --framework
+  net10.0-windows` on the `Tests` project), so the WPF GUI tests (`#if WINDOWS`)
+  are exercised in CI and can no longer rot silently. A singular
+  `<TargetFramework>net10.0</TargetFramework>` in `Directory.Build.props` leaks
+  into the multi-targeted `Tests.csproj` and suppresses that leg on a plain
+  solution build, so a normal `dotnet build` only ever produced the `net10.0`
+  leg. `ubuntu-latest` stays `net10.0`-only (WPF cannot build on Linux), and
+  `net10.0` is not re-run on Windows. #119.
 
 ### Fixed
 
