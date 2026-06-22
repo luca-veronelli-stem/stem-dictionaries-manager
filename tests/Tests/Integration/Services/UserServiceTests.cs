@@ -16,7 +16,7 @@ public class UserServiceTests : IntegrationTestBase
     public UserServiceTests()
     {
         var repository = new UserRepository(Context, NullLogger<RepositoryBase<UserEntity>>.Instance);
-        _service = new UserService(repository);
+        _service = new UserService(repository, NullLogger<UserService>.Instance);
     }
 
     [Fact]

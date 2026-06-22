@@ -54,14 +54,14 @@ public abstract class ApiIntegrationTestBase : IDisposable
         var overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
 
         // Services
-        IAuditService auditService = new AuditService(auditRepo);
+        IAuditService auditService = new AuditService(auditRepo, NullLogger<AuditService>.Instance);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
 
-        DeviceService = new DeviceService(deviceRepo, boardRepo, dictRepo, auditService, userProvider);
-        BoardService = new BoardService(boardRepo, dictRepo, auditService, userProvider);
-        DictionaryService = new DictionaryService(dictRepo, varRepo, auditService, userProvider);
-        VariableService = new VariableService(varRepo, dictRepo, bitInterpRepo, overrideRepo, auditService, userProvider);
-        CommandService = new CommandService(commandRepo, cmdDeviceStateRepo, auditService, userProvider);
+        DeviceService = new DeviceService(deviceRepo, boardRepo, dictRepo, auditService, userProvider, NullLogger<DeviceService>.Instance);
+        BoardService = new BoardService(boardRepo, dictRepo, auditService, userProvider, NullLogger<BoardService>.Instance);
+        DictionaryService = new DictionaryService(dictRepo, varRepo, auditService, userProvider, NullLogger<DictionaryService>.Instance);
+        VariableService = new VariableService(varRepo, dictRepo, bitInterpRepo, overrideRepo, auditService, userProvider, NullLogger<VariableService>.Instance);
+        CommandService = new CommandService(commandRepo, cmdDeviceStateRepo, auditService, userProvider, NullLogger<CommandService>.Instance);
     }
 
     /// <summary>

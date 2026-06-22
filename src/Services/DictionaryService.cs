@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 using Services.Validation;
@@ -21,21 +22,25 @@ public class DictionaryService : IDictionaryService
     private readonly ICurrentUserProvider _userProvider;
     private readonly IDictionaryValidator _dictionaryValidator;
     private readonly IVariableValidator _variableValidator;
+    private readonly ILogger<DictionaryService> _logger;
 
     public DictionaryService(
         IDictionaryRepository dictionaryRepository,
         IVariableRepository variableRepository,
         IAuditService auditService,
-        ICurrentUserProvider userProvider)
+        ICurrentUserProvider userProvider,
+        ILogger<DictionaryService> logger)
     {
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(variableRepository);
         ArgumentNullException.ThrowIfNull(auditService);
         ArgumentNullException.ThrowIfNull(userProvider);
+        ArgumentNullException.ThrowIfNull(logger);
         _dictionaryRepository = dictionaryRepository;
         _variableRepository = variableRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _logger = logger;
         _dictionaryValidator = new DictionaryValidator(dictionaryRepository);
         _variableValidator = new VariableValidator(variableRepository);
     }
@@ -61,6 +66,8 @@ public class DictionaryService : IDictionaryService
         DictionaryEntity entity = DictionaryMapper.ToEntity(dictionary);
         DictionaryEntity created = await _dictionaryRepository.AddAsync(entity, ct);
         Dictionary result = DictionaryMapper.ToDomain(created);
+
+        _logger.LogInformation("Created dictionary {DictionaryId} ({Name})", result.Id, result.Name);
 
         await _audit.LogCreateAsync(AuditEntityType.Dictionary, result.Id,
             _userProvider.CurrentUserId ?? 0,

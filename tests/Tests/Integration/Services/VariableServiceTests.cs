@@ -28,7 +28,7 @@ public class VariableServiceTests : IntegrationTestBase
         _bitInterpretationRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
         _overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
         var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
-        IAuditService auditService = new AuditService(auditRepository);
+        IAuditService auditService = new AuditService(auditRepository, NullLogger<AuditService>.Instance);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
 
         _service = new VariableService(
@@ -37,7 +37,7 @@ public class VariableServiceTests : IntegrationTestBase
             _bitInterpretationRepo,
             _overrideRepo,
             auditService,
-            userProvider);
+            userProvider, NullLogger<VariableService>.Instance);
     }
 
     public override async Task InitializeAsync()

@@ -11,6 +11,7 @@ using Infrastructure.Interfaces.Auth;
 using Infrastructure.Repositories.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Services.Interfaces.Auth;
 
@@ -643,7 +644,8 @@ internal sealed class RaceLosingBootstrapTokenServiceForHttp : IBootstrapTokenSe
 
     public RaceLosingBootstrapTokenServiceForHttp(AppDbContext db, PasswordHasher hasher)
     {
-        _real = new BootstrapTokenService(new BootstrapTokenRepository(db), hasher);
+        _real = new BootstrapTokenService(new BootstrapTokenRepository(db), hasher,
+            NullLogger<BootstrapTokenService>.Instance);
     }
 
     public Task<BootstrapToken?> LookupAsync(string plaintext, CancellationToken ct = default)

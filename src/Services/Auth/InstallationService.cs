@@ -6,6 +6,7 @@ using Infrastructure;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Interfaces.Auth;
 
@@ -25,6 +26,7 @@ public class InstallationService : IInstallationService
     private readonly IAuditService _audit;
     private readonly AppDbContext _db;
     private readonly TimeProvider _time;
+    private readonly ILogger<InstallationService> _logger;
 
     public InstallationService(
         IInstallationRepository installations,
@@ -32,6 +34,7 @@ public class InstallationService : IInstallationService
         IInstallationCredentialValidator validator,
         IAuditService audit,
         AppDbContext db,
+        ILogger<InstallationService> logger,
         TimeProvider? time = null)
     {
         _installations = installations;
@@ -39,6 +42,7 @@ public class InstallationService : IInstallationService
         _validator = validator;
         _audit = audit;
         _db = db;
+        _logger = logger;
         _time = time ?? TimeProvider.System;
     }
 
@@ -111,6 +115,10 @@ public class InstallationService : IInstallationService
         // ValidateAsync misses, queries the DB, sees Status=Revoked, and
         // returns null — well under the 5 s SC-004 ceiling.
         _validator.Invalidate(installationId);
+
+        _logger.LogInformation(
+            "Revoked installation {InstallationId} (requested by user {UserId})",
+            installationId, changedByUserId);
 
         return new RevokeResult.Success(now, WasFirstRevoke: true);
     }

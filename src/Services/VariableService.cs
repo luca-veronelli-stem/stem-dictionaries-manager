@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 using Services.Validation;
@@ -23,6 +24,7 @@ public class VariableService : IVariableService
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
     private readonly IVariableValidator _variableValidator;
+    private readonly ILogger<VariableService> _logger;
 
     public VariableService(
         IVariableRepository repository,
@@ -30,7 +32,8 @@ public class VariableService : IVariableService
         IBitInterpretationRepository bitInterpretationRepository,
         IStandardVariableOverrideRepository overrideRepository,
         IAuditService auditService,
-        ICurrentUserProvider userProvider)
+        ICurrentUserProvider userProvider,
+        ILogger<VariableService> logger)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
@@ -38,6 +41,7 @@ public class VariableService : IVariableService
         ArgumentNullException.ThrowIfNull(overrideRepository);
         ArgumentNullException.ThrowIfNull(auditService);
         ArgumentNullException.ThrowIfNull(userProvider);
+        ArgumentNullException.ThrowIfNull(logger);
         _repository = repository;
         _dictionaryRepository = dictionaryRepository;
         _bitInterpretationRepository = bitInterpretationRepository;
@@ -45,6 +49,7 @@ public class VariableService : IVariableService
         _audit = auditService;
         _userProvider = userProvider;
         _variableValidator = new VariableValidator(repository);
+        _logger = logger;
     }
 
     // === Base CRUD ===
@@ -78,6 +83,10 @@ public class VariableService : IVariableService
         VariableEntity entity = VariableMapper.ToEntity(variable, dictionaryId);
         VariableEntity created = await _repository.AddAsync(entity, ct);
         Variable result = VariableMapper.ToDomain(created);
+
+        _logger.LogInformation(
+            "Created variable {VariableId} ({Name}) in dictionary {DictionaryId}",
+            result.Id, result.Name, dictionaryId);
 
         await _audit.LogCreateAsync(AuditEntityType.Variable, result.Id,
             _userProvider.CurrentUserId ?? 0,

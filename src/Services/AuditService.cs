@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -13,11 +14,14 @@ namespace Services;
 public class AuditService : IAuditService
 {
     private readonly IAuditEntryRepository _repository;
+    private readonly ILogger<AuditService> _logger;
 
-    public AuditService(IAuditEntryRepository repository)
+    public AuditService(IAuditEntryRepository repository, ILogger<AuditService> logger)
     {
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(logger);
         _repository = repository;
+        _logger = logger;
     }
 
     // === Query ===
@@ -74,6 +78,10 @@ public class AuditService : IAuditService
             entityType, entityId, changedById, newValueJson, notes);
         AuditEntryEntity entity = AuditEntryMapper.ToEntity(entry);
         await _repository.AddAsync(entity, ct);
+
+        _logger.LogDebug(
+            "Recorded create audit entry for {EntityType} {EntityId} by user {UserId}",
+            entityType, entityId, changedById);
     }
 
     public async Task LogUpdateAsync(AuditEntityType entityType, int entityId,

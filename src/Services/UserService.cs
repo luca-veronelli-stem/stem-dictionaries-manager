@@ -1,6 +1,7 @@
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -12,11 +13,14 @@ namespace Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(IUserRepository repository)
+    public UserService(IUserRepository repository, ILogger<UserService> logger)
     {
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(logger);
         _repository = repository;
+        _logger = logger;
     }
 
     public async Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -43,7 +47,11 @@ public class UserService : IUserService
 
         UserEntity entity = UserMapper.ToEntity(user);
         UserEntity created = await _repository.AddAsync(entity, ct);
-        return UserMapper.ToDomain(created);
+        User result = UserMapper.ToDomain(created);
+
+        _logger.LogInformation("Created user {UserId}", result.Id);
+
+        return result;
     }
 
     public async Task UpdateAsync(User user, CancellationToken ct = default)
