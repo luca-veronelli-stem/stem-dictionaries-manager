@@ -58,6 +58,16 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Changed
 
+- **Tests**: the test suite is reorganized into a Shared/Unit/Integration/E2E
+  layout (#17) -- namespaces mirror folder paths, the mock services move to
+  `Tests/Shared`, enum + model tests merge under `Unit/Core`, and the GUI flow
+  and E2E workflow scenarios collect under `Integration/Scenarios` (the
+  complementary `#if WINDOWS` view-model and cross-platform full-stack pairs are
+  kept distinct). Magic strings are centralized in a `Tests/Shared/TestData.cs`
+  factory -- `DataTypes`/`ClientApps` constants plus `Create*` fixtures (#18) --
+  and the genuinely-deficient test names are normalized toward
+  `Method_Scenario_ExpectedResult`. Pure test-infra change: the test count is
+  unchanged on both legs (net10.0 872, net10.0-windows 1524). Closes #17, #18.
 - **Services**: business-rules validation is centralized behind a
   `Services/Validation/` layer -- a `ValidationResult` type plus per-entity
   validators (`IDictionaryValidator`, `IVariableValidator`, `ICommandValidator`,
