@@ -6,6 +6,13 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Added
 
+- **Infrastructure / Services**: structured logging (`ILogger<T>`) across the
+  Infrastructure and Services layers. `RepositoryBase` and every service now
+  take an injected `ILogger<T>` and emit template-based structured log calls at
+  meaningful actions (entity creation, token mint, credential issue,
+  installation revoke, registration outcome); the lone `Debug.WriteLineIf`
+  large-result-set warning became a structured `LogWarning`. GUI logging follows
+  in a separate PR. Refs #3.
 - **Core**: `User`, `Dictionary`, and `Command` now expose focused
   `Update*` mutators (`User.UpdateUsername` / `UpdateDisplayName`,
   `Dictionary.UpdateName` / `UpdateDescription`, `Command.UpdateName`)
