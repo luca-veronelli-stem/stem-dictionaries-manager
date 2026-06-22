@@ -345,7 +345,7 @@ public class MainViewModelTests
         await _viewModel.GoBackCommand.ExecuteAsync(null);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("modifiche non salvate"));
+            c.Type == "Confirm" && c.Message.Contains("unsaved changes"));
         Assert.True(_navigationService.GoBackCalled);
     }
 

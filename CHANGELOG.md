@@ -119,6 +119,12 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   along with `System.IO`. Both are restored for that TFM in `Tests.csproj`. The
   pre-existing Italian/English assertion drift this surfaced in the GUI tests is
   tracked under #119.
+- **Tests**: the 20 WPF GUI view-model tests the restored `net10.0-windows` leg
+  surfaced as failing now pass. Their assertions were updated from the old
+  Italian production strings (`eliminato`, `Caricati`, `modifiche non salvate`,
+  `Nome`, ...) to the English strings the view-models actually emit after the
+  i18n pass; the two `Salva` / `Salva Override` button-label checks now assert
+  the glyph-agnostic `Save` / `Save Override` substring. #119.
 - **Tests**: API-host integration tests (`WebApplicationFactory<Program>`) no
   longer resolve the default `%LocalAppData%\Stem\DictionariesManager` SQLite
   path when booting the real `Program.cs`. A module initializer points

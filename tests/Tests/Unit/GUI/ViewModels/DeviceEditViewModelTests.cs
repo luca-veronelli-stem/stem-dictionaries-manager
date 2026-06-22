@@ -155,7 +155,7 @@ public class DeviceEditViewModelTests
         await Task.Delay(50);
 
         Assert.True(_viewModel.IsNameInvalid);
-        Assert.Contains("obbligatori", _messageService.CurrentMessage ?? "");
+        Assert.Contains("required fields", _messageService.CurrentMessage ?? "");
     }
 
     [Fact]
@@ -344,10 +344,10 @@ public class DeviceEditViewModelTests
         _viewModel.DeleteDeviceCommand.Execute(null);
         await Task.Delay(50);
 
-        // Assert: il messaggio contiene "2 schede"
+        // Assert: the message contains the board count ("2 boards")
         var confirm = _dialogService.Calls.First(c => c.Type == "Confirm");
         Assert.Contains("2", confirm.Message);
-        Assert.Contains("schede", confirm.Message);
+        Assert.Contains("boards", confirm.Message);
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class DeviceEditViewModelTests
         await Task.Delay(50);
 
         Assert.Contains(_dialogService.Calls, c =>
-            c.Type == "Confirm" && c.Message.Contains("modifiche non salvate"));
+            c.Type == "Confirm" && c.Message.Contains("unsaved changes"));
         Assert.True(_navigationService.GoBackCalled);
     }
 

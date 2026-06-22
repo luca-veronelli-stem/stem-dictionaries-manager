@@ -1084,7 +1084,7 @@ public class VariableEditViewModelTests
 
         await _viewModel.InitializeAsync(variableId: 1, dictionaryId: 1, dictionaryContextId: 42);
 
-        Assert.Contains("Salva Override", _viewModel.SaveButtonLabel);
+        Assert.Contains("Save Override", _viewModel.SaveButtonLabel);
     }
 
     [Fact]
@@ -1092,7 +1092,7 @@ public class VariableEditViewModelTests
     {
         await _viewModel.InitializeAsync(variableId: null, dictionaryId: 1);
 
-        Assert.EndsWith("Salva", _viewModel.SaveButtonLabel);
+        Assert.EndsWith("Save", _viewModel.SaveButtonLabel);
         Assert.DoesNotContain("Bit", _viewModel.SaveButtonLabel);
     }
 
@@ -1189,7 +1189,7 @@ public class VariableEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Assert — salva override dizionario, mostra messaggio successo
-        Assert.Contains("dizionario", _messageService.CurrentMessage ?? "",
+        Assert.Contains("dictionary", _messageService.CurrentMessage ?? "",
             StringComparison.OrdinalIgnoreCase);
     }
 
