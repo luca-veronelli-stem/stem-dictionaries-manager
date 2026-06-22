@@ -1,0 +1,10 @@
+# The mock service fakes moved here from Unit/GUI/Mocks (#17), out of the
+# Unit/GUI/.editorconfig relaxation scope. They predate the repo's var/brace
+# style rules -- GUI test files were never compiled until the net10.0-windows
+# test leg was restored (broken since #68) -- and bringing them into full
+# IDE0008/IDE0011 compliance is part of the GUI test rehabilitation tracked in
+# #119. Keep the two rules non-blocking for the moved mocks ONLY; new Shared/
+# code (TestData.cs) stays fully enforced, as does the rest of the repo.
+[Mock*.cs]
+dotnet_diagnostic.IDE0008.severity = suggestion
+dotnet_diagnostic.IDE0011.severity = suggestion

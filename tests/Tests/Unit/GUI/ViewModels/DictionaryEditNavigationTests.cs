@@ -4,7 +4,7 @@ using GUI.Windows.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
-using Tests.Unit.GUI.Mocks;
+using Tests.Shared;
 
 namespace Tests.Unit.GUI.ViewModels;
 
@@ -53,7 +53,7 @@ public class DictionaryEditNavigationTests
     [Fact]
     public void NavigateToDictionaryEdit_WithEntityId_InitializesViewModelFromParameter()
     {
-        Core.Models.Dictionary existing = new("Optimus-XP", "desc", isStandard: false);
+        global::Core.Models.Dictionary existing = new("Optimus-XP", "desc", isStandard: false);
         _dictionaryService.SeedData(existing); // seeded with Id 1
 
         _navigationService.NavigateTo(

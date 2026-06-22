@@ -4,7 +4,7 @@ using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Core.Enums;
 using Microsoft.Extensions.Logging.Abstractions;
-using Tests.Unit.GUI.Mocks;
+using Tests.Shared;
 
 namespace Tests.Unit.GUI.ViewModels;
 
@@ -434,8 +434,8 @@ public class DictionaryEditViewModelTests
         var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
 
-        var v1 = new Variable("Temperature", 0x80, 0x01, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
-        var v2 = new Variable("Voltage", 0x80, 0x02, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v1 = new Variable("Temperature", 0x80, 0x01, global::Core.Enums.DataTypeKind.UInt16, global::Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v2 = new Variable("Voltage", 0x80, 0x02, global::Core.Enums.DataTypeKind.UInt16, global::Core.Enums.AccessMode.ReadOnly, "UInt16");
         _variableService.SeedData(v1, v2);
 
         await _viewModel.InitializeAsync(1);
@@ -453,8 +453,8 @@ public class DictionaryEditViewModelTests
         var dict = new Dictionary("Test");
         _dictionaryService.SeedData(dict);
 
-        var v1 = new Variable("Temperature", 0x80, 0x01, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
-        var v2 = new Variable("Voltage", 0x80, 0x02, Core.Enums.DataTypeKind.UInt16, Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v1 = new Variable("Temperature", 0x80, 0x01, global::Core.Enums.DataTypeKind.UInt16, global::Core.Enums.AccessMode.ReadOnly, "UInt16");
+        var v2 = new Variable("Voltage", 0x80, 0x02, global::Core.Enums.DataTypeKind.UInt16, global::Core.Enums.AccessMode.ReadOnly, "UInt16");
         _variableService.SeedData(v1, v2);
 
         await _viewModel.InitializeAsync(1);
@@ -596,7 +596,7 @@ public class DictionaryEditViewModelTests
     private static Variable MakeStdVar(int id, string name, byte addrLow, bool isEnabled = true,
         string? description = null) =>
         Variable.Restore(id, name, 0x00, addrLow, DataTypeKind.UInt16, "UInt16", null,
-            Core.Enums.AccessMode.ReadOnly, isEnabled, null, null, null, null, null, description);
+            global::Core.Enums.AccessMode.ReadOnly, isEnabled, null, null, null, null, null, description);
 
     [Fact]
     public async Task InitializeAsync_NonStandard_LoadsStandardVariablesWithOverrides()
