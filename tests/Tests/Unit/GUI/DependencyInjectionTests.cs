@@ -21,7 +21,10 @@ public class DependencyInjectionTests
     {
         _services = new ServiceCollection();
 
-        // Setup prerequisites (Infrastructure + Services)
+        // Setup prerequisites (Infrastructure + Services). AddLogging mirrors the
+        // production host (App.xaml.cs's Host.CreateDefaultBuilder registers it),
+        // so repositories' required ILogger<T> dependencies resolve here too.
+        _services.AddLogging();
         _services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite("Data Source=:memory:"));
         _services.AddInfrastructure("Data Source=:memory:");

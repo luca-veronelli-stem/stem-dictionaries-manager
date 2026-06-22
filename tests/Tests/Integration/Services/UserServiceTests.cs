@@ -1,5 +1,7 @@
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 
 namespace Tests.Integration.Services;
@@ -13,7 +15,7 @@ public class UserServiceTests : IntegrationTestBase
 
     public UserServiceTests()
     {
-        var repository = new UserRepository(Context);
+        var repository = new UserRepository(Context, NullLogger<RepositoryBase<UserEntity>>.Instance);
         _service = new UserService(repository);
     }
 

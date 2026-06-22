@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Validation;
 
 namespace Tests.Integration.Services.Validation;
@@ -18,7 +19,7 @@ public class VariableValidatorTests : IntegrationTestBase
 
     public VariableValidatorTests()
     {
-        _repository = new VariableRepository(Context);
+        _repository = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
         _validator = new VariableValidator(_repository);
     }
 

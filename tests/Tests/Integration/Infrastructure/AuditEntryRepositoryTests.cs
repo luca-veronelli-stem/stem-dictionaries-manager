@@ -1,6 +1,7 @@
 using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -15,7 +16,7 @@ public class AuditEntryRepositoryTests : IntegrationTestBase
 
     public AuditEntryRepositoryTests()
     {
-        _repository = new AuditEntryRepository(Context);
+        _repository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
     }
 
     public override async Task InitializeAsync()

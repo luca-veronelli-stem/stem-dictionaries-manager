@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -12,7 +13,7 @@ public class BoardRepositoryTests : IntegrationTestBase
 
     public BoardRepositoryTests()
     {
-        _repository = new BoardRepository(Context);
+        _repository = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
     }
 
     public override async Task InitializeAsync()

@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class DictionaryRepository : RepositoryBase<DictionaryEntity>, IDictionaryRepository
 {
-    public DictionaryRepository(AppDbContext context) : base(context)
+    public DictionaryRepository(AppDbContext context, ILogger<RepositoryBase<DictionaryEntity>> logger)
+        : base(context, logger)
     {
     }
 

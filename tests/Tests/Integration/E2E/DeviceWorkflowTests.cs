@@ -3,6 +3,7 @@ using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Integration;
 
 namespace Tests.Integration.E2E;
@@ -25,7 +26,7 @@ public class DeviceWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CreateDevice_AddBoards_AssignDictionaries()
     {
         // 1. Crea device
-        var deviceRepo = new DeviceRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
         var device = new DeviceEntity
         {
             Name = "Eden-XP",
@@ -35,14 +36,14 @@ public class DeviceWorkflowTests : IntegrationTestBase
         await deviceRepo.AddAsync(device);
 
         // 2. Crea dizionari
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         var mainDict = new DictionaryEntity { Name = "Eden-XP Main", IsStandard = false };
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(mainDict);
         await dictRepo.AddAsync(stdDict);
 
         // 3. Crea board con dizionari (ProtocolAddress calcolato)
-        var boardRepo = new BoardRepository(Context);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
         var motherboard = new BoardEntity
         {
             Name = "Madre",
@@ -80,9 +81,9 @@ public class DeviceWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DeviceDetail_ShowsCorrectDictionaries()
     {
         // Setup: Device con board che puntano a dizionari diversi
-        var deviceRepo = new DeviceRepository(Context);
-        var dictRepo = new DictionaryRepository(Context);
-        var boardRepo = new BoardRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
 
         var device = new DeviceEntity { Name = "R3L-XP", MachineCode = 11 };
         await deviceRepo.AddAsync(device);
@@ -140,9 +141,9 @@ public class DeviceWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DeviceCommands_OverridesArePerDevice()
     {
         // Setup: 2 device, 1 comando, override diversi
-        var deviceRepo = new DeviceRepository(Context);
-        var cmdRepo = new CommandRepository(Context);
-        var stateRepo = new CommandDeviceStateRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var cmdRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
+        var stateRepo = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
 
         var device1 = new DeviceEntity { Name = "Eden-XP", MachineCode = 3 };
         var device2 = new DeviceEntity { Name = "Spark", MachineCode = 7 };
@@ -187,9 +188,9 @@ public class DeviceWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_StandardVariableOverrides_ArePerDictionary()
     {
         // Setup: 2 dizionari non-standard, 1 variabile standard, override diversi
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var overrideRepo = new StandardVariableOverrideRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -234,8 +235,8 @@ public class DeviceWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DeleteDevice_CascadesToBoards()
     {
         // Setup
-        var deviceRepo = new DeviceRepository(Context);
-        var boardRepo = new BoardRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
 
         var device = new DeviceEntity { Name = "ToDelete", MachineCode = 99 };
         await deviceRepo.AddAsync(device);

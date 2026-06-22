@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 
 namespace Tests.Integration.Services;
@@ -16,7 +17,7 @@ public class AuditServiceTests : IntegrationTestBase
 
     public AuditServiceTests()
     {
-        var repository = new AuditEntryRepository(Context);
+        var repository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         _service = new AuditService(repository);
     }
 
@@ -253,7 +254,7 @@ public class AuditServiceTests : IntegrationTestBase
     public async Task GetByDateRangeAsync_FiltersCorrectly()
     {
         // Arrange — seed direttamente per controllare le date
-        var repo = new AuditEntryRepository(Context);
+        var repo = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         await repo.AddAsync(new AuditEntryEntity
         {
             EntityType = AuditEntityType.Variable,

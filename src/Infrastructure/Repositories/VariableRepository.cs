@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class VariableRepository : RepositoryBase<VariableEntity>, IVariableRepository
 {
-    public VariableRepository(AppDbContext context) : base(context)
+    public VariableRepository(AppDbContext context, ILogger<RepositoryBase<VariableEntity>> logger)
+        : base(context, logger)
     {
     }
 

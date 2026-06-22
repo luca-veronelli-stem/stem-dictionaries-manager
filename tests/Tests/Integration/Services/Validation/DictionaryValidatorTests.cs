@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Validation;
 
 namespace Tests.Integration.Services.Validation;
@@ -15,7 +16,7 @@ public class DictionaryValidatorTests : IntegrationTestBase
 
     public DictionaryValidatorTests()
     {
-        _repository = new DictionaryRepository(Context);
+        _repository = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         _validator = new DictionaryValidator(_repository);
     }
 

@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -12,7 +13,7 @@ public class UserRepositoryTests : IntegrationTestBase
 
     public UserRepositoryTests()
     {
-        _repository = new UserRepository(Context);
+        _repository = new UserRepository(Context, NullLogger<RepositoryBase<UserEntity>>.Instance);
     }
 
     [Fact]

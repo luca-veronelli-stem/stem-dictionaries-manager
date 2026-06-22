@@ -1,6 +1,7 @@
 using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -16,9 +17,9 @@ public class BitInterpretationRepositoryTests : IntegrationTestBase
 
     public BitInterpretationRepositoryTests()
     {
-        _repository = new BitInterpretationRepository(Context);
-        _variableRepo = new VariableRepository(Context);
-        _dictionaryRepo = new DictionaryRepository(Context);
+        _repository = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
+        _variableRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        _dictionaryRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
     }
 
     public override async Task InitializeAsync()

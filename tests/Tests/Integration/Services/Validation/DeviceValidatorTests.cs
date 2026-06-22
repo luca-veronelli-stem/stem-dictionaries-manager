@@ -1,6 +1,7 @@
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Validation;
 
 namespace Tests.Integration.Services.Validation;
@@ -16,7 +17,7 @@ public class DeviceValidatorTests : IntegrationTestBase
 
     public DeviceValidatorTests()
     {
-        _repository = new DeviceRepository(Context);
+        _repository = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
         _validator = new DeviceValidator(_repository);
     }
 

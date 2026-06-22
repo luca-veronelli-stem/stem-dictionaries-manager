@@ -1,6 +1,7 @@
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 
@@ -16,9 +17,9 @@ public class BoardServiceTests : IntegrationTestBase
     public BoardServiceTests()
     {
         SeedTestUser();
-        var boardRepository = new BoardRepository(Context);
-        var dictionaryRepository = new DictionaryRepository(Context);
-        var auditRepository = new AuditEntryRepository(Context);
+        var boardRepository = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
+        var dictionaryRepository = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         IAuditService auditService = new AuditService(auditRepository);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _service = new BoardService(

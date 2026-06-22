@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class BoardRepository : RepositoryBase<BoardEntity>, IBoardRepository
 {
-    public BoardRepository(AppDbContext context) : base(context)
+    public BoardRepository(AppDbContext context, ILogger<RepositoryBase<BoardEntity>> logger)
+        : base(context, logger)
     {
     }
 
