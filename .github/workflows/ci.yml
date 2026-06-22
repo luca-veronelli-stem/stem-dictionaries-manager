@@ -71,17 +71,27 @@ jobs:
         if: runner.os == 'Linux'
         run: dotnet build --configuration Release --no-restore
 
-      - name: Build (full leg, includes net10.0-windows)
+      # The root Directory.Build.props sets a singular
+      # <TargetFramework>net10.0</TargetFramework>, which leaks into the
+      # multi-targeted Tests.csproj and suppresses its net10.0-windows leg on a
+      # plain solution build (MSBuild cross-targeting only kicks in when
+      # TargetFramework is empty). So build that leg explicitly with --framework;
+      # it pulls in GUI.Windows plus every src project and is what makes the
+      # #if WINDOWS WPF GUI tests actually build on Windows.
+      - name: Build (net10.0-windows leg, includes WPF GUI)
         if: runner.os == 'Windows'
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build tests/Tests/Tests.csproj --framework net10.0-windows --configuration Release --no-restore
 
       - name: Test (cross-platform leg)
         if: runner.os == 'Linux'
         run: dotnet test --framework net10.0 --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
-      - name: Test (full leg)
+      # net10.0-windows runs the full suite (the cross-platform tests plus the
+      # #if WINDOWS GUI tests). net10.0 is already covered by the Linux leg, so
+      # it is deliberately not re-run here -- each TFM runs exactly once.
+      - name: Test (net10.0-windows leg, includes WPF GUI tests)
         if: runner.os == 'Windows'
-        run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test tests/Tests/Tests.csproj --framework net10.0-windows --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Test report
         uses: dorny/test-reporter@v1
