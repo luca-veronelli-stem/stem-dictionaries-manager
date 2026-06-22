@@ -1,5 +1,7 @@
 using Core.Models;
+using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 
@@ -15,9 +17,9 @@ public class CommandServiceTests : IntegrationTestBase
     public CommandServiceTests()
     {
         SeedTestUser();
-        var repository = new CommandRepository(Context);
-        var deviceStateRepository = new CommandDeviceStateRepository(Context);
-        var auditRepository = new AuditEntryRepository(Context);
+        var repository = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
+        var deviceStateRepository = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
+        var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         IAuditService auditService = new AuditService(auditRepository);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _service = new CommandService(

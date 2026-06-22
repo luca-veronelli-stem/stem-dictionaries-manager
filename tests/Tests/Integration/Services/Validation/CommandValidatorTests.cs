@@ -1,6 +1,7 @@
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Validation;
 
 namespace Tests.Integration.Services.Validation;
@@ -16,7 +17,7 @@ public class CommandValidatorTests : IntegrationTestBase
 
     public CommandValidatorTests()
     {
-        _repository = new CommandRepository(Context);
+        _repository = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
         _validator = new CommandValidator(_repository);
     }
 

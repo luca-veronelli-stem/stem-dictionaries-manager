@@ -2,6 +2,7 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Integration;
 
 namespace Tests.Integration.E2E;
@@ -18,9 +19,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CreateBitmappedVariable_WithInterpretations()
     {
         // Setup: Dictionary + Variable bitmapped
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var bitRepo = new BitInterpretationRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var bitRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
 
         var dict = new DictionaryEntity { Name = "TestDict", IsStandard = false };
         await dictRepo.AddAsync(dict);
@@ -71,9 +72,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_VariableOverride_EffectiveState()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var overrideRepo = new StandardVariableOverrideRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -116,9 +117,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DeprecatedVariable_OverrideDbAcceptsButServiceBlocks()
     {
         // Setup: variabile deprecata globalmente
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var overrideRepo = new StandardVariableOverrideRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -164,9 +165,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_BitInterpretations_CommonAndDictionaryOverride()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var bitRepo = new BitInterpretationRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var bitRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -232,9 +233,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_SyncDictionaryOverrides_DoesNotAffectCommon()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var bitRepo = new BitInterpretationRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var bitRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -288,9 +289,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_MultipleDictionaries_IndependentOverrides()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var bitRepo = new BitInterpretationRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var bitRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
 
         var stdDict = new DictionaryEntity { Name = "Standard", IsStandard = true };
         await dictRepo.AddAsync(stdDict);
@@ -361,8 +362,8 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_AddressUniqueness_PerDictionary()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
 
         var dict1 = new DictionaryEntity { Name = "Dict1", IsStandard = false };
         var dict2 = new DictionaryEntity { Name = "Dict2", IsStandard = false };
@@ -419,9 +420,9 @@ public class VariableWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CreateBitmappedWithWordSize_PersistsAndLoads()
     {
         // Setup
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var bitRepo = new BitInterpretationRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var bitRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
 
         var dict = new DictionaryEntity { Name = "WordSizeDict", IsStandard = false };
         await dictRepo.AddAsync(dict);

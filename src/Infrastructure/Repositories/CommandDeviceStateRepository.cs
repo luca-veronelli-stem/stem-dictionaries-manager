@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class CommandDeviceStateRepository : RepositoryBase<CommandDeviceStateEntity>, ICommandDeviceStateRepository
 {
-    public CommandDeviceStateRepository(AppDbContext context) : base(context)
+    public CommandDeviceStateRepository(AppDbContext context, ILogger<RepositoryBase<CommandDeviceStateEntity>> logger)
+        : base(context, logger)
     {
     }
 

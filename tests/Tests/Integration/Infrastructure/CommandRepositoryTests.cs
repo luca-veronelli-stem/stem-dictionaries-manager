@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -12,7 +13,7 @@ public class CommandRepositoryTests : IntegrationTestBase
 
     public CommandRepositoryTests()
     {
-        _repository = new CommandRepository(Context);
+        _repository = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
     }
 
     [Fact]

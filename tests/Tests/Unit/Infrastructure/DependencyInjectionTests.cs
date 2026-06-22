@@ -31,6 +31,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -46,6 +47,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -61,6 +63,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -76,6 +79,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -91,6 +95,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -106,6 +111,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -121,6 +127,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -136,6 +143,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -151,6 +159,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -166,6 +175,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
 
         // Act
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -179,6 +189,7 @@ public class DependencyInjectionTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -197,6 +208,7 @@ public class DependencyInjectionTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 
@@ -213,6 +225,7 @@ public class DependencyInjectionTests
     public void AddInfrastructure_RegistersDeviceRepository()
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         ServiceProvider provider = services.BuildServiceProvider();
 

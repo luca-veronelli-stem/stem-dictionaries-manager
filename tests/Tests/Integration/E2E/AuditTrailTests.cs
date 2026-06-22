@@ -3,6 +3,7 @@ using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 using Tests.Integration;
@@ -23,7 +24,7 @@ public class AuditTrailTests : IntegrationTestBase
     public AuditTrailTests()
     {
         SeedTestUser();
-        _auditRepo = new AuditEntryRepository(Context);
+        _auditRepo = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         _userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _auditService = new AuditService(_auditRepo);
     }
@@ -119,7 +120,7 @@ public class AuditTrailTests : IntegrationTestBase
     public async Task VariableUpdate_CreatesAuditEntryWithPreviousAndNew()
     {
         VariableService varService = CreateVariableService();
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         DictionaryEntity dict = await dictRepo.AddAsync(
             new DictionaryEntity { Name = "VarUpdateDict" });
 
@@ -288,7 +289,7 @@ public class AuditTrailTests : IntegrationTestBase
     public async Task SetOverride_CreatesAuditEntry()
     {
         VariableService varService = CreateVariableService();
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
 
         // Crea dizionario standard + variabile standard
         DictionaryEntity stdDict = await dictRepo.AddAsync(
@@ -320,30 +321,30 @@ public class AuditTrailTests : IntegrationTestBase
     // === Helpers ===
 
     private DictionaryService CreateDictionaryService() =>
-        new(new DictionaryRepository(Context),
-            new VariableRepository(Context),
+        new(new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
+            new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance),
             _auditService, _userProvider);
 
     private VariableService CreateVariableService() =>
-        new(new VariableRepository(Context),
-            new DictionaryRepository(Context),
-            new BitInterpretationRepository(Context),
-            new StandardVariableOverrideRepository(Context),
+        new(new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance),
+            new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
+            new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance),
+            new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance),
             _auditService, _userProvider);
 
     private CommandService CreateCommandService() =>
-        new(new CommandRepository(Context),
-            new CommandDeviceStateRepository(Context),
+        new(new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance),
+            new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance),
             _auditService, _userProvider);
 
     private BoardService CreateBoardService() =>
-        new(new BoardRepository(Context),
-            new DictionaryRepository(Context),
+        new(new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance),
+            new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
             _auditService, _userProvider);
 
     private DeviceService CreateDeviceService() =>
-        new(new DeviceRepository(Context),
-            new BoardRepository(Context),
-            new DictionaryRepository(Context),
+        new(new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance),
+            new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance),
+            new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
             _auditService, _userProvider);
 }

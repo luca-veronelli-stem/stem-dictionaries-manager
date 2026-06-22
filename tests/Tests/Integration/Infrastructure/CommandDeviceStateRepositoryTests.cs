@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -14,8 +15,8 @@ public class CommandDeviceStateRepositoryTests : IntegrationTestBase
 
     public CommandDeviceStateRepositoryTests()
     {
-        _repository = new CommandDeviceStateRepository(Context);
-        _commandRepo = new CommandRepository(Context);
+        _repository = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
+        _commandRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
     }
 
     public override async Task InitializeAsync()

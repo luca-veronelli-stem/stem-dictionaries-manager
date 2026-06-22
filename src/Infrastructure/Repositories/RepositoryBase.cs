@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
@@ -10,18 +10,20 @@ namespace Infrastructure.Repositories;
 public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class
 {
     /// <summary>
-    /// Threshold above which a Debug warning is emitted.
+    /// Threshold above which a warning is logged.
     /// If a table exceeds this limit, consider pagination.
     /// </summary>
     protected const int LargeResultSetWarningThreshold = 500;
 
     protected readonly AppDbContext Context;
     protected readonly DbSet<TEntity> DbSet;
+    private readonly ILogger<RepositoryBase<TEntity>> _logger;
 
-    protected RepositoryBase(AppDbContext context)
+    protected RepositoryBase(AppDbContext context, ILogger<RepositoryBase<TEntity>> logger)
     {
         Context = context;
         DbSet = context.Set<TEntity>();
+        _logger = logger;
     }
 
     public virtual async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -33,10 +35,14 @@ public abstract class RepositoryBase<TEntity> : IRepository<TEntity> where TEnti
     {
         List<TEntity> result = await DbSet.ToListAsync(cancellationToken);
 
-        // Debug warning if the dataset is large — consider pagination
-        Debug.WriteLineIf(result.Count > LargeResultSetWarningThreshold,
-            $"[PERFORMANCE WARNING] {typeof(TEntity).Name}: GetAllAsync returned {result.Count} records. " +
-            $"Consider adding pagination if this table continues to grow.");
+        // Warn if the dataset is large -- consider pagination.
+        if (result.Count > LargeResultSetWarningThreshold)
+        {
+            _logger.LogWarning(
+                "GetAllAsync returned {Count} records for {Entity}; consider adding pagination.",
+                result.Count,
+                typeof(TEntity).Name);
+        }
 
         return result;
     }

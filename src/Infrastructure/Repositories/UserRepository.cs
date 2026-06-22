@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class UserRepository : RepositoryBase<UserEntity>, IUserRepository
 {
-    public UserRepository(AppDbContext context) : base(context)
+    public UserRepository(AppDbContext context, ILogger<RepositoryBase<UserEntity>> logger)
+        : base(context, logger)
     {
     }
 

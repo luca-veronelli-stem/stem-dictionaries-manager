@@ -5,6 +5,7 @@ using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 
@@ -42,15 +43,15 @@ public abstract class ApiIntegrationTestBase : IDisposable
         Context.SaveChanges();
 
         // Repositories
-        var deviceRepo = new DeviceRepository(Context);
-        var boardRepo = new BoardRepository(Context);
-        var dictRepo = new DictionaryRepository(Context);
-        var varRepo = new VariableRepository(Context);
-        var commandRepo = new CommandRepository(Context);
-        var auditRepo = new AuditEntryRepository(Context);
-        var bitInterpRepo = new BitInterpretationRepository(Context);
-        var cmdDeviceStateRepo = new CommandDeviceStateRepository(Context);
-        var overrideRepo = new StandardVariableOverrideRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        var commandRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
+        var auditRepo = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
+        var bitInterpRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
+        var cmdDeviceStateRepo = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
+        var overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
 
         // Services
         IAuditService auditService = new AuditService(auditRepo);

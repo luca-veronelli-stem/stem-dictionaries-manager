@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
 
@@ -22,11 +23,11 @@ public class VariableServiceTests : IntegrationTestBase
     public VariableServiceTests()
     {
         SeedTestUser();
-        _dictionaryRepo = new DictionaryRepository(Context);
-        _variableRepo = new VariableRepository(Context);
-        _bitInterpretationRepo = new BitInterpretationRepository(Context);
-        _overrideRepo = new StandardVariableOverrideRepository(Context);
-        var auditRepository = new AuditEntryRepository(Context);
+        _dictionaryRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        _variableRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
+        _bitInterpretationRepo = new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance);
+        _overrideRepo = new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance);
+        var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         IAuditService auditService = new AuditService(auditRepository);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
 

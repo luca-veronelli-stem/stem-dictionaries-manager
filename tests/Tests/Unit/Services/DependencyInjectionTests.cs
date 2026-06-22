@@ -15,6 +15,7 @@ public class DependencyInjectionTests
     private static ServiceProvider BuildServiceProvider()
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddInfrastructure(TestConnectionString);
         services.AddServices();
         return services.BuildServiceProvider();

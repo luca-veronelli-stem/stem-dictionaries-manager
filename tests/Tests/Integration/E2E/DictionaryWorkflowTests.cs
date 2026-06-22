@@ -3,6 +3,7 @@ using Infrastructure;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Integration;
 
 namespace Tests.Integration.E2E;
@@ -25,7 +26,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CreateDictionary_AddVariables_Delete()
     {
         // 1. Crea dizionario
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         var dictEntity = new DictionaryEntity
         {
             Name = "TestDict",
@@ -35,7 +36,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
         await dictRepo.AddAsync(dictEntity);
 
         // 2. Aggiungi variabili
-        var varRepo = new VariableRepository(Context);
+        var varRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
         var var1 = new VariableEntity
         {
             Name = "Var1",
@@ -79,7 +80,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_StandardDictionary_IsUniqueInSystem()
     {
         // 1. Crea primo dizionario standard
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         var standard1 = new DictionaryEntity
         {
             Name = "Standard",
@@ -109,9 +110,9 @@ public class DictionaryWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DictionarySemantic_Dedicated_WhenSingleDevice()
     {
         // Setup: Device, Dictionary, Board
-        var deviceRepo = new DeviceRepository(Context);
-        var dictRepo = new DictionaryRepository(Context);
-        var boardRepo = new BoardRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
 
         var device = new DeviceEntity { Name = "Eden-XP", MachineCode = 3 };
         await deviceRepo.AddAsync(device);
@@ -145,9 +146,9 @@ public class DictionaryWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DictionarySemantic_Shared_WhenMultipleDevices()
     {
         // Setup: 2 Device, 1 Dictionary condiviso
-        var deviceRepo = new DeviceRepository(Context);
-        var dictRepo = new DictionaryRepository(Context);
-        var boardRepo = new BoardRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var boardRepo = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
 
         var device1 = new DeviceEntity { Name = "Eden-XP", MachineCode = 3 };
         var device2 = new DeviceEntity { Name = "Spark", MachineCode = 7 };
@@ -192,7 +193,7 @@ public class DictionaryWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_DictionarySemantic_Orphan_WhenNoBoards()
     {
         // Setup: Dictionary senza board
-        var dictRepo = new DictionaryRepository(Context);
+        var dictRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
 
         var orphanDict = new DictionaryEntity { Name = "OrphanDict", IsStandard = false };
         await dictRepo.AddAsync(orphanDict);

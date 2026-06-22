@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class DeviceRepository : RepositoryBase<DeviceEntity>, IDeviceRepository
 {
-    public DeviceRepository(AppDbContext context) : base(context)
+    public DeviceRepository(AppDbContext context, ILogger<RepositoryBase<DeviceEntity>> logger)
+        : base(context, logger)
     {
     }
 

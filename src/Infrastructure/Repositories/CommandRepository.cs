@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class CommandRepository : RepositoryBase<CommandEntity>, ICommandRepository
 {
-    public CommandRepository(AppDbContext context) : base(context)
+    public CommandRepository(AppDbContext context, ILogger<RepositoryBase<CommandEntity>> logger)
+        : base(context, logger)
     {
     }
 

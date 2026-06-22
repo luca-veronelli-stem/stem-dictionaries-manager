@@ -2,6 +2,7 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -481,7 +482,7 @@ public class CrudScenariosTests : IntegrationTestBase
     public async Task UserRepository_UpdateAsync_ModifiesEntity()
     {
         // Arrange
-        var repository = new UserRepository(Context);
+        var repository = new UserRepository(Context, NullLogger<RepositoryBase<UserEntity>>.Instance);
         var user = new UserEntity { Username = "repouser", DisplayName = "Original" };
         await repository.AddAsync(user);
 
@@ -500,8 +501,8 @@ public class CrudScenariosTests : IntegrationTestBase
     public async Task DictionaryRepository_DeleteAsync_RemovesCascadedVariables()
     {
         // Arrange
-        var dictRepository = new DictionaryRepository(Context);
-        var varRepository = new VariableRepository(Context);
+        var dictRepository = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        var varRepository = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
 
         var dictionary = new DictionaryEntity { Name = "RepoDictToDelete" };
         await dictRepository.AddAsync(dictionary);

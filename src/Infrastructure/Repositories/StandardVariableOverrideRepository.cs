@@ -1,13 +1,17 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class StandardVariableOverrideRepository
     : RepositoryBase<StandardVariableOverrideEntity>, IStandardVariableOverrideRepository
 {
-    public StandardVariableOverrideRepository(AppDbContext context) : base(context)
+    public StandardVariableOverrideRepository(
+        AppDbContext context,
+        ILogger<RepositoryBase<StandardVariableOverrideEntity>> logger)
+        : base(context, logger)
     {
     }
 

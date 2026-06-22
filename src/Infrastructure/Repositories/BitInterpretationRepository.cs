@@ -1,12 +1,14 @@
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class BitInterpretationRepository : RepositoryBase<BitInterpretationEntity>, IBitInterpretationRepository
 {
-    public BitInterpretationRepository(AppDbContext context) : base(context)
+    public BitInterpretationRepository(AppDbContext context, ILogger<RepositoryBase<BitInterpretationEntity>> logger)
+        : base(context, logger)
     {
     }
 

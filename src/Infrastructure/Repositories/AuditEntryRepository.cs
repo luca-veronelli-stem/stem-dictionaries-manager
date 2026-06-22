@@ -2,12 +2,14 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories;
 
 public class AuditEntryRepository : RepositoryBase<AuditEntryEntity>, IAuditEntryRepository
 {
-    public AuditEntryRepository(AppDbContext context) : base(context)
+    public AuditEntryRepository(AppDbContext context, ILogger<RepositoryBase<AuditEntryEntity>> logger)
+        : base(context, logger)
     {
     }
 

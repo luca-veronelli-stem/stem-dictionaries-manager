@@ -1,5 +1,6 @@
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -12,7 +13,7 @@ public class DeviceRepositoryTests : IntegrationTestBase
 
     public DeviceRepositoryTests()
     {
-        _repository = new DeviceRepository(Context);
+        _repository = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
     }
 
     [Fact]

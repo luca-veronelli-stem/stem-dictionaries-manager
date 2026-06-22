@@ -1,6 +1,7 @@
 using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -15,8 +16,8 @@ public class DictionaryRepositoryTests : IntegrationTestBase
 
     public DictionaryRepositoryTests()
     {
-        _dictionaryRepo = new DictionaryRepository(Context);
-        _variableRepo = new VariableRepository(Context);
+        _dictionaryRepo = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
+        _variableRepo = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
     }
 
     [Fact]

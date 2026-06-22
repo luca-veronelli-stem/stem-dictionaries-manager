@@ -2,6 +2,7 @@ using Core.Enums;
 using Infrastructure.Entities;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Tests.Integration;
 
 namespace Tests.Integration.E2E;
@@ -18,9 +19,9 @@ public class CommandWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CreateCommand_EnableDisablePerDevice()
     {
         // Setup
-        var deviceRepo = new DeviceRepository(Context);
-        var cmdRepo = new CommandRepository(Context);
-        var stateRepo = new CommandDeviceStateRepository(Context);
+        var deviceRepo = new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance);
+        var cmdRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
+        var stateRepo = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
 
         var device1 = new DeviceEntity { Name = "Eden-XP", MachineCode = 3 };
         var device2 = new DeviceEntity { Name = "Spark", MachineCode = 7 };
@@ -66,7 +67,7 @@ public class CommandWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CommandPair_RequestAndResponse()
     {
         // Setup: coppia comando/risposta (stesso CodeLow)
-        var cmdRepo = new CommandRepository(Context);
+        var cmdRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
 
         var request = new CommandEntity
         {
@@ -105,7 +106,7 @@ public class CommandWorkflowTests : IntegrationTestBase
     public async Task FullWorkflow_CommandParameters_StructuredFormat()
     {
         // Setup: comando con parametri strutturati
-        var cmdRepo = new CommandRepository(Context);
+        var cmdRepo = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
 
         var command = new CommandEntity
         {
