@@ -95,13 +95,13 @@ public class BoardTests
     [InlineData(11, 18, 1, 0x000B0481)]  // R3L-XP Madre Master
     [InlineData(11, 20, 1, 0x000B0501)]  // R3L-XP Madre Slave
     [InlineData(1, 1, 1, 0x00010041)]    // SHERPA SLIM Azionamento
-    public void CalculateAddress_ReturnsCorrectValue(int machine, int fwType, int boardNum, uint expected)
+    public void CalculateAddress_MachineFwTypeAndBoard_ReturnsEncodedAddress(int machine, int fwType, int boardNum, uint expected)
     {
         Assert.Equal(expected, Board.CalculateAddress(machine, fwType, boardNum));
     }
 
     [Fact]
-    public void ProtocolAddress_ReturnsCalculatedValue()
+    public void ProtocolAddress_ForBoard_ReturnsEncodedAddress()
     {
         var board = new Board(10, "Madre", 17, 1, machineCode: 10);
         Assert.Equal(0x000A0441u, board.ProtocolAddress);

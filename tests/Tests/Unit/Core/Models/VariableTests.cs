@@ -105,7 +105,7 @@ public class VariableTests
     }
 
     [Fact]
-    public void FullAddress_ReturnsCorrectValue()
+    public void FullAddress_HighAndLowBytes_CombinesIntoWord()
     {
         Variable variable = TestData.CreateVariable("Test", 0x80, 0x15);
 
