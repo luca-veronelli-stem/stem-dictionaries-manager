@@ -3,7 +3,7 @@ using Core.Models;
 using GUI.Windows.Abstractions;
 using GUI.Windows.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
-using Tests.Unit.GUI.Mocks;
+using Tests.Shared;
 
 namespace Tests.Unit.GUI.ViewModels;
 

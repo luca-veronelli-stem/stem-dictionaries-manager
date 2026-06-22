@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Services;
 using Services.Interfaces;
-using Tests.Unit.GUI.Mocks;
+using Tests.Shared;
 
 namespace Tests.Unit.GUI.ViewModels;
 

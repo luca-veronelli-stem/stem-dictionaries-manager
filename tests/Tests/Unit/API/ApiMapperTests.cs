@@ -173,7 +173,7 @@ public class ApiMapperTests
     [Fact]
     public void ToDictionarySummaryDto_MapsAllProperties()
     {
-        var dict = Core.Models.Dictionary.Restore(
+        var dict = global::Core.Models.Dictionary.Restore(
             1, "Standard", "Variabili comuni", true, []);
 
         var dto = ApiMapper.ToDictionarySummaryDto(dict, variableCount: 24);
