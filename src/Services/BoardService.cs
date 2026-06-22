@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 
@@ -18,21 +19,25 @@ public class BoardService : IBoardService
     private readonly IDictionaryRepository _dictionaryRepository;
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
+    private readonly ILogger<BoardService> _logger;
 
     public BoardService(
         IBoardRepository boardRepository,
         IDictionaryRepository dictionaryRepository,
         IAuditService auditService,
-        ICurrentUserProvider userProvider)
+        ICurrentUserProvider userProvider,
+        ILogger<BoardService> logger)
     {
         ArgumentNullException.ThrowIfNull(boardRepository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(auditService);
         ArgumentNullException.ThrowIfNull(userProvider);
+        ArgumentNullException.ThrowIfNull(logger);
         _boardRepository = boardRepository;
         _dictionaryRepository = dictionaryRepository;
         _audit = auditService;
         _userProvider = userProvider;
+        _logger = logger;
     }
 
     public async Task<Board?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -88,6 +93,10 @@ public class BoardService : IBoardService
 
         BoardEntity? result = await _boardRepository.GetByIdAsync(created.Id, ct);
         Board domain = BoardMapper.ToDomain(result!);
+
+        _logger.LogInformation(
+            "Created board {BoardId} ({Name}) for device {DeviceId}",
+            domain.Id, domain.Name, domain.DeviceId);
 
         await _audit.LogCreateAsync(AuditEntityType.Board, domain.Id,
             _userProvider.CurrentUserId ?? 0,

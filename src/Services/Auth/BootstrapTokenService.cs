@@ -3,6 +3,7 @@ using Core.Models.Auth;
 using Infrastructure;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces.Auth;
 
 namespace Services.Auth;
@@ -24,6 +25,7 @@ public class BootstrapTokenService : IBootstrapTokenService
     private readonly ITokenGenerator? _generator;
     private readonly AppDbContext? _db;
     private readonly TimeProvider _time;
+    private readonly ILogger<BootstrapTokenService> _logger;
 
     /// <summary>
     /// Constructor used for the mint path (US2). <see cref="MintAsync"/>
@@ -36,21 +38,24 @@ public class BootstrapTokenService : IBootstrapTokenService
     /// </summary>
     public BootstrapTokenService(IBootstrapTokenRepository tokens,
         IPasswordHasher hasher, ITokenGenerator generator, AppDbContext db,
-        TimeProvider? time = null)
+        ILogger<BootstrapTokenService> logger, TimeProvider? time = null)
     {
         _tokens = tokens;
         _hasher = hasher;
         _generator = generator;
         _db = db;
+        _logger = logger;
         _time = time ?? TimeProvider.System;
     }
 
-    public BootstrapTokenService(IBootstrapTokenRepository tokens, IPasswordHasher hasher)
+    public BootstrapTokenService(IBootstrapTokenRepository tokens, IPasswordHasher hasher,
+        ILogger<BootstrapTokenService> logger)
     {
         _tokens = tokens;
         _hasher = hasher;
         _generator = null;
         _db = null;
+        _logger = logger;
         _time = TimeProvider.System;
     }
 
@@ -88,6 +93,11 @@ public class BootstrapTokenService : IBootstrapTokenService
 
         await _tokens.AddAsync(entity, ct).ConfigureAwait(false);
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "Minted bootstrap token {TokenId} for client app {ClientApp}, expires {ExpiresAt:o}",
+            entity.Id, clientApp, expiresAt);
+
         return (ToDomain(entity), plaintext);
     }
 

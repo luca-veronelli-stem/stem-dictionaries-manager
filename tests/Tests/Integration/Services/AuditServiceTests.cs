@@ -18,7 +18,7 @@ public class AuditServiceTests : IntegrationTestBase
     public AuditServiceTests()
     {
         var repository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
-        _service = new AuditService(repository);
+        _service = new AuditService(repository, NullLogger<AuditService>.Instance);
     }
 
     public override async Task InitializeAsync()

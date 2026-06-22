@@ -5,6 +5,7 @@ using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
 using Infrastructure.Repositories.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Services.Interfaces.Auth;
 
@@ -39,11 +40,12 @@ public class RegistrationServiceTests : IntegrationTestBase
             ?? new RegistrationEventRepository(Context);
 
         IBootstrapTokenService bootstrapSvc = bootstrapSvcOverride
-            ?? new BootstrapTokenService(bootstrapRepo, _hasher);
-        var credentialSvc = new InstallationCredentialService(credentialRepo, _generator, _hasher);
+            ?? new BootstrapTokenService(bootstrapRepo, _hasher, NullLogger<BootstrapTokenService>.Instance);
+        var credentialSvc = new InstallationCredentialService(credentialRepo, _generator, _hasher, NullLogger<InstallationCredentialService>.Instance);
 
         return new RegistrationService(Context, bootstrapSvc, credentialSvc,
-            installationRepo, eventsRepo, policiesOverride ?? DefaultPolicies, _time);
+            installationRepo, eventsRepo, policiesOverride ?? DefaultPolicies,
+            NullLogger<RegistrationService>.Instance, _time);
     }
 
     private async Task<BootstrapTokenEntity> SeedTokenAsync(
@@ -416,7 +418,8 @@ public class RegistrationServiceTests : IntegrationTestBase
         const string plaintext = "stbt_race-token";
         BootstrapTokenEntity tokenEntity = await SeedTokenAsync("ButtonPanelTester", plaintext);
 
-        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher);
+        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher,
+            NullLogger<BootstrapTokenService>.Instance);
         RaceLosingBootstrapTokenService raceSvc = new(realSvc,
             throwWith: BootstrapTokenStatus.Used);
         RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
@@ -447,7 +450,8 @@ public class RegistrationServiceTests : IntegrationTestBase
         const string plaintext = "stbt_race-revoked";
         await SeedTokenAsync("ButtonPanelTester", plaintext);
 
-        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher);
+        BootstrapTokenService realSvc = new(new BootstrapTokenRepository(Context), _hasher,
+            NullLogger<BootstrapTokenService>.Instance);
         RaceLosingBootstrapTokenService raceSvc = new(realSvc,
             throwWith: BootstrapTokenStatus.Revoked);
         RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
@@ -679,7 +683,8 @@ public class RegistrationServiceTests : IntegrationTestBase
         const string plaintext = "stbt_race-loser";
         await SeedTokenAsync("ButtonPanelTester", plaintext);
 
-        var realSvc = new BootstrapTokenService(new BootstrapTokenRepository(Context), _hasher);
+        var realSvc = new BootstrapTokenService(new BootstrapTokenRepository(Context), _hasher,
+            NullLogger<BootstrapTokenService>.Instance);
         var raceSvc = new RaceLosingBootstrapTokenService(realSvc, BootstrapTokenStatus.Used);
         RegistrationService sut = BuildSut(bootstrapSvcOverride: raceSvc);
 

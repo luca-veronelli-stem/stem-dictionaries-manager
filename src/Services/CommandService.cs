@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 using Services.Validation;
@@ -19,22 +20,26 @@ public class CommandService : ICommandService
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
     private readonly ICommandValidator _commandValidator;
+    private readonly ILogger<CommandService> _logger;
 
     public CommandService(
         ICommandRepository repository,
         ICommandDeviceStateRepository deviceStateRepository,
         IAuditService auditService,
-        ICurrentUserProvider userProvider)
+        ICurrentUserProvider userProvider,
+        ILogger<CommandService> logger)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(deviceStateRepository);
         ArgumentNullException.ThrowIfNull(auditService);
         ArgumentNullException.ThrowIfNull(userProvider);
+        ArgumentNullException.ThrowIfNull(logger);
         _repository = repository;
         _deviceStateRepository = deviceStateRepository;
         _audit = auditService;
         _userProvider = userProvider;
         _commandValidator = new CommandValidator(repository);
+        _logger = logger;
     }
 
     // === Base CRUD ===
@@ -60,6 +65,8 @@ public class CommandService : ICommandService
         CommandEntity entity = CommandMapper.ToEntity(command);
         CommandEntity created = await _repository.AddAsync(entity, ct);
         Command result = CommandMapper.ToDomain(created);
+
+        _logger.LogInformation("Created command {CommandId} ({Name})", result.Id, result.Name);
 
         await _audit.LogCreateAsync(AuditEntityType.Command, result.Id,
             _userProvider.CurrentUserId ?? 0,

@@ -21,10 +21,10 @@ public class DeviceServiceTests : IntegrationTestBase
         var boardRepository = new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance);
         var dictionaryRepository = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
-        IAuditService auditService = new AuditService(auditRepository);
+        IAuditService auditService = new AuditService(auditRepository, NullLogger<AuditService>.Instance);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _service = new DeviceService(
-            repository, boardRepository, dictionaryRepository, auditService, userProvider);
+            repository, boardRepository, dictionaryRepository, auditService, userProvider, NullLogger<DeviceService>.Instance);
     }
 
     [Fact]

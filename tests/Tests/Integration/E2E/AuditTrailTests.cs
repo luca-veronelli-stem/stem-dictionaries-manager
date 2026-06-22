@@ -26,7 +26,7 @@ public class AuditTrailTests : IntegrationTestBase
         SeedTestUser();
         _auditRepo = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
         _userProvider = new CurrentUserProvider { CurrentUserId = 1 };
-        _auditService = new AuditService(_auditRepo);
+        _auditService = new AuditService(_auditRepo, NullLogger<AuditService>.Instance);
     }
 
     // === Dictionary ===
@@ -323,28 +323,28 @@ public class AuditTrailTests : IntegrationTestBase
     private DictionaryService CreateDictionaryService() =>
         new(new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
             new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance),
-            _auditService, _userProvider);
+            _auditService, _userProvider, NullLogger<DictionaryService>.Instance);
 
     private VariableService CreateVariableService() =>
         new(new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance),
             new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
             new BitInterpretationRepository(Context, NullLogger<RepositoryBase<BitInterpretationEntity>>.Instance),
             new StandardVariableOverrideRepository(Context, NullLogger<RepositoryBase<StandardVariableOverrideEntity>>.Instance),
-            _auditService, _userProvider);
+            _auditService, _userProvider, NullLogger<VariableService>.Instance);
 
     private CommandService CreateCommandService() =>
         new(new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance),
             new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance),
-            _auditService, _userProvider);
+            _auditService, _userProvider, NullLogger<CommandService>.Instance);
 
     private BoardService CreateBoardService() =>
         new(new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance),
             new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
-            _auditService, _userProvider);
+            _auditService, _userProvider, NullLogger<BoardService>.Instance);
 
     private DeviceService CreateDeviceService() =>
         new(new DeviceRepository(Context, NullLogger<RepositoryBase<DeviceEntity>>.Instance),
             new BoardRepository(Context, NullLogger<RepositoryBase<BoardEntity>>.Instance),
             new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance),
-            _auditService, _userProvider);
+            _auditService, _userProvider, NullLogger<DeviceService>.Instance);
 }

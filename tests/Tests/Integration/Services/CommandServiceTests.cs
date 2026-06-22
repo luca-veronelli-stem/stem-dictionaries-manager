@@ -20,10 +20,10 @@ public class CommandServiceTests : IntegrationTestBase
         var repository = new CommandRepository(Context, NullLogger<RepositoryBase<CommandEntity>>.Instance);
         var deviceStateRepository = new CommandDeviceStateRepository(Context, NullLogger<RepositoryBase<CommandDeviceStateEntity>>.Instance);
         var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
-        IAuditService auditService = new AuditService(auditRepository);
+        IAuditService auditService = new AuditService(auditRepository, NullLogger<AuditService>.Instance);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _service = new CommandService(
-            repository, deviceStateRepository, auditService, userProvider);
+            repository, deviceStateRepository, auditService, userProvider, NullLogger<CommandService>.Instance);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure.Entities.Auth;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Tests.Unit.Services.Auth.Fakes;
 
@@ -18,7 +19,7 @@ public class InstallationCredentialServiceTests
         repo = new FakeInstallationApiCredentialRepository();
         generator = new FakeTokenGenerator();
         hasher = new FakePasswordHasher();
-        return new InstallationCredentialService(repo, generator, hasher);
+        return new InstallationCredentialService(repo, generator, hasher, NullLogger<InstallationCredentialService>.Instance);
     }
 
     [Fact]

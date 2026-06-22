@@ -21,10 +21,10 @@ public class DictionaryServiceTests : IntegrationTestBase
         var dictionaryRepository = new DictionaryRepository(Context, NullLogger<RepositoryBase<DictionaryEntity>>.Instance);
         var variableRepository = new VariableRepository(Context, NullLogger<RepositoryBase<VariableEntity>>.Instance);
         var auditRepository = new AuditEntryRepository(Context, NullLogger<RepositoryBase<AuditEntryEntity>>.Instance);
-        IAuditService auditService = new AuditService(auditRepository);
+        IAuditService auditService = new AuditService(auditRepository, NullLogger<AuditService>.Instance);
         ICurrentUserProvider userProvider = new CurrentUserProvider { CurrentUserId = 1 };
         _service = new DictionaryService(
-            dictionaryRepository, variableRepository, auditService, userProvider);
+            dictionaryRepository, variableRepository, auditService, userProvider, NullLogger<DictionaryService>.Instance);
     }
 
     [Fact]

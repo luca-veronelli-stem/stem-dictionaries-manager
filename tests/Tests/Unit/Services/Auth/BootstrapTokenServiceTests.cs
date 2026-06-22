@@ -1,6 +1,7 @@
 using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure.Entities.Auth;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.Auth;
 using Tests.Unit.Services.Auth.Fakes;
 
@@ -24,7 +25,7 @@ public class BootstrapTokenServiceTests
             ExpiresAt = _expiresAt,
             Status = BootstrapTokenStatus.Issued
         });
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         BootstrapToken? hit = await sut.LookupAsync("stbt_real-token-plaintext");
 
@@ -46,7 +47,7 @@ public class BootstrapTokenServiceTests
             ExpiresAt = _expiresAt,
             Status = BootstrapTokenStatus.Issued
         });
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         BootstrapToken? miss = await sut.LookupAsync("stbt_unknown-token");
 
@@ -58,7 +59,7 @@ public class BootstrapTokenServiceTests
     {
         FakeBootstrapTokenRepository repo = new();
         FakePasswordHasher hasher = new();
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         Assert.Null(await sut.LookupAsync(string.Empty));
     }
@@ -83,7 +84,7 @@ public class BootstrapTokenServiceTests
             ExpiresAt = _expiresAt,
             Status = status
         });
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         BootstrapToken? hit = await sut.LookupAsync("stbt_terminal-token");
 
@@ -104,7 +105,7 @@ public class BootstrapTokenServiceTests
             ExpiresAt = _expiresAt,
             Status = BootstrapTokenStatus.Issued
         });
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
         DateTime usedAt = _mintedAt.AddHours(2);
 
         await sut.MarkUsedAsync(seeded.Id, installationId: 142, usedAt: usedAt);
@@ -130,7 +131,7 @@ public class BootstrapTokenServiceTests
             UsedAt = _mintedAt.AddMinutes(1),
             ConsumedByInstallationId = 99
         });
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         // Race-loser branch: domain MarkUsed throws BootstrapTokenStateException
         // (a subtype of InvalidOperationException) carrying the FoundStatus, so
@@ -147,7 +148,7 @@ public class BootstrapTokenServiceTests
     {
         FakeBootstrapTokenRepository repo = new();
         FakePasswordHasher hasher = new();
-        BootstrapTokenService sut = new(repo, hasher);
+        BootstrapTokenService sut = new(repo, hasher, NullLogger<BootstrapTokenService>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => sut.MarkUsedAsync(tokenId: 99, installationId: 1, usedAt: _mintedAt));

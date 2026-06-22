@@ -4,6 +4,7 @@ using Core.Models.Auth;
 using Infrastructure;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces.Auth;
 
 namespace Services.Auth;
@@ -37,6 +38,7 @@ public partial class RegistrationService : IRegistrationService
     private readonly IRegistrationEventRepository _events;
     private readonly IReadOnlyDictionary<string, DescriptorPolicy> _descriptorPolicies;
     private readonly TimeProvider _time;
+    private readonly ILogger<RegistrationService> _logger;
 
     public RegistrationService(
         AppDbContext db,
@@ -45,6 +47,7 @@ public partial class RegistrationService : IRegistrationService
         IInstallationRepository installations,
         IRegistrationEventRepository events,
         IReadOnlyDictionary<string, DescriptorPolicy> descriptorPolicies,
+        ILogger<RegistrationService> logger,
         TimeProvider? time = null)
     {
         _db = db;
@@ -53,6 +56,7 @@ public partial class RegistrationService : IRegistrationService
         _installations = installations;
         _events = events;
         _descriptorPolicies = descriptorPolicies;
+        _logger = logger;
         _time = time ?? TimeProvider.System;
     }
 
@@ -263,6 +267,10 @@ public partial class RegistrationService : IRegistrationService
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
         await txn.CommitAsync(ct).ConfigureAwait(false);
 
+        _logger.LogInformation(
+            "Registered installation {InstallationId} for client app {ClientApp}",
+            installEntity.Id, descriptor.ClientApp);
+
         return new RegistrationResult.Success(installEntity.Id, plaintext, now);
     }
 
@@ -321,6 +329,10 @@ public partial class RegistrationService : IRegistrationService
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
         await txn.CommitAsync(ct).ConfigureAwait(false);
 
+        _logger.LogInformation(
+            "Re-registered installation {InstallationId} for client app {ClientApp}",
+            existing.Id, existing.ClientApp);
+
         return new RegistrationResult.Success(existing.Id, plaintext, now);
     }
 
@@ -331,6 +343,10 @@ public partial class RegistrationService : IRegistrationService
             resultingInstallationId: null);
         await _events.AddAsync(failureEvent, ct).ConfigureAwait(false);
         await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        _logger.LogWarning(
+            "Registration rejected for client app {ClientApp}: {Outcome}",
+            request.ClientApp, outcome);
 
         return new RegistrationResult.Failure(outcome);
     }

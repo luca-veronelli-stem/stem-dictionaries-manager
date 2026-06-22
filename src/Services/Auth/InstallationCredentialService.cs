@@ -2,6 +2,7 @@ using Core.Enums.Auth;
 using Core.Models.Auth;
 using Infrastructure.Entities.Auth;
 using Infrastructure.Interfaces.Auth;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces.Auth;
 
 namespace Services.Auth;
@@ -19,15 +20,18 @@ public class InstallationCredentialService : IInstallationCredentialService
     private readonly IInstallationApiCredentialRepository _credentials;
     private readonly ITokenGenerator _tokens;
     private readonly IPasswordHasher _hasher;
+    private readonly ILogger<InstallationCredentialService> _logger;
 
     public InstallationCredentialService(
         IInstallationApiCredentialRepository credentials,
         ITokenGenerator tokens,
-        IPasswordHasher hasher)
+        IPasswordHasher hasher,
+        ILogger<InstallationCredentialService> logger)
     {
         _credentials = credentials;
         _tokens = tokens;
         _hasher = hasher;
+        _logger = logger;
     }
 
     public async Task<(InstallationApiCredential Record, string Plaintext)> IssueAsync(
@@ -51,6 +55,8 @@ public class InstallationCredentialService : IInstallationCredentialService
         };
 
         await _credentials.AddAsync(entity, ct).ConfigureAwait(false);
+
+        _logger.LogInformation("Issued API credential for installation {InstallationId}", installationId);
 
         InstallationApiCredential record = new(installationId, hash, issuedAt);
         return (record, plaintext);

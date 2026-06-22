@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Models;
 using Infrastructure.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 using Services.Mapping;
 using Services.Validation;
@@ -22,25 +23,29 @@ public class DeviceService : IDeviceService
     private readonly IAuditService _audit;
     private readonly ICurrentUserProvider _userProvider;
     private readonly IDeviceValidator _deviceValidator;
+    private readonly ILogger<DeviceService> _logger;
 
     public DeviceService(
         IDeviceRepository repository,
         IBoardRepository boardRepository,
         IDictionaryRepository dictionaryRepository,
         IAuditService auditService,
-        ICurrentUserProvider userProvider)
+        ICurrentUserProvider userProvider,
+        ILogger<DeviceService> logger)
     {
         ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(boardRepository);
         ArgumentNullException.ThrowIfNull(dictionaryRepository);
         ArgumentNullException.ThrowIfNull(auditService);
         ArgumentNullException.ThrowIfNull(userProvider);
+        ArgumentNullException.ThrowIfNull(logger);
         _repository = repository;
         _boardRepository = boardRepository;
         _dictionaryRepository = dictionaryRepository;
         _audit = auditService;
         _userProvider = userProvider;
         _deviceValidator = new DeviceValidator(repository);
+        _logger = logger;
     }
 
     public async Task<Device?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -64,6 +69,8 @@ public class DeviceService : IDeviceService
         DeviceEntity entity = DeviceMapper.ToEntity(device);
         DeviceEntity created = await _repository.AddAsync(entity, ct);
         Device result = DeviceMapper.ToDomain(created);
+
+        _logger.LogInformation("Created device {DeviceId} ({Name})", result.Id, result.Name);
 
         await _audit.LogCreateAsync(AuditEntityType.Device, result.Id,
             _userProvider.CurrentUserId ?? 0,
