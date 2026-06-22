@@ -424,7 +424,7 @@ public class DeviceEditViewModelTests
     // === IEditableViewModel ===
 
     [Fact]
-    public void ImplementsIEditableViewModel()
+    public void Constructor_NewInstance_ImplementsIEditableViewModel()
     {
         Assert.IsType<IEditableViewModel>(_viewModel, exactMatch: false);
     }

@@ -41,7 +41,7 @@ public class CommandTests
     }
 
     [Fact]
-    public void FullCode_ReturnsCorrectValue()
+    public void FullCode_HighAndLowBytes_CombinesIntoWord()
     {
         Command command = TestData.CreateCommand("Test", 0x80, 0x07);
 
