@@ -139,6 +139,12 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Fixed
 
+- **GUI**: the Settings screen's `Database:` field now shows the conforming
+  APP_DATA v1.9.0 location `%LocalAppData%\Stem\DictionariesManager\db\` instead
+  of the legacy Roaming string `%AppData%\Stem.Dictionaries.Manager\dictionaries.db`,
+  which pointed at neither a conforming root nor the real database file. The
+  value is derived from `StemAppData` (the single source of truth) rather than a
+  hand-built path. Surfaced by the APP_DATA conformance audit. Refs #135.
 - **API**: a development `dotnet run --project src/API` against SQLite now
   creates and seeds the database on startup, so DB-touching endpoints serve
   data immediately. Previously only `GUI.Windows` ran `EnsureCreated` +
