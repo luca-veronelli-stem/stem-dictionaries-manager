@@ -4,6 +4,24 @@ The bootstrap registration endpoint. Public (unauthenticated), per
 issue #1: it is the entry point that *establishes* authentication for
 a new installation.
 
+> **Server counterpart of the `CLIENT_REGISTRATION` standard.** This
+> contract is the **server side** of the wire contract codified — from
+> the *consumer's* perspective — in
+> [`docs/Standards/CLIENT_REGISTRATION.md`](../../../docs/Standards/CLIENT_REGISTRATION.md)
+> (v1.16.0; reference adopter `button-panel-tester`). That standard's
+> closing line names `stem-dictionaries-manager`
+> (`specs/001-bootstrap-registration/contracts/register.md`) as the
+> owner of the server side; this document is it. The two are kept in
+> sync by hand: the status taxonomy, payload shapes, single-use /
+> revoke semantics, and privacy posture below all match the standard's
+> error table and "bootstrap exchange" section. Where the server's
+> granular `RegistrationOutcome` is finer-grained than the consumer's
+> `RegistrationError` DU, the HTTP status — not the response body — is
+> the seam (see *Status → outcome map* below). `CLIENT_REGISTRATION.md`
+> is a rollout-regenerated inline copy of the upstream standard and is
+> never edited locally; this contract is the place reconciling edits
+> land.
+
 ## Request
 
 ```http
@@ -14,13 +32,20 @@ Content-Type: application/json
   "bootstrapToken": "stbt_<43-char-base64url>",
   "descriptor": {
     "clientApp":   "ButtonPanelTester",
-    "osUserId":    "S-1-5-21-2127521184-1604012920-1887927527-72713",
-    "machineId":   "8a5e9b3c-6f4d-4d2a-9c1b-7d8e3f4b6c2a",
+    "osUserId":    "5f633273852092b9d0e6075b4f761b331837e410d5f1dfb7dbe0d654fce37598",
+    "machineId":   "b59ad516b32a60478e4331ae1f44793a445c348ec80a5b9f72e811e8914062af",
     "installGuid": "f3a8c2e6-2b4d-4f1e-9c3a-8e7d6f5b4a3c",
     "appVersion":  "1.0.0"
   }
 }
 ```
+
+`osUserId` and `machineId` are shown here as **SHA-256 hex digests** —
+the wire shape `CLIENT_REGISTRATION.md` mandates (a raw Windows SID or
+raw machine UUID MUST NOT cross the wire; see *Privacy posture*). The
+server treats both as opaque strings and does not parse them, so it
+accepts any string; the hashed form is the consumer's obligation, not a
+server-enforced one. `installGuid` is a real `Guid` (not hashed).
 
 **Field constraints**:
 

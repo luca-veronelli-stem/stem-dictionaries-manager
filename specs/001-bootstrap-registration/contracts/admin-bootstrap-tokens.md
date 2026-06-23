@@ -3,6 +3,16 @@
 Admin-only. Mints a new single-use bootstrap token scoped to a client
 app. Returns the plaintext value exactly once.
 
+The minted `stbt_<...>` plaintext is the "bootstrap token a technician
+supplies" in
+[`docs/Standards/CLIENT_REGISTRATION.md`](../../../docs/Standards/CLIENT_REGISTRATION.md):
+a consumer exchanges it **once**, at the unauthenticated
+[`POST /register`](./register.md), for a long-lived `stak_<...>`
+installation credential. This endpoint is the server-side mint; the
+single-use / not-idempotent / revoke semantics the standard relies on
+are enforced at `/register` (see *Side effects* and *Idempotency*
+there).
+
 ## Authentication
 
 `X-Api-Key` header. Key MUST be present in the new `AdminApiKeys`
