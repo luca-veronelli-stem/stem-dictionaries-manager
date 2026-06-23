@@ -58,6 +58,18 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
 
 ### Changed
 
+- **Docs**: the `specs/001-bootstrap-registration` contracts are reconciled
+  with the `CLIENT_REGISTRATION` standard (v1.16.0) landed in #129. A
+  server-counterpart cross-link is added from `contracts/register.md` to
+  `docs/Standards/CLIENT_REGISTRATION.md`; the `register.md` and
+  `admin-installations.md` example payloads now show `osUserId` / `machineId`
+  as the SHA-256 hex digests the standard's privacy posture mandates on the
+  wire (instead of raw SID / UUID values that contradicted it); the
+  `GET /api/admin/installations` `400`-on-invalid-`status` response is
+  documented; and `admin-bootstrap-tokens.md` cross-references the `/register`
+  exchange. A server-side conformance audit (status taxonomy, payload shapes,
+  single-use / `423`-revoke semantics, and the SC-007 no-secret-in-logs check)
+  found the endpoints already conformant — no behavior change. Closes #134.
 - **Tests**: the test suite is reorganized into a Shared/Unit/Integration/E2E
   layout (#17) -- namespaces mirror folder paths, the mock services move to
   `Tests/Shared`, enum + model tests merge under `Unit/Core`, and the GUI flow
