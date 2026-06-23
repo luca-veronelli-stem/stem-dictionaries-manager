@@ -26,14 +26,19 @@ public class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task InitializeAsync_SetsDatabasePath()
+    public async Task InitializeAsync_SetsDatabasePathUnderConformingLocalAppDataRoot()
     {
         // Act
         await _viewModel.InitializeAsync();
 
-        // Assert
-        Assert.NotEmpty(_viewModel.DatabasePath);
-        Assert.Contains("dictionaries.db", _viewModel.DatabasePath);
+        // Assert: APP_DATA v1.9.0 (#135) -- Local root, PascalCase Stem, single
+        // DictionariesManager token, db\ sub-folder; never the legacy Roaming
+        // %AppData%\Stem.Dictionaries.Manager\ shape it used to surface.
+        string conformingDbDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Stem", "DictionariesManager", "db");
+        Assert.Equal(conformingDbDir, _viewModel.DatabasePath);
+        Assert.DoesNotContain("Stem.Dictionaries.Manager", _viewModel.DatabasePath);
     }
 
     [Fact]

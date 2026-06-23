@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GUI.Windows.Abstractions;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace GUI.Windows.ViewModels;
@@ -36,9 +37,12 @@ public partial class SettingsViewModel : ObservableObject
     /// </summary>
     public Task InitializeAsync()
     {
-        // TODO: load real settings
-        DatabasePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-            + @"\Stem.Dictionaries.Manager\dictionaries.db";
+        // TODO: load real settings.
+        // APP_DATA v1.9.0 (#135): surface the conforming Local db root
+        // %LocalAppData%\Stem\DictionariesManager\db\ from StemAppData (the
+        // single source of truth), not a hand-built legacy Roaming path.
+        DatabasePath = StemAppData.BuildDbDir(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
 
         _logger.LogDebug("Settings initialized for app version {AppVersion}", AppVersion);
 
