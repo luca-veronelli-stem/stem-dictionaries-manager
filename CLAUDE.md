@@ -13,7 +13,21 @@ Examples: vendor SDK that requires a specific runtime, hardware quirk,
 non-default port for a development service, security exception.
 -->
 
-- _none yet_
+### Workflow deviations from the reusable standards templates
+
+Two of the three standards workflows keep a customized inline body instead of
+the v1.18.1 reusable caller stub, because the reusable bodies assume project
+conventions this repo has not adopted yet. The deviations track the reusable
+behaviour by hand (self-extract exe, Bitbucket Downloads, action pins) and are
+revisited when the underlying convention lands.
+
+- **`.github/workflows/release.yml`** — the reusable `release-archetype-a.yml`
+  publishes `src/<App>.GUI` (= `src/DictionariesManager.GUI`), but this repo's
+  desktop GUI is the legacy WPF project `src/GUI.Windows` (the Avalonia
+  `<App>.GUI` rename is Phase 5). The reusable exposes no GUI-project-path
+  input, so the caller stub would republish a non-existent project and break the
+  release (regression of #61). Resolve by adopting the stub once Phase 5 renames
+  `GUI.Windows` -> `DictionariesManager.GUI`.
 
 ## Language choices that deviate from defaults
 
