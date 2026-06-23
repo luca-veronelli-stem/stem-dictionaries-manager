@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#license)
 
 > **Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers.**
-> **Standard:** v1.3.2 — see [`docs/Standards/`](./docs/Standards/).
+> **Standard:** v1.18.1 — see [`docs/Standards/`](./docs/Standards/).
 
 ---
 
@@ -48,7 +48,7 @@ eng/                     hooks installer
 
 ## Documentation
 
-- Standards followed: [`docs/Standards/`](./docs/Standards/) — pinned to `v1.3.2`.
+- Standards followed: [`docs/Standards/`](./docs/Standards/) — pinned to `v1.18.1`.
 - Changelog: [`CHANGELOG.md`](./CHANGELOG.md).
 - Repo-specific notes: [`CLAUDE.md`](./CLAUDE.md).
 

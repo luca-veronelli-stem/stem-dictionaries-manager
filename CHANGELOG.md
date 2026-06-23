@@ -125,6 +125,17 @@ All notable changes to DictionariesManager follow [Semantic Versioning](https://
   solution build, so a normal `dotnet build` only ever produced the `net10.0`
   leg. `ubuntu-latest` stays `net10.0`-only (WPF cannot build on Linux), and
   `net10.0` is not re-run on Windows. #119.
+- **Standards**: STEM standards adoption bumped from `v1.3.2` to `v1.18.1`.
+  `docs/Standards/` is regenerated to the 21-standard v1.18.1 set (adds `GUI`,
+  `DESIGN_SYSTEM`, `APP_SHELL`, `APP_DATA`, `CLIENT_REGISTRATION`), and the root
+  config is reconciled (`.gitattributes` exempts Markdown from git whitespace
+  checks per v1.17.2; `.github/dependabot.yml` splits the Avalonia group and
+  restricts grouped updates to minor/patch per v1.11.0). The `mirror-bitbucket`
+  and archetype-A `release` workflows migrate to the reusable caller stubs at
+  `@v1.18.1`: the release artifact is now a single self-extracting `.exe`
+  (v1.8.0) and is also published to the repo's Bitbucket Downloads (v1.17.0,
+  gated on the `BITBUCKET_API_TOKEN` secret). No `src/`/`tests/` changes. Closes
+  #129.
 
 ### Fixed
 

@@ -20,7 +20,11 @@
 *.yml  text
 *.yaml text
 *.xml  text
-*.md   text
+# `-whitespace`: exempt Markdown from git's whitespace machinery so the README
+# template's intentional hard break (two trailing spaces = <br>, PR #130) does
+# not trip `git diff --check` / gate.ps1. Matches the .editorconfig md carve-out.
+# Conflict-marker detection still applies; code files stay policed.
+*.md   text -whitespace
 
 # Lean
 *.lean   text
@@ -43,6 +47,8 @@
 *.gif binary
 *.ico binary
 *.icns binary
+*.svg binary
+*.pdf binary
 *.dll binary
 *.exe binary
 *.pdb binary
