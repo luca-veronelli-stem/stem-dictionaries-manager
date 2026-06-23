@@ -1,5 +1,16 @@
 name: CI
 
+# Customized inline workflow (documented deviation from the reusable
+# dotnet-ci.yml). The reusable Linux test leg enumerates
+# tests/**/*.Tests.{fsproj,csproj} and the Windows leg runs a solution-wide
+# `dotnet test` with no --framework; neither fits this repo's single
+# multi-targeted tests/Tests/Tests.csproj (#17) -- the glob misses the
+# `Tests.csproj` filename (no `.Tests.` prefix) so the Linux leg would run zero
+# tests, and the root <TargetFramework>net10.0 leak makes the Windows leg drop
+# the net10.0-windows WPF GUI tests (#119). This inline body runs both legs
+# explicitly (net10.0 = 872, net10.0-windows = 1524) with action pins kept at
+# the v1.18.1 set. See CLAUDE.md -> "Repo-specific notes".
+
 on:
   push:
     branches: [main]
@@ -34,12 +45,17 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        # Tag-pinned to v5.3.0 for supply-chain posture, matching the reusable
+        # dotnet-ci.yml at v1.18.1.
+        uses: actions/setup-dotnet@v5.3.0
         with:
           global-json-file: global.json
 
       - name: Cache NuGet packages
+        # continue-on-error so a transient cache-service flake degrades to a
+        # cold restore instead of skipping Restore/Build/Test (standards #123).
         uses: actions/cache@v5
+        continue-on-error: true
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
@@ -49,6 +65,7 @@ jobs:
       - name: Cache Lean toolchain
         if: hashFiles('lean-toolchain') != ''
         uses: actions/cache@v5
+        continue-on-error: true
         with:
           path: ~/.elan
           key: ${{ runner.os }}-elan-${{ hashFiles('lean-toolchain') }}
@@ -94,9 +111,12 @@ jobs:
         run: dotnet test tests/Tests/Tests.csproj --framework net10.0-windows --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Test report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Tests (${{ matrix.os }})
           path: '**/test-results.trx'
           reporter: dotnet-trx
+          # v3 defaults to $GITHUB_STEP_SUMMARY, which silently drops the per-OS
+          # Tests check at PR level; opt back into the Check Run sink.
+          use-actions-summary: 'false'
