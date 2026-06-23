@@ -1,5 +1,16 @@
 name: Release
 
+# Customized inline workflow (documented deviation from the reusable
+# release-archetype-a.yml). The reusable body publishes `src/<App>.GUI`
+# (= src/DictionariesManager.GUI), but this repo's desktop GUI is the legacy
+# WPF project src/GUI.Windows (the Avalonia <App>.GUI rename is Phase 5). The
+# reusable exposes no GUI-project-path input, so adopting the caller stub
+# would republish a non-existent project and break the release (regression of
+# #61). This workflow tracks the reusable's behaviour by hand instead:
+# self-extracting single-file .exe (standards v1.8.0) and an additive Bitbucket
+# Downloads upload (standards v1.17.0), with action pins kept at the v1.18.1
+# set. See CLAUDE.md -> "Repo-specific notes".
+
 on:
   push:
     tags:
@@ -24,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v5.3.0
         with:
           global-json-file: global.json
 
@@ -44,6 +55,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      # Publishes the legacy WPF GUI project (src/GUI.Windows), not the
+      # reusable's src/<App>.GUI. IncludeNativeLibrariesForSelfExtract makes the
+      # artifact a single self-extracting .exe (standards v1.8.0).
       - name: Publish (win-x64, self-contained)
         run: |
           dotnet publish src/GUI.Windows/GUI.Windows.csproj `
@@ -51,6 +65,7 @@ jobs:
             -r win-x64 `
             --self-contained `
             -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version=${{ steps.version.outputs.version }} `
             -o publish/win-x64
 
@@ -84,3 +99,21 @@ jobs:
           body_path: release-notes.md
           files: |
             ${{ steps.package.outputs.zip }}
+
+      # Additive Bitbucket Downloads publish (standards v1.17.0), so the firmware
+      # team can fetch released builds without GitHub access. Auth is a Bitbucket
+      # repository access token (Bearer) in BITBUCKET_API_TOKEN -- an HTTPS REST
+      # credential, unrelated to the SSH BITBUCKET_SSH_KEY the git mirror uses.
+      # Re-POSTing the same filename replaces it, so a tag re-run is idempotent.
+      # shell: bash because this job's steps default to pwsh on windows-latest;
+      # curl ships on the runner image. The next release 401s until the
+      # BITBUCKET_API_TOKEN secret is provisioned (see CLAUDE.md).
+      - name: Upload to Bitbucket Downloads
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.BITBUCKET_API_TOKEN }}
+          ZIP: ${{ steps.package.outputs.zip }}
+        run: |
+          curl -sSf -H "Authorization: Bearer $TOKEN" \
+            "https://api.bitbucket.org/2.0/repositories/stem-fw/stem-dictionaries-manager/downloads" \
+            -F files=@"$ZIP"
