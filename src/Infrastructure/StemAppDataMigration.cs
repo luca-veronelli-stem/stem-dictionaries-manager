@@ -6,10 +6,34 @@ namespace Infrastructure;
 /// v1.9.0 layout (<c>%LocalAppData%\Stem\DictionariesManager\db\</c>), guarded
 /// by a single-integer <c>.appdata-version</c> marker at the app root so it
 /// runs at most once per installation.
-///
-/// Delete this class and its call site in <see cref="DependencyInjection"/>
-/// once the installed base (devs + CI) has rolled over to the new path.
 /// </summary>
+/// <remarks>
+/// <para>
+/// APP_DATA v1.9.0 conformance audit (#135): every per-user disk write in this
+/// repo resolves under the conforming Local root
+/// <c>%LocalAppData%\Stem\DictionariesManager\</c> via <see cref="StemAppData"/>.
+/// The SQLite database is the repo's only on-disk per-user data, so there are
+/// no <c>logs\</c>, <c>cache\</c>, or <c>credentials\</c> write sites to audit.
+/// The legacy Roaming path built in <see cref="MigrateDefaultDatabase"/> is the
+/// migration source only, never a write target.
+/// </para>
+/// <para>
+/// Retain decision (#135): this transient helper is deliberately kept, not
+/// removed yet. A production Azure deployment
+/// (<c>app-dictionaries-manager-prod</c>) exists and the whole installed base
+/// cannot be confirmed off the legacy Roaming root, so deleting the one-shot
+/// migration now would risk stranding un-migrated users on the old path.
+/// </para>
+/// <para>
+/// Removal target: the first release cycle after the next production rollover
+/// confirms no first launch under the legacy Roaming layout can still surface.
+/// At that point delete this class and its call site in
+/// <see cref="DependencyInjection"/> (<c>GetDefaultSqlitePath</c>); the
+/// <c>.appdata-version</c> files left on disk are inert and need no cleanup,
+/// while <see cref="StemAppData"/> (the forever path-resolution helper) stays.
+/// See <c>docs/Standards/APP_DATA.md</c> -> "Removal after cutover".
+/// </para>
+/// </remarks>
 public static class StemAppDataMigration
 {
     /// <summary>On-disk schema version recorded by a completed migration.</summary>
