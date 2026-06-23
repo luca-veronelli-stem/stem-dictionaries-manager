@@ -1,6 +1,6 @@
-# STEM standards (Standard version: v1.3.2)
+# STEM standards (Standard version: v1.18.1)
 
-These are inline copies pinned to `v1.3.2`. Upstream source of truth is [llm-settings/shared/standards/](https://github.com/luca-veronelli-stem/llm-settings/tree/v1.3.2/shared/standards) (private repo).
+These are inline copies pinned to `v1.18.1`. Upstream source of truth is [standards/shared/standards/](https://github.com/luca-veronelli-stem/standards/tree/v1.18.1/shared/standards).
 
 | Standard | Purpose |
 | --- | --- |
@@ -20,7 +20,12 @@ These are inline copies pinned to `v1.3.2`. Upstream source of truth is [llm-set
 | [COMMENTS.md](./COMMENTS.md) | XML doc coverage by visibility; English by default; <inheritdoc/>. |
 | [ERROR_HANDLING.md](./ERROR_HANDLING.md) | Try-pattern / Result type / exception decision tree. |
 | [CONFIGURATION.md](./CONFIGURATION.md) | Constants -> Configuration -> Service pattern; library + app delivery. |
+| [GUI.md](./GUI.md) | Avalonia + FuncUI + Elmish-MVU; <App>.GUI/ layout; composition root; legacy WinForms/WPF carve-out. |
+| [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) | Fluent theme + light default (brand-aligned); 4-pt spacing scale; Fluent System Icons; Poppins typography; Stem brand palette; F# strings module for i18n; toast/banner/inline/modal error surfaces. |
+| [APP_SHELL.md](./APP_SHELL.md) | Canonical views (Settings, About, LanguagePicker, NotificationCenter, ConnectionStatus); typed ShellSlots record; Navigation pinned to left sidebar. |
+| [APP_DATA.md](./APP_DATA.md) | <LocalApplicationData>\Stem\<AppName>\ per-user data root; logs/cache/credentials/db sub-folders; transient migration helper for legacy roots. |
+| [CLIENT_REGISTRATION.md](./CLIENT_REGISTRATION.md) | Bootstrap-token /register exchange; hashed install descriptor; closed error taxonomy; DPAPI-port credential store; X-Api-Key handler. |
 
 ## Bumping the standard version
 
-Re-run the rollout from `<llm-settings>/eng/apply-repo-standard.ps1` with `-StandardVersion vX.Y.Z`. The script reads `.stem-standard.json` at the repo root, so only the new tag needs to be passed.
+Re-run the rollout from `<standards>/eng/apply-repo-standard.ps1` with `-StandardVersion vX.Y.Z`. The script reads `.stem-standard.json` at the repo root, so only the new tag needs to be passed.

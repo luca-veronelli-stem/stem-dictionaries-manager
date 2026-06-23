@@ -1,9 +1,9 @@
 # CLAUDE.md — DictionariesManager
 
 **Archetype:** A
-**Standard version:** v1.3.2
+**Standard version:** v1.18.1
 
-This repo follows the STEM v1 standards documented in [`docs/Standards/`](./docs/Standards/) (inline copies pinned to the version above). Upstream source of truth lives in [`llm-settings`](https://github.com/luca-veronelli-stem/llm-settings/tree/v1.3.2/shared/standards) (private).
+This repo follows the STEM standards documented in [`docs/Standards/`](./docs/Standards/) (inline copies pinned to the version above). Upstream source of truth lives in [`standards`](https://github.com/luca-veronelli-stem/standards/tree/v1.18.1/shared/standards).
 
 ## Repo-specific notes
 
@@ -32,7 +32,7 @@ Examples:
 
 ## Active migrations
 
-- [x] Phase 1: structural adoption of `llm-settings v1.3.2` — restructure to `src/` + `tests/`, CPM, GitHub Actions CI, inline standards under `docs/Standards/`, in-tree ISSUES files migrated to GitHub Issues (#2–#18).
+- [x] Phase 1: structural adoption of the STEM standards — restructure to `src/` + `tests/`, CPM, GitHub Actions CI, inline standards under `docs/Standards/`, in-tree ISSUES files migrated to GitHub Issues (#2–#18). Standard version bumped to v1.18.1 in #129 (docs/config reconciliation + reusable-workflow caller stubs).
 - [ ] Phase 2: Italian → English translation pass for in-tree XML doc comments, inline comments, and XAML UI strings (≈125 files across `src/` and `tests/`). Pre-v1 component READMEs were dropped in #32; the residual translation work is tracked in #33 with a per-layer PR breakdown.
 - [ ] Phase 3: F# migration of `Core` (and any cross-cutting domain logic that lands in F# alongside).
 - [ ] Phase 4: F# migration of `Services`.

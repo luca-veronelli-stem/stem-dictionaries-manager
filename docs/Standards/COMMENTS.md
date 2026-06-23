@@ -120,16 +120,18 @@ A `TODO` without an issue number rots; an issue number ties it to a tracker entr
 
 ## F#
 
-Same `///` syntax:
+F# uses the same `///` doc-comment syntax as C#, with one convention difference: write the **summary as bare `///` prose** — don't wrap a plain summary in explicit `<summary>` tags. The F# compiler auto-wraps bare doc-comment prose in `<summary>` at compile time, so explicit summary tags are noise that diverges from the established STEM F# bare style.
+
+The nuance: bare prose only stands in for the `<summary>`. When you document parameters or a return value, the [`<param>`/`<returns>` tags](#required-tags) are still explicit — there is no bare equivalent. So a fully-documented F# member is a bare summary line followed by explicit `<param>`/`<returns>` tags:
 
 ```fsharp
-/// <summary>Decodes a frame from its raw byte representation.</summary>
+/// Decodes a frame from its raw byte representation.
 /// <param name="raw">the framed bytes including the CRC trailer.</param>
 /// <returns>the decoded frame, or <c>None</c> when the CRC mismatches.</returns>
 let decode (raw: byte[]) : Frame option = ...
 ```
 
-For F#-specific docs (records, DUs, modules), the same coverage rules apply — public surface gets `<summary>`; internal modules are optional.
+For F#-specific docs (records, DUs, modules), the same coverage rules apply — public surface gets a summary; internal modules are optional. C# is unchanged: it keeps explicit `<summary>` tags, since the C# compiler does not auto-wrap bare prose.
 
 ## Enforcement
 

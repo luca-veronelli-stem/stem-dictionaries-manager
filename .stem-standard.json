@@ -4,8 +4,9 @@
   "archetype": "A",
   "owner": "luca-veronelli-stem",
   "lucaUser": "luca-veronelli-stem",
-  "standardVersion": "v1.3.2",
+  "standardVersion": "v1.18.1",
   "author": "Luca Veronelli",
   "description": "Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers",
-  "year": "2026"
+  "year": "2026",
+  "creationDate": null
 }

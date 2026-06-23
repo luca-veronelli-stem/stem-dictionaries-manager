@@ -1,7 +1,7 @@
 # Standard: REPO_STRUCTURE
 
 > **Stability:** v1.0.0 — load-bearing. Changes are major.
-> **Applies to:** archetypes A, B, C. Archetype D triggers a `new-archetype` design session before adoption.
+> **Applies to:** archetypes A, B, C, D. A genuinely new archetype beyond this catalogue triggers a `new-archetype` design session before adoption.
 
 ## Root layout
 
@@ -9,7 +9,8 @@
 <repo>/
 ├── src/                       Project sources. PascalCase folders inside.
 ├── tests/                     Test projects. PascalCase folders inside.
-├── specs/                     Lean 4 workspace (lakefile.toml + namespace folders).
+├── specs/                     Spec-Driven Development (spec-kit) feature folders: NNN-feature-name/.
+├── lean/                      Lean 4 workspace (lakefile.lean + lean-toolchain + namespace folders).
 ├── docs/                      Markdown documentation.
 ├── eng/                       Build/release scripts (PowerShell + Bash).
 ├── .github/                   Workflows, issue templates, CODEOWNERS.
@@ -24,12 +25,15 @@
 └── bitbucket-pipelines.yml    Build-only stub; CI of record is GitHub Actions.
 ```
 
+`specs/` and `lean/` are independent siblings — neither implies the other. Repos without a Lean formalization track may omit `lean/` entirely; repos without SDD may omit `specs/`.
+
 ## Naming rules
 
-- Folders at the repo root are **lowercase** (`src/`, `tests/`, `specs/`, …).
+- Folders at the repo root are **lowercase** (`src/`, `tests/`, `specs/`, `lean/`, …).
 - Project folders inside `src/` and `tests/` are **PascalCase** and match the project name (`Stem.Communication.Abstractions/`, `<App>.GUI/`).
 - Each project has its own folder; the `.fsproj` / `.csproj` filename matches the folder name.
 - Project namespace prefix is `Stem.<App>.<Layer>` (archetype A) or `Stem.<Lib>.<Layer>` (archetype B).
+- F# files organise by **module / namespace**, not one type per file — there is no one-type-per-file rule. A `.fs` that groups a module's related functions with its small supporting types is the expected shape, not a layout violation. (Compilation order within a project is still significant: list files dependency-first in the `.fsproj`.)
 
 ## Per-archetype layout
 
@@ -43,6 +47,10 @@ src/
 └── <App>.GUI/                 net10.0  F#  Avalonia + FuncUI (depends on Services)
 tests/
 └── <App>.Tests/               net10.0  F#  xUnit + FsCheck + Avalonia.Headless
+lean/                          Optional — present when the repo formalizes invariants in Lean 4.
+├── lakefile.lean
+├── lean-toolchain
+└── Stem/<App>/Phase<N>/       Lean module folders mirror the F# namespace (Stem.<App>...).
 ```
 
 Split `<App>.Tests` into per-project test assemblies only when the C# surface is substantial enough to need its own xUnit fixtures (see TESTING).
@@ -65,30 +73,45 @@ tests/
 
 ### Archetype C — Meta/Config
 
-`llm-settings` itself. No `src/`, `tests/`, `specs/`. Layout follows the existing `claude/` + `shared/` projection (see this repo's README).
+Repos like `standards` (this one) and `llm-settings`. No `src/`, `tests/`, `specs/`, `lean/`. Layout depends on the meta-config's purpose — see each repo's README. `standards` has `shared/standards/` + `shared/templates/` + `eng/` + `state/`; `llm-settings` has `claude/` + `shared/skills/` + `shared/mcp/`.
 
-### Archetype D — New (placeholder)
+### Archetype D — CLI tool
 
-Run a `new-archetype` design session before adopting any standard. Don't force-fit.
+A headless operator executable: the hexagonal library layers of archetype B (`Abstractions` / `Protocol` / `Drivers.*`) plus a thin `.Cli` host on top that wires them into a command-line entry point. The distributable is a self-contained single-file `.exe`, published to a GitHub Release and (optionally) the repo's Bitbucket Downloads — the operator-download path archetype A's GUI got in `v1.17.0` (see CI.md → "Release workflow — archetype D").
+
+```
+src/
+├── Stem.<App>.Abstractions/          net10.0      F#  Interfaces, types, no logic
+├── Stem.<App>.Protocol/              net10.0      F#  Pure logic over Abstractions
+├── Stem.<App>.Drivers.<Plat>.<Bus>/  multi-TFM    F#  Adapter per platform/bus
+└── Stem.<App>.Cli/                   windows TFM  F#  Command-line host (entry point)
+tests/
+└── Stem.<App>.Tests/                 net10.0      F#  xUnit + FsCheck
+```
+
+The `.Cli` host folder carries the `Stem.` prefix (`Stem.<App>.Cli`), unlike archetype A's `src/<App>.GUI` — so the release workflow takes the `.Cli` project path as an **explicit** input rather than deriving it from `<App>`. It publishes against a windows TFM (e.g. `net10.0-windows10.0.19041.0`) when its drivers bind Windows-only APIs (BLE, DPAPI), and the release takes the runtime identifier as a parameterized input (default `win-x64`); multi-RID is a future extension. The rollout's archetype D overlay is **only** the release stub — there is no greenfield `.Cli` scaffold, so a repo adopts D brownfield and re-rolls the stub. First adopter: `telemetry-manager` (its `Stem.TelemetryManager.Cli` host).
+
+A genuinely new archetype beyond this catalogue (A desktop / B library / C meta-config / D CLI) still starts with a `new-archetype` design session — don't force-fit.
 
 ## Standards reference inside the repo
 
-`docs/Standards/` contains **inline copies** of the standards files from `llm-settings/shared/standards/`, pinned to the repo's current `**Standard version:**`. The rollout script (`eng/apply-repo-standard.ps1`) is the only writer — it copies the standards into `docs/Standards/` and regenerates a short `docs/Standards/README.md` index that points back to `llm-settings` as the upstream source of truth.
+`docs/Standards/` contains **inline copies** of the standards files from this repo's `shared/standards/`, pinned to the repo's current `**Standard version:**`. The rollout script (`eng/apply-repo-standard.ps1`) is the only writer — it copies the standards into `docs/Standards/` and regenerates a short `docs/Standards/README.md` index that points back to the `standards` repo as the upstream source of truth.
 
 ### Rationale — why inline copies, not symlinks or hyperlinks
 
 `llm-settings` itself uses symlinks at install time (e.g. `~/.claude/skills/` → `llm-settings/shared/skills/`), but those live outside any tracked git tree and only need to resolve on one machine.
 
-A symlink **inside** a work repo's tracked tree (`docs/Standards/` → `<llm-settings>/shared/standards/`) is a different problem: git stores the relative target as a tiny text file that has to resolve **everywhere the repo is read**.
+A symlink **inside** a work repo's tracked tree (`docs/Standards/` → `<standards>/shared/standards/`) is a different problem: git stores the relative target as a tiny text file that has to resolve **everywhere the repo is read**.
 
-| Where the work repo is read | In-repo symlink | Hyperlink to private llm-settings | Inline copy |
+| Where the work repo is read | In-repo symlink | Hyperlink to standards | Inline copy |
 | --- | --- | --- | --- |
 | Local machine, both repos checked out | ✅ | ✅ | ✅ |
-| GitHub Actions runner | ❌ — sibling repo not cloned | ✅ (auth) | ✅ |
-| Bitbucket-only colleague's clone | ❌ — no GitHub access | ❌ — 404 on private repo | ✅ |
-| Drift risk if `llm-settings` evolves | none | low (pin to tag) | bounded by Standard version stamp + `state/repos.md` |
+| GitHub Actions runner | ❌ — sibling repo not cloned | ✅ | ✅ |
+| Bitbucket-only colleague's clone | ❌ — no GitHub access | ✅ (public, tag-pinned URL) | ✅ |
+| Drift risk if `standards` evolves | none | none (tag-pinned) | bounded by Standard version stamp + `state/repos.md` |
+| Greppable / readable inside the work repo | external — points outside the tree | external — needs a browser round-trip | ✅ |
 
-The dual-remote rule says colleagues read from Bitbucket, so the standards have to be physically present in the work repo. Symlinks and hyperlinks both fail that constraint; inline copy is the only option that survives.
+Symlinks fail the dual-remote constraint: a Bitbucket-only colleague has no path to the GitHub-hosted target. Hyperlinks now resolve for that case — `standards` is public — but they push the standards content outside the work repo's tree, so any repo-local read (grep, on-Bitbucket inline review, offline browse) has to round-trip through a browser. Inline copies keep the content inside the work repo and pin it to an explicit Standard version stamp, which is the property `state/repos.md` actually tracks.
 
 ### Why we still use symlinks for `~/.claude/`
 
@@ -104,9 +127,10 @@ The install-time symlinks are local-only, never committed, and serve a single us
 | Avalonia view / view-model | `<App>.GUI/` |
 | MEDI registration extensions | `<App>.GUI/Composition/` (A) or `<Lib>.DependencyInjection/` (B, optional) |
 | xUnit test | `tests/<App>.Tests/` |
-| Lean 4 spec | `specs/<Namespace>/Phase<N>/` |
+| Spec-Driven Development (spec-kit) feature folder | `specs/NNN-feature-name/` |
+| Lean 4 spec | `lean/Stem/<App>/Phase<N>/` (archetype A) or `lean/Stem/<Lib>/Phase<N>/` (archetype B) |
 | Build/release script | `eng/` |
-| Standard or convention doc | upstream in `llm-settings/shared/standards/`; cite from `docs/Standards.md` |
+| Standard or convention doc | upstream in this repo's `shared/standards/`; cite from `docs/Standards.md` |
 
 ## Solution file (.slnx)
 
