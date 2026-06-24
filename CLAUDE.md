@@ -40,6 +40,15 @@ revisited when the underlying convention lands.
   adopting the caller stub once the suite is split into the
   `<App>.Tests.<Platform>` project convention the reusable expects (would undo
   #17, so not done here).
+- **`.github/workflows/deploy-api.yml`** — an *additional* workflow beyond the
+  standard three (ci / release / mirror), not a customized stub. It auto-deploys
+  the API to Azure App Service (`app-dictionaries-manager-prod`) on `v*.*.*` tag
+  pushes (and on manual `workflow_dispatch`): runs the EF Core migrations script
+  against Azure SQL, then `azure/webapps-deploy`. CI.md states STEM apps don't
+  auto-deploy (the release bundle is the deploy artifact), so this is a
+  deliberate repo-specific extension — this API is genuinely Azure-hosted and the
+  push-button deploy is wanted. It shares the `v*.*.*` trigger with `release.yml`
+  (release builds/publishes the bundle; deploy ships the API).
 
 ## Language choices that deviate from defaults
 
