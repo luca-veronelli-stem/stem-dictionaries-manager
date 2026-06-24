@@ -4,7 +4,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#license)
 
-> **Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers.**
+> **Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers.**  
 > **Standard:** v1.18.1 — see [`docs/Standards/`](./docs/Standards/).
 
 ---
@@ -56,5 +56,5 @@ eng/                     hooks installer
 
 - **Owner:** STEM E.m.s.
 - **Author:** Luca Veronelli
-- **Creation Date:** 2026
+- **Creation Date:** 2026-03-11
 - **License:** Proprietary — All rights reserved.

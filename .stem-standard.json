@@ -8,5 +8,5 @@
   "author": "Luca Veronelli",
   "description": "Centralized management for STEM device dictionaries (commands + variables), with REST API for external consumers",
   "year": "2026",
-  "creationDate": null
+  "creationDate": "2026-03-11"
 }
