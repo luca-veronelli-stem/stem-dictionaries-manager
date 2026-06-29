@@ -54,7 +54,7 @@ jobs:
       - name: Cache NuGet packages
         # continue-on-error so a transient cache-service flake degrades to a
         # cold restore instead of skipping Restore/Build/Test (standards #123).
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         continue-on-error: true
         with:
           path: ~/.nuget/packages
@@ -64,7 +64,7 @@ jobs:
 
       - name: Cache Lean toolchain
         if: hashFiles('lean-toolchain') != ''
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         continue-on-error: true
         with:
           path: ~/.elan
